@@ -49,8 +49,7 @@ int main(int argc, char* argv[]) {
 
     SceneNode rootNode;
 
-    ModelResource* benvolio = resman->findModel("RoseCube.model");
-    benvolio->grab();
+    rootNode.grabModel(resman->findModel("RoseCube.model"));
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
@@ -69,18 +68,23 @@ int main(int argc, char* argv[]) {
 
         uint32_t now = SDL_GetTicks();
         double tps = now - prev;
+        tps /= 1000;
         prev = now;
 
-        modelMat = glm::rotate(modelMat, glm::radians((float) (tps * 0.1)), glm::vec3(0.0f, 1.0f, 0.0f));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        benvolio->render(viewMat, projMat, modelMat);
+        modelMat = glm::rotate(modelMat, (float) tps, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tps);
+        rootNode.move(glm::vec3(0.f, 0.f, (float) (tps * 0.3)));
+        rootNode.render(viewMat, projMat);
+
 
         SDL_GL_SwapWindow(sdlWindow);
     }
 
-    benvolio->drop();
+    rootNode.dropModel();
     
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

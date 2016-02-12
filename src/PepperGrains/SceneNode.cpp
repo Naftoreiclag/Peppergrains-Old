@@ -5,7 +5,10 @@
 SceneNode::SceneNode()
 : mLocalTransformDirty(false)
 , mWorldTransformDirty(true)
-, mParent(nullptr) {
+, mParent(nullptr)
+, mModelRes(nullptr)
+, mLocalScale(glm::vec3(1.f))
+, mLocalTranslation(glm::vec3(0.f)) {
 }
 
 SceneNode::~SceneNode() {
@@ -23,9 +26,9 @@ const glm::mat4& SceneNode::calcLocalTransform() {
     }
 
     mLocalTransform =
-        glm::scale(glm::mat4(1.f), mLocalScale) *
+        glm::translate(glm::mat4(1.f), mLocalTranslation) *
         glm::mat4_cast(mLocalOrientation) *
-        glm::translate(glm::mat4(1.f), mLocalTranslation);
+        glm::scale(glm::mat4(1.f), mLocalScale);
 
     mLocalTransformDirty = false;
     mWorldTransformDirty = true;
@@ -39,7 +42,11 @@ const glm::mat4& SceneNode::calcWorldTransform() {
 
     this->calcLocalTransform();
 
-    mWorldTransform = mLocalTransform * mParent->calcWorldTransform();
+    if(mParent) {
+        mWorldTransform = mLocalTransform * mParent->calcWorldTransform();
+    } else {
+        mWorldTransform = mLocalTransform;
+    }
 
     mWorldTransformDirty = false;
 
@@ -65,11 +72,20 @@ void SceneNode::rotate(const glm::quat& rotation) {
     mLocalOrientation = rotation * mLocalOrientation;
     this->markBothTransformsDirty();
 }
+void SceneNode::rotate(const glm::vec3& axis, const float& radians) {
+    mLocalOrientation = glm::rotate(mLocalOrientation, radians, axis);
+    this->markBothTransformsDirty();
+}
 void SceneNode::move(const glm::vec3& translation) {
     mLocalTranslation += translation;
     this->markBothTransformsDirty();
 }
 void SceneNode::markWorldTransformDirty() {
+    // Avoid unnecessary tree iteration
+    if(mWorldTransformDirty) {
+        return;
+    }
+
     mWorldTransformDirty = true;
     for(std::vector<SceneNode*>::iterator iter = mChildren.begin(); iter != mChildren.end(); ++ iter) {
         SceneNode* child = *iter;
@@ -81,13 +97,34 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
+void SceneNode::grabModel(ModelResource* modelRes) {
+    this->dropModel();
+
+    mModelRes = modelRes;
+    modelRes->grab();
+}
+void SceneNode::dropModel() {
+    if(mModelRes) {
+        mModelRes->drop();
+        mModelRes = nullptr;
+    }
+}
+
 void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat) {
     calcWorldTransform();
 
-
+    if(mModelRes) {
+        mModelRes->render(viewMat, projMat, mWorldTransform);
+    }
 
     for(std::vector<SceneNode*>::iterator iter = mChildren.begin(); iter != mChildren.end(); ++ iter) {
         SceneNode* child = *iter;
         child->render(viewMat, projMat);
+    }
+}
+
+void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
+    if(mModelRes) {
+        mModelRes->render(viewMat, projMat, modelMat);
     }
 }

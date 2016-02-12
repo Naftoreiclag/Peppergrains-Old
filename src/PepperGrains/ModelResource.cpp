@@ -56,7 +56,7 @@ bool ModelResource::load() {
         mGeometry->enableColorAttrib(shaderProg->getColorAttrib());
     }
     if(shaderProg->needsUVAttrib()) {
-        mGeometry->enableTextureAttrib(shaderProg->getUVAttrib());
+        mGeometry->enableUVAttrib(shaderProg->getUVAttrib());
     }
     if(shaderProg->needsNormalAttrib()) {
         mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());

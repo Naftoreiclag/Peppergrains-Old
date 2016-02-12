@@ -138,7 +138,7 @@ void GeometryResource::enableColorAttrib(GLuint colorAttrib) {
         glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mColorOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableTextureAttrib(GLuint textureAttrib) {
+void GeometryResource::enableUVAttrib(GLuint textureAttrib) {
     if(mUseUV) {
         glEnableVertexAttribArray(textureAttrib);
         glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mTextureOff * sizeof(GLfloat)));

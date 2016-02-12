@@ -83,7 +83,7 @@ public:
     void bindBuffers();
     void enablePositionAttrib(GLuint posAttrib);
     void enableColorAttrib(GLuint colorAttrib);
-    void enableTextureAttrib(GLuint textureAttrib);
+    void enableUVAttrib(GLuint textureAttrib);
     void enableNormalAttrib(GLuint normalAttrib);
 
     GLuint getHandle() const;
