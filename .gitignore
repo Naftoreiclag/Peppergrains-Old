@@ -10,6 +10,7 @@ bin/*
 src/PepperGrains/*.mk
 src/PepperGrains/client.txt
 src/PepperGrains/Debug/*
+src/PepperGrains/Release/*
 src/PepperGrains/PepperGrains.txt
 src/Makefile
 
