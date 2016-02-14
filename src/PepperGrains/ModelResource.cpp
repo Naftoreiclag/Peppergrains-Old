@@ -57,9 +57,12 @@ bool ModelResource::load() {
     mMaterial->grab();
     mGeometry->grab();
 
+    // Create a new vertex array object
+    // This will be needed to quickly bind/unbind shader attributes and geometry buffers
     glGenVertexArrays(1, &mVertexArrayObject);
     glBindVertexArray(mVertexArrayObject);
 
+    // Bind geometry buffers
     mGeometry->bindBuffers();
 
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
@@ -93,10 +96,13 @@ bool ModelResource::unload() {
 }
 
 void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
+    // Get the shader program specified by the material
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
 
+    // Tell OpenGL to use that shader program
     glUseProgram(shaderProg->getHandle());
 
+    // Tell OpenGL to use the provided matrices
     if(shaderProg->needsModelMatrix()) {
         glUniformMatrix4fv(shaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
     }
@@ -107,8 +113,10 @@ void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, c
         glUniformMatrix4fv(shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
     }
 
+    // Bind the textures specified by the material
     mMaterial->bindTextures();
 
+    //
     glBindVertexArray(mVertexArrayObject);
     mGeometry->render();
     glBindVertexArray(0);

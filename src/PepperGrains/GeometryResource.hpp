@@ -96,6 +96,10 @@ public:
 
     void render();
     void bindBuffers();
+
+    // These methods are used during vertex array object intialization
+    // They tell OpenGL how to read attribute data from the buffers
+    // If the geometry lacks a specific attribute, these methods will skip
     void enablePositionAttrib(GLuint posAttrib);
     void enableColorAttrib(GLuint colorAttrib);
     void enableUVAttrib(GLuint textureAttrib);
