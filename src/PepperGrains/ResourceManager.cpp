@@ -79,6 +79,8 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
             newRes = mMaterials[name] = new MaterialResource();
         } else if(resType == "geometry") {
             newRes = mGeometries[name] = new GeometryResource();
+        } else if(resType == "font") {
+            newRes = mFonts[name] = new FontResource();
         } else {
             newRes = mMiscs[name] = new MiscResource();
         }
@@ -129,6 +131,9 @@ ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
         std::cout << name << std::endl;
     }
     return ret;
+}
+FontResource* ResourceManager::findFont(std::string name) {
+    return mFonts[name];
 }
 
 }

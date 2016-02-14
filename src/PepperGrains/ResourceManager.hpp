@@ -30,6 +30,7 @@
 #include "ShaderProgramResource.hpp"
 #include "VertexShaderResource.hpp"
 #include "FragmentShaderResource.hpp"
+#include "FontResource.hpp"
 
 namespace pgg {
 
@@ -45,6 +46,7 @@ private:
     std::map<std::string, GeometryResource*> mGeometries;
     std::map<std::string, ShaderResource*> mShaders;
     std::map<std::string, ShaderProgramResource*> mShaderPrograms;
+    std::map<std::string, FontResource*> mFonts;
     std::map<std::string, MiscResource*> mMiscs;
 
     uint32_t mPermaloadThreshold;
@@ -66,6 +68,7 @@ public:
     GeometryResource* findGeometry(std::string name);
     ShaderResource* findShader(std::string name);
     ShaderProgramResource* findShaderProgram(std::string name);
+    FontResource* findFont(std::string name);
 };
 
 }
