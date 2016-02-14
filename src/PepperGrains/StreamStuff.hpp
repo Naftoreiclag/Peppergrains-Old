@@ -1,6 +1,7 @@
 #ifndef PGG_STREAMSTUFF_HPP
 #define PGG_STREAMSTUFF_HPP
 
+#include <string>
 #include <fstream>
 #include <stdint.h>
 
@@ -15,6 +16,8 @@ uint16_t readU16(std::ifstream& input);
 uint8_t readU8(std::ifstream& input);
 
 float readF32(std::ifstream& input);
+
+std::string readString(std::ifstream& input);
 
 }
 

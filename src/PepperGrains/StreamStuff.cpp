@@ -32,4 +32,14 @@ float readF32(std::ifstream& input) {
     return value;
 }
 
+std::string readString(std::ifstream& input) {
+    uint32_t size = readU32(input);
+    char* buff = new char[size + 1];
+    input.read(buff, size);
+    buff[size] = '\0';
+    std::string r = buff;
+    delete[] buff;
+    return r;
+}
+
 }
