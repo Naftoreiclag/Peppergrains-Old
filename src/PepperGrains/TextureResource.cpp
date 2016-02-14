@@ -62,11 +62,11 @@ bool TextureResource::load() {
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
+    glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
-    ImageResource* imageRes = rmgr->findImage(textureData["image"].asString());
-    imageRes->grab();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageRes->getWidth(), imageRes->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, imageRes->getImage());
-    imageRes->drop();
+    mImage = rmgr->findImage(textureData["image"].asString());
+    mImage->grab();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toEnum(textureData["wrapX"].asString(), GL_CLAMP_TO_EDGE));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toEnum(textureData["wrapY"].asString(), GL_CLAMP_TO_EDGE));
@@ -81,6 +81,7 @@ bool TextureResource::load() {
 
 bool TextureResource::unload() {
     glDeleteTextures(1, &mHandle);
+    mImage->drop();
     mLoaded = false;
     return true;
 }

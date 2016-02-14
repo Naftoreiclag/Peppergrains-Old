@@ -24,6 +24,9 @@ class TextureResource : public Resource {
 private:
     GLuint mHandle;
     bool mLoaded;
+
+    // (Not actually required to keep the image loaded)
+    ImageResource* mImage;
 public:
     TextureResource();
     virtual ~TextureResource();
