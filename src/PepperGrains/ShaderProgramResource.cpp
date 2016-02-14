@@ -146,17 +146,22 @@ bool ShaderProgramResource::load() {
     {
         const Json::Value& controls = progData["controls"];
 
-        const Json::Value& sampler2Ds = controls["sampler2D"];
-        for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
-            const Json::Value& entry = *iter;
+        if(!controls.isNull()) {
+            const Json::Value& sampler2Ds = controls["sampler2D"];
 
-            std::string name = entry.asString();
+            if(!sampler2Ds.isNull()) {
+                for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
+                    const Json::Value& entry = *iter;
 
-            Sampler2DControl control;
-            control.name = entry.asString();
-            control.handle = glGetUniformLocation(mShaderProg, control.name.c_str());
+                    std::string name = entry.asString();
 
-            mSampler2Ds.push_back(control);
+                    Sampler2DControl control;
+                    control.name = entry.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, control.name.c_str());
+
+                    mSampler2Ds.push_back(control);
+                }
+            }
         }
     }
 
