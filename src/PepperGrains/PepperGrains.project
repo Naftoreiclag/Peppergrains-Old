@@ -21,7 +21,6 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
-    <File Name="OpenGLStuff.hpp"/>
     <VirtualDirectory Name="Resources">
       <File Name="GeometryResource.cpp"/>
       <File Name="GeometryResource.hpp"/>
@@ -49,10 +48,17 @@
       <File Name="MaterialResource.cpp"/>
       <File Name="ModelResource.hpp"/>
       <File Name="ModelResource.cpp"/>
+      <File Name="FontResource.hpp"/>
+      <File Name="FontResource.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="SceneGraph">
       <File Name="SceneNode.hpp"/>
       <File Name="SceneNode.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Stuff">
+      <File Name="OpenGLStuff.hpp"/>
+      <File Name="StreamStuff.hpp"/>
+      <File Name="StreamStuff.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
