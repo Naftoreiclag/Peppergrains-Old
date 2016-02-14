@@ -65,8 +65,8 @@ bool ModelResource::load() {
     // Bind geometry buffers
     mGeometry->bindBuffers();
 
+    // Tell OpenGL which attributes to read, how to read them, and where to send them
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
-
     if(shaderProg->needsPosAttrib()) {
         mGeometry->enablePositionAttrib(shaderProg->getPosAttrib());
     }
@@ -80,8 +80,10 @@ bool ModelResource::load() {
         mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
     }
 
+    // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
 
+    // Loading complete
     mLoaded = true;
     return true;
 }
@@ -89,8 +91,10 @@ bool ModelResource::unload() {
     mGeometry->drop();
     mMaterial->drop();
 
+    // Tell OpenGL to free up the memory allocated during loading
     glDeleteVertexArrays(1, &mVertexArrayObject);
 
+    // Unloading complete
     mLoaded = false;
     return false;
 }
@@ -116,11 +120,16 @@ void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, c
     // Bind the textures specified by the material
     mMaterial->bindTextures();
 
-    //
+    // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     glBindVertexArray(mVertexArrayObject);
+
+    // Draw elements as specified by the geometry
     mGeometry->render();
+
+    // Unbind vertex array object
     glBindVertexArray(0);
 
+    // Unbind shader program
     glUseProgram(0);
 }
 

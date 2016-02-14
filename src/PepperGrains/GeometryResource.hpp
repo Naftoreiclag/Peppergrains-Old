@@ -95,6 +95,8 @@ public:
     bool unload();
 
     void render();
+
+    // Bind vertex and index buffers to the underlying vertex array object
     void bindBuffers();
 
     // These methods are used during vertex array object intialization

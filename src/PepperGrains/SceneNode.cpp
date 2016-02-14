@@ -13,6 +13,8 @@
 
 #include "SceneNode.hpp"
 
+#include <algorithm>
+
 #include <OpenGLStuff.hpp>
 
 namespace pgg {
@@ -34,6 +36,25 @@ const glm::quat& SceneNode::getLocalOrientation() const { return mLocalOrientati
 const glm::vec3& SceneNode::getLocalTranslation() const { return mLocalTranslation; }
 SceneNode* SceneNode::getParent() const { return mParent; }
 const std::vector<SceneNode*>& SceneNode::getChildren() const { return mChildren; }
+
+void SceneNode::addChild(SceneNode* child) {
+    if(child->mParent == this) {
+        return;
+    }
+
+    if(child->mParent) {
+        child->mParent->mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+    }
+
+    mChildren.push_back(child);
+    child->mParent = this;
+    child->markWorldTransformDirty();
+}
+void SceneNode::detachChild(SceneNode* child) {
+    mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+    child->mParent = nullptr;
+    child->markWorldTransformDirty();
+}
 
 const glm::mat4& SceneNode::calcLocalTransform() {
     if(!mLocalTransformDirty) {
@@ -132,15 +153,10 @@ void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat) {
         mModelRes->render(viewMat, projMat, mWorldTransform);
     }
 
+    // Render all children
     for(std::vector<SceneNode*>::iterator iter = mChildren.begin(); iter != mChildren.end(); ++ iter) {
         SceneNode* child = *iter;
         child->render(viewMat, projMat);
-    }
-}
-
-void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
-    if(mModelRes) {
-        mModelRes->render(viewMat, projMat, modelMat);
     }
 }
 
