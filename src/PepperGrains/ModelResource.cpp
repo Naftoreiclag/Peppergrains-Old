@@ -6,6 +6,8 @@
 
 #include "ResourceManager.hpp"
 
+namespace pgg {
+
 ModelResource::ModelResource()
 : mLoaded(false) {
 }
@@ -99,4 +101,6 @@ void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, c
     glBindVertexArray(0);
 
     glUseProgram(0);
+}
+
 }

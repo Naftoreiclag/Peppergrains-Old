@@ -5,6 +5,8 @@
 
 #include <OpenGLStuff.hpp>
 
+namespace pgg {
+
 GeometryResource::GeometryResource()
 : mLoaded(false) {
 }
@@ -149,4 +151,6 @@ void GeometryResource::enableNormalAttrib(GLuint normalAttrib) {
         glEnableVertexAttribArray(normalAttrib);
         glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mNormalOff * sizeof(GLfloat)));
     }
+}
+
 }

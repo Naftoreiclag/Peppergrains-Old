@@ -5,6 +5,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class ImageResource : public Resource {
 private:
     uint8_t* mImage;
@@ -24,5 +26,7 @@ public:
     uint32_t getHeight() const;
     uint32_t getNumComponents() const;
 };
+
+}
 
 #endif // IMAGERESOURCE_HPP

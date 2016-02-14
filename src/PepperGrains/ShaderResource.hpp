@@ -5,6 +5,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class ShaderResource : public Resource {
 public:
     ShaderResource();
@@ -15,5 +17,7 @@ public:
     
     virtual GLuint getHandle() = 0;
 };
+
+}
 
 #endif // ShaderResource_HPP

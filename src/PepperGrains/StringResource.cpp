@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace pgg {
+
 StringResource::StringResource()
 : mLoaded(false) {
 }
@@ -34,4 +36,6 @@ bool StringResource::unload() {
 
 const std::string& StringResource::getString() {
     return mString;
+}
+
 }

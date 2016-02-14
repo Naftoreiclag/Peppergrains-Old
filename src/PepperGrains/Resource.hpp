@@ -5,6 +5,8 @@
 
 #include <boost/filesystem.hpp>
 
+namespace pgg {
+
 class Resource {
 private:
     uint32_t mNumGrabs;
@@ -28,5 +30,7 @@ public:
     virtual bool load() = 0;
     virtual bool unload() = 0;
 };
+
+}
 
 #endif // RESOURCE_HPP

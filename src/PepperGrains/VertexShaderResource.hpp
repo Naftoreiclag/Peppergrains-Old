@@ -5,6 +5,8 @@
 
 #include "ShaderResource.hpp"
 
+namespace pgg {
+
 class VertexShaderResource : public ShaderResource {
 private:
     GLuint mVertShader;
@@ -18,5 +20,7 @@ public:
     
     GLuint getHandle();
 };
+
+}
 
 #endif // VertexShaderResource_HPP

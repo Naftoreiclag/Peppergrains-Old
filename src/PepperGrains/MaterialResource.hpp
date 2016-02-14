@@ -7,6 +7,8 @@
 #include "ShaderProgramResource.hpp"
 #include "TextureResource.hpp"
 
+namespace pgg {
+
 class MaterialResource : public Resource {
 private:
     struct Sampler2DControl {
@@ -31,5 +33,7 @@ public:
 
     const ShaderProgramResource* getShaderProg() const;
 };
+
+}
 
 #endif // MATERIALRESOURCE_HPP

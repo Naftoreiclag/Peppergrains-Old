@@ -2,6 +2,8 @@
 
 #include <OpenGLStuff.hpp>
 
+namespace pgg {
+
 SceneNode::SceneNode()
 : mLocalTransformDirty(false)
 , mWorldTransformDirty(true)
@@ -127,4 +129,6 @@ void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat, const
     if(mModelRes) {
         mModelRes->render(viewMat, projMat, modelMat);
     }
+}
+
 }

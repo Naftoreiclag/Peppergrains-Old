@@ -5,6 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+namespace pgg {
+
 ImageResource::ImageResource()
 : mLoaded(false) {
 }
@@ -46,4 +48,6 @@ uint32_t ImageResource::getHeight() const {
 }
 uint32_t ImageResource::getNumComponents() const {
     return mComponents;
+}
+
 }

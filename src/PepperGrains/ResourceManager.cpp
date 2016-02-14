@@ -5,6 +5,8 @@
 
 #include "json/json.h"
 
+namespace pgg {
+
 ResourceManager* ResourceManager::getSingleton() {
     static ResourceManager instance;
 
@@ -114,4 +116,6 @@ ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
         std::cout << name << std::endl;
     }
     return ret;
+}
+
 }

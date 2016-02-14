@@ -6,6 +6,8 @@
 
 #include "ResourceManager.hpp"
 
+namespace pgg {
+
 ShaderProgramResource::ShaderProgramResource()
 : mLoaded(false) {
 }
@@ -180,3 +182,5 @@ GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }
 GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
 GLuint ShaderProgramResource::getNormalAttrib() const { return mNormalAttrib; }
 const std::vector<ShaderProgramResource::Sampler2DControl>& ShaderProgramResource::getSampler2Ds() const { return mSampler2Ds; }
+
+}

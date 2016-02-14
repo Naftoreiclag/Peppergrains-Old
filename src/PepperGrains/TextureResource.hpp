@@ -5,6 +5,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class TextureResource : public Resource {
 private:
     GLuint mHandle;
@@ -21,5 +23,7 @@ public:
     static GLenum toEnum(const std::string& val, GLenum errorVal);
 
 };
+
+}
 
 #endif // TEXTURERESOURCE_HPP

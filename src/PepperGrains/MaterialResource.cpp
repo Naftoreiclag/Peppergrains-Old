@@ -8,6 +8,8 @@
 #include "ResourceManager.hpp"
 #include "ShaderProgramResource.hpp"
 
+namespace pgg {
+
 MaterialResource::MaterialResource()
 : mLoaded(false) {
 }
@@ -85,4 +87,6 @@ void MaterialResource::bindTextures() {
 
 const ShaderProgramResource* MaterialResource::getShaderProg() const {
     return mShaderProg;
+}
+
 }

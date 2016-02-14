@@ -5,6 +5,8 @@
 #include "MaterialResource.hpp"
 #include "Resource.hpp" // Base class: Resource
 
+namespace pgg {
+
 class ModelResource : public Resource {
 private:
     bool mLoaded;
@@ -21,5 +23,7 @@ public:
     bool unload();
     void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
 };
+
+}
 
 #endif // MODELRESOURCE_HPP

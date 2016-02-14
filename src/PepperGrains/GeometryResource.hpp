@@ -7,6 +7,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class GeometryResource : public Resource {
 private:
     struct Vertex {
@@ -88,5 +90,7 @@ public:
 
     GLuint getHandle() const;
 };
+
+}
 
 #endif // GEOMETRYRESOURCE_HPP

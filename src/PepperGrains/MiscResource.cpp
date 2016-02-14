@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+namespace pgg {
+
 MiscResource::MiscResource() {
 }
 
@@ -14,4 +16,6 @@ bool MiscResource::load() {
 
 bool MiscResource::unload() {
     return true;
+}
+
 }

@@ -9,6 +9,8 @@
 #include "Resource.hpp"
 #include "ShaderResource.hpp"
 
+namespace pgg {
+
 class ShaderProgramResource : public Resource {
 public:
     struct Sampler2DControl {
@@ -73,5 +75,7 @@ public:
     GLuint getNormalAttrib() const;
 
 };
+
+}
 
 #endif // ShaderProgramResource_HPP

@@ -10,6 +10,8 @@
 
 #include "ModelResource.hpp"
 
+namespace pgg {
+
 class SceneNode {
 public:
     SceneNode();
@@ -56,5 +58,7 @@ public:
     void render(const glm::mat4& viewMat, const glm::mat4& projMat);
     void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& prgerhtjy);
 };
+
+}
 
 #endif // SCENENODE_HPP

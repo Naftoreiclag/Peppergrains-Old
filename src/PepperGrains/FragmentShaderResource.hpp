@@ -5,6 +5,8 @@
 
 #include "ShaderResource.hpp"
 
+namespace pgg {
+
 class FragmentShaderResource : public ShaderResource {
 private:
     GLuint mFragShader;
@@ -18,5 +20,7 @@ public:
 
     GLuint getHandle();
 };
+
+}
 
 #endif // FragmentShaderResource_HPP

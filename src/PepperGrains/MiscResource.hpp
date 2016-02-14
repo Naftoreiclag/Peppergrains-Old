@@ -3,6 +3,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class MiscResource : public Resource {
 public:
     MiscResource();
@@ -11,5 +13,7 @@ public:
     bool load();
     bool unload();
 };
+
+}
 
 #endif // MiscRESOURCE_HPP

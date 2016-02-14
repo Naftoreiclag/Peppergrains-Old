@@ -3,6 +3,8 @@
 
 #include "Resource.hpp"
 
+namespace pgg {
+
 class StringResource : public Resource {
 private:
     std::string mString;
@@ -18,5 +20,7 @@ public:
     const std::string& getString();
 
 };
+
+}
 
 #endif // STRINGRESOURCE_HPP

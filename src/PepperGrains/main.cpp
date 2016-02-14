@@ -8,7 +8,9 @@
 
 #include "ResourceManager.hpp"
 #include "SceneNode.hpp"
-    
+
+using namespace pgg;
+
 int main(int argc, char* argv[]) {
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -49,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     SceneNode rootNode;
 
-    rootNode.grabModel(resman->findModel("RoseCube.model"));
+    rootNode.grabModel(resman->findModel("JellyCube.model"));
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);

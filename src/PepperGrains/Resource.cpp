@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+namespace pgg {
+
 Resource::Resource()
 : mNumGrabs(0) { }
 Resource::~Resource() { }
@@ -41,4 +43,6 @@ void Resource::drop() {
     if(mNumGrabs == 0) {
         this->unload();
     }
+}
+
 }

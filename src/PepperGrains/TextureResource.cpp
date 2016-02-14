@@ -9,6 +9,8 @@
 #include "ImageResource.hpp"
 #include "ResourceManager.hpp"
 
+namespace pgg {
+
 TextureResource::TextureResource()
 : mLoaded(false) {
 }
@@ -72,4 +74,6 @@ bool TextureResource::unload() {
 
 GLuint TextureResource::getHandle() const {
     return mHandle;
+}
+
 }

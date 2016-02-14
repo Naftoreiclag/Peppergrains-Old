@@ -18,6 +18,8 @@
 #include "VertexShaderResource.hpp"
 #include "FragmentShaderResource.hpp"
 
+namespace pgg {
+
 class ResourceManager {
 public:
     static ResourceManager* getSingleton();
@@ -53,6 +55,7 @@ public:
     ShaderProgramResource* findShaderProgram(std::string name);
 };
 
+}
 
 #endif // RESOURCEMANAGER_HPP
 

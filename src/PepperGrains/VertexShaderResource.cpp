@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace pgg {
+
 VertexShaderResource::VertexShaderResource()
 : mLoaded(false) {
 }
@@ -39,4 +41,6 @@ bool VertexShaderResource::unload() {
 
 GLuint VertexShaderResource::getHandle() {
     return mVertShader;
+}
+
 }

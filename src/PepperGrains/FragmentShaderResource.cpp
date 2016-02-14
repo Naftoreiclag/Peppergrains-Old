@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace pgg {
+
 FragmentShaderResource::FragmentShaderResource()
 : mLoaded(false) {
 }
@@ -39,4 +41,6 @@ bool FragmentShaderResource::unload() {
 
 GLuint FragmentShaderResource::getHandle() {
     return mFragShader;
+}
+
 }
