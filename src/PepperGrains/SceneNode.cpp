@@ -79,7 +79,7 @@ const glm::mat4& SceneNode::calcWorldTransform() {
     this->calcLocalTransform();
 
     if(mParent) {
-        mWorldTransform = mLocalTransform * mParent->calcWorldTransform();
+        mWorldTransform = mParent->calcWorldTransform() * mLocalTransform;
     } else {
         mWorldTransform = mLocalTransform;
     }
