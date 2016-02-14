@@ -64,6 +64,8 @@ int main(int argc, char* argv[]) {
 
     SceneNode rootNode;
 
+    FontResource* test = resman->findFont("Rainstorm.font");
+
     rootNode.grabModel(resman->findModel("JellyCube.model"));
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
