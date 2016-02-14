@@ -17,6 +17,7 @@
 #include <OpenGLStuff.hpp>
 
 #include "Resource.hpp"
+#include "ImageResource.hpp"
 
 namespace pgg {
 

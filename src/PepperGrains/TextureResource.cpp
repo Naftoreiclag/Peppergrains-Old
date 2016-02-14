@@ -19,7 +19,6 @@
 
 #include "json/json.h"
 
-#include "ImageResource.hpp"
 #include "ResourceManager.hpp"
 
 namespace pgg {
