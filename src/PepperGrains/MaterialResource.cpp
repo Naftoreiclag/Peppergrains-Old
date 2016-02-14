@@ -51,20 +51,25 @@ bool MaterialResource::load() {
     // Find all Sampler2Ds
     {
         const Json::Value& sampler2Ds = matData["sampler2D"];
-        const std::vector<ShaderProgramResource::Sampler2DControl> sampler2DControls = mShaderProg->getSampler2Ds();
 
-        for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-            const ShaderProgramResource::Sampler2DControl& entry = *iter;
+        if(!sampler2Ds.isNull()) {
 
-            const Json::Value& value = sampler2Ds[entry.name];
+            const std::vector<ShaderProgramResource::Sampler2DControl> sampler2DControls = mShaderProg->getSampler2Ds();
 
-            if(!value.isNull()) {
-                Sampler2DControl control;
-                control.handle = entry.handle;
-                control.texture = rmgr->findTexture(value.asString());
-                control.texture->grab();
-                mSampler2Ds.push_back(control);
+            for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+                const ShaderProgramResource::Sampler2DControl& entry = *iter;
+
+                const Json::Value& value = sampler2Ds[entry.name];
+
+                if(!value.isNull()) {
+                    Sampler2DControl control;
+                    control.handle = entry.handle;
+                    control.texture = rmgr->findTexture(value.asString());
+                    control.texture->grab();
+                    mSampler2Ds.push_back(control);
+                }
             }
+
         }
     }
 
