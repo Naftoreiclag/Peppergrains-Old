@@ -55,6 +55,8 @@ int main(int argc, char* argv[]) {
     glewExperimental = GL_TRUE;
     glewInit();
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glClearColor(0.098f, 0.486f, 0.502f, 1.f);
 
     boost::filesystem::path resourceDef = "../../../resources/data.package";
@@ -66,13 +68,16 @@ int main(int argc, char* argv[]) {
 
     FontResource* test = resman->findFont("Rainstorm.font");
 
-    rootNode.grabModel(resman->findModel("RoseCube.model"));
-    friendNode.grabModel(resman->findModel("JellyCube.model"));
+    rootNode.grabModelResource(resman->findModel("RoseCube.model"));
+    friendNode.grabModelResource(resman->findModel("JellyCube.model"));
 
-    //rootNode.addChild(&friendNode);
+    rootNode.addChild(&friendNode);
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
+
+    glm::mat4 viewMatOverlay;
+    glm::mat4 projMatOverlay;
 
     uint32_t prev = SDL_GetTicks();
 
@@ -90,24 +95,21 @@ int main(int argc, char* argv[]) {
         tps /= 1000;
         prev = now;
 
-
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tps);
         friendNode.move(glm::vec3(0.f, 0.f, (float) (tps * 0.3)));
         rootNode.render(viewMat, projMat);
-        friendNode.render(viewMat, projMat);
 
 
+        glClear(GL_DEPTH_BUFFER_BIT);
+        rootNode.render(viewMatOverlay, projMatOverlay);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);
     }
 
-    rootNode.dropModel();
+    rootNode.dropModelResource();
     
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

@@ -74,7 +74,7 @@ public:
     void move(const glm::vec3& translation);
 
     // Model
-    void grabModel(ModelResource* modelRes);
+    void grabModelResource(ModelResource* modelRes);
     void dropModel();
 
     // Calculates world transform (which becomes the model matrix) and then renders

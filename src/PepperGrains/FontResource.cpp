@@ -44,6 +44,8 @@ bool FontResource::load() {
     mImage = rmgr->findImage(imageName);
     mImage->grab();
 
+
+
     return true;
 }
 bool FontResource::unload() {
