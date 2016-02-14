@@ -69,7 +69,7 @@ public:
     void grabModel(ModelResource* modelRes);
     void dropModel();
     void render(const glm::mat4& viewMat, const glm::mat4& projMat);
-    void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& prgerhtjy);
+    void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
 };
 
 }
