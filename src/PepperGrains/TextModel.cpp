@@ -104,7 +104,7 @@ bool TextModel::load() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 
 
-    // Uses 2D coordinates
+    // (Uses 2D coordinates)
     glEnableVertexAttribArray(mShaderProg->getPosAttrib());
     glVertexAttribPointer(mShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, vertexLength * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
     glEnableVertexAttribArray(mShaderProg->getUVAttrib());
