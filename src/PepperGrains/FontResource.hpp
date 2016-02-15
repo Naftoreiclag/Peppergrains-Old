@@ -33,13 +33,14 @@ private:
     ShaderProgramResource* mShaderProg;
     GLuint mTextureHandle;
 
-    float mBaseline;
 
 public:
     FontResource();
     virtual ~FontResource();
 
     GlyphData* mGlyphs;
+    float mBaseline;
+    float mPadding;
     bool load();
     bool unload();
 

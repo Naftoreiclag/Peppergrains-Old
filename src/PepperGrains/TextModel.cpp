@@ -30,8 +30,8 @@ bool TextModel::load() {
     uint32_t vertexLength = 4;
     uint32_t glyphLength = 4 * vertexLength;
 
-    float width = 40;
-    float height = 40;
+    float width = 200;
+    float height = 200;
 
     GLfloat vertices[mNumGlyphs * glyphLength];
     GLuint indices[mNumGlyphs * 6];
@@ -70,7 +70,7 @@ bool TextModel::load() {
                 }
             }
 
-            accX += mFont->mGlyphs[glyphId].width * width;
+            accX += (mFont->mGlyphs[glyphId].width + mFont->mPadding) * width;
 
             indices[(index * 6) + 0] = (index * 4) + 0;
             indices[(index * 6) + 1] = (index * 4) + 1;

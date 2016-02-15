@@ -40,6 +40,7 @@ bool FontResource::load() {
     readString(input, textureName);
 
     readF32(input, mBaseline);
+    readF32(input, mPadding);
 
     mGlyphs = new GlyphData[256];
     for(uint32_t i = 0; i < 256; ++ i) {
