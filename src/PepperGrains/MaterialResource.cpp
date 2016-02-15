@@ -54,7 +54,7 @@ bool MaterialResource::load() {
 
         if(!sampler2Ds.isNull()) {
 
-            const std::vector<ShaderProgramResource::Sampler2DControl> sampler2DControls = mShaderProg->getSampler2Ds();
+            const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
 
             for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
                 const ShaderProgramResource::Sampler2DControl& entry = *iter;
