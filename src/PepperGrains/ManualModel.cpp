@@ -35,6 +35,7 @@ ManualModel::ManualModel() {
     ResourceManager* resman = ResourceManager::getSingleton();
 
     mShaderProg = resman->findShaderProgram("Red.shaderProgram");
+    mShaderProg->grab();
 
     glGenBuffers(1, &mVertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
@@ -61,8 +62,8 @@ ManualModel::ManualModel() {
 
 }
 
-ManualModel::~ManualModel()
-{
+ManualModel::~ManualModel() {
+    mShaderProg->drop();
 }
 
 void ManualModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
