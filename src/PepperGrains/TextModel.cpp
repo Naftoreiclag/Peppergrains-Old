@@ -13,6 +13,7 @@
 
 #include "TextModel.hpp"
 
+
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -39,7 +40,21 @@ bool TextModel::load() {
 
     {
         uint32_t index = 0;
-        for(std::string::iterator it = mText.begin(); it != mText.end(); ++ it) {
+        for(std::string::const_iterator it = mText.begin(); it != mText.end(); ++ it) {
+
+            const char& glyphChar = *it;
+
+            /*  C       D
+             *
+             *
+             *  A       B
+             */
+
+            uint32_t glyphId = (uint32_t) glyphChar;
+            float uvX = ( (float) (glyphId % 16) ) / 16.f;
+            float uvY = ( (float) ((glyphId - (glyphId % 16)) / 16) ) / 16.f;
+            float uvW = 1.f / 16.f;
+            float uvH = 1.f / 16.f;
 
             for(uint32_t iy = 0; iy < 2; ++ iy) {
                 for(uint32_t ix = 0; ix < 2; ++ ix) {
@@ -47,8 +62,8 @@ bool TextModel::load() {
 
                     vertices[romeo + 0] = ix == 0 ? index * width : (index * width) + width;
                     vertices[romeo + 1] = iy == 0 ? 0.f : height;
-                    vertices[romeo + 2] = ix == 0 ? 0.f : 1.f;
-                    vertices[romeo + 3] = iy == 0 ? 1.f : 0.f;
+                    vertices[romeo + 2] = ix == 0 ? uvX : uvX + uvW;
+                    vertices[romeo + 3] = iy == 0 ? uvY + uvH : uvY;
                 }
             }
 
