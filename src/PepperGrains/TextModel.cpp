@@ -40,6 +40,7 @@ bool TextModel::load() {
 
     {
         uint32_t index = 0;
+        float accX = 0.f;
         for(std::string::const_iterator it = mText.begin(); it != mText.end(); ++ it) {
 
             const char& glyphChar = *it;
@@ -60,12 +61,14 @@ bool TextModel::load() {
                 for(uint32_t ix = 0; ix < 2; ++ ix) {
                     uint32_t romeo = (index * glyphLength) + (ix * vertexLength) + (iy * vertexLength * 2);
 
-                    vertices[romeo + 0] = ix == 0 ? index * width : (index * width) + width;
+                    vertices[romeo + 0] = ix == 0 ? accX : accX + width;
                     vertices[romeo + 1] = iy == 0 ? 0.f : height;
                     vertices[romeo + 2] = ix == 0 ? uvX : uvX + uvW;
                     vertices[romeo + 3] = iy == 0 ? uvY + uvH : uvY;
                 }
             }
+
+            accX += mFont->mGlyphs[glyphId].width * width;
 
             indices[(index * 6) + 0] = (index * 4) + 0;
             indices[(index * 6) + 1] = (index * 4) + 1;

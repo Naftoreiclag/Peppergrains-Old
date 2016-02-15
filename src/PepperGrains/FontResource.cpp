@@ -40,6 +40,16 @@ bool FontResource::load() {
     std::string textureName;
     readString(input, textureName);
 
+    readF32(input, mBaseline);
+
+    mGlyphs = new GlyphData[256];
+    for(uint32_t i = 0; i < 256; ++ i) {
+        mGlyphs[i].width = readF32(input);
+        mGlyphs[i].startX = readF32(input);
+
+        std::cout << mGlyphs[i].width << std::endl;
+    }
+
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
     mShaderProg = rmgr->findShaderProgram("Font.shaderProgram");

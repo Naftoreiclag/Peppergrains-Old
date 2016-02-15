@@ -21,6 +21,11 @@
 namespace pgg {
 
 class FontResource : public Resource {
+public:
+    struct GlyphData {
+        float width;
+        float startX;
+    };
 private:
     bool mLoaded;
 
@@ -28,10 +33,13 @@ private:
     ShaderProgramResource* mShaderProg;
     GLuint mTextureHandle;
 
+    float mBaseline;
+
 public:
     FontResource();
     virtual ~FontResource();
 
+    GlyphData* mGlyphs;
     bool load();
     bool unload();
 
