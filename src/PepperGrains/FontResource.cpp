@@ -14,7 +14,6 @@
 #include "FontResource.hpp"
 
 #include <cassert>
-#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -46,8 +45,6 @@ bool FontResource::load() {
     for(uint32_t i = 0; i < 256; ++ i) {
         mGlyphs[i].width = readF32(input);
         mGlyphs[i].startX = readF32(input);
-
-        std::cout << mGlyphs[i].width << std::endl;
     }
 
     ResourceManager* rmgr = ResourceManager::getSingleton();

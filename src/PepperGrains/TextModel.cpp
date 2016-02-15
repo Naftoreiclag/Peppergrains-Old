@@ -57,11 +57,13 @@ bool TextModel::load() {
             float uvW = 1.f / 16.f;
             float uvH = 1.f / 16.f;
 
+            float offX = mFont->mGlyphs[glyphId].startX * width;
+
             for(uint32_t iy = 0; iy < 2; ++ iy) {
                 for(uint32_t ix = 0; ix < 2; ++ ix) {
                     uint32_t romeo = (index * glyphLength) + (ix * vertexLength) + (iy * vertexLength * 2);
 
-                    vertices[romeo + 0] = ix == 0 ? accX : accX + width;
+                    vertices[romeo + 0] = ix == 0 ? accX - offX : accX + width - offX;
                     vertices[romeo + 1] = iy == 0 ? 0.f : height;
                     vertices[romeo + 2] = ix == 0 ? uvX : uvX + uvW;
                     vertices[romeo + 3] = iy == 0 ? uvY + uvH : uvY;
@@ -120,6 +122,7 @@ bool TextModel::unload() {
     glDeleteBuffers(1, &mVertexBufferObject);
 
     mShaderProg->drop();
+    mFont->drop();
 
     glDeleteVertexArrays(1, &mVertexArrayObject);
 
