@@ -22,29 +22,6 @@ namespace pgg {
 ManualModel::ManualModel() {}
 ManualModel::~ManualModel() {}
 
-void ManualModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
-
-    glUseProgram(mShaderProg->getHandle());
-
-    if(mShaderProg->needsModelMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
-    }
-    if(mShaderProg->needsViewMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
-    }
-    if(mShaderProg->needsProjMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
-    }
-
-    glBindVertexArray(mVertexArrayObject);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
-
-    glUseProgram(0);
-}
-
 bool ManualModel::load() {
     GLfloat vertices[] = {
         0.f, 0.f, 0.f,
@@ -94,6 +71,28 @@ bool ManualModel::unload() {
 
     delete this;
     return true;
+}
+void ManualModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
+
+    glUseProgram(mShaderProg->getHandle());
+
+    if(mShaderProg->needsModelMatrix()) {
+        glUniformMatrix4fv(mShaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
+    }
+    if(mShaderProg->needsViewMatrix()) {
+        glUniformMatrix4fv(mShaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
+    }
+    if(mShaderProg->needsProjMatrix()) {
+        glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
+    }
+
+    glBindVertexArray(mVertexArrayObject);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+
+    glUseProgram(0);
 }
 
 }

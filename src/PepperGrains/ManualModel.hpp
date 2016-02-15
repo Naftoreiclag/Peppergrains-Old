@@ -30,10 +30,11 @@ public:
     ManualModel();
     virtual ~ManualModel();
 
-    void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
-
     bool load();
     bool unload();
+
+    void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
+
 };
 
 }
