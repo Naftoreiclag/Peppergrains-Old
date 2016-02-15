@@ -71,7 +71,8 @@ int main(int argc, char* argv[]) {
     SceneNode rootNode;
     SceneNode friendNode;
 
-    ManualModel testM;
+    Model* testM = new ManualModel();
+    testM->grab();
 
     FontResource* testF = resman->findFont("Rainstorm.font");
 
@@ -116,12 +117,13 @@ int main(int argc, char* argv[]) {
         glClear(GL_DEPTH_BUFFER_BIT);
         //overlayNode.render(viewMatOverlay, projMatOverlay);
 
-        //testM.render(viewMat, projMat, testMM);
-        testM.render(viewMatOverlay, projMatOverlay, testMM);
+        testM->render(viewMatOverlay, projMatOverlay, testMM);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);
     }
+
+    testM->drop();
 
     rootNode.dropModelResource();
     

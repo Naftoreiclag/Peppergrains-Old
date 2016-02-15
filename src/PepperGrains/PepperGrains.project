@@ -58,6 +58,8 @@
       </VirtualDirectory>
       <File Name="ManualModel.hpp"/>
       <File Name="ManualModel.cpp"/>
+      <File Name="Model.hpp"/>
+      <File Name="Model.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>

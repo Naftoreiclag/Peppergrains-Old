@@ -14,12 +14,13 @@
 #ifndef PGG_MANUALMODEL_HPP
 #define PGG_MANUALMODEL_HPP
 
+#include "Model.hpp"
 #include "ShaderProgramResource.hpp"
 #include "OpenGLStuff.hpp"
 
 namespace pgg {
 
-class ManualModel {
+class ManualModel : public Model {
 private:
     GLuint mVertexArrayObject;
     GLuint mVertexBufferObject;
@@ -31,6 +32,8 @@ public:
 
     void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
 
+    bool load();
+    bool unload();
 };
 
 }

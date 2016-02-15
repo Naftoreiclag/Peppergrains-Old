@@ -22,6 +22,7 @@
 
 namespace pgg {
 
+// Virtual inheritance to avoid diamond conflict with ModelResource
 class Resource : virtual public ReferenceCounted {
 private:
     uint32_t mFileSize;
