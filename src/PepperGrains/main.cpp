@@ -32,8 +32,11 @@ int main(int argc, char* argv[]) {
         std::cout << "SDL Error" << std::endl;
         return -1;
     }
+
+    uint32_t windowWidth = 1280;
+    uint32_t windowHeight = 720;
     
-    SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL);
+    SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL);
     
     if(!sdlWindow) {
         std::cout << "SDL Window Error" << std::endl;
@@ -84,7 +87,7 @@ int main(int argc, char* argv[]) {
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
 
     glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay;
+    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) windowWidth, 0.f, (float) windowHeight);
     glm::mat4 testMM;
 
     uint32_t prev = SDL_GetTicks();
