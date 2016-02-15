@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     glewInit();
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glClearColor(0.098f, 0.486f, 0.502f, 1.f);
 
     boost::filesystem::path resourceDef = "../../../resources/data.package";
@@ -111,9 +111,10 @@ int main(int argc, char* argv[]) {
         rootNode.render(viewMat, projMat);
 
         glClear(GL_DEPTH_BUFFER_BIT);
-        overlayNode.render(viewMatOverlay, projMatOverlay);
+        //overlayNode.render(viewMatOverlay, projMatOverlay);
 
-        testM.render(viewMat, projMat, testMM);
+        //testM.render(viewMat, projMat, testMM);
+        testM.render(viewMatOverlay, projMatOverlay, testMM);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);
