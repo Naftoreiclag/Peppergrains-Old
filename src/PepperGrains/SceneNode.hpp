@@ -75,7 +75,7 @@ public:
 
     // Model
     void grabModelResource(ModelResource* modelRes);
-    void dropModel();
+    void dropModelResource();
 
     // Calculates world transform (which becomes the model matrix) and then renders
     void render(const glm::mat4& viewMat, const glm::mat4& projMat);

@@ -134,12 +134,12 @@ void SceneNode::markBothTransformsDirty() {
 }
 
 void SceneNode::grabModelResource(ModelResource* modelRes) {
-    this->dropModel();
+    this->dropModelResource();
 
     mModelRes = modelRes;
     modelRes->grab();
 }
-void SceneNode::dropModel() {
+void SceneNode::dropModelResource() {
     if(mModelRes) {
         mModelRes->drop();
         mModelRes = nullptr;

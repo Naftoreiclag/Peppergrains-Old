@@ -22,6 +22,8 @@
 #include "ResourceManager.hpp"
 #include "SceneNode.hpp"
 
+#include "ManualModel.hpp"
+
 using namespace pgg;
 
 int main(int argc, char* argv[]) {
@@ -56,7 +58,7 @@ int main(int argc, char* argv[]) {
     glewInit();
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glClearColor(0.098f, 0.486f, 0.502f, 1.f);
 
     boost::filesystem::path resourceDef = "../../../resources/data.package";
@@ -66,18 +68,24 @@ int main(int argc, char* argv[]) {
     SceneNode rootNode;
     SceneNode friendNode;
 
-    FontResource* test = resman->findFont("Rainstorm.font");
+    ManualModel testM;
 
-    rootNode.grabModelResource(resman->findModel("RoseCube.model"));
-    friendNode.grabModelResource(resman->findModel("JellyCube.model"));
+    FontResource* testF = resman->findFont("Rainstorm.font");
+
+    //rootNode.grabModelResource(resman->findModel("RoseCube.model"));
+    friendNode.grabModelResource(resman->findModel("JellyUFO.model"));
 
     rootNode.addChild(&friendNode);
+
+    SceneNode overlayNode;
+    overlayNode.grabModelResource(resman->findModel("JellyUFO.model"));
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay;
+    glm::mat4 testMM;
 
     uint32_t prev = SDL_GetTicks();
 
@@ -98,12 +106,14 @@ int main(int argc, char* argv[]) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tps);
+        rootNode.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
         friendNode.move(glm::vec3(0.f, 0.f, (float) (tps * 0.3)));
         rootNode.render(viewMat, projMat);
 
-
         glClear(GL_DEPTH_BUFFER_BIT);
-        rootNode.render(viewMatOverlay, projMatOverlay);
+        overlayNode.render(viewMatOverlay, projMatOverlay);
+
+        testM.render(viewMat, projMat, testMM);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);

@@ -22,8 +22,6 @@
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
     <VirtualDirectory Name="Resources">
-      <File Name="GeometryResource.cpp"/>
-      <File Name="GeometryResource.hpp"/>
       <File Name="ImageResource.cpp"/>
       <File Name="ImageResource.hpp"/>
       <File Name="MiscResource.cpp"/>
@@ -46,14 +44,20 @@
       <File Name="ShaderResource.cpp"/>
       <File Name="MaterialResource.hpp"/>
       <File Name="MaterialResource.cpp"/>
-      <File Name="ModelResource.hpp"/>
+      <File Name="GeometryResource.cpp"/>
+      <File Name="GeometryResource.hpp"/>
       <File Name="ModelResource.cpp"/>
-      <File Name="FontResource.hpp"/>
+      <File Name="ModelResource.hpp"/>
       <File Name="FontResource.cpp"/>
+      <File Name="FontResource.hpp"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="SceneGraph">
-      <File Name="SceneNode.hpp"/>
-      <File Name="SceneNode.cpp"/>
+    <VirtualDirectory Name="Rendering">
+      <VirtualDirectory Name="SceneGraph">
+        <File Name="SceneNode.cpp"/>
+        <File Name="SceneNode.hpp"/>
+      </VirtualDirectory>
+      <File Name="ManualModel.hpp"/>
+      <File Name="ManualModel.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>
