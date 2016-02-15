@@ -76,13 +76,13 @@ int main(int argc, char* argv[]) {
 
     FontResource* testF = resman->findFont("Rainstorm.font");
 
-    rootNode.grabModelResource(testM);
-    friendNode.grabModelResource(resman->findModel("JellyUFO.model"));
+    rootNode.grabModel(testM);
+    friendNode.grabModel(resman->findModel("JellyUFO.model"));
 
     rootNode.addChild(&friendNode);
 
     SceneNode overlayNode;
-    overlayNode.grabModelResource(resman->findModel("JellyUFO.model"));
+    overlayNode.grabModel(resman->findModel("JellyUFO.model"));
 
     glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     testM->drop();
 
-    rootNode.dropModelResource();
+    rootNode.dropModel();
     
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);
