@@ -133,7 +133,7 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
-void SceneNode::grabModelResource(ModelResource* modelRes) {
+void SceneNode::grabModelResource(Model* modelRes) {
     this->dropModelResource();
 
     mModelRes = modelRes;

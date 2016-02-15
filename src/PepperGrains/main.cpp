@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     FontResource* testF = resman->findFont("Rainstorm.font");
 
-    //rootNode.grabModelResource(resman->findModel("RoseCube.model"));
+    rootNode.grabModelResource(testM);
     friendNode.grabModelResource(resman->findModel("JellyUFO.model"));
 
     rootNode.addChild(&friendNode);

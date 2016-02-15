@@ -21,7 +21,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "ModelResource.hpp"
+#include "Model.hpp"
 
 namespace pgg {
 
@@ -43,7 +43,7 @@ private:
     bool mWorldTransformDirty;
 
     // This scenenode may be responsible for rendering a model
-    ModelResource* mModelRes;
+    Model* mModelRes;
 
     // Family relationships
     SceneNode* mParent;
@@ -74,7 +74,7 @@ public:
     void move(const glm::vec3& translation);
 
     // Model
-    void grabModelResource(ModelResource* modelRes);
+    void grabModelResource(Model* modelRes);
     void dropModelResource();
 
     // Calculates world transform (which becomes the model matrix) and then renders

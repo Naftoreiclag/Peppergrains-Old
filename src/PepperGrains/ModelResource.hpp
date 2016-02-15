@@ -16,11 +16,12 @@
 
 #include "GeometryResource.hpp"
 #include "MaterialResource.hpp"
-#include "Resource.hpp" // Base class: Resource
+#include "Model.hpp"
+#include "Resource.hpp"
 
 namespace pgg {
 
-class ModelResource : public Resource {
+class ModelResource : public Resource, public Model {
 private:
     bool mLoaded;
 
