@@ -123,6 +123,8 @@ void TextModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const
         glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
     }
 
+    mFont->bindTextures();
+
     glBindVertexArray(mVertexArrayObject);
 
     glDrawElements(GL_TRIANGLES, mNumGlyphs * 6, GL_UNSIGNED_INT, 0);

@@ -15,7 +15,8 @@
 #define PGG_FONTRESOURCE_HPP
 
 #include "Resource.hpp"
-#include "ImageResource.hpp"
+#include "TextureResource.hpp"
+#include "ShaderProgramResource.hpp"
 
 namespace pgg {
 
@@ -23,7 +24,9 @@ class FontResource : public Resource {
 private:
     bool mLoaded;
 
-    ImageResource* mImage;
+    TextureResource* mTexture;
+    ShaderProgramResource* mShaderProg;
+    GLuint mTextureHandle;
 
 public:
     FontResource();
@@ -31,6 +34,8 @@ public:
 
     bool load();
     bool unload();
+
+    void bindTextures();
 };
 
 }

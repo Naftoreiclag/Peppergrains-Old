@@ -16,6 +16,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include "ResourceManager.hpp"
 #include "StreamStuff.hpp"
@@ -36,25 +37,45 @@ bool FontResource::load() {
 
     std::ifstream input(this->getFile().c_str(), std::ios::in | std::ios::binary);
 
-    std::string imageName;
-    readString(input, imageName);
+    std::string textureName;
+    readString(input, textureName);
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
-    mImage = rmgr->findImage(imageName);
-    mImage->grab();
+    mShaderProg = rmgr->findShaderProgram("Font.shaderProgram");
+    mShaderProg->grab();
 
+    const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
 
+    for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+        const ShaderProgramResource::Sampler2DControl& entry = *iter;
+
+        mTextureHandle = entry.handle;
+
+        // (Might want other samplers in the future)
+        break;
+    }
+
+    mTexture = rmgr->findTexture(textureName);
+    mTexture->grab();
 
     return true;
 }
 bool FontResource::unload() {
     assert(mLoaded && "Attempted to unload font before loading it");
 
-    mImage->drop();
+    mTexture->drop();
+    mShaderProg->drop();
 
     mLoaded = false;
     return true;
+}
+
+void FontResource::bindTextures() {
+    unsigned int index = 0;
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, mTexture->getHandle());
+    glUniform1i(mTextureHandle, index);
 }
 
 }
