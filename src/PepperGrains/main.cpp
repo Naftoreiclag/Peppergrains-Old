@@ -18,6 +18,7 @@
 
 #include <OpenGLStuff.hpp>
 #include <SDL2/SDL.h>
+#include <sstream>
 
 #include "ResourceManager.hpp"
 #include "SceneNode.hpp"
@@ -72,15 +73,14 @@ int main(int argc, char* argv[]) {
     SceneNode rootNode;
     SceneNode friendNode;
 
-    Model* testM = new ManualModel();
-    testM->grab();
+    FontResource* rainstormFont = resman->findFont("Rainstorm.font");
 
-    FontResource* testF = resman->findFont("Rainstorm.font");
-
-    TextModel* textModel = new TextModel(testF, "Hello");
+    TextModel* textModel = new TextModel(rainstormFont, "All the world's a stage, ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     textModel->grab();
 
-    rootNode.grabModel(testM);
+    TextModel* fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
+    fpsCounter->grab();
+
     friendNode.grabModel(resman->findModel("JellyUFO.model"));
 
     rootNode.addChild(&friendNode);
@@ -97,6 +97,11 @@ int main(int argc, char* argv[]) {
 
     uint32_t prev = SDL_GetTicks();
 
+    float fps = 0.f;
+    float fpsWeight = 0.85f;
+
+    float oneSecondTimer = 0.f;
+
     bool running = true;
     while(running) {
         SDL_Event event;
@@ -107,28 +112,48 @@ int main(int argc, char* argv[]) {
         }
 
         uint32_t now = SDL_GetTicks();
-        double tps = now - prev;
-        tps /= 1000;
+        float tpf = now - prev;
+        tpf /= 1000.f;
         prev = now;
+
+        oneSecondTimer += tpf;
+
+        if(tpf > 0) {
+            float fpsNew = 1 / tpf;
+            fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
+        }
+
+        if(oneSecondTimer > 1.f) {
+            oneSecondTimer -= 1.f;
+
+            fpsCounter->drop();
+
+            std::stringstream ss;
+            ss << "FPS: ";
+            ss << (uint32_t) fps;
+
+            fpsCounter = new TextModel(rainstormFont, ss.str());
+            fpsCounter->grab();
+        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tps);
+        rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
         rootNode.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-        friendNode.move(glm::vec3(0.f, 0.f, (float) (tps * 0.3)));
+        friendNode.move(glm::vec3(0.f, 0.f, (float) (tpf * 0.3)));
         rootNode.render(viewMat, projMat);
 
         glClear(GL_DEPTH_BUFFER_BIT);
         //overlayNode.render(viewMatOverlay, projMatOverlay);
 
-        textModel->render(viewMatOverlay, projMatOverlay, testMM);
+        fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);
     }
+    fpsCounter->drop();
 
     textModel->drop();
-    testM->drop();
 
     rootNode.dropModel();
     
