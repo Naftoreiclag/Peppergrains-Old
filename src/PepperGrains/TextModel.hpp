@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "ShaderProgramResource.hpp"
 #include "FontResource.hpp"
 #include "Model.hpp"
 
@@ -24,7 +25,7 @@ namespace pgg {
 class TextModel : public Model {
 private:
     std::string mText;
-    uint32_t mNumGlyphs
+    uint32_t mNumGlyphs;
     FontResource* mFont;
 
     GLuint mVertexArrayObject;

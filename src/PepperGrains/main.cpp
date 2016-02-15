@@ -22,6 +22,7 @@
 #include "ResourceManager.hpp"
 #include "SceneNode.hpp"
 
+#include "TextModel.hpp"
 #include "ManualModel.hpp"
 
 using namespace pgg;
@@ -76,6 +77,9 @@ int main(int argc, char* argv[]) {
 
     FontResource* testF = resman->findFont("Rainstorm.font");
 
+    TextModel* textModel = new TextModel(testF, "Hello");
+    textModel->grab();
+
     rootNode.grabModel(testM);
     friendNode.grabModel(resman->findModel("JellyUFO.model"));
 
@@ -117,12 +121,13 @@ int main(int argc, char* argv[]) {
         glClear(GL_DEPTH_BUFFER_BIT);
         //overlayNode.render(viewMatOverlay, projMatOverlay);
 
-        testM->render(viewMatOverlay, projMatOverlay, testMM);
+        textModel->render(viewMatOverlay, projMatOverlay, testMM);
 
         // Swap buffers (draw everything onto the screen)
         SDL_GL_SwapWindow(sdlWindow);
     }
 
+    textModel->drop();
     testM->drop();
 
     rootNode.dropModel();

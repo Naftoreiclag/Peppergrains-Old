@@ -13,6 +13,8 @@
 
 #include "TextModel.hpp"
 
+#include "ResourceManager.hpp"
+
 namespace pgg {
 
 TextModel::TextModel(FontResource* font, std::string text)
@@ -27,8 +29,8 @@ bool TextModel::load() {
     uint32_t vertexLength = 4;
     uint32_t glyphLength = 4 * vertexLength;
 
-    float width = 10;
-    float height = 10;
+    float width = 40;
+    float height = 40;
 
     GLfloat vertices[mNumGlyphs * glyphLength];
     GLuint indices[mNumGlyphs * 6];
@@ -50,17 +52,19 @@ bool TextModel::load() {
                 }
             }
 
-            indices[(index * 6) + 0] = 0;
-            indices[(index * 6) + 1] = 1;
-            indices[(index * 6) + 2] = 2;
-            indices[(index * 6) + 3] = 1;
-            indices[(index * 6) + 4] = 3;
-            indices[(index * 6) + 5] = 2;
+            indices[(index * 6) + 0] = (index * 4) + 0;
+            indices[(index * 6) + 1] = (index * 4) + 1;
+            indices[(index * 6) + 2] = (index * 4) + 2;
+            indices[(index * 6) + 3] = (index * 4) + 1;
+            indices[(index * 6) + 4] = (index * 4) + 3;
+            indices[(index * 6) + 5] = (index * 4) + 2;
 
             ++ index;
         }
     }
     //
+
+    ResourceManager* resman = ResourceManager::getSingleton();
 
     mShaderProg = resman->findShaderProgram("Font.shaderProgram");
     mShaderProg->grab();
@@ -81,10 +85,12 @@ bool TextModel::load() {
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 
-    glEnableVertexAttribArray(mShaderProg->getPosAttrib());
 
     // Uses 2D coordinates
+    glEnableVertexAttribArray(mShaderProg->getPosAttrib());
     glVertexAttribPointer(mShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, vertexLength * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(mShaderProg->getUVAttrib());
+    glVertexAttribPointer(mShaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, vertexLength * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
 
