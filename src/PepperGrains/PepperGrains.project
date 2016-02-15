@@ -52,22 +52,22 @@
       <File Name="FontResource.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Rendering">
-      <VirtualDirectory Name="SceneGraph">
-        <File Name="SceneNode.cpp"/>
-        <File Name="SceneNode.hpp"/>
-      </VirtualDirectory>
       <File Name="ManualModel.hpp"/>
       <File Name="ManualModel.cpp"/>
       <File Name="Model.hpp"/>
       <File Name="Model.cpp"/>
+      <File Name="SceneNode.cpp"/>
+      <File Name="SceneNode.hpp"/>
+      <File Name="TextModel.hpp"/>
+      <File Name="TextModel.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>
       <File Name="StreamStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
+      <File Name="ReferenceCounted.cpp"/>
+      <File Name="ReferenceCounted.hpp"/>
     </VirtualDirectory>
-    <File Name="ReferenceCounted.hpp"/>
-    <File Name="ReferenceCounted.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
