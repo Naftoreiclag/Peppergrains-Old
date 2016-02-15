@@ -23,9 +23,9 @@ ManualModel::ManualModel() {
 
     GLfloat vertices[] = {
         0.f, 0.f, 0.f,
-        2.f, 0.f, 0.f,
-        0.f, 2.f, 0.f,
-        2.f, 2.f, 0.f
+        50.f, 0.f, 0.f,
+        0.f, 50.f, 0.f,
+        50.f, 50.f, 0.f
     };
     GLuint indices[] = {
         0, 1, 2,
@@ -56,14 +56,16 @@ ManualModel::ManualModel() {
     glEnableVertexAttribArray(mShaderProg->getPosAttrib());
     glVertexAttribPointer(mShaderProg->getPosAttrib(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
-    // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
-
-
 }
 
 ManualModel::~ManualModel() {
+    glDeleteBuffers(1, &mIndexBufferObject);
+    glDeleteBuffers(1, &mVertexBufferObject);
+
     mShaderProg->drop();
+
+    glDeleteVertexArrays(1, &mVertexArrayObject);
 }
 
 void ManualModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
