@@ -64,6 +64,8 @@
       <File Name="StreamStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
     </VirtualDirectory>
+    <File Name="ReferenceCounted.hpp"/>
+    <File Name="ReferenceCounted.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
