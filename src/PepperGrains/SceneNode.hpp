@@ -42,12 +42,12 @@ private:
     glm::mat4 mWorldTransform;
     bool mWorldTransformDirty;
 
-    // This scenenode may be responsible for rendering a model
-    Model* mModelRes;
-
     // Family relationships
     SceneNode* mParent;
     std::vector<SceneNode*> mChildren;
+
+    // This scenenode may be responsible for rendering a model
+    Model* mModelRes;
 public:
     const glm::vec3& getLocalScale() const;
     const glm::quat& getLocalOrientation() const;

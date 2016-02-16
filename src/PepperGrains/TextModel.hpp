@@ -24,9 +24,9 @@ namespace pgg {
 
 class TextModel : public Model {
 private:
+    FontResource* mFont;
     std::string mText;
     uint32_t mNumGlyphs;
-    FontResource* mFont;
 
     GLuint mVertexArrayObject;
     GLuint mVertexBufferObject;
