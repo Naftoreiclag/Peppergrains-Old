@@ -2,13 +2,17 @@
 <CodeLite_Workspace Name="workspace" Database="workspace.tags">
   <Project Name="PepperGrains" Path="PepperGrains/PepperGrains.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
-      <Environment/>
-      <Project Name="PepperGrains" ConfigName="Debug"/>
+    <WorkspaceConfiguration Name="LinuxDebug" Selected="no">
+      <Project Name="PepperGrains" ConfigName="LinuxDebug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
-      <Environment/>
-      <Project Name="PepperGrains" ConfigName="Release"/>
+    <WorkspaceConfiguration Name="LinuxRelease" Selected="yes">
+      <Project Name="PepperGrains" ConfigName="LinuxRelease"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinDebug" Selected="no">
+      <Project Name="PepperGrains" ConfigName="WinDebug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="WinRelease" Selected="no">
+      <Project Name="PepperGrains" ConfigName="WinRelease"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>
