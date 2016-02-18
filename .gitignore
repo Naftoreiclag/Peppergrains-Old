@@ -16,4 +16,5 @@ src/Makefile
 
 resources/*
 dependencies/*
+dependencies-win/*
 /runDebug.sh
