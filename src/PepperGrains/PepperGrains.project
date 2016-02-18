@@ -2,7 +2,7 @@
 <CodeLite_Project Name="PepperGrains" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+      <![CDATA[00050001N0005Debug0000000000000001N0012LinuxRelease0000000000000001N0007Release0000000000000001N0008WinDebug0000000000000001N0010WinRelease000000000000]]>
     </Plugin>
     <Plugin Name="CMakePlugin">
       <![CDATA[[{
@@ -15,7 +15,43 @@
   "arguments": [],
   "parentProject": ""
  }, {
+  "name": "LinuxDebug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "LinuxRelease",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
   "name": "Release",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "WinDebug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "WinRelease",
   "enabled": false,
   "buildDirectory": "build",
   "sourceDirectory": "$(ProjectPath)",
@@ -80,7 +116,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
-      <File Name="../../libraries/jsoncpp/dist/jsoncpp.cpp"/>
+      <File Name="../../dependencies/jsoncpp/dist/jsoncpp.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
@@ -96,8 +132,8 @@
     <Configuration Name="LinuxDebug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-std=c++11;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../../libraries/jsoncpp/dist"/>
-        <IncludePath Value="../../libraries/stb"/>
+        <IncludePath Value="../../dependencies/jsoncpp/dist"/>
+        <IncludePath Value="../../dependencies/stb"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <Library Value="GL"/>
@@ -143,8 +179,8 @@
     <Configuration Name="LinuxRelease" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-std=c++11;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../../libraries/jsoncpp/dist"/>
-        <IncludePath Value="../../libraries/stb"/>
+        <IncludePath Value="../../dependencies/jsoncpp/dist"/>
+        <IncludePath Value="../../dependencies/stb"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">
@@ -191,8 +227,8 @@
     <Configuration Name="WinDebug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-std=c++11;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../../libraries/jsoncpp/dist"/>
-        <IncludePath Value="../../libraries/stb"/>
+        <IncludePath Value="../../dependencies/jsoncpp/dist"/>
+        <IncludePath Value="../../dependencies/stb"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <Library Value="GL"/>
@@ -238,8 +274,8 @@
     <Configuration Name="WinRelease" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-std=c++11;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../../libraries/jsoncpp/dist"/>
-        <IncludePath Value="../../libraries/stb"/>
+        <IncludePath Value="../../dependencies/jsoncpp/dist"/>
+        <IncludePath Value="../../dependencies/stb"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">

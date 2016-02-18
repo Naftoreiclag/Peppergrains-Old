@@ -15,5 +15,5 @@ src/PepperGrains/PepperGrains.txt
 src/Makefile
 
 resources/*
-libraries/*
+dependencies/*
 /runDebug.sh
