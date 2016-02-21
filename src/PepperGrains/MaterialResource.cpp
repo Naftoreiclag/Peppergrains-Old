@@ -40,7 +40,7 @@ bool MaterialResource::load() {
     Json::Value matData;
 
     {
-        std::ifstream loader(this->getFile().c_str());
+        std::ifstream loader(this->getFile().string().c_str());
         loader >> matData;
         loader.close();
     }

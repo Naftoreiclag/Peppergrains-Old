@@ -43,7 +43,7 @@ const uint32_t& ResourceManager::getPermaloadThreshold() {
 void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
     Json::Value dataPackData;
     {
-        std::ifstream reader(dataPackFile.c_str());
+        std::ifstream reader(dataPackFile.string().c_str());
         reader >> dataPackData;
         reader.close();
     }

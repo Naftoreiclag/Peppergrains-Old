@@ -34,7 +34,7 @@ bool FontResource::load() {
         return true;
     }
 
-    std::ifstream input(this->getFile().c_str(), std::ios::in | std::ios::binary);
+    std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
 
     std::string textureName;
     readString(input, textureName);

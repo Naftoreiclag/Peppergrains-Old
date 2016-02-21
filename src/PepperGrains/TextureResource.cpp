@@ -54,7 +54,7 @@ bool TextureResource::load() {
 
     Json::Value textureData;
     {
-        std::ifstream loader(this->getFile().c_str());
+        std::ifstream loader(this->getFile().string().c_str());
         loader >> textureData;
         loader.close();
     }

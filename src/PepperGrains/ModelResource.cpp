@@ -38,7 +38,7 @@ bool ModelResource::load() {
     Json::Value mdlData;
 
     {
-        std::ifstream loader(this->getFile().c_str());
+        std::ifstream loader(this->getFile().string().c_str());
         loader >> mdlData;
         loader.close();
     }

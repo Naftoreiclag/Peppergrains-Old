@@ -35,7 +35,7 @@ bool ImageResource::load() {
     int width;
     int height;
     int components;
-    mImage = stbi_load(this->getFile().c_str(), &width, &height, &components, 0);
+    mImage = stbi_load(this->getFile().string().c_str(), &width, &height, &components, 0);
     mWidth = width;
     mHeight = height;
     mComponents = components;

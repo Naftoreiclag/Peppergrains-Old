@@ -36,7 +36,7 @@ bool ShaderProgramResource::load() {
     // Load json data
     Json::Value progData;
     {
-        std::ifstream loader(this->getFile().c_str());
+        std::ifstream loader(this->getFile().string().c_str());
         loader >> progData;
         loader.close();
     }

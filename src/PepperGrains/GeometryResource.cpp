@@ -34,7 +34,7 @@ bool GeometryResource::load() {
         return true;
     }
 
-    std::ifstream input(this->getFile().c_str(), std::ios::in | std::ios::binary);
+    std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
 
     mUsePositions = readBool(input);
     mUseColor = readBool(input);

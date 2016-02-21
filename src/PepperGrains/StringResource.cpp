@@ -31,7 +31,7 @@ bool StringResource::load() {
         return true;
     }
 
-    std::ifstream loader(this->getFile().c_str());
+    std::ifstream loader(this->getFile().string().c_str());
     std::stringstream ss;
     ss << loader.rdbuf();
     loader.close();
