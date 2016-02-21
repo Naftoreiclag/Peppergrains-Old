@@ -238,11 +238,13 @@
         <LibraryPath Value="$(GLEW_HOME)/lib"/>
         <LibraryPath Value="$(SDL2_HOME)/lib"/>
         <LibraryPath Value="$(BOOST_HOME)/lib"/>
-        <Library Value="glew32"/>
-        <Library Value="boost_system-mgw51-s-1_59"/>
-        <Library Value="boost_filesystem-mgw51-s-1_59"/>
+        <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
+        <Library Value="glew32"/>
+        <Library Value="opengl32"/>
+        <Library Value="boost_system-mgw51-s-1_59"/>
+        <Library Value="boost_filesystem-mgw51-s-1_59"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
@@ -257,7 +259,10 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
         <StartupCommands/>
       </Debugger>
       <PreBuild/>
-      <PostBuild/>
+      <PostBuild>
+        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+      </PostBuild>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
         <CleanCommand/>
