@@ -284,25 +284,35 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="WinRelease" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="WinRelease" CompilerType="MinGW ( mingw64 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-std=c++11;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../../dependencies/jsoncpp/dist"/>
         <IncludePath Value="../../dependencies/stb"/>
+        <IncludePath Value="$(BOOST_HOME)"/>
+        <IncludePath Value="$(GLEW_HOME)/include"/>
+        <IncludePath Value="$(GLM_HOME)/include"/>
+        <IncludePath Value="$(SDL2_HOME)/include"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">
-        <Library Value="GL"/>
-        <Library Value="GLEW"/>
-        <Library Value="boost_system"/>
-        <Library Value="boost_filesystem"/>
+        <LibraryPath Value="$(GLEW_HOME)/lib"/>
+        <LibraryPath Value="$(SDL2_HOME)/lib"/>
+        <LibraryPath Value="$(BOOST_HOME)/lib"/>
+        <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
+        <Library Value="glew32"/>
+        <Library Value="opengl32"/>
+        <Library Value="boost_system-mgw51-s-1_59"/>
+        <Library Value="boost_filesystem-mgw51-s-1_59"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[]]>
+        <![CDATA[SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
+GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
+GLM_HOME=../../dependencies-win/header-only/GLM]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -310,7 +320,11 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
         <StartupCommands/>
       </Debugger>
       <PreBuild/>
-      <PostBuild/>
+      <PostBuild>
+        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes"/>
+      </PostBuild>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
         <CleanCommand/>
