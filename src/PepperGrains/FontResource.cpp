@@ -67,6 +67,8 @@ bool FontResource::load() {
     mTexture = rmgr->findTexture(textureName);
     mTexture->grab();
 
+    mLoaded =  true;
+
     return true;
 }
 bool FontResource::unload() {
