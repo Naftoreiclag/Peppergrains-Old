@@ -110,12 +110,6 @@
       <File Name="OpenGLStuff.hpp"/>
       <File Name="StreamStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
-      <File Name="ReferenceCounted.cpp"/>
-      <File Name="ReferenceCounted.hpp"/>
-      <File Name="GameLayer.cpp"/>
-      <File Name="GameLayer.hpp"/>
-      <File Name="GameLayerMachine.cpp"/>
-      <File Name="GameLayerMachine.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nres">
       <File Name="NRES.hpp"/>
@@ -130,9 +124,19 @@
       <File Name="nresTypedefs.hpp"/>
       <File Name="nresWorld.cpp"/>
       <File Name="nresWorld.hpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="misc">
+      <File Name="ReferenceCounted.cpp"/>
+      <File Name="ReferenceCounted.hpp"/>
+      <File Name="GameLayer.cpp"/>
+      <File Name="GameLayer.hpp"/>
+      <File Name="GameLayerMachine.cpp"/>
+      <File Name="GameLayerMachine.hpp"/>
       <File Name="EntSignal.cpp"/>
       <File Name="EntSignal.hpp"/>
     </VirtualDirectory>
+    <File Name="PepperGrains.hpp"/>
+    <File Name="PepperGrains.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

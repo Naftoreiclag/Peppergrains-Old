@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -11,13 +11,21 @@
    limitations under the License.
 */
 
-#define GL_GLEXT_PROTOTYPES 1
-#define GL3_PROTOTYPES 1
+#ifndef PGG_PEPPERGRAINS_HPP
+#define PGG_PEPPERGRAINS_HPP
 
-#include "PepperGrains.hpp"
+namespace pgg {
 
-using namespace pgg;
+class PepperGrains {
+public:
+    static PepperGrains* getSingleton();
+public:
+    PepperGrains();
+    ~PepperGrains();
+public:
+    int run(int argc, char* argv[]);
+};
 
-int main(int argc, char* argv[]) {
-    return PepperGrains::getSingleton()->run(argc, argv);
 }
+
+#endif // PGG_PEPPERGRAINS_HPP
