@@ -13,6 +13,7 @@
 
 #include "SandboxGameLayer.hpp"
 
+#include <iostream>
 #include <sstream>
 
 namespace pgg
@@ -106,5 +107,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
 }
 
+bool SandboxGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
+    std::cout << event.data1 << ", " << event.data2 << std::endl;
+}
 }
 

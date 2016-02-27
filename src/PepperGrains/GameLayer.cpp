@@ -51,5 +51,8 @@ bool GameLayer::onMousePress(const SDL_MouseButtonEvent& event) { return false; 
 bool GameLayer::onMouseRelease(const SDL_MouseButtonEvent& event) { return false; }
 bool GameLayer::onMouseWheel(const SDL_MouseWheelEvent& event) { return false; }
 
+// Windowing
+bool GameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) { return false; }
+
 }
 

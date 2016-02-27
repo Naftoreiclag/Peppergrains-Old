@@ -217,6 +217,16 @@ void GameLayerMachine::onMouseWheel(const SDL_MouseWheelEvent& event) {
         }
     }
 }
+void GameLayerMachine::onWindowSizeUpdate(const SDL_WindowEvent& event) {
+    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        GameLayer* layer = *iter;
+        
+        // Blocking
+        if(layer->onWindowSizeUpdate(event)) {
+            break;
+        }
+    }
+}
 
 
 const Uint8* GameLayerMachine::getRelaxedKeyStates() {

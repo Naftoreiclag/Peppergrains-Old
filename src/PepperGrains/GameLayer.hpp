@@ -57,6 +57,9 @@ public:
     virtual bool onMousePress(const SDL_MouseButtonEvent& event);
     virtual bool onMouseRelease(const SDL_MouseButtonEvent& event);
     virtual bool onMouseWheel(const SDL_MouseWheelEvent& event);
+    
+    // Windowing
+    virtual bool onWindowSizeUpdate(const SDL_WindowEvent& event);
 };
 
 }

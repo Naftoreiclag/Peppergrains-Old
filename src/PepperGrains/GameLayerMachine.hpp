@@ -57,6 +57,8 @@ public:
     void onMouseRelease(const SDL_MouseButtonEvent& event);
     void onMouseWheel(const SDL_MouseWheelEvent& event);
     
+    void onWindowSizeUpdate(const SDL_WindowEvent& event);
+    
     const Uint8* getRelaxedKeyStates();
 };
 

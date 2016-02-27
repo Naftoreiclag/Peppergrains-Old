@@ -44,6 +44,8 @@ public:
     
     // Ticks
     void onTick(float tps, const Uint8* keyStates);
+    
+    bool onWindowSizeUpdate(const SDL_WindowEvent& event);
 };
 
 }

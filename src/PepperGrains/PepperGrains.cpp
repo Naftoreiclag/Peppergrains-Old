@@ -20,10 +20,6 @@
 #include "SDL2/SDL.h"
 
 #include "ResourceManager.hpp"
-#include "SceneNode.hpp"
-
-#include "TextModel.hpp"
-#include "ManualModel.hpp"
 
 #include "SandboxGameLayer.hpp"
 
@@ -48,7 +44,7 @@ int PepperGrains::run(int argc, char* argv[]) {
     uint32_t windowWidth = 1280;
     uint32_t windowHeight = 720;
     
-    SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     
     if(!sdlWindow) {
         std::cout << "SDL Window Error" << std::endl;
@@ -118,6 +114,14 @@ int PepperGrains::run(int argc, char* argv[]) {
                 case SDL_MOUSEWHEEL: {
                     mGameLayerMachine->onMouseWheel(event.wheel);
                     break;
+                }
+                case SDL_WINDOWEVENT: {
+                    switch(event.window.event) {
+                        // This also catches resizing due to API calls
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                            mGameLayerMachine->onWindowSizeUpdate(event.window);
+                        }
+                    }
                 }
                 default: {
                     break;
