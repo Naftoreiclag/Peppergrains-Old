@@ -25,6 +25,8 @@
 #include "TextModel.hpp"
 #include "ManualModel.hpp"
 
+#include "SandboxGameLayer.hpp"
+
 namespace pgg {
 
 PepperGrains* PepperGrains::getSingleton() {
@@ -69,53 +71,16 @@ int PepperGrains::run(int argc, char* argv[]) {
     // Use experimental drivers #yolo
     glewExperimental = GL_TRUE;
     glewInit();
-
-    mGameLayerMachine = new GameLayerMachine();
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-
+    
     boost::filesystem::path resourceDef = "../../../resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
     resman->mapAll(resourceDef);
 
-    SceneNode rootNode;
-    SceneNode friendNode;
+    mGameLayerMachine = new GameLayerMachine();
     
-    ManualModel* manModel = new ManualModel();
-    manModel->grab();
-
-    FontResource* rainstormFont = resman->findFont("Rainstorm.font");
-    rainstormFont->grab();
-
-    TextModel* textModel = new TextModel(rainstormFont, "All the world's a stage, ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    textModel->grab();
-
-    TextModel* fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
-    fpsCounter->grab();
-
-    friendNode.grabModel(resman->findModel("JellyUFO.model"));
-
-    rootNode.addChild(&friendNode);
-
-    SceneNode overlayNode;
-    overlayNode.grabModel(resman->findModel("JellyUFO.model"));
-
-    glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 2.f, -2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
-
-    glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) windowWidth, 0.f, (float) windowHeight);
-    glm::mat4 testMM;
+    mGameLayerMachine->addBottom(new SandboxGameLayer());
 
     uint32_t prev = SDL_GetTicks();
-
-    float fps = 0.f;
-    float fpsWeight = 0.85f;
-
-    float oneSecondTimer = 0.f;
-
     mMainLoopRunning = true;
     while(mMainLoopRunning) {
         SDL_Event event;
@@ -170,54 +135,12 @@ int PepperGrains::run(int argc, char* argv[]) {
             tpf /= 1000.f;
             prev = now;
             
-            oneSecondTimer += tpf;
-            
-
-
-
-            if(tpf > 0) {
-                float fpsNew = 1 / tpf;
-                fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
-            }
-
-            if(oneSecondTimer > 1.f) {
-                oneSecondTimer -= 1.f;
-
-                fpsCounter->drop();
-
-                std::stringstream ss;
-                ss << "FPS: ";
-                ss << (uint32_t) fps;
-
-                fpsCounter = new TextModel(rainstormFont, ss.str());
-                fpsCounter->grab();
-            }
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            rootNode.rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
-            rootNode.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-            friendNode.move(glm::vec3(0.f, 0.f, (float) (tpf * 0.3)));
-            rootNode.render(viewMat, projMat);
-            
-            //manModel->render(viewMat, projMat, glm::mat4());
-
-            glClear(GL_DEPTH_BUFFER_BIT);
-            //overlayNode.render(viewMatOverlay, projMatOverlay);
-
-            fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
+            mGameLayerMachine->onTick(tpf, SDL_GetKeyboardState(NULL));
 
             // Swap buffers (draw everything onto the screen)
             SDL_GL_SwapWindow(sdlWindow);
         }
     }
-    fpsCounter->drop();
-
-    textModel->drop();
-
-    rootNode.dropModel();
-    
-    rainstormFont->drop();
     
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

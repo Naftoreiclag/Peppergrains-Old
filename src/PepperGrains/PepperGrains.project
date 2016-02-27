@@ -137,6 +137,8 @@
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
+    <File Name="SandboxGameLayer.hpp"/>
+    <File Name="SandboxGameLayer.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
