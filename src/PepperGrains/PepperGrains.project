@@ -2,7 +2,7 @@
 <CodeLite_Project Name="PepperGrains" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00050001N0005Debug0000000000000001N0012LinuxRelease0000000000000001N0007Release0000000000000001N0008WinDebug0000000000000001N0010WinRelease000000000000]]>
+      <![CDATA[00060001N0005Debug0000000000000001N0010LinuxDebug0000000000000001N0012LinuxRelease0000000000000001N0007Release0000000000000001N0008WinDebug0000000000000001N0010WinRelease000000000000]]>
     </Plugin>
     <Plugin Name="CMakePlugin">
       <![CDATA[[{
@@ -112,6 +112,26 @@
       <File Name="StreamStuff.cpp"/>
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
+      <File Name="GameLayer.cpp"/>
+      <File Name="GameLayer.hpp"/>
+      <File Name="GameLayerMachine.cpp"/>
+      <File Name="GameLayerMachine.hpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="nres">
+      <File Name="NRES.hpp"/>
+      <File Name="nresComponent.cpp"/>
+      <File Name="nresComponent.hpp"/>
+      <File Name="nresEntity.cpp"/>
+      <File Name="nresEntity.hpp"/>
+      <File Name="nresListener.cpp"/>
+      <File Name="nresListener.hpp"/>
+      <File Name="nresSystem.cpp"/>
+      <File Name="nresSystem.hpp"/>
+      <File Name="nresTypedefs.hpp"/>
+      <File Name="nresWorld.cpp"/>
+      <File Name="nresWorld.hpp"/>
+      <File Name="EntSignal.cpp"/>
+      <File Name="EntSignal.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
@@ -129,7 +149,7 @@
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="LinuxDebug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="LinuxDebug" CompilerType="" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-std=c++11;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../../dependencies/jsoncpp/dist"/>
@@ -144,7 +164,7 @@
         <Library Value="SDL2"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/LinuxDebug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -176,7 +196,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="LinuxRelease" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="LinuxRelease" CompilerType="" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-std=c++11;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../../dependencies/jsoncpp/dist"/>
@@ -192,7 +212,7 @@
         <Library Value="SDL2"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/LinuxRelease" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -247,7 +267,7 @@
         <Library Value="boost_filesystem-mgw51-s-1_59"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
@@ -308,7 +328,7 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
         <Library Value="boost_filesystem-mgw51-s-1_59"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinRelease" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
