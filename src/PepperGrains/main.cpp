@@ -12,13 +12,13 @@
 */
 
 #include <iostream>
+#include <sstream>
 
 #define GL_GLEXT_PROTOTYPES 1
 #define GL3_PROTOTYPES 1
 
-#include <OpenGLStuff.hpp>
-#include <SDL2/SDL.h>
-#include <sstream>
+#include "OpenGLStuff.hpp"
+#include "SDL2/SDL.h"
 
 #include "ResourceManager.hpp"
 #include "SceneNode.hpp"
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.098f, 0.486f, 0.502f, 1.f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
 
     boost::filesystem::path resourceDef = "../../../resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -72,8 +72,12 @@ int main(int argc, char* argv[]) {
 
     SceneNode rootNode;
     SceneNode friendNode;
+    
+    ManualModel* manModel = new ManualModel();
+    manModel->grab();
 
     FontResource* rainstormFont = resman->findFont("Rainstorm.font");
+    rainstormFont->grab();
 
     TextModel* textModel = new TextModel(rainstormFont, "All the world's a stage, ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     textModel->grab();
@@ -142,6 +146,8 @@ int main(int argc, char* argv[]) {
         rootNode.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
         friendNode.move(glm::vec3(0.f, 0.f, (float) (tpf * 0.3)));
         rootNode.render(viewMat, projMat);
+        
+        //manModel->render(viewMat, projMat, glm::mat4());
 
         glClear(GL_DEPTH_BUFFER_BIT);
         //overlayNode.render(viewMatOverlay, projMatOverlay);
@@ -156,6 +162,8 @@ int main(int argc, char* argv[]) {
     textModel->drop();
 
     rootNode.dropModel();
+    
+    rainstormFont->drop();
     
     SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdlWindow);

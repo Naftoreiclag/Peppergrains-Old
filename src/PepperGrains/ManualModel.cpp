@@ -24,10 +24,10 @@ ManualModel::~ManualModel() {}
 
 bool ManualModel::load() {
     GLfloat vertices[] = {
-        0.f, 0.f, 0.f,
-        50.f, 0.f, 0.f,
-        0.f, 50.f, 0.f,
-        50.f, 50.f, 0.f
+        -50.f, 0.f,  50.f,
+         50.f, 0.f,  50.f,
+        -50.f, 0.f, -50.f,
+         50.f, 0.f, -50.f
     };
     GLuint indices[] = {
         0, 1, 2,
