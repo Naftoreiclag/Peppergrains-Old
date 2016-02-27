@@ -14,6 +14,8 @@
 #ifndef PGG_PEPPERGRAINS_HPP
 #define PGG_PEPPERGRAINS_HPP
 
+#include "GameLayerMachine.hpp"
+
 namespace pgg {
 
 class PepperGrains {
@@ -23,6 +25,10 @@ public:
     PepperGrains();
     ~PepperGrains();
 public:
+    
+    bool mMainLoopRunning;
+    GameLayerMachine* mGameLayerMachine;
+    
     int run(int argc, char* argv[]);
 };
 
