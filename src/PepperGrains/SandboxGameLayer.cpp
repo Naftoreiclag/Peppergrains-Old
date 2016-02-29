@@ -195,32 +195,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(viewMat, projMat);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.0f, 0.2f, 0.2f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    
-    glUseProgram(mShaderProg->getHandle());
-    
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mColorTexture);
-    //glBindTexture(GL_TEXTURE_2D, mTestTexture->getHandle());
-    glUniform1i(mTextureHandle, 0);
-    
-    glBindVertexArray(mVertexArrayObject);
-    
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    glBindVertexArray(0);
-    
-    glUseProgram(0);
-    
-    /*
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    
-    glClearColor(1.0f, 0.0f, 0.0f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     
@@ -233,9 +207,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBindVertexArray(0);
     glUseProgram(0);
     
-    glClear(GL_DEPTH_BUFFER_BIT);
-    */
-/*
+    
     if(tpf > 0) {
         float fpsNew = 1 / tpf;
         fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
@@ -256,7 +228,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
-    */
 }
 
 bool SandboxGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
