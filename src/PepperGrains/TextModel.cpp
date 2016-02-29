@@ -13,7 +13,6 @@
 
 #include "TextModel.hpp"
 
-
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -24,7 +23,7 @@ TextModel::TextModel(FontResource* font, std::string text)
 TextModel::~TextModel() { }
 
 bool TextModel::load() {
-
+    
     mNumGlyphs = mText.length();
 
     uint32_t vertexLength = 4;
