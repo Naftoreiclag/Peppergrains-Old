@@ -122,6 +122,10 @@ void SandboxGameLayer::onBegin() {
     glGenTextures(1, &mColorTexture);
     glBindTexture(GL_TEXTURE_2D, mColorTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glGenRenderbuffers(1, &mDepthStencilRenderBuffer);
@@ -152,6 +156,8 @@ void SandboxGameLayer::onEnd() {
     
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
+    
+    glDeleteTextures(1, &mColorTexture);
 
     mShaderProg->drop();
 
@@ -197,7 +203,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glUseProgram(mShaderProg->getHandle());
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mTestTexture->getHandle());// mColorTexture);
+    glBindTexture(GL_TEXTURE_2D, mColorTexture);
+    //glBindTexture(GL_TEXTURE_2D, mTestTexture->getHandle());
     glUniform1i(mTextureHandle, 0);
     
     glBindVertexArray(mVertexArrayObject);
