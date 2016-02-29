@@ -30,6 +30,18 @@ public:
     SceneNode* rootNode;
     SceneNode* friendNode;
     
+    ShaderProgramResource* mShaderProg;
+    TextureResource* mTestTexture;
+    GLuint mTextureHandle;
+    
+    GLuint mVertexArrayObject;
+    GLuint mVertexBufferObject;
+    GLuint mIndexBufferObject;
+    
+    GLuint mFramebuffer;
+    GLuint mColorTexture;
+    GLuint mDepthStencilRenderBuffer;
+    
     FontResource* rainstormFont;
     TextModel* fpsCounter;
 
