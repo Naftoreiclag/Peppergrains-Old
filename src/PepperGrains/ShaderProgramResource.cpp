@@ -13,6 +13,8 @@
 
 #include "ShaderProgramResource.hpp"
 
+#include <cassert>
+#include <iostream>
 #include <fstream>
 
 #include "json/json.h"
@@ -77,68 +79,83 @@ bool ShaderProgramResource::load() {
     // Setup vertex attributes
     {
         const Json::Value& attributes = progData["attributes"];
-        const Json::Value& posSym = attributes["position"];
-        const Json::Value& colorSym = attributes["color"];
-        const Json::Value& uvSym = attributes["uv"];
-        const Json::Value& normalSym = attributes["normal"];
-
-        if(posSym.isNull()) {
+        if(attributes.isNull()) {
             mUsePosAttrib = false;
-        } else {
-            mUsePosAttrib = true;
-            std::string symbol = posSym.asString();
-            mPosAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
-        }
-        if(colorSym.isNull()) {
             mUseColorAttrib = false;
-        } else {
-            mUseColorAttrib = true;
-            std::string symbol = colorSym.asString();
-            mColorAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
-        }
-        if(uvSym.isNull()) {
             mUseUVAttrib = false;
-        } else {
-            mUseUVAttrib = true;
-            std::string symbol = uvSym.asString();
-            mUVAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
-        }
-        if(normalSym.isNull()) {
             mUseNormalAttrib = false;
-        } else {
-            mUseNormalAttrib = true;
-            std::string symbol = normalSym.asString();
-            mNormalAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+        }
+        else {
+            const Json::Value& posSym = attributes["position"];
+            const Json::Value& colorSym = attributes["color"];
+            const Json::Value& uvSym = attributes["uv"];
+            const Json::Value& normalSym = attributes["normal"];
+
+            if(posSym.isNull()) {
+                mUsePosAttrib = false;
+            } else {
+                mUsePosAttrib = true;
+                std::string symbol = posSym.asString();
+                mPosAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
+            if(colorSym.isNull()) {
+                mUseColorAttrib = false;
+            } else {
+                mUseColorAttrib = true;
+                std::string symbol = colorSym.asString();
+                mColorAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
+            if(uvSym.isNull()) {
+                mUseUVAttrib = false;
+            } else {
+                mUseUVAttrib = true;
+                std::string symbol = uvSym.asString();
+                mUVAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
+            if(normalSym.isNull()) {
+                mUseNormalAttrib = false;
+            } else {
+                mUseNormalAttrib = true;
+                std::string symbol = normalSym.asString();
+                mNormalAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
         }
     }
 
     // Setup uniform matrices
     {
         const Json::Value& matrices = progData["matrices"];
-        const Json::Value& modelMatrix = matrices["model"];
-        const Json::Value& viewMatrix = matrices["view"];
-        const Json::Value& projMatrix = matrices["proj"];
-
-        if(modelMatrix.isNull()) {
+        if(matrices.isNull()) {
             mUseModelMatrix = false;
-        } else {
-            mUseModelMatrix = true;
-            std::string symbol = modelMatrix.asString();
-            mModelMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
-        }
-        if(viewMatrix.isNull()) {
             mUseViewMatrix = false;
-        } else {
-            mUseViewMatrix = true;
-            std::string symbol = viewMatrix.asString();
-            mViewMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
-        }
-        if(projMatrix.isNull()) {
             mUseProjMatrix = false;
-        } else {
-            mUseProjMatrix = true;
-            std::string symbol = projMatrix.asString();
-            mProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+        }
+        else {
+            const Json::Value& modelMatrix = matrices["model"];
+            const Json::Value& viewMatrix = matrices["view"];
+            const Json::Value& projMatrix = matrices["proj"];
+
+            if(modelMatrix.isNull()) {
+                mUseModelMatrix = false;
+            } else {
+                mUseModelMatrix = true;
+                std::string symbol = modelMatrix.asString();
+                mModelMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            }
+            if(viewMatrix.isNull()) {
+                mUseViewMatrix = false;
+            } else {
+                mUseViewMatrix = true;
+                std::string symbol = viewMatrix.asString();
+                mViewMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            }
+            if(projMatrix.isNull()) {
+                mUseProjMatrix = false;
+            } else {
+                mUseProjMatrix = true;
+                std::string symbol = projMatrix.asString();
+                mProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            }
         }
     }
 
@@ -171,6 +188,8 @@ bool ShaderProgramResource::load() {
 
 bool ShaderProgramResource::unload() {
 
+    assert(mLoaded && "Attempted to unload shader program before loading it");
+    
     // Free OpenGL shader program
     glDeleteProgram(mShaderProg);
 
