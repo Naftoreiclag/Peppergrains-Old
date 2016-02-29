@@ -48,7 +48,9 @@ bool VertexShaderResource::load() {
 }
 
 bool VertexShaderResource::unload() {
+    assert(mLoaded && "Attempted to unload vertex shader before loading it");
     glDeleteShader(mVertShader);
+    mLoaded = false;
     return true;
 }
 

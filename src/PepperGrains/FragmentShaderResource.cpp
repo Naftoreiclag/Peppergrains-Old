@@ -13,6 +13,7 @@
 
 #include "FragmentShaderResource.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -48,7 +49,9 @@ bool FragmentShaderResource::load() {
 }
 
 bool FragmentShaderResource::unload() {
+    assert(mLoaded && "Attempted to unload fragment shader before loading it");
     glDeleteShader(mFragShader);
+    mLoaded = false;
     return true;
 }
 
