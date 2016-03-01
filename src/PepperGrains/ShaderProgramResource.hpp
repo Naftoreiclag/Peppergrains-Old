@@ -37,7 +37,6 @@ private:
 
     GLuint mShaderProg;
     bool mLoaded;
-    std::string mFragOutSymbol;
 
     std::vector<ShaderResource*> mLinkedShaders;
 

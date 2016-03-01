@@ -63,9 +63,31 @@ bool ShaderProgramResource::load() {
         glAttachShader(mShaderProg, shader->getHandle());
     }
 
-    // Bind the fragment shader output symbol
-    mFragOutSymbol = progData["fragOut"].asString();
-    glBindFragDataLocation(mShaderProg, 0, mFragOutSymbol.c_str());
+    // Setup fragment outputs
+    {
+        const Json::Value& fragOut = progData["output"];
+        
+        if(fragOut.isNull()) {
+        }
+        else {
+            const Json::Value& colorSym = fragOut["color"];
+            const Json::Value& normalSym = fragOut["normal"];
+            const Json::Value& posSym = fragOut["position"];
+            
+            if(!colorSym.isNull()) {
+                std::string symbol = colorSym.asString();
+                glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
+            }
+            if(!normalSym.isNull()) {
+                std::string symbol = normalSym.asString();
+                glBindFragDataLocation(mShaderProg, 1, symbol.c_str());
+            }
+            if(!posSym.isNull()) {
+                std::string symbol = posSym.asString();
+                glBindFragDataLocation(mShaderProg, 2, symbol.c_str());
+            }
+        }
+    }
 
     // Link together shaders into a program
     glLinkProgram(mShaderProg);
