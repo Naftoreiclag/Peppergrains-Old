@@ -40,19 +40,6 @@ void SandboxGameLayer::onBegin() {
     std::cout << glm::to_string(test) << std::endl;
 
     ResourceManager* resman = ResourceManager::getSingleton();
-
-    rootNode = new SceneNode();
-    friendNode = new SceneNode();
-    
-    rainstormFont = resman->findFont("Rainstorm.font");
-    rainstormFont->grab();
-
-    fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
-    fpsCounter->grab();
-
-    friendNode->grabModel(resman->findModel("JellyUFO.model"));
-
-    rootNode->addChild(friendNode);
     
     mShaderProg = resman->findShaderProgram("ScreenTexture.shaderProgram");
     mShaderProg->grab();
@@ -175,6 +162,28 @@ void SandboxGameLayer::onBegin() {
         
     }
 
+    rootNode = new SceneNode();
+    friendNode1 = new SceneNode();
+    friendNode2 = new SceneNode();
+    friendNode3 = new SceneNode();
+    
+    rainstormFont = resman->findFont("Rainstorm.font");
+    rainstormFont->grab();
+
+    fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
+    fpsCounter->grab();
+
+    friendNode1->grabModel(resman->findModel("JellyUFO.model"));
+    friendNode2->grabModel(resman->findModel("JellyUFO.model"));
+    friendNode3->grabModel(resman->findModel("JellyUFO.model"));
+
+    rootNode->addChild(friendNode1);
+    rootNode->addChild(friendNode2);
+    rootNode->addChild(friendNode3);
+    
+    friendNode1->move(glm::vec3(-2.f, 0.f, 0.f));
+    friendNode3->move(glm::vec3(2.f, 0.f, 0.f));
+
     fps = 0.f;
     fpsWeight = 0.85f;
 
@@ -197,7 +206,9 @@ void SandboxGameLayer::onEnd() {
     mTestTexture->drop();
 
 
-    rootNode->dropModel();
+    friendNode1->dropModel();
+    friendNode2->dropModel();
+    friendNode3->dropModel();
     
     rainstormFont->drop();
     
@@ -214,7 +225,9 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
 
-    friendNode->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
+    friendNode1->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
+    friendNode2->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
+    friendNode3->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.f);
