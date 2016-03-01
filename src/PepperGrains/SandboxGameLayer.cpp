@@ -53,11 +53,8 @@ void SandboxGameLayer::onBegin() {
     friendNode->grabModel(resman->findModel("JellyUFO.model"));
 
     rootNode->addChild(friendNode);
-
     
-    
-    
-    mShaderProg = resman->findShaderProgram("Blue.shaderProgram");
+    mShaderProg = resman->findShaderProgram("ScreenTexture.shaderProgram");
     mShaderProg->grab();
     
     mTestTexture = resman->findTexture("128Rose.texture");
@@ -79,7 +76,7 @@ void SandboxGameLayer::onBegin() {
         }
     }
     
-    // Vertex and index data
+    // Fullscreen quad
     {
         GLfloat vertices[] = {
             -1.f,  1.f, 0.f, 1.f,
@@ -101,10 +98,7 @@ void SandboxGameLayer::onBegin() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-
-    // Vertex array object
-    {
+        
         glGenVertexArrays(1, &mVertexArrayObject);
         glBindVertexArray(mVertexArrayObject);
 
@@ -119,33 +113,67 @@ void SandboxGameLayer::onBegin() {
         glBindVertexArray(0);
     }
     
-    glGenTextures(1, &mColorTexture);
-    glBindTexture(GL_TEXTURE_2D, mColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    glGenRenderbuffers(1, &mDepthStencilRenderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, mDepthStencilRenderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 720);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    
-    glGenFramebuffers(1, &mFramebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
-    
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Complete" << std::endl;
+    // Create renderbuffer/textures for deferred shading
+    {
+        glGenTextures(1, &mColorTexture);
+        glBindTexture(GL_TEXTURE_2D, mColorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glGenTextures(1, &mNormalTexture);
+        glBindTexture(GL_TEXTURE_2D, mNormalTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glGenTextures(1, &mPositionTexture);
+        glBindTexture(GL_TEXTURE_2D, mPositionTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glGenRenderbuffers(1, &mDepthStencilRenderBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, mDepthStencilRenderBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 720);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
-    else {
-        std::cout << "Incomplete" << std::endl;
-    }
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Create framebuffer
+    {
+        glGenFramebuffers(1, &mFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mPositionTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mNormalTexture, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
+        
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0,
+            GL_COLOR_ATTACHMENT1,
+            GL_COLOR_ATTACHMENT2
+        };
+        glDrawBuffers(3, colorAttachments);
+        
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "Complete" << std::endl;
+        }
+        else {
+            std::cout << "Incomplete" << std::endl;
+        }
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+    }
 
     fps = 0.f;
     fpsWeight = 0.85f;

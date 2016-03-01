@@ -40,6 +40,8 @@ public:
     
     GLuint mFramebuffer;
     GLuint mColorTexture;
+    GLuint mNormalTexture;
+    GLuint mPositionTexture;
     GLuint mDepthStencilRenderBuffer;
     
     FontResource* rainstormFont;
