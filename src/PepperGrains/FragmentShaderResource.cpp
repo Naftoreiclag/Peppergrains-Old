@@ -43,6 +43,15 @@ bool FragmentShaderResource::load() {
     mFragShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(mFragShader, 1, &fragSrc, 0);
     glCompileShader(mFragShader);
+    
+    GLint compileStatus;
+    glGetShaderiv(mFragShader, GL_COMPILE_STATUS, &compileStatus);
+    if(compileStatus == GL_FALSE) {
+        std::cout << "Error while compiling shader " << this->getName() << std::endl;
+        char infoLog[512];
+        glGetShaderInfoLog(mFragShader, 512, 0, infoLog);
+        std::cout << infoLog;
+    }
 
     mLoaded = true;
     return true;

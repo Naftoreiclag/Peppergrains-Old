@@ -43,6 +43,15 @@ bool VertexShaderResource::load() {
     glShaderSource(mVertShader, 1, &vertSrc, 0);
     glCompileShader(mVertShader);
 
+    GLint compileStatus;
+    glGetShaderiv(mVertShader, GL_COMPILE_STATUS, &compileStatus);
+    if(compileStatus == GL_FALSE) {
+        std::cout << "Error while compiling shader " << this->getName() << std::endl;
+        char infoLog[512];
+        glGetShaderInfoLog(mVertShader, 512, 0, infoLog);
+        std::cout << infoLog;
+    }
+    
     mLoaded = true;
     return true;
 }
