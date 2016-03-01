@@ -153,8 +153,8 @@ void SandboxGameLayer::onBegin() {
         glGenFramebuffers(1, &mFramebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mPositionTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mNormalTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionTexture, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
         
         GLuint colorAttachments[] = {
@@ -186,6 +186,8 @@ void SandboxGameLayer::onEnd() {
     glDeleteBuffers(1, &mVertexBufferObject);
     
     glDeleteTextures(1, &mColorTexture);
+    glDeleteTextures(1, &mNormalTexture);
+    glDeleteTextures(1, &mPositionTexture);
 
     mShaderProg->drop();
 
@@ -228,7 +230,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     glUseProgram(mShaderProg->getHandle());
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mColorTexture);
+    glBindTexture(GL_TEXTURE_2D, mNormalTexture);
     glUniform1i(mTextureHandle, 0);
     glBindVertexArray(mVertexArrayObject);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
