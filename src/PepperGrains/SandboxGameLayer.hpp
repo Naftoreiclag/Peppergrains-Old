@@ -43,7 +43,7 @@ public:
     GLuint mIndexBufferObject;
     
     GLuint mFramebuffer;
-    GLuint mColorTexture;
+    GLuint mDiffuseTexture;
     GLuint mNormalTexture;
     GLuint mPositionTexture;
     GLuint mDepthStencilRenderBuffer;

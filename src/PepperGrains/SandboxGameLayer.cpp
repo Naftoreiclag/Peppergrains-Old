@@ -109,8 +109,8 @@ void SandboxGameLayer::onBegin() {
     
     // Create renderbuffer/textures for deferred shading
     {
-        glGenTextures(1, &mColorTexture);
-        glBindTexture(GL_TEXTURE_2D, mColorTexture);
+        glGenTextures(1, &mDiffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -146,7 +146,7 @@ void SandboxGameLayer::onBegin() {
     {
         glGenFramebuffers(1, &mFramebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColorTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionTexture, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
@@ -201,7 +201,7 @@ void SandboxGameLayer::onEnd() {
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
     
-    glDeleteTextures(1, &mColorTexture);
+    glDeleteTextures(1, &mDiffuseTexture);
     glDeleteTextures(1, &mNormalTexture);
     glDeleteTextures(1, &mPositionTexture);
 
@@ -249,12 +249,22 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_CULL_FACE);
     
     glUseProgram(mShaderProg->getHandle());
+    
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mPositionTexture);
+    glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
     glUniform1i(mDiffuseHandle, 0);
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, mNormalTexture);
+    glUniform1i(mNormalHandle, 1);
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, mPositionTexture);
+    glUniform1i(mPositionHandle, 2);
+    
     glBindVertexArray(mVertexArrayObject);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    
     glBindVertexArray(0);
+    
     glUseProgram(0);
     
     
