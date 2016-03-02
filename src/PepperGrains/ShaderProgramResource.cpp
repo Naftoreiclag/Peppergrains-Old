@@ -47,8 +47,8 @@ bool ShaderProgramResource::load() {
     const Json::Value& links = progData["link"];
     ResourceManager* rsmngr = ResourceManager::getSingleton();
     for(Json::Value::const_iterator iter = links.begin(); iter != links.end(); ++ iter) {
-        const Json::Value& entry = *iter;
-        std::string name = entry.asString();
+        const Json::Value& value = *iter;
+        std::string name = value.asString();
         ShaderResource* shader = rsmngr->findShader(name);
         mLinkedShaders.push_back(shader);
         shader->grab();
@@ -190,13 +190,15 @@ bool ShaderProgramResource::load() {
 
             if(!sampler2Ds.isNull()) {
                 for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
-                    const Json::Value& entry = *iter;
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
 
-                    std::string name = entry.asString();
+                    // Key = name used for referencing
+                    // Value = symbol searched for in shader code
 
                     Sampler2DControl control;
-                    control.name = entry.asString();
-                    control.handle = glGetUniformLocation(mShaderProg, control.name.c_str());
+                    control.name = key.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
 
                     mSampler2Ds.push_back(control);
                 }
