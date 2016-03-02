@@ -70,12 +70,13 @@ bool ShaderProgramResource::load() {
         if(fragOut.isNull()) {
         }
         else {
-            const Json::Value& colorSym = fragOut["diffuse"];
+            const Json::Value& diffuseSym = fragOut["diffuse"];
             const Json::Value& normalSym = fragOut["normal"];
             const Json::Value& posSym = fragOut["position"];
             
-            if(!colorSym.isNull()) {
-                std::string symbol = colorSym.asString();
+            // TODO: use enums instead of 0, 1, 2...
+            if(!diffuseSym.isNull()) {
+                std::string symbol = diffuseSym.asString();
                 glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
             }
             if(!normalSym.isNull()) {
@@ -109,7 +110,7 @@ bool ShaderProgramResource::load() {
         }
         else {
             const Json::Value& posSym = attributes["position"];
-            const Json::Value& colorSym = attributes["color"];
+            const Json::Value& diffuseSym = attributes["color"];
             const Json::Value& uvSym = attributes["uv"];
             const Json::Value& normalSym = attributes["normal"];
 
@@ -120,11 +121,11 @@ bool ShaderProgramResource::load() {
                 std::string symbol = posSym.asString();
                 mPosAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
             }
-            if(colorSym.isNull()) {
+            if(diffuseSym.isNull()) {
                 mUseColorAttrib = false;
             } else {
                 mUseColorAttrib = true;
-                std::string symbol = colorSym.asString();
+                std::string symbol = diffuseSym.asString();
                 mColorAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
             }
             if(uvSym.isNull()) {
