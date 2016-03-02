@@ -28,9 +28,9 @@ public:
     ~SandboxGameLayer();
     
     SceneNode* rootNode;
-    SceneNode* friendNode1;
-    SceneNode* friendNode2;
-    SceneNode* friendNode3;
+    SceneNode* friendNodeX;
+    SceneNode* friendNodeY;
+    SceneNode* friendNodeZ;
     
     ShaderProgramResource* mShaderProg;
     TextureResource* mTestTexture;

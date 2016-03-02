@@ -163,9 +163,9 @@ void SandboxGameLayer::onBegin() {
     }
 
     rootNode = new SceneNode();
-    friendNode1 = new SceneNode();
-    friendNode2 = new SceneNode();
-    friendNode3 = new SceneNode();
+    friendNodeX = new SceneNode();
+    friendNodeY = new SceneNode();
+    friendNodeZ = new SceneNode();
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
@@ -173,16 +173,16 @@ void SandboxGameLayer::onBegin() {
     fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
     fpsCounter->grab();
 
-    friendNode1->grabModel(resman->findModel("JellyUFO.model"));
-    friendNode2->grabModel(resman->findModel("JellyUFO.model"));
-    friendNode3->grabModel(resman->findModel("JellyUFO.model"));
+    friendNodeX->grabModel(resman->findModel("JellySmoothTorus.model"));
+    friendNodeY->grabModel(resman->findModel("JellySmoothTorus.model"));
+    friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
 
-    rootNode->addChild(friendNode1);
-    rootNode->addChild(friendNode2);
-    rootNode->addChild(friendNode3);
+    rootNode->addChild(friendNodeX);
+    rootNode->addChild(friendNodeY);
+    rootNode->addChild(friendNodeZ);
     
-    friendNode1->move(glm::vec3(-2.f, 0.f, 0.f));
-    friendNode3->move(glm::vec3(2.f, 0.f, 0.f));
+    friendNodeX->move(glm::vec3(-2.f, 0.f, 0.f));
+    friendNodeZ->move(glm::vec3(2.f, 0.f, 0.f));
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -206,9 +206,9 @@ void SandboxGameLayer::onEnd() {
     mTestTexture->drop();
 
 
-    friendNode1->dropModel();
-    friendNode2->dropModel();
-    friendNode3->dropModel();
+    friendNodeX->dropModel();
+    friendNodeY->dropModel();
+    friendNodeZ->dropModel();
     
     rainstormFont->drop();
     
@@ -218,16 +218,16 @@ void SandboxGameLayer::onEnd() {
 // Ticks
 void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
-    glm::mat4 viewMat = glm::lookAt(glm::vec3(0.f, 0.f, -3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    glm::mat4 viewMat = glm::lookAt(glm::vec3(-2.f, 0.f, -3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
 
-    friendNode1->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
-    friendNode2->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
-    friendNode3->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
+    friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
+    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
+    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.f);
