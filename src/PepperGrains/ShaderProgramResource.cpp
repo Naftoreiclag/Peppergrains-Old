@@ -70,7 +70,7 @@ bool ShaderProgramResource::load() {
         if(fragOut.isNull()) {
         }
         else {
-            const Json::Value& colorSym = fragOut["color"];
+            const Json::Value& colorSym = fragOut["diffuse"];
             const Json::Value& normalSym = fragOut["normal"];
             const Json::Value& posSym = fragOut["position"];
             
