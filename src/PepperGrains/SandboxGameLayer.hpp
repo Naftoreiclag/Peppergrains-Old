@@ -34,7 +34,9 @@ public:
     
     ShaderProgramResource* mShaderProg;
     TextureResource* mTestTexture;
-    GLuint mTextureHandle;
+    GLuint mDiffuseHandle;
+    GLuint mNormalHandle;
+    GLuint mPositionHandle;
     
     GLuint mVertexArrayObject;
     GLuint mVertexBufferObject;

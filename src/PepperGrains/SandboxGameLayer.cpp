@@ -41,7 +41,7 @@ void SandboxGameLayer::onBegin() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    mShaderProg = resman->findShaderProgram("ScreenTexture.shaderProgram");
+    mShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
     mShaderProg->grab();
     
     mTestTexture = resman->findTexture("128Rose.texture");
@@ -57,9 +57,16 @@ void SandboxGameLayer::onBegin() {
         const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
         for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Sampler2DControl& entry = *iter;
-            mTextureHandle = entry.handle;
-            std::cout << "asdf " << mTextureHandle << std::endl;
-            break; // (Might want other samplers in the future)
+            
+            if(entry.name == "diffuse") {
+                mDiffuseHandle = entry.handle;
+            }
+            else if(entry.name == "normal") {
+                mNormalHandle = entry.handle;
+            }
+            else if(entry.name == "position") {
+                mPositionHandle = entry.handle;
+            }
         }
     }
     
@@ -244,7 +251,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glUseProgram(mShaderProg->getHandle());
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mPositionTexture);
-    glUniform1i(mTextureHandle, 0);
+    glUniform1i(mDiffuseHandle, 0);
     glBindVertexArray(mVertexArrayObject);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
