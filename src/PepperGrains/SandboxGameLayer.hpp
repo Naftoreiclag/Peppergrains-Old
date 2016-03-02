@@ -32,7 +32,7 @@ public:
     SceneNode* friendNodeY;
     SceneNode* friendNodeZ;
     
-    ShaderProgramResource* mShaderProg;
+    ShaderProgramResource* mGBufferShaderProg;
     TextureResource* mTestTexture;
     GLuint mDiffuseHandle;
     GLuint mNormalHandle;

@@ -41,20 +41,20 @@ void SandboxGameLayer::onBegin() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    mShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
-    mShaderProg->grab();
+    mGBufferShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
+    mGBufferShaderProg->grab();
     
     mTestTexture = resman->findTexture("128Rose.texture");
     mTestTexture->grab();
     
     
-    std::cout << mShaderProg->getHandle() << std::endl;
-    std::cout << mShaderProg->needsPosAttrib() << std::endl;
-    std::cout << mShaderProg->needsUVAttrib() << std::endl;
+    std::cout << mGBufferShaderProg->getHandle() << std::endl;
+    std::cout << mGBufferShaderProg->needsPosAttrib() << std::endl;
+    std::cout << mGBufferShaderProg->needsUVAttrib() << std::endl;
     
     // Locate where to send the sampler
     {
-        const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
+        const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mGBufferShaderProg->getSampler2Ds();
         for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Sampler2DControl& entry = *iter;
             
@@ -73,10 +73,10 @@ void SandboxGameLayer::onBegin() {
     // Fullscreen quad
     {
         GLfloat vertices[] = {
-            -1.f,  1.f, 0.f, 1.f,
-             1.f,  1.f, 1.f, 1.f,
-            -1.f, -1.f, 0.f, 0.f,
-             1.f, -1.f, 1.f, 0.f
+            -1.f,  1.f, 1.f, 1.f,
+             1.f,  1.f, 0.f, 1.f,
+            -1.f, -1.f, 1.f, 0.f,
+             1.f, -1.f, 0.f, 0.f
         };
         GLuint indices[] = {
             0, 1, 2,
@@ -99,10 +99,10 @@ void SandboxGameLayer::onBegin() {
         glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 
-        glEnableVertexAttribArray(mShaderProg->getPosAttrib());
-        glVertexAttribPointer(mShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(mShaderProg->getUVAttrib());
-        glVertexAttribPointer(mShaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(mGBufferShaderProg->getPosAttrib());
+        glVertexAttribPointer(mGBufferShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(mGBufferShaderProg->getUVAttrib());
+        glVertexAttribPointer(mGBufferShaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
 
         glBindVertexArray(0);
     }
@@ -205,7 +205,7 @@ void SandboxGameLayer::onEnd() {
     glDeleteTextures(1, &mNormalTexture);
     glDeleteTextures(1, &mPositionTexture);
 
-    mShaderProg->drop();
+    mGBufferShaderProg->drop();
 
     glDeleteVertexArrays(1, &mVertexArrayObject);
     
@@ -248,7 +248,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     
-    glUseProgram(mShaderProg->getHandle());
+    glUseProgram(mGBufferShaderProg->getHandle());
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
