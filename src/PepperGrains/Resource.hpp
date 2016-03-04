@@ -32,6 +32,10 @@ public:
     Resource();
     virtual ~Resource();
     
+    bool isFallback() const;
+    
+    // TODO make get's const
+    
     void setFile(const boost::filesystem::path& file);
     const boost::filesystem::path& getFile();
     void setName(std::string name);

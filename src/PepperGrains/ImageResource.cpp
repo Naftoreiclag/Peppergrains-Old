@@ -13,6 +13,7 @@
 
 #include "ImageResource.hpp"
 
+#include <cassert>
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,9 +27,35 @@ ImageResource::ImageResource()
 
 ImageResource::~ImageResource() {
 }
+void ImageResource::loadError() {
+    mWidth = 8;
+    mHeight = 8;
+    mComponents = 3;
+    mImage = new uint8_t[mWidth * mHeight * mComponents];
+    
+    for(uint32_t y = 0; y < mHeight; ++ y) {
+        for(uint32_t x = 0; x < mWidth; ++ x) {
+            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? 0 : 255;
+            mImage[((y * mWidth) + x) * mComponents + 1] = 0;
+            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : 255;
+        }
+    }
+    mLoaded = true;
+}
+
+void ImageResource::unloadError() {
+    assert(mLoaded && "Attempted to unload image before loading it");
+    delete[] mImage;
+    mLoaded = false;
+}
 
 bool ImageResource::load() {
     if(mLoaded) {
+        return true;
+    }
+    
+    if(this->isFallback()) {
+        loadError();
         return true;
     }
 
@@ -44,8 +71,16 @@ bool ImageResource::load() {
 }
 
 bool ImageResource::unload() {
-    stbi_image_free(mImage);
-    mLoaded = false;
+    assert(mLoaded && "Attempted to unload image before loading it");
+    
+    if(this->isFallback()) {
+        unloadError();
+    }
+    else {
+        stbi_image_free(mImage);
+        mLoaded = false;
+    }
+    
     return true;
 }
 

@@ -27,6 +27,9 @@ private:
     uint32_t mHeight;
     uint32_t mComponents;
     bool mLoaded;
+    
+    void loadError();
+    void unloadError();
 public:
     ImageResource();
     virtual ~ImageResource();

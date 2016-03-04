@@ -38,6 +38,8 @@ class ResourceManager {
 public:
     static ResourceManager* getSingleton();
 private:
+    std::map<std::string, MiscResource*> mMiscs;
+    
     std::map<std::string, StringResource*> mStrings;
     std::map<std::string, ImageResource*> mImages;
     std::map<std::string, TextureResource*> mTextures;
@@ -47,7 +49,17 @@ private:
     std::map<std::string, ShaderResource*> mShaders;
     std::map<std::string, ShaderProgramResource*> mShaderPrograms;
     std::map<std::string, FontResource*> mFonts;
-    std::map<std::string, MiscResource*> mMiscs;
+    
+    bool mFallbacksGrabbed;
+    StringResource* mFallbackString;
+    ImageResource* mFallbackImage;
+    TextureResource* mFallbackTexture;
+    ModelResource* mFallbackModel;
+    MaterialResource* mFallbackMaterial;
+    GeometryResource* mFallbackGeometry;
+    ShaderResource* mFallbackShader;
+    ShaderProgramResource* mFallbackShaderProgram;
+    FontResource* mFallbackFont;
 
     uint32_t mPermaloadThreshold;
 
@@ -59,6 +71,17 @@ public:
     const uint32_t& getPermaloadThreshold();
 
     void mapAll(boost::filesystem::path data);
+    void grabFallbacks();
+    
+    StringResource* getFallbackString();
+    ImageResource* getFallbackImage();
+    TextureResource* getFallbackTexture();
+    ModelResource* getFallbackModel();
+    MaterialResource* getFallbackMaterial();
+    GeometryResource* getFallbackGeometry();
+    ShaderResource* getFallbackShader();
+    ShaderProgramResource* getFallbackShaderProgram();
+    FontResource* getFallbackFont();
 
     StringResource* findString(std::string name);
     ImageResource* findImage(std::string name);

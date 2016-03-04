@@ -13,6 +13,7 @@
 
 #include "ResourceManager.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -27,11 +28,52 @@ ResourceManager* ResourceManager::getSingleton() {
 }
 
 ResourceManager::ResourceManager()
-: mPermaloadThreshold(0) {
+: mPermaloadThreshold(0),
+mFallbacksGrabbed(false) {
+    mFallbackString = new StringResource();
+    mFallbackImage = new ImageResource();
+    mFallbackTexture = new TextureResource();
+    mFallbackModel = new ModelResource();
+    mFallbackMaterial = new MaterialResource();
+    mFallbackGeometry = new GeometryResource();
+    mFallbackShader = new FragmentShaderResource();
+    mFallbackShaderProgram = new ShaderProgramResource();
+    mFallbackFont = new FontResource();
 }
 
 ResourceManager::~ResourceManager() {
+    if(mFallbacksGrabbed) {
+        mFallbackString->drop();
+        mFallbackImage->drop();
+        mFallbackTexture->drop();
+        mFallbackModel->drop();
+        mFallbackMaterial->drop();
+        mFallbackGeometry->drop();
+        mFallbackShader->drop();
+        mFallbackShaderProgram->drop();
+        mFallbackFont->drop();
+    }
+    
+    delete mFallbackString;
+    delete mFallbackImage;
+    delete mFallbackTexture;
+    delete mFallbackModel;
+    delete mFallbackMaterial;
+    delete mFallbackGeometry;
+    delete mFallbackShader;
+    delete mFallbackShaderProgram;
+    delete mFallbackFont;
 }
+
+StringResource* ResourceManager::getFallbackString() { return mFallbackString; }
+ImageResource* ResourceManager::getFallbackImage() { return mFallbackImage; }
+TextureResource* ResourceManager::getFallbackTexture() { return mFallbackTexture; }
+ModelResource* ResourceManager::getFallbackModel() { return mFallbackModel; }
+MaterialResource* ResourceManager::getFallbackMaterial() { return mFallbackMaterial; }
+GeometryResource* ResourceManager::getFallbackGeometry() { return mFallbackGeometry; }
+ShaderResource* ResourceManager::getFallbackShader() { return mFallbackShader; }
+ShaderProgramResource* ResourceManager::getFallbackShaderProgram() { return mFallbackShaderProgram; }
+FontResource* ResourceManager::getFallbackFont() { return mFallbackFont; }
 
 void ResourceManager::setPermaloadThreshold(uint32_t size) {
     mPermaloadThreshold = size;
@@ -95,45 +137,93 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
     }
 }
 
+void ResourceManager::grabFallbacks() {
+    assert(!mFallbacksGrabbed && "Grabbed fallbacks more than once!");
+    
+    mFallbackString->grab();
+    mFallbackImage->grab();
+    mFallbackTexture->grab();
+    mFallbackModel->grab();
+    mFallbackMaterial->grab();
+    mFallbackGeometry->grab();
+    mFallbackShader->grab();
+    mFallbackShaderProgram->grab();
+    mFallbackFont->grab();
+    
+    mFallbacksGrabbed = true;
+}
+
 StringResource* ResourceManager::findString(std::string name) {
-    StringResource* ret = mStrings[name];
-    if(!ret) {
-        std::cout << "String error" << std::endl;
+    StringResource* res = mStrings[name];
+    if(!res) {
+        return mFallbackString;
+    } else {
+        return res;
     }
-    return ret;
 }
 ImageResource* ResourceManager::findImage(std::string name) {
-    return mImages[name];
+    ImageResource* res = mImages[name];
+    if(!res) {
+        return mFallbackImage;
+    } else {
+        return res;
+    }
 }
 TextureResource* ResourceManager::findTexture(std::string name) {
-    return mTextures[name];
+    TextureResource* res = mTextures[name];
+    if(!res) {
+        return mFallbackTexture;
+    } else {
+        return res;
+    }
 }
 ModelResource* ResourceManager::findModel(std::string name) {
-    return mModels[name];
+    ModelResource* res = mModels[name];
+    if(!res) {
+        return mFallbackModel;
+    } else {
+        return res;
+    }
 }
 MaterialResource* ResourceManager::findMaterial(std::string name) {
-    return mMaterials[name];
+    MaterialResource* res = mMaterials[name];
+    if(!res) {
+        return mFallbackMaterial;
+    } else {
+        return res;
+    }
 }
 GeometryResource* ResourceManager::findGeometry(std::string name) {
-    return mGeometries[name];
+    GeometryResource* res = mGeometries[name];
+    if(!res) {
+        return mFallbackGeometry;
+    } else {
+        return res;
+    }
 }
 ShaderResource* ResourceManager::findShader(std::string name) {
-    ShaderResource* ret = mShaders[name];
-    if(!ret) {
-        std::cout << "Shader error" << std::endl;
+    ShaderResource* res = mShaders[name];
+    if(!res) {
+        return mFallbackShader;
+    } else {
+        return res;
     }
-    return ret;
 }
 ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
-    ShaderProgramResource* ret = mShaderPrograms[name];
-    if(!ret) {
-        std::cout << "Shader program error" << std::endl;
-        std::cout << name << std::endl;
+    ShaderProgramResource* res = mShaderPrograms[name];
+    if(!res) {
+        return mFallbackShaderProgram;
+    } else {
+        return res;
     }
-    return ret;
 }
 FontResource* ResourceManager::findFont(std::string name) {
-    return mFonts[name];
+    FontResource* res = mFonts[name];
+    if(!res) {
+        return mFallbackFont;
+    } else {
+        return res;
+    }
 }
 
 }
