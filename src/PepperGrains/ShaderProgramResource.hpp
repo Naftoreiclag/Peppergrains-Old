@@ -62,6 +62,12 @@ private:
 
     bool mUseNormalAttrib;
     GLuint mNormalAttrib;
+    
+    void loadError();
+    void unloadError();
+    bool mIsErrorResource;
+    GLuint mErrorFragShaderHandle;
+    GLuint mErrorVertShaderHandle;
 
 public:
     ShaderProgramResource();

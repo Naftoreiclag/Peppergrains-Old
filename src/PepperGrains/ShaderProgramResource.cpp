@@ -14,6 +14,7 @@
 #include "ShaderProgramResource.hpp"
 
 #include <cassert>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 
@@ -24,14 +25,138 @@
 namespace pgg {
 
 ShaderProgramResource::ShaderProgramResource()
-: mLoaded(false) {
+: mLoaded(false)
+, mIsErrorResource(false) {
 }
 
 ShaderProgramResource::~ShaderProgramResource() {
 }
 
+void ShaderProgramResource::loadError() {
+    assert(!mLoaded && "Attempted to load shader program that has already been loaded");
+    
+    // Create program on GPU
+    mShaderProg = glCreateProgram();
+
+    // Generate shaders
+    {
+        // VERTEX
+        
+        std::stringstream vertSS;
+        vertSS << "#version 330                                                         \n";
+        vertSS << "in vec3 iPosition;                                                   \n";
+        vertSS << "in vec3 iNormal;                                                     \n";
+        vertSS << "in vec2 iUV;                                                         \n";
+        vertSS << "                                                                     \n";
+        vertSS << "out vec3 vNormal;                                                    \n";
+        vertSS << "out vec3 vPosition;                                                  \n";
+        vertSS << "out vec2 vUV;                                                        \n";
+        vertSS << "                                                                     \n";
+        vertSS << "uniform mat4 uModel;                                                 \n";
+        vertSS << "uniform mat4 uView;                                                  \n";
+        vertSS << "uniform mat4 uProj;                                                  \n";
+        vertSS << "                                                                     \n";
+        vertSS << "void main() {                                                        \n";
+        vertSS << "    gl_Position = uProj * uView * uModel * vec4(iPosition, 1.0);     \n";
+        vertSS << "    vUV = iUV;                                                       \n";
+        vertSS << "    vNormal = (uModel * vec4(iNormal, 0.0)).xyz;                     \n";
+        vertSS << "    vPosition = (uModel * vec4(iPosition, 1.0)).xyz;                 \n";
+        vertSS << "}                                                                    \n";
+        const GLchar* vertSrc = vertSS.str().c_str();
+
+        mErrorVertShaderHandle = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(mErrorVertShaderHandle, 1, &vertSrc, 0);
+        glCompileShader(mErrorVertShaderHandle);
+        
+        // FRAGMENT
+        
+        std::stringstream fragSS;
+        fragSS << "#version 330                                      \n";
+        fragSS << "in vec3 vNormal;                                  \n";
+        fragSS << "in vec3 vPosition;                                \n";
+        fragSS << "in vec2 vUV;                                      \n";
+        fragSS << "                                                  \n";
+        fragSS << "uniform sampler2D ambientTex;                     \n";
+        fragSS << "                                                  \n";
+        fragSS << "out vec3 fColor;                                  \n";
+        fragSS << "out vec3 fNormal;                                 \n";
+        fragSS << "out vec3 fPosition;                               \n";
+        fragSS << "                                                  \n";
+        fragSS << "void main() {                                     \n";
+        fragSS << "    fColor = texture(ambientTex, vUV).rgb;        \n";
+        fragSS << "    fNormal = normalize(vNormal);                 \n";
+        fragSS << "    fPosition = vPosition;                        \n";
+        fragSS << "}                                                 \n";
+        const GLchar* fragSrc = fragSS.str().c_str();
+
+        mErrorFragShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(mErrorFragShaderHandle, 1, &fragSrc, 0);
+        glCompileShader(mErrorFragShaderHandle);
+    }
+    
+    // Attach all shaders
+    glAttachShader(mShaderProg, mErrorVertShaderHandle);
+    glAttachShader(mShaderProg, mErrorFragShaderHandle);
+    
+    // Setup fragment outputs
+    glBindFragDataLocation(mShaderProg, 0, "fColor");
+    glBindFragDataLocation(mShaderProg, 1, "fNormal");
+    glBindFragDataLocation(mShaderProg, 2, "fPosition");
+                
+    // Link together shaders into a program
+    glLinkProgram(mShaderProg);
+    
+    // Detach all shaders
+    glDetachShader(mShaderProg, mErrorVertShaderHandle);
+    glDetachShader(mShaderProg, mErrorFragShaderHandle);
+
+    // Setup vertex attributes
+    mUsePosAttrib = true;
+    mUseColorAttrib = false;
+    mUseUVAttrib = true;
+    mUseNormalAttrib = true;
+    mPosAttrib = glGetAttribLocation(mShaderProg, "iPosition");
+    mUVAttrib = glGetAttribLocation(mShaderProg, "iUV");
+    mNormalAttrib = glGetAttribLocation(mShaderProg, "iNormal");
+                
+    // Setup uniform matrices
+    mUseModelMatrix = true;
+    mUseViewMatrix = true;
+    mUseProjMatrix = true;
+    mModelMatrixUnif = glGetUniformLocation(mShaderProg, "uModel");
+    mViewMatrixUnif = glGetUniformLocation(mShaderProg, "uView");
+    mProjMatrixUnif = glGetUniformLocation(mShaderProg, "uProj");
+        
+    // Setup controls
+    Sampler2DControl control;
+    control.name = "Happy Birthday";
+    control.handle = glGetUniformLocation(mShaderProg, "ambientTex");
+    mSampler2Ds.push_back(control);
+
+    mLoaded = true;
+    mIsErrorResource = true;
+}
+
+void ShaderProgramResource::unloadError() {
+    assert(mLoaded && "Attempted to unload shader program before loading it");
+    
+    glDeleteProgram(mShaderProg);
+    
+    glDeleteShader(mErrorVertShaderHandle);
+    glDeleteShader(mErrorFragShaderHandle);
+    
+    mLoaded = false;
+    mIsErrorResource = false;
+    
+}
+
 void ShaderProgramResource::load() {
     assert(!mLoaded && "Attempted to load shader program that has already been loaded");
+
+    if(this->isFallback()) {
+        loadError();
+        return;
+    }
 
     // Load json data
     Json::Value progData;
@@ -41,13 +166,15 @@ void ShaderProgramResource::load() {
         loader.close();
     }
 
+    // Get pointer to Resource Manager
+    ResourceManager* rmgr = ResourceManager::getSingleton();
 
+    // Grab shaders to link
     const Json::Value& links = progData["link"];
-    ResourceManager* rsmngr = ResourceManager::getSingleton();
     for(Json::Value::const_iterator iter = links.begin(); iter != links.end(); ++ iter) {
         const Json::Value& value = *iter;
         std::string name = value.asString();
-        ShaderResource* shader = rsmngr->findShader(name);
+        ShaderResource* shader = rmgr->findShader(name);
         mLinkedShaders.push_back(shader);
         shader->grab();
     }
@@ -215,6 +342,11 @@ void ShaderProgramResource::load() {
 
 void ShaderProgramResource::unload() {
     assert(mLoaded && "Attempted to unload shader program before loading it");
+    
+    if(mIsErrorResource) {
+        unloadError();
+        return;
+    }
     
     // Free OpenGL shader program
     glDeleteProgram(mShaderProg);
