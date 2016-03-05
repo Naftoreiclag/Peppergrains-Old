@@ -24,12 +24,12 @@ namespace pgg {
 
 class MaterialResource : public Resource {
 private:
-    struct Sampler2DControl {
+    struct Sampler2DInput {
         GLuint handle;
         TextureResource* texture;
     };
 
-    std::vector<Sampler2DControl> mSampler2Ds;
+    std::vector<Sampler2DInput> mSampler2Ds;
 
     bool mLoaded;
     ShaderProgramResource* mShaderProg;
