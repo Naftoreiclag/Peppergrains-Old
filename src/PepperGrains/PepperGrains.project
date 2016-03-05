@@ -105,6 +105,8 @@
       <File Name="SceneNode.hpp"/>
       <File Name="TextModel.hpp"/>
       <File Name="TextModel.cpp"/>
+      <File Name="AxesModel.hpp"/>
+      <File Name="AxesModel.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>
