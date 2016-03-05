@@ -22,8 +22,8 @@ bool AxesModel::load() {
     GLfloat vertices[3 * 8 * 6];
     GLuint indices[3 * 6 * 2 * 3];
     {
-        float org = 0.f;
         float rad = 0.1f;
+        float org = rad;
         float siz = 2.f;
         
         uint32_t vo = 0;
@@ -54,12 +54,16 @@ bool AxesModel::load() {
             float g = cube == 1 ? 1.f : 0.f;
             float b = cube == 2 ? 1.f : 0.f;
             
+            float rmod = 0.5f;
+            float gmod = 0.5f;
+            float bmod = 0.5f;
+            
             indices[io ++] = zo + 0;
             indices[io ++] = zo + 2;
             indices[io ++] = zo + 1;
             indices[io ++] = zo + 2; // Back
-            indices[io ++] = zo + 1;
             indices[io ++] = zo + 3;
+            indices[io ++] = zo + 1;
             
             indices[io ++] = zo + 4;
             indices[io ++] = zo + 5;
@@ -112,49 +116,49 @@ bool AxesModel::load() {
             vertices[vo ++] = cuboid.pos1.x;
             vertices[vo ++] = cuboid.pos1.y;
             vertices[vo ++] = cuboid.pos1.z;
-            vertices[vo ++] = r;
-            vertices[vo ++] = g;
-            vertices[vo ++] = b;
+            vertices[vo ++] = r * rmod;
+            vertices[vo ++] = g * gmod;
+            vertices[vo ++] = b * bmod;
             
             vertices[vo ++] = cuboid.pos2.x;
             vertices[vo ++] = cuboid.pos1.y;
             vertices[vo ++] = cuboid.pos1.z;
             vertices[vo ++] = r;
-            vertices[vo ++] = g;
-            vertices[vo ++] = b;
+            vertices[vo ++] = g * gmod;
+            vertices[vo ++] = b * bmod;
             
             vertices[vo ++] = cuboid.pos1.x;
             vertices[vo ++] = cuboid.pos2.y;
             vertices[vo ++] = cuboid.pos1.z;
-            vertices[vo ++] = r;
+            vertices[vo ++] = r * rmod;
             vertices[vo ++] = g;
-            vertices[vo ++] = b;
+            vertices[vo ++] = b * bmod;
             
             vertices[vo ++] = cuboid.pos2.x;
             vertices[vo ++] = cuboid.pos2.y;
             vertices[vo ++] = cuboid.pos1.z;
             vertices[vo ++] = r;
             vertices[vo ++] = g;
-            vertices[vo ++] = b;
+            vertices[vo ++] = b * bmod;
             
             vertices[vo ++] = cuboid.pos1.x;
             vertices[vo ++] = cuboid.pos1.y;
             vertices[vo ++] = cuboid.pos2.z;
-            vertices[vo ++] = r;
-            vertices[vo ++] = g;
+            vertices[vo ++] = r * rmod;
+            vertices[vo ++] = g * gmod;
             vertices[vo ++] = b;
             
             vertices[vo ++] = cuboid.pos2.x;
             vertices[vo ++] = cuboid.pos1.y;
             vertices[vo ++] = cuboid.pos2.z;
             vertices[vo ++] = r;
-            vertices[vo ++] = g;
+            vertices[vo ++] = g * gmod;
             vertices[vo ++] = b;
             
             vertices[vo ++] = cuboid.pos1.x;
             vertices[vo ++] = cuboid.pos2.y;
             vertices[vo ++] = cuboid.pos2.z;
-            vertices[vo ++] = r;
+            vertices[vo ++] = r * rmod;
             vertices[vo ++] = g;
             vertices[vo ++] = b;
             
