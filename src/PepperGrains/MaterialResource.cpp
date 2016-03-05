@@ -24,19 +24,50 @@
 namespace pgg {
 
 MaterialResource::MaterialResource()
-: mLoaded(false) {
+: mLoaded(false)
+, mIsErrorResource(false) {
 }
 
 MaterialResource::~MaterialResource() {
 }
 
+void MaterialResource::loadError() {
+    assert(!mLoaded && "Attempted to load material that has already been loaded");
+    
+    ResourceManager* rmgr = ResourceManager::getSingleton();
+    
+    mShaderProg = rmgr->getFallbackShaderProgram();
+    
+    mLoaded = true;
+    mIsErrorResource = true;
+}
+
+void MaterialResource::unloadError() {
+    assert(mLoaded && "Attempted to unload material before loading it");
+    
+    mShaderProg->drop();
+
+    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
+        Sampler2DInput& input = *iter;
+
+        input.texture->drop();
+    }
+    
+    mLoaded = false;
+    mIsErrorResource = false;
+}
+
 void MaterialResource::load() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
+
+    if(this->isFallback()) {
+        loadError();
+        return;
+    }
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
     Json::Value matData;
-
     {
         std::ifstream loader(this->getFile().string().c_str());
         loader >> matData;
@@ -51,21 +82,25 @@ void MaterialResource::load() {
         const Json::Value& sampler2Ds = matData["sampler2D"];
 
         if(!sampler2Ds.isNull()) {
-
+            
+            // Iterate through all the Sampler2Ds that the shader program requests
             const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
-
             for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
                 const ShaderProgramResource::Sampler2DControl& entry = *iter;
+                
+                Sampler2DInput input;
+                input.handle = entry.handle;
 
+                // Find the appropriate texture
                 const Json::Value& value = sampler2Ds[entry.name];
-
                 if(!value.isNull()) {
-                    Sampler2DControl control;
-                    control.handle = entry.handle;
-                    control.texture = rmgr->findTexture(value.asString());
-                    control.texture->grab();
-                    mSampler2Ds.push_back(control);
+                    input.texture = rmgr->findTexture(value.asString());
+                } else { // Texture receives no input
+                    input.texture = rmgr->getFallbackTexture();
                 }
+                
+                input.texture->grab();
+                mSampler2Ds.push_back(input);
             }
 
         }
@@ -77,12 +112,17 @@ void MaterialResource::load() {
 void MaterialResource::unload() {
     assert(mLoaded && "Attempted to unload material before loading it");
 
+    if(mIsErrorResource) {
+        unloadError();
+        return;
+    }
+
     mShaderProg->drop();
 
-    for(std::vector<Sampler2DControl>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
-        Sampler2DControl& control = *iter;
+    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
+        Sampler2DInput& input = *iter;
 
-        control.texture->drop();
+        input.texture->drop();
     }
 
     mLoaded = false;
@@ -90,8 +130,8 @@ void MaterialResource::unload() {
 
 void MaterialResource::bindTextures() {
     unsigned int index = 0;
-    for(std::vector<Sampler2DControl>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
-        Sampler2DControl& control = *iter;
+    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
+        Sampler2DInput& control = *iter;
         glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(GL_TEXTURE_2D, control.texture->getHandle());
         glUniform1i(control.handle, index);

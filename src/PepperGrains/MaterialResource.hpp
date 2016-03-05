@@ -33,6 +33,10 @@ private:
 
     bool mLoaded;
     ShaderProgramResource* mShaderProg;
+    
+    void loadError();
+    void unloadError();
+    bool mIsErrorResource;
 
 public:
     MaterialResource();
