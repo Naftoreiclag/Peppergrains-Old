@@ -41,6 +41,32 @@ void ModelResource::loadError() {
     mGeometry->grab();
     mMaterial->grab();
     
+    // Create a new vertex array object
+    // This will be needed to quickly bind/unbind shader attributes and geometry buffers
+    glGenVertexArrays(1, &mVertexArrayObject);
+    glBindVertexArray(mVertexArrayObject);
+
+    // Bind geometry buffers
+    mGeometry->bindBuffers();
+
+    // Tell OpenGL which attributes to read, how to read them, and where to send them
+    const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
+    if(shaderProg->needsPosAttrib()) {
+        mGeometry->enablePositionAttrib(shaderProg->getPosAttrib());
+    }
+    if(shaderProg->needsColorAttrib()) {
+        mGeometry->enableColorAttrib(shaderProg->getColorAttrib());
+    }
+    if(shaderProg->needsUVAttrib()) {
+        mGeometry->enableUVAttrib(shaderProg->getUVAttrib());
+    }
+    if(shaderProg->needsNormalAttrib()) {
+        mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
+    }
+
+    // Finished initalizing vertex array object, so unbind
+    glBindVertexArray(0);
+    
     mLoaded = true;
     mIsErrorResource = true;
 }
@@ -50,6 +76,9 @@ void ModelResource::unloadError() {
     
     mGeometry->drop();
     mMaterial->drop();
+
+    // Tell OpenGL to free up the memory allocated during loading
+    glDeleteVertexArrays(1, &mVertexArrayObject);
     
     mLoaded = false;
     mIsErrorResource = false;
