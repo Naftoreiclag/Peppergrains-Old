@@ -16,43 +16,160 @@ AxesModel::~AxesModel()
 }
 
 bool AxesModel::load() {
-    GLfloat vertices[] = {
-        0.f, 0.1f, 0.1f, 1.f, 0.f, 0.f,
-        0.f, 0.9f, 0.1f, 1.f, 0.f, 0.f,
-        0.f, 0.9f, 0.9f, 1.f, 0.f, 0.f,
-        0.f, 0.1f, 0.9f, 1.f, 0.f, 0.f,
-        
-        0.1f, 0.f, 0.1f, 0.f, 1.f, 0.f,
-        0.9f, 0.f, 0.1f, 0.f, 1.f, 0.f,
-        0.9f, 0.f, 0.9f, 0.f, 1.f, 0.f,
-        0.1f, 0.f, 0.9f, 0.f, 1.f, 0.f,
-        
-        0.1f, 0.1f, 0.f, 0.f, 0.f, 1.f,
-        0.9f, 0.1f, 0.f, 0.f, 0.f, 1.f,
-        0.9f, 0.9f, 0.f, 0.f, 0.f, 1.f,
-        0.1f, 0.9f, 0.f, 0.f, 0.f, 1.f
-    };
     
-    GLuint indices[36];
+    // 3 cubes * 8 vertices * 6 floats = 144
+    // 3 cubes * 6 faces * 2 triangles * 3 indices = 108
+    GLfloat vertices[3 * 8 * 6];
+    GLuint indices[3 * 6 * 2 * 3];
+    {
+        float org = 0.f;
+        float rad = 0.1f;
+        float siz = 2.f;
+        
+        uint32_t vo = 0;
+        uint32_t io = 0;
+        uint32_t zo = 0;
+        for(uint32_t cube = 0; cube < 3; ++ cube) {
+            Cuboid cuboid;
+            
+            if(cube == 0) {
+                cuboid.pos1 = glm::vec3(org, -rad, -rad);
+                cuboid.pos2 = glm::vec3(siz, rad, rad);
+            } else if(cube == 1) {
+                cuboid.pos1 = glm::vec3(-rad, org, -rad);
+                cuboid.pos2 = glm::vec3(rad, siz, rad);
+            } else if(cube == 2) {
+                cuboid.pos1 = glm::vec3(-rad, -rad, org);
+                cuboid.pos2 = glm::vec3(rad, rad, siz);
+            }
+            
+            std::cout << cuboid.pos1.x << std::endl;
+            std::cout << cuboid.pos1.y << std::endl;
+            std::cout << cuboid.pos1.z << std::endl;
+            std::cout << cuboid.pos2.x << std::endl;
+            std::cout << cuboid.pos2.y << std::endl;
+            std::cout << cuboid.pos2.z << std::endl << std::endl;
     
-    for(uint32_t i = 0; i < 3; ++ i) {
-        uint32_t o = i * 12;
-        uint32_t f = i * 4;
-        
-        indices[o + 0] = f + 0;
-        indices[o + 1] = f + 1;
-        indices[o + 2] = f + 2;
-        indices[o + 3] = f + 3;
-        indices[o + 4] = f + 2;
-        indices[o + 5] = f + 0;
-        
-        indices[o +  6] = indices[o + 0];
-        indices[o +  7] = indices[o + 2];
-        indices[o +  8] = indices[o + 1];
-        indices[o +  9] = indices[o + 3];
-        indices[o + 10] = indices[o + 5];
-        indices[o + 11] = indices[o + 4];
+            float r = cube == 0 ? 1.f : 0.f;
+            float g = cube == 1 ? 1.f : 0.f;
+            float b = cube == 2 ? 1.f : 0.f;
+            
+            indices[io ++] = zo + 0;
+            indices[io ++] = zo + 2;
+            indices[io ++] = zo + 1;
+            indices[io ++] = zo + 2; // Back
+            indices[io ++] = zo + 1;
+            indices[io ++] = zo + 3;
+            
+            indices[io ++] = zo + 4;
+            indices[io ++] = zo + 5;
+            indices[io ++] = zo + 6;
+            indices[io ++] = zo + 5; // Font
+            indices[io ++] = zo + 7;
+            indices[io ++] = zo + 6;
+            
+            indices[io ++] = zo + 6;
+            indices[io ++] = zo + 7;
+            indices[io ++] = zo + 2;
+            indices[io ++] = zo + 7; // Top
+            indices[io ++] = zo + 3;
+            indices[io ++] = zo + 2;
+                
+            /*
+             *            2----------3
+             *     6----------7      |
+             *     |      |   |      |
+             * left|      |   |      | right
+             *     |      |   |      |
+             *     |      0---|------1
+             *     4----------5
+             * 
+             */
+             
+            indices[io ++] = zo + 1;
+            indices[io ++] = zo + 5;
+            indices[io ++] = zo + 0;
+            indices[io ++] = zo + 5; // Bottom
+            indices[io ++] = zo + 4;
+            indices[io ++] = zo + 0;
+            
+            indices[io ++] = zo + 4;
+            indices[io ++] = zo + 6;
+            indices[io ++] = zo + 0;
+            indices[io ++] = zo + 6; // Left
+            indices[io ++] = zo + 2;
+            indices[io ++] = zo + 0;
+            
+            indices[io ++] = zo + 5;
+            indices[io ++] = zo + 1;
+            indices[io ++] = zo + 7;
+            indices[io ++] = zo + 1; // Right
+            indices[io ++] = zo + 3;
+            indices[io ++] = zo + 7;
+            
+            zo += 8;
+            
+            vertices[vo ++] = cuboid.pos1.x;
+            vertices[vo ++] = cuboid.pos1.y;
+            vertices[vo ++] = cuboid.pos1.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos2.x;
+            vertices[vo ++] = cuboid.pos1.y;
+            vertices[vo ++] = cuboid.pos1.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos1.x;
+            vertices[vo ++] = cuboid.pos2.y;
+            vertices[vo ++] = cuboid.pos1.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos2.x;
+            vertices[vo ++] = cuboid.pos2.y;
+            vertices[vo ++] = cuboid.pos1.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos1.x;
+            vertices[vo ++] = cuboid.pos1.y;
+            vertices[vo ++] = cuboid.pos2.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos2.x;
+            vertices[vo ++] = cuboid.pos1.y;
+            vertices[vo ++] = cuboid.pos2.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos1.x;
+            vertices[vo ++] = cuboid.pos2.y;
+            vertices[vo ++] = cuboid.pos2.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+            vertices[vo ++] = cuboid.pos2.x;
+            vertices[vo ++] = cuboid.pos2.y;
+            vertices[vo ++] = cuboid.pos2.z;
+            vertices[vo ++] = r;
+            vertices[vo ++] = g;
+            vertices[vo ++] = b;
+            
+        }
+        std::cout << vo << std::endl;
+        std::cout << io << std::endl;
     }
+    
     
 
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -111,7 +228,7 @@ void AxesModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const
 
     glBindVertexArray(mVertexArrayObject);
 
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 108, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
 

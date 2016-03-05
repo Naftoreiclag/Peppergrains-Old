@@ -13,6 +13,11 @@ private:
     GLuint mVertexBufferObject;
     GLuint mIndexBufferObject;
     ShaderProgramResource* mShaderProg;
+    
+    struct Cuboid {
+        glm::vec3 pos1;
+        glm::vec3 pos2;
+    };
 public:
     AxesModel();
     ~AxesModel();
