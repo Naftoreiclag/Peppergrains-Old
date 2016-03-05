@@ -14,6 +14,7 @@
 #include "ModelResource.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <fstream>
 
 #include "json/json.h"
@@ -63,6 +64,8 @@ void ModelResource::loadError() {
     if(shaderProg->needsNormalAttrib()) {
         mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
     }
+    
+    std::cout << "Hello error" << std::endl;
 
     // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);

@@ -42,56 +42,78 @@ void ShaderProgramResource::loadError() {
     {
         // VERTEX
         
-        std::stringstream vertSS;
-        vertSS << "#version 330                                                         \n";
-        vertSS << "in vec3 iPosition;                                                   \n";
-        vertSS << "in vec3 iNormal;                                                     \n";
-        vertSS << "in vec2 iUV;                                                         \n";
-        vertSS << "                                                                     \n";
-        vertSS << "out vec3 vNormal;                                                    \n";
-        vertSS << "out vec3 vPosition;                                                  \n";
-        vertSS << "out vec2 vUV;                                                        \n";
-        vertSS << "                                                                     \n";
-        vertSS << "uniform mat4 uModel;                                                 \n";
-        vertSS << "uniform mat4 uView;                                                  \n";
-        vertSS << "uniform mat4 uProj;                                                  \n";
-        vertSS << "                                                                     \n";
-        vertSS << "void main() {                                                        \n";
-        vertSS << "    gl_Position = uProj * uView * uModel * vec4(iPosition, 1.0);     \n";
-        vertSS << "    vUV = iUV;                                                       \n";
-        vertSS << "    vNormal = (uModel * vec4(iNormal, 0.0)).xyz;                     \n";
-        vertSS << "    vPosition = (uModel * vec4(iPosition, 1.0)).xyz;                 \n";
-        vertSS << "}                                                                    \n";
-        const GLchar* vertSrc = vertSS.str().c_str();
+        const GLchar* vertSrc = 
+            "#version 330                                                         \n"
+            "in vec3 iPosition;                                                   \n"
+            "in vec3 iNormal;                                                     \n"
+            "in vec2 iUV;                                                         \n"
+            "                                                                     \n"
+            "out vec3 vNormal;                                                    \n"
+            "out vec3 vPosition;                                                  \n"
+            "out vec2 vUV;                                                        \n"
+            "                                                                     \n"
+            "uniform mat4 uModel;                                                 \n"
+            "uniform mat4 uView;                                                  \n"
+            "uniform mat4 uProj;                                                  \n"
+            "                                                                     \n"
+            "void main() {                                                        \n"
+            "    gl_Position = uProj * uView * uModel * vec4(iPosition, 1.0);     \n"
+            "    vUV = iUV;                                                       \n"
+            "    vNormal = (uModel * vec4(iNormal, 0.0)).xyz;                     \n"
+            "    vPosition = (uModel * vec4(iPosition, 1.0)).xyz;                 \n"
+            "}                                                                    \n"
+        ;
 
         mErrorVertShaderHandle = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(mErrorVertShaderHandle, 1, &vertSrc, 0);
         glCompileShader(mErrorVertShaderHandle);
         
+        {
+            GLint compileStatus;
+            glGetShaderiv(mErrorVertShaderHandle, GL_COMPILE_STATUS, &compileStatus);
+            if(compileStatus == GL_FALSE) {
+                std::cout << "Error while compiling fallback/error vertex shader" << std::endl;
+                char infoLog[512];
+                glGetShaderInfoLog(mErrorVertShaderHandle, 512, 0, infoLog);
+                std::cout << infoLog;
+            }
+        }
+        
         // FRAGMENT
         
-        std::stringstream fragSS;
-        fragSS << "#version 330                                      \n";
-        fragSS << "in vec3 vNormal;                                  \n";
-        fragSS << "in vec3 vPosition;                                \n";
-        fragSS << "in vec2 vUV;                                      \n";
-        fragSS << "                                                  \n";
-        fragSS << "uniform sampler2D ambientTex;                     \n";
-        fragSS << "                                                  \n";
-        fragSS << "out vec3 fColor;                                  \n";
-        fragSS << "out vec3 fNormal;                                 \n";
-        fragSS << "out vec3 fPosition;                               \n";
-        fragSS << "                                                  \n";
-        fragSS << "void main() {                                     \n";
-        fragSS << "    fColor = texture(ambientTex, vUV).rgb;        \n";
-        fragSS << "    fNormal = normalize(vNormal);                 \n";
-        fragSS << "    fPosition = vPosition;                        \n";
-        fragSS << "}                                                 \n";
-        const GLchar* fragSrc = fragSS.str().c_str();
+        const GLchar* fragSrc = 
+            "#version 330                                      \n"
+            "in vec3 vNormal;                                  \n"
+            "in vec3 vPosition;                                \n"
+            "in vec2 vUV;                                      \n"
+            "                                                  \n"
+            "uniform sampler2D ambientTex;                     \n"
+            "                                                  \n"
+            "out vec3 fColor;                                  \n"
+            "out vec3 fNormal;                                 \n"
+            "out vec3 fPosition;                               \n"
+            "                                                  \n"
+            "void main() {                                     \n"
+            "    fColor = texture(ambientTex, vUV).rgb;        \n"
+            "    fNormal = normalize(vNormal);                 \n"
+            "    fPosition = vPosition;                        \n"
+            "}                                                 \n"
+        ;
 
         mErrorFragShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(mErrorFragShaderHandle, 1, &fragSrc, 0);
         glCompileShader(mErrorFragShaderHandle);
+        
+        {
+            GLint compileStatus;
+            glGetShaderiv(mErrorFragShaderHandle, GL_COMPILE_STATUS, &compileStatus);
+            if(compileStatus == GL_FALSE) {
+                std::cout << "Error while compiling fallback/error fragment shader" << std::endl;
+                char infoLog[512];
+                glGetShaderInfoLog(mErrorFragShaderHandle, 512, 0, infoLog);
+                std::cout << infoLog;
+            }
+        }
     }
     
     // Attach all shaders

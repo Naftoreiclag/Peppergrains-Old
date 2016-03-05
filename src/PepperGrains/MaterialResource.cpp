@@ -14,6 +14,7 @@
 #include "MaterialResource.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <fstream>
 
 #include "json/json.h"
@@ -37,6 +38,21 @@ void MaterialResource::loadError() {
     ResourceManager* rmgr = ResourceManager::getSingleton();
     
     mShaderProg = rmgr->getFallbackShaderProgram();
+    mShaderProg->grab();
+    
+    // Iterate through all the Sampler2Ds that the shader program requests
+    const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
+    for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+        const ShaderProgramResource::Sampler2DControl& entry = *iter;
+        
+        Sampler2DInput input;
+        input.handle = entry.handle;
+        input.texture = rmgr->getFallbackTexture();
+        input.texture->grab();
+        mSampler2Ds.push_back(input);
+    }
+    
+    std::cout << "Hello Errors" << std::endl;
     
     mLoaded = true;
     mIsErrorResource = true;
@@ -103,6 +119,9 @@ void MaterialResource::load() {
                 mSampler2Ds.push_back(input);
             }
 
+        }
+        else {
+            // replace with error texture
         }
     }
 

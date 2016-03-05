@@ -175,6 +175,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
+    testPlaneNode->grabModel(resman->findModel("ErrorMe.model"));
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
