@@ -27,10 +27,8 @@ FragmentShaderResource::FragmentShaderResource()
 FragmentShaderResource::~FragmentShaderResource() {
 }
 
-bool FragmentShaderResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void FragmentShaderResource::load() {
+    assert(!mLoaded && "Attempted to unload fragment shader that is already loaded");
 
     std::ifstream loader(this->getFile().string().c_str());
     std::stringstream ss;
@@ -54,14 +52,12 @@ bool FragmentShaderResource::load() {
     }
 
     mLoaded = true;
-    return true;
 }
 
-bool FragmentShaderResource::unload() {
+void FragmentShaderResource::unload() {
     assert(mLoaded && "Attempted to unload fragment shader before loading it");
     glDeleteShader(mFragShader);
     mLoaded = false;
-    return true;
 }
 
 GLuint FragmentShaderResource::getHandle() {

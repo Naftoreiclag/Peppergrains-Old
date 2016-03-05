@@ -34,8 +34,8 @@ public:
     ImageResource();
     virtual ~ImageResource();
     
-    bool load();
-    bool unload();
+    void load();
+    void unload();
     
     const uint8_t* getImage() const;
     uint32_t getWidth() const;

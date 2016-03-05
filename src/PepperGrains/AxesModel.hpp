@@ -22,8 +22,8 @@ public:
     AxesModel();
     ~AxesModel();
 
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
 

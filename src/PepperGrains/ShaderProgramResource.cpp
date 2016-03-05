@@ -30,10 +30,8 @@ ShaderProgramResource::ShaderProgramResource()
 ShaderProgramResource::~ShaderProgramResource() {
 }
 
-bool ShaderProgramResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void ShaderProgramResource::load() {
+    assert(!mLoaded && "Attempted to load shader program that has already been loaded");
 
     // Load json data
     Json::Value progData;
@@ -213,11 +211,9 @@ bool ShaderProgramResource::load() {
     }
 
     mLoaded = true;
-    return true;
 }
 
-bool ShaderProgramResource::unload() {
-
+void ShaderProgramResource::unload() {
     assert(mLoaded && "Attempted to unload shader program before loading it");
     
     // Free OpenGL shader program
@@ -230,7 +226,6 @@ bool ShaderProgramResource::unload() {
     }
 
     mLoaded = false;
-    return true;
 }
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }

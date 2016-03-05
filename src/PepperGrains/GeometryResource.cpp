@@ -13,6 +13,7 @@
 
 #include "GeometryResource.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -29,10 +30,8 @@ GeometryResource::GeometryResource()
 GeometryResource::~GeometryResource() {
 }
 
-bool GeometryResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void GeometryResource::load() {
+    assert(!mLoaded && "Attempted to unload fragment shader that is already loaded");
 
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
 
@@ -83,7 +82,6 @@ bool GeometryResource::load() {
 
     input.close();
 
-
     glGenBuffers(1, &mVertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -93,16 +91,16 @@ bool GeometryResource::load() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    return true;
+    
+    mLoaded = true;
 }
 
-bool GeometryResource::unload() {
+void GeometryResource::unload() {
+    assert(mLoaded && "Attempted to unload geometry before loading it");
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
 
     mLoaded = false;
-    return true;
 }
 
 void GeometryResource::render() {

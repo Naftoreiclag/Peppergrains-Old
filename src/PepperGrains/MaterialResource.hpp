@@ -39,8 +39,8 @@ public:
     virtual ~MaterialResource();
 
 public:
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     void bindTextures();
 

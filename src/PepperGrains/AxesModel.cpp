@@ -15,7 +15,7 @@ AxesModel::~AxesModel()
 {
 }
 
-bool AxesModel::load() {
+void AxesModel::load() {
     
     // 3 cubes * 8 vertices * 6 floats = 144
     // 3 cubes * 6 faces * 2 triangles * 3 indices = 108
@@ -203,9 +203,8 @@ bool AxesModel::load() {
     glVertexAttribPointer(mShaderProg->getColorAttrib(), 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) (3 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
-    return true;
 }
-bool AxesModel::unload() {
+void AxesModel::unload() {
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
 
@@ -214,7 +213,6 @@ bool AxesModel::unload() {
     glDeleteVertexArrays(1, &mVertexArrayObject);
 
     delete this;
-    return true;
 }
 void AxesModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
 

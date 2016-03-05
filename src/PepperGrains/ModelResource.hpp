@@ -33,8 +33,8 @@ public:
     virtual ~ModelResource();
 
 public:
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     // Render this model with the provided matrices
     void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);

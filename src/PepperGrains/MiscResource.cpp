@@ -23,12 +23,10 @@ MiscResource::MiscResource() {
 MiscResource::~MiscResource() {
 }
 
-bool MiscResource::load() {
-    return true;
+void MiscResource::load() {
 }
 
-bool MiscResource::unload() {
-    return true;
+void MiscResource::unload() {
 }
 
 }

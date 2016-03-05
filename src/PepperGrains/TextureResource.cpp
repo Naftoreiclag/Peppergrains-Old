@@ -13,6 +13,7 @@
 
 #include "TextureResource.hpp"
 
+#include <cassert>
 #include <fstream>
 
 #include <OpenGLStuff.hpp>
@@ -47,10 +48,8 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
         return errorVal;
     }
 }
-bool TextureResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void TextureResource::load() {
+    assert(!mLoaded && "Attempted to load texture that has already been loaded");
 
     Json::Value textureData;
     {
@@ -75,14 +74,13 @@ bool TextureResource::load() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     mLoaded = true;
-    return true;
 }
 
-bool TextureResource::unload() {
+void TextureResource::unload() {
+    assert(mLoaded && "Attempted to unload texture before loading it");
     glDeleteTextures(1, &mHandle);
     mImage->drop();
     mLoaded = false;
-    return true;
 }
 
 GLuint TextureResource::getHandle() const {

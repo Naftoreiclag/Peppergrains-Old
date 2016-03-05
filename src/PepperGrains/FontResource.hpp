@@ -41,8 +41,8 @@ public:
     GlyphData* mGlyphs;
     float mBaseline;
     float mPadding;
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     void bindTextures();
 };

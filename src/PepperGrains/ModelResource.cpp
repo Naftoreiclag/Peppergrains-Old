@@ -13,6 +13,7 @@
 
 #include "ModelResource.hpp"
 
+#include <cassert>
 #include <fstream>
 
 #include "json/json.h"
@@ -28,10 +29,8 @@ ModelResource::ModelResource()
 ModelResource::~ModelResource() {
 }
 
-bool ModelResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void ModelResource::load() {
+    assert(!mLoaded && "Attempted to load model that has already been loaded");
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
@@ -85,9 +84,9 @@ bool ModelResource::load() {
 
     // Loading complete
     mLoaded = true;
-    return true;
 }
-bool ModelResource::unload() {
+void ModelResource::unload() {
+    assert(mLoaded && "Attempted to unload model before loading it");
     mGeometry->drop();
     mMaterial->drop();
 
@@ -96,7 +95,6 @@ bool ModelResource::unload() {
 
     // Unloading complete
     mLoaded = false;
-    return false;
 }
 
 void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {

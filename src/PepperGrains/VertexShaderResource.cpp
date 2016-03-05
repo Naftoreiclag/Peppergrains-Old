@@ -13,6 +13,7 @@
 
 #include "VertexShaderResource.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -26,10 +27,8 @@ VertexShaderResource::VertexShaderResource()
 VertexShaderResource::~VertexShaderResource() {
 }
 
-bool VertexShaderResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void VertexShaderResource::load() {
+    assert(!mLoaded && "Attempted to load vertex shader that has already been loaded");
 
     std::ifstream loader(this->getFile().string().c_str());
     std::stringstream ss;
@@ -53,14 +52,12 @@ bool VertexShaderResource::load() {
     }
     
     mLoaded = true;
-    return true;
 }
 
-bool VertexShaderResource::unload() {
+void VertexShaderResource::unload() {
     assert(mLoaded && "Attempted to unload vertex shader before loading it");
     glDeleteShader(mVertShader);
     mLoaded = false;
-    return true;
 }
 
 GLuint VertexShaderResource::getHandle() {

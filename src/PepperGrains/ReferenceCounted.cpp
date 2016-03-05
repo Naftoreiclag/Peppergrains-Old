@@ -24,7 +24,7 @@ ReferenceCounted::~ReferenceCounted() { }
 void ReferenceCounted::grab() {
     ++ mNumGrabs;
 
-    if(mNumGrabs > 0) {
+    if(mNumGrabs == 1) {
         this->load();
     }
 }

@@ -23,8 +23,8 @@ public:
     MiscResource();
     virtual ~MiscResource();
     
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 };
 
 }

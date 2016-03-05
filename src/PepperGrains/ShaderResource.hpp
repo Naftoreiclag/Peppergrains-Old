@@ -25,8 +25,8 @@ public:
     ShaderResource();
     virtual ~ShaderResource();
     
-    virtual bool load() = 0;
-    virtual bool unload() = 0;
+    virtual void load() = 0;
+    virtual void unload() = 0;
     
     virtual GLuint getHandle() = 0;
 };

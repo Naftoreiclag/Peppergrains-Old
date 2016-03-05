@@ -30,10 +30,8 @@ MaterialResource::MaterialResource()
 MaterialResource::~MaterialResource() {
 }
 
-bool MaterialResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void MaterialResource::load() {
+    assert(!mLoaded && "Attempted to load material that has already been loaded");
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
@@ -74,10 +72,9 @@ bool MaterialResource::load() {
     }
 
     mLoaded = true;
-    return true;
 }
 
-bool MaterialResource::unload() {
+void MaterialResource::unload() {
     assert(mLoaded && "Attempted to unload material before loading it");
 
     mShaderProg->drop();
@@ -89,7 +86,6 @@ bool MaterialResource::unload() {
     }
 
     mLoaded = false;
-    return true;
 }
 
 void MaterialResource::bindTextures() {

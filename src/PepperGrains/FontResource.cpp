@@ -29,10 +29,8 @@ FontResource::FontResource()
 FontResource::~FontResource() {
 }
 
-bool FontResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void FontResource::load() {
+    assert(!mLoaded && "Attempted to load font that has already been loaded");
 
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
 
@@ -67,18 +65,15 @@ bool FontResource::load() {
     mTexture = rmgr->findTexture(textureName);
     mTexture->grab();
 
-    mLoaded =  true;
-
-    return true;
+    mLoaded = true;
 }
-bool FontResource::unload() {
+void FontResource::unload() {
     assert(mLoaded && "Attempted to unload font before loading it");
 
     mTexture->drop();
     mShaderProg->drop();
 
     mLoaded = false;
-    return true;
 }
 
 void FontResource::bindTextures() {

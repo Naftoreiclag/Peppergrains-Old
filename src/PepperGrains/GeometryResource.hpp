@@ -91,8 +91,8 @@ public:
     GeometryResource();
     virtual ~GeometryResource();
 
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     void render();
 

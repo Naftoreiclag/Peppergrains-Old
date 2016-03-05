@@ -28,8 +28,8 @@ public:
     VertexShaderResource();
     virtual ~VertexShaderResource();
     
-    bool load();
-    bool unload();
+    void load();
+    void unload();
     
     GLuint getHandle();
 };

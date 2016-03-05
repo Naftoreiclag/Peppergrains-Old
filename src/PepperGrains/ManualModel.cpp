@@ -22,7 +22,7 @@ namespace pgg {
 ManualModel::ManualModel() {}
 ManualModel::~ManualModel() {}
 
-bool ManualModel::load() {
+void ManualModel::load() {
     GLfloat vertices[] = {
         -50.f, 0.f,  50.f,
          50.f, 0.f,  50.f,
@@ -59,9 +59,8 @@ bool ManualModel::load() {
     glVertexAttribPointer(mShaderProg->getPosAttrib(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
-    return true;
 }
-bool ManualModel::unload() {
+void ManualModel::unload() {
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
 
@@ -70,7 +69,6 @@ bool ManualModel::unload() {
     glDeleteVertexArrays(1, &mVertexArrayObject);
 
     delete this;
-    return true;
 }
 void ManualModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
 

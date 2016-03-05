@@ -27,8 +27,8 @@ public:
     virtual ~StringResource();
     
     
-    bool load();
-    bool unload();
+    void load();
+    void unload();
     
     const std::string& getString();
 

@@ -28,8 +28,8 @@ public:
     FragmentShaderResource();
     virtual ~FragmentShaderResource();
 
-    bool load();
-    bool unload();
+    void load();
+    void unload();
 
     GLuint getHandle();
 };

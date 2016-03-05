@@ -22,7 +22,7 @@ TextModel::TextModel(FontResource* font, std::string text)
 , mText(text) { }
 TextModel::~TextModel() { }
 
-bool TextModel::load() {
+void TextModel::load() {
     
     mNumGlyphs = mText.length();
 
@@ -112,11 +112,9 @@ bool TextModel::load() {
     glVertexAttribPointer(mShaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, vertexLength * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
-
-    return true;
 }
 
-bool TextModel::unload() {
+void TextModel::unload() {
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);
 
@@ -126,7 +124,6 @@ bool TextModel::unload() {
     glDeleteVertexArrays(1, &mVertexArrayObject);
 
     delete this;
-    return true;
 }
 
 void TextModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {

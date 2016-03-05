@@ -49,28 +49,24 @@ void ImageResource::unloadError() {
     mLoaded = false;
 }
 
-bool ImageResource::load() {
-    if(mLoaded) {
-        return true;
-    }
+void ImageResource::load() {
+    assert(!mLoaded && "Attempted to load image that has already been loaded");
     
     if(this->isFallback()) {
         loadError();
-        return true;
+    } else {
+        int width;
+        int height;
+        int components;
+        mImage = stbi_load(this->getFile().string().c_str(), &width, &height, &components, 0);
+        mWidth = width;
+        mHeight = height;
+        mComponents = components;
+        mLoaded = true;
     }
-
-    int width;
-    int height;
-    int components;
-    mImage = stbi_load(this->getFile().string().c_str(), &width, &height, &components, 0);
-    mWidth = width;
-    mHeight = height;
-    mComponents = components;
-    mLoaded = true;
-    return true;
 }
 
-bool ImageResource::unload() {
+void ImageResource::unload() {
     assert(mLoaded && "Attempted to unload image before loading it");
     
     if(this->isFallback()) {
@@ -80,8 +76,6 @@ bool ImageResource::unload() {
         stbi_image_free(mImage);
         mLoaded = false;
     }
-    
-    return true;
 }
 
 const uint8_t* ImageResource::getImage() const {
