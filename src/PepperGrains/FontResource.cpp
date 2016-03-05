@@ -30,7 +30,7 @@ FontResource::~FontResource() {
 }
 
 void FontResource::load() {
-    assert(!mLoaded && "Attempted to load font that has already been loaded");
+    assert(!mLoaded && "Attempted to load font that is already loaded");
 
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
 

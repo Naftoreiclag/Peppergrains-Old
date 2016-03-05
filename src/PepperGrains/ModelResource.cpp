@@ -23,19 +23,49 @@
 namespace pgg {
 
 ModelResource::ModelResource()
-: mLoaded(false) {
+: mLoaded(false)
+, mIsErrorResource(false) {
 }
 
 ModelResource::~ModelResource() {
 }
 
+void ModelResource::loadError() {
+    assert(!mLoaded && "Attempted to load model that has already been loaded");
+    
+    ResourceManager* rmgr = ResourceManager::getSingleton();
+    
+    mGeometry = rmgr->getFallbackGeometry();
+    mMaterial = rmgr->getFallbackMaterial();
+    
+    mGeometry->grab();
+    mMaterial->grab();
+    
+    mLoaded = true;
+    mIsErrorResource = true;
+}
+
+void ModelResource::unloadError() {
+    assert(mLoaded && "Attempted to unload model before loading it");
+    
+    mGeometry->drop();
+    mMaterial->drop();
+    
+    mLoaded = false;
+    mIsErrorResource = false;
+}
+
 void ModelResource::load() {
     assert(!mLoaded && "Attempted to load model that has already been loaded");
+    
+    if(this->isFallback()) {
+        loadError();
+        return;
+    }
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
 
     Json::Value mdlData;
-
     {
         std::ifstream loader(this->getFile().string().c_str());
         loader >> mdlData;
@@ -53,8 +83,8 @@ void ModelResource::load() {
         break;
     }
 
-    mMaterial->grab();
     mGeometry->grab();
+    mMaterial->grab();
 
     // Create a new vertex array object
     // This will be needed to quickly bind/unbind shader attributes and geometry buffers
@@ -87,6 +117,12 @@ void ModelResource::load() {
 }
 void ModelResource::unload() {
     assert(mLoaded && "Attempted to unload model before loading it");
+    
+    if(mIsErrorResource) {
+        unloadError();
+        return;
+    }
+    
     mGeometry->drop();
     mMaterial->drop();
 

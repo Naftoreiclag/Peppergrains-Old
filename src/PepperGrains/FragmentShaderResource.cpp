@@ -28,7 +28,7 @@ FragmentShaderResource::~FragmentShaderResource() {
 }
 
 void FragmentShaderResource::load() {
-    assert(!mLoaded && "Attempted to unload fragment shader that is already loaded");
+    assert(!mLoaded && "Attempted to load fragment shader that is already loaded");
 
     std::ifstream loader(this->getFile().string().c_str());
     std::stringstream ss;

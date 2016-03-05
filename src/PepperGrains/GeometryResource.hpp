@@ -87,6 +87,10 @@ private:
     GLuint mIndexBufferObject;
 
     bool mLoaded;
+    
+    void loadError();
+    void unloadError();
+    bool mIsErrorResource;
 public:
     GeometryResource();
     virtual ~GeometryResource();

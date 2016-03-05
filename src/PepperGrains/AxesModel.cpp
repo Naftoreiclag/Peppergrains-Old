@@ -83,7 +83,7 @@ void AxesModel::load() {
              *            2----------3
              *     6----------7      |
              *     |      |   |      |
-             * left|      |   |      | right
+             * right      |   |      | left
              *     |      |   |      |
              *     |      0---|------1
              *     4----------5
@@ -100,14 +100,14 @@ void AxesModel::load() {
             indices[io ++] = zo + 4;
             indices[io ++] = zo + 6;
             indices[io ++] = zo + 0;
-            indices[io ++] = zo + 6; // Left
+            indices[io ++] = zo + 6; // Right
             indices[io ++] = zo + 2;
             indices[io ++] = zo + 0;
             
             indices[io ++] = zo + 5;
             indices[io ++] = zo + 1;
             indices[io ++] = zo + 7;
-            indices[io ++] = zo + 1; // Right
+            indices[io ++] = zo + 1; // Left
             indices[io ++] = zo + 3;
             indices[io ++] = zo + 7;
             

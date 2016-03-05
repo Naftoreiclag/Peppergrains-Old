@@ -30,6 +30,7 @@ private:
     
     void loadError();
     void unloadError();
+    bool mIsErrorResource;
 public:
     ImageResource();
     virtual ~ImageResource();

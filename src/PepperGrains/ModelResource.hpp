@@ -28,6 +28,10 @@ private:
     GeometryResource* mGeometry;
     MaterialResource* mMaterial;
     GLuint mVertexArrayObject;
+    
+    void loadError();
+    void unloadError();
+    bool mIsErrorResource;
 public:
     ModelResource();
     virtual ~ModelResource();

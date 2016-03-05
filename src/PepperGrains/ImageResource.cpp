@@ -22,7 +22,8 @@
 namespace pgg {
 
 ImageResource::ImageResource()
-: mLoaded(false) {
+: mLoaded(false)
+, mIsErrorResource(false) {
 }
 
 ImageResource::~ImageResource() {
@@ -41,12 +42,14 @@ void ImageResource::loadError() {
         }
     }
     mLoaded = true;
+    mIsErrorResource = true;
 }
 
 void ImageResource::unloadError() {
     assert(mLoaded && "Attempted to unload image before loading it");
     delete[] mImage;
     mLoaded = false;
+    mIsErrorResource = false;
 }
 
 void ImageResource::load() {
@@ -54,28 +57,29 @@ void ImageResource::load() {
     
     if(this->isFallback()) {
         loadError();
-    } else {
-        int width;
-        int height;
-        int components;
-        mImage = stbi_load(this->getFile().string().c_str(), &width, &height, &components, 0);
-        mWidth = width;
-        mHeight = height;
-        mComponents = components;
-        mLoaded = true;
+        return;
     }
+    
+    int width;
+    int height;
+    int components;
+    mImage = stbi_load(this->getFile().string().c_str(), &width, &height, &components, 0);
+    mWidth = width;
+    mHeight = height;
+    mComponents = components;
+    mLoaded = true;
 }
 
 void ImageResource::unload() {
     assert(mLoaded && "Attempted to unload image before loading it");
     
-    if(this->isFallback()) {
+    if(mIsErrorResource) {
         unloadError();
+        return;
     }
-    else {
-        stbi_image_free(mImage);
-        mLoaded = false;
-    }
+    
+    stbi_image_free(mImage);
+    mLoaded = false;
 }
 
 const uint8_t* ImageResource::getImage() const {
