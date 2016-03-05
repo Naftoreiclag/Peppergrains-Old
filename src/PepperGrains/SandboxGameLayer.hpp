@@ -16,6 +16,7 @@
 
 #include "GameLayer.hpp" // Base class: pgg::GameLayer
 
+#include "AxesModel.hpp"
 #include "SceneNode.hpp"
 #include "ResourceManager.hpp"
 #include "TextModel.hpp"
@@ -31,6 +32,10 @@ public:
     SceneNode* friendNodeX;
     SceneNode* friendNodeY;
     SceneNode* friendNodeZ;
+    
+    SceneNode* testPlaneNode;
+    
+    AxesModel* mAxesModel;
     
     ShaderProgramResource* mGBufferShaderProg;
     TextureResource* mTestTexture;

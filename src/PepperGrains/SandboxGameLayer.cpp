@@ -73,14 +73,14 @@ void SandboxGameLayer::onBegin() {
     // Fullscreen quad
     {
         GLfloat vertices[] = {
-            -1.f,  1.f, 1.f, 1.f,
-             1.f,  1.f, 0.f, 1.f,
-            -1.f, -1.f, 1.f, 0.f,
-             1.f, -1.f, 0.f, 0.f
+            -1.f, -1.f, 0.f, 0.f,
+             1.f, -1.f, 1.f, 0.f,
+            -1.f,  1.f, 0.f, 1.f,
+             1.f,  1.f, 1.f, 1.f
         };
         GLuint indices[] = {
-            0, 1, 2,
-            1, 3, 2,
+            2, 3, 0,
+            3, 1, 0,
         };
         
         glGenBuffers(1, &mVertexBufferObject);
@@ -173,6 +173,9 @@ void SandboxGameLayer::onBegin() {
     friendNodeX = new SceneNode();
     friendNodeY = new SceneNode();
     friendNodeZ = new SceneNode();
+    testPlaneNode = new SceneNode();
+    
+    rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
@@ -188,8 +191,12 @@ void SandboxGameLayer::onBegin() {
     rootNode->addChild(friendNodeY);
     rootNode->addChild(friendNodeZ);
     
-    friendNodeX->move(glm::vec3(-2.f, 0.f, 0.f));
-    friendNodeZ->move(glm::vec3(2.f, 0.f, 0.f));
+    friendNodeX->move(glm::vec3(-2.f, 2.f, 0.f));
+    friendNodeY->move(glm::vec3(0.f, 2.f, 0.f));
+    friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
+
+    mAxesModel = new AxesModel();
+    mAxesModel->grab();
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -211,11 +218,14 @@ void SandboxGameLayer::onEnd() {
     
     fpsCounter->drop();
     mTestTexture->drop();
-
+    
+    mAxesModel->drop();
 
     friendNodeX->dropModel();
     friendNodeY->dropModel();
     friendNodeZ->dropModel();
+    
+    testPlaneNode->dropModel();
     
     rainstormFont->drop();
     
@@ -225,28 +235,32 @@ void SandboxGameLayer::onEnd() {
 // Ticks
 void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
-    glm::mat4 viewMat = glm::lookAt(glm::vec3(-2.f, 0.f, -3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    glm::mat4 viewMat = glm::lookAt(glm::vec3(2.f, 4.f, 3.f), glm::vec3(0.f, 2.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
+    
 
+    
     friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     
+    mAxesModel->render(viewMat, projMat, testMM);
     rootNode->render(viewMat, projMat);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+    
     
     glUseProgram(mGBufferShaderProg->getHandle());
     
