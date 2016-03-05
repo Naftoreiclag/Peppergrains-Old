@@ -28,6 +28,8 @@ private:
 
     // (Not actually required to keep the image loaded)
     ImageResource* mImage;
+    
+    void loadError();
 public:
     TextureResource();
     virtual ~TextureResource();

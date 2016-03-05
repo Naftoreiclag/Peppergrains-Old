@@ -48,8 +48,35 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
         return errorVal;
     }
 }
+void TextureResource::loadError() {
+    assert(!mLoaded && "Attempted to load texture that has already been loaded");
+    
+    ResourceManager* rmgr = ResourceManager::getSingleton();
+    
+    mImage = rmgr->getFallbackImage();
+    mImage->grab();
+    
+    glGenTextures(1, &mHandle);
+    glBindTexture(GL_TEXTURE_2D, mHandle);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    mLoaded = true;
+}
+
 void TextureResource::load() {
     assert(!mLoaded && "Attempted to load texture that has already been loaded");
+
+    if(this->isFallback()) {
+        loadError();
+        return;
+    }
 
     Json::Value textureData;
     {
@@ -59,11 +86,12 @@ void TextureResource::load() {
     }
 
     ResourceManager* rmgr = ResourceManager::getSingleton();
+    
+    mImage = rmgr->findImage(textureData["image"].asString());
+    mImage->grab();
 
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
-    mImage = rmgr->findImage(textureData["image"].asString());
-    mImage->grab();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toEnum(textureData["wrapX"].asString(), GL_CLAMP_TO_EDGE));
