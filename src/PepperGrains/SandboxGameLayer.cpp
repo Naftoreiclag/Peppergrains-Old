@@ -175,7 +175,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("ErrorMe.model"));
+    testPlaneNode->grabModel(resman->findModel("Iago.model"));
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -251,16 +251,29 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
     
-    mAxesModel->render(viewMat, projMat, testMM);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     rootNode->render(viewMat, projMat);
+    mAxesModel->render(viewMat, projMat, testMM);
+    
+    glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_ONE, GL_ONE);
+    
+    // Render lights here
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
     
     
     glUseProgram(mGBufferShaderProg->getHandle());
