@@ -24,6 +24,8 @@
 namespace pgg {
 
 class SandboxGameLayer : public GameLayer {
+private:
+    void makeLightVao();
 public:
     SandboxGameLayer();
     ~SandboxGameLayer();
@@ -38,14 +40,19 @@ public:
     AxesModel* mAxesModel;
     
     ShaderProgramResource* mGBufferShaderProg;
-    TextureResource* mTestTexture;
     GLuint mDiffuseHandle;
     GLuint mNormalHandle;
     GLuint mPositionHandle;
+    GLuint mFullscreenVao;
+    GLuint mFullscreenVbo;
+    GLuint mFullscreenIbo;
     
-    GLuint mVertexArrayObject;
-    GLuint mVertexBufferObject;
-    GLuint mIndexBufferObject;
+    ShaderProgramResource* mDLightShaderProg;
+    GLuint mDLightDiff;
+    GLuint mDLightNorm;
+    GLuint mDLightVao;
+    GLuint mDLightVbo;
+    GLuint mDLightIbo;
     
     GLuint mFramebuffer;
     GLuint mDiffuseTexture;

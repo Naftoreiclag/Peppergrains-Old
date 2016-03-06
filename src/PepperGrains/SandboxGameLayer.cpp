@@ -29,6 +29,56 @@ SandboxGameLayer::~SandboxGameLayer()
 {
 }
 
+void SandboxGameLayer::makeLightVao() {
+    ResourceManager* resman = ResourceManager::getSingleton();
+    mDLightShaderProg = resman->findShaderProgram("DLight.shaderProgram");
+    mDLightShaderProg->grab();
+    const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mDLightShaderProg->getSampler2Ds();
+    for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+        const ShaderProgramResource::Sampler2DControl& entry = *iter;
+        
+        if(entry.name == "diffuse") {
+            mDLightDiff = entry.handle;
+        }
+        else if(entry.name == "normal") {
+            mDLightNorm = entry.handle;
+        }
+    }
+    
+    
+    GLfloat vertices[] = {
+        -1.f, -1.f,
+         1.f, -1.f,
+        -1.f,  1.f,
+         1.f,  1.f
+    };
+    GLuint indices[] = {
+        2, 0, 3,
+        3, 0, 1,
+    };
+    
+    glGenBuffers(1, &mDLightVbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mDLightVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &mDLightIbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mDLightIbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    
+    glGenVertexArrays(1, &mDLightVao);
+    glBindVertexArray(mDLightVao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mDLightVbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mDLightIbo);
+
+    glEnableVertexAttribArray(mGBufferShaderProg->getPosAttrib());
+    glVertexAttribPointer(mGBufferShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+
+    glBindVertexArray(0);
+}
+
 // Lifecycle
 void SandboxGameLayer::onBegin() {
 
@@ -41,19 +91,10 @@ void SandboxGameLayer::onBegin() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    mGBufferShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
-    mGBufferShaderProg->grab();
-    
-    mTestTexture = resman->findTexture("128Rose.texture");
-    mTestTexture->grab();
-    
-    
-    std::cout << mGBufferShaderProg->getHandle() << std::endl;
-    std::cout << mGBufferShaderProg->needsPosAttrib() << std::endl;
-    std::cout << mGBufferShaderProg->needsUVAttrib() << std::endl;
-    
     // Locate where to send the sampler
     {
+        mGBufferShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
+        mGBufferShaderProg->grab();
         const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mGBufferShaderProg->getSampler2Ds();
         for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Sampler2DControl& entry = *iter;
@@ -79,25 +120,25 @@ void SandboxGameLayer::onBegin() {
              1.f,  1.f, 1.f, 1.f
         };
         GLuint indices[] = {
-            2, 3, 0,
-            3, 1, 0,
+            2, 0, 3,
+            3, 0, 1,
         };
         
-        glGenBuffers(1, &mVertexBufferObject);
-        glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
+        glGenBuffers(1, &mFullscreenVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glGenBuffers(1, &mIndexBufferObject);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
+        glGenBuffers(1, &mFullscreenIbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         
-        glGenVertexArrays(1, &mVertexArrayObject);
-        glBindVertexArray(mVertexArrayObject);
+        glGenVertexArrays(1, &mFullscreenVao);
+        glBindVertexArray(mFullscreenVao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
+        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
 
         glEnableVertexAttribArray(mGBufferShaderProg->getPosAttrib());
         glVertexAttribPointer(mGBufferShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
@@ -168,6 +209,8 @@ void SandboxGameLayer::onBegin() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
     }
+    
+    makeLightVao();
 
     rootNode = new SceneNode();
     friendNodeX = new SceneNode();
@@ -206,8 +249,8 @@ void SandboxGameLayer::onBegin() {
 }
 void SandboxGameLayer::onEnd() {
     
-    glDeleteBuffers(1, &mIndexBufferObject);
-    glDeleteBuffers(1, &mVertexBufferObject);
+    glDeleteBuffers(1, &mFullscreenIbo);
+    glDeleteBuffers(1, &mFullscreenVbo);
     
     glDeleteTextures(1, &mDiffuseTexture);
     glDeleteTextures(1, &mNormalTexture);
@@ -215,10 +258,9 @@ void SandboxGameLayer::onEnd() {
 
     mGBufferShaderProg->drop();
 
-    glDeleteVertexArrays(1, &mVertexArrayObject);
+    glDeleteVertexArrays(1, &mFullscreenVao);
     
     fpsCounter->drop();
-    mTestTexture->drop();
     
     mAxesModel->drop();
 
@@ -257,6 +299,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     rootNode->render(viewMat, projMat);
     mAxesModel->render(viewMat, projMat, testMM);
     
@@ -268,11 +311,27 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBlendFunc(GL_ONE, GL_ONE);
     
     // Render lights here
+    glUseProgram(mDLightShaderProg->getHandle());
+    
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
+    glUniform1i(mDLightDiff, 0);
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, mNormalTexture);
+    glUniform1i(mDLightNorm, 1);
+    
+    glBindVertexArray(mDLightVao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    
+    glBindVertexArray(0);
+    
+    glUseProgram(0);
+    
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     
     
@@ -288,7 +347,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBindTexture(GL_TEXTURE_2D, mPositionTexture);
     glUniform1i(mPositionHandle, 2);
     
-    glBindVertexArray(mVertexArrayObject);
+    glBindVertexArray(mFullscreenVao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
     glBindVertexArray(0);
