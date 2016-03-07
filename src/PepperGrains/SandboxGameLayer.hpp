@@ -45,7 +45,6 @@ public:
     ShaderProgramResource* mGBufferShaderProg;
     GLuint mDiffuseHandle;
     GLuint mNormalHandle;
-    GLuint mPositionHandle;
     GLuint mDepthHandle;
     //GLuint mBrightHandle;
     GLuint mFullscreenVao;
@@ -62,7 +61,6 @@ public:
     GLuint mFramebuffer;
     GLuint mDiffuseTexture;
     GLuint mNormalTexture;
-    GLuint mPositionTexture;
     GLuint mDepthStencilTexture;
     //GLuint mBrightTexture;
     

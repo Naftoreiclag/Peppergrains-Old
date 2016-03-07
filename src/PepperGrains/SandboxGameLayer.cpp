@@ -106,9 +106,6 @@ void SandboxGameLayer::onBegin() {
             else if(entry.name == "normal") {
                 mNormalHandle = entry.handle;
             }
-            else if(entry.name == "position") {
-                mPositionHandle = entry.handle;
-            }
             else if(entry.name == "depth") {
                 mDepthHandle = entry.handle;
             }
@@ -181,16 +178,6 @@ void SandboxGameLayer::onBegin() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
         
-        // Position mapping
-        glGenTextures(1, &mPositionTexture);
-        glBindTexture(GL_TEXTURE_2D, mPositionTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        
         // Bright mapping
         /*
         glGenTextures(1, &mBrightHandle);
@@ -220,7 +207,6 @@ void SandboxGameLayer::onBegin() {
         glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionTexture, 0);
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthStencilTexture, 0);
         
@@ -251,7 +237,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("Iago.model"));
+    testPlaneNode->grabModel(resman->findModel("Iagoaa.model"));
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -294,7 +280,6 @@ void SandboxGameLayer::onEnd() {
     
     glDeleteTextures(1, &mDiffuseTexture);
     glDeleteTextures(1, &mNormalTexture);
-    glDeleteTextures(1, &mPositionTexture);
     glDeleteTextures(1, &mDepthStencilTexture);
     //glDeleteTextures(1, &mBrightTexture);
 
@@ -329,7 +314,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
     
-    camPivot->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
+    camPivot->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf * 0.2);
     
     friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
@@ -393,12 +378,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glUniform1i(mNormalHandle, 1);
     
     glActiveTexture(GL_TEXTURE0 + 2);
-    glBindTexture(GL_TEXTURE_2D, mPositionTexture);
-    glUniform1i(mPositionHandle, 2);
-    
-    glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, mDepthStencilTexture);
-    glUniform1i(mDepthHandle, 3);
+    glUniform1i(mDepthHandle, 2);
     /*
     glBindTexture(GL_TEXTURE_2D, mBrightTexture);
     glUniform1i(mBrightHandle, 3);
