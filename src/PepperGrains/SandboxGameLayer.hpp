@@ -59,6 +59,7 @@ public:
     GLuint mDiffuseTexture;
     GLuint mNormalTexture;
     GLuint mPositionTexture;
+    GLuint mDepthStencilTexture;
     //GLuint mBrightTexture;
     GLuint mDepthStencilRenderBuffer;
     
