@@ -13,6 +13,7 @@
 
 #include "SandboxGameLayer.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <sstream>
 
@@ -117,6 +118,8 @@ void SandboxGameLayer::onBegin() {
             }
             */
         }
+        
+        assert(mGBufferShaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
     }
     
     // Fullscreen quad
@@ -268,6 +271,13 @@ void SandboxGameLayer::onBegin() {
     friendNodeX->move(glm::vec3(-2.f, 2.f, 0.f));
     friendNodeY->move(glm::vec3(0.f, 2.f, 0.f));
     friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
+    
+    camPivot = new SceneNode();
+    rootNode->addChild(camPivot);
+    
+    camNode = new SceneNode();
+    camNode->move(glm::vec3(2.f, 4.f, 3.f));
+    camPivot->addChild(camNode);
 
     mAxesModel = new AxesModel();
     mAxesModel->grab();
@@ -310,14 +320,16 @@ void SandboxGameLayer::onEnd() {
 // Ticks
 void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
-    glm::mat4 viewMat = glm::lookAt(glm::vec3(2.f, 4.f, 3.f), glm::vec3(0.f, 2.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    glm::vec3 camPos;
+    camNode->calcWorldTranslation(camPos);
+    glm::mat4 viewMat = glm::lookAt(camPos, glm::vec3(0.f, 2.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
     
-
+    camPivot->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
     
     friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
@@ -368,6 +380,9 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     
     glUseProgram(mGBufferShaderProg->getHandle());
+    
+    glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
+    glUniformMatrix4fv(mGBufferShaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);

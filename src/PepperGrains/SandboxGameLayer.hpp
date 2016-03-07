@@ -35,6 +35,9 @@ public:
     SceneNode* friendNodeY;
     SceneNode* friendNodeZ;
     
+    SceneNode* camPivot;
+    SceneNode* camNode;
+    
     SceneNode* testPlaneNode;
     
     AxesModel* mAxesModel;
