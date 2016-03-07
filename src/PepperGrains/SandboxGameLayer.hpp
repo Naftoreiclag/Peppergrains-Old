@@ -48,6 +48,7 @@ public:
     GLuint mDiffuseHandle;
     GLuint mNormalHandle;
     GLuint mDepthHandle;
+    GLuint mSunDepthHandle;
     //GLuint mBrightHandle;
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
@@ -65,7 +66,6 @@ public:
     glm::vec3 mSunDir;
     glm::mat4 mSunProjMatr;
     glm::mat4 mSunViewMatr;
-    glm::mat4 mSunModelMatr;
     
     GLuint mFramebuffer;
     GLuint mDiffuseTexture;

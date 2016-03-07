@@ -100,6 +100,9 @@ void SandboxGameLayer::makeGBuffer() {
             else if(entry.name == "depth") {
                 mDepthHandle = entry.handle;
             }
+            else if(entry.name == "sunDepth") {
+                mSunDepthHandle = entry.handle;
+            }
             /*
             else if(entry.name == "bright") {
                 mBrightHandle = entry.handle;
@@ -108,6 +111,7 @@ void SandboxGameLayer::makeGBuffer() {
         }
         
         assert(mGBufferShaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
+        assert(mGBufferShaderProg->needsSunViewProjMatrix() && "G-buffer shader does not accept sun view projection matrix");
     }
     
     // Fullscreen quad
@@ -369,8 +373,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
     
+    // Lazy
     rootNode->render(mSunViewMatr, mSunProjMatr);
-    
     
     // G-buffer
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
@@ -421,6 +425,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
     glUniformMatrix4fv(mGBufferShaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+    glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
+    glUniformMatrix4fv(mGBufferShaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
@@ -433,6 +439,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, mDepthStencilTexture);
     glUniform1i(mDepthHandle, 2);
+    
+    glActiveTexture(GL_TEXTURE0 + 3);
+    glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
+    glUniform1i(mDepthHandle, 3);
     /*
     glBindTexture(GL_TEXTURE_2D, mBrightTexture);
     glUniform1i(mBrightHandle, 3);

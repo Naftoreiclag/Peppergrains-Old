@@ -56,6 +56,8 @@ private:
      * InvModelView
      * InvViewProj
      * InvModelViewProj
+     * 
+     * SunViewProj
      */
     
     bool mUseModelMatrix;
@@ -69,6 +71,9 @@ private:
     
     bool mUseInvViewProjMatrix;
     GLuint mInvViewProjMatrixUnif;
+    
+    bool mUseSunViewProjMatrix;
+    GLuint mSunViewProjMatrixUnif;
 
     bool mUsePosAttrib;
     GLuint mPosAttrib;
@@ -100,6 +105,7 @@ public:
     bool needsViewMatrix() const;
     bool needsProjMatrix() const;
     bool needsInvViewProjMatrix() const;
+    bool needsSunViewProjMatrix() const;
     bool needsPosAttrib() const;
     bool needsColorAttrib() const;
     bool needsUVAttrib() const;
@@ -108,6 +114,7 @@ public:
     GLuint getViewMatrixUnif() const;
     GLuint getProjMatrixUnif() const;
     GLuint getInvViewProjMatrixUnif() const;
+    GLuint getSunViewProjMatrixUnif() const;
     GLuint getPosAttrib() const;
     GLuint getColorAttrib() const;
     GLuint getUVAttrib() const;

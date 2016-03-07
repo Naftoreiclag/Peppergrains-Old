@@ -312,6 +312,7 @@ void ShaderProgramResource::load() {
             const Json::Value& viewMatrix = matrices["view"];
             const Json::Value& projMatrix = matrices["projection"];
             const Json::Value& invViewProjMatrix = matrices["inverseViewProjection"];
+            const Json::Value& sunViewProjMatrix = matrices["sunViewProjection"];
 
             if(modelMatrix.isNull()) {
                 mUseModelMatrix = false;
@@ -340,6 +341,13 @@ void ShaderProgramResource::load() {
                 mUseInvViewProjMatrix = true;
                 std::string symbol = invViewProjMatrix.asString();
                 mInvViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            }
+            if(sunViewProjMatrix.isNull()) {
+                mUseSunViewProjMatrix = false;
+            } else {
+                mUseSunViewProjMatrix = true;
+                std::string symbol = sunViewProjMatrix.asString();
+                mSunViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
         }
     }
@@ -397,6 +405,7 @@ bool ShaderProgramResource::needsModelMatrix() const { return mUseModelMatrix; }
 bool ShaderProgramResource::needsViewMatrix() const { return mUseViewMatrix; }
 bool ShaderProgramResource::needsProjMatrix() const { return mUseProjMatrix; }
 bool ShaderProgramResource::needsInvViewProjMatrix() const { return mUseInvViewProjMatrix; }
+bool ShaderProgramResource::needsSunViewProjMatrix() const { return mUseSunViewProjMatrix; }
 bool ShaderProgramResource::needsPosAttrib() const { return mUsePosAttrib; }
 bool ShaderProgramResource::needsColorAttrib() const { return mUseColorAttrib; }
 bool ShaderProgramResource::needsUVAttrib() const { return mUseUVAttrib; }
@@ -405,6 +414,7 @@ GLuint ShaderProgramResource::getModelMatrixUnif() const { return mModelMatrixUn
 GLuint ShaderProgramResource::getViewMatrixUnif() const { return mViewMatrixUnif; }
 GLuint ShaderProgramResource::getProjMatrixUnif() const { return mProjMatrixUnif; }
 GLuint ShaderProgramResource::getInvViewProjMatrixUnif() const { return mInvViewProjMatrixUnif; }
+GLuint ShaderProgramResource::getSunViewProjMatrixUnif() const { return mSunViewProjMatrixUnif; }
 GLuint ShaderProgramResource::getPosAttrib() const { return mPosAttrib; }
 GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }
 GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
