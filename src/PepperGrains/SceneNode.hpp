@@ -52,6 +52,12 @@ public:
     const glm::vec3& getLocalScale() const;
     const glm::quat& getLocalOrientation() const;
     const glm::vec3& getLocalTranslation() const;
+    
+    // Mostly for utility, might be less efficient to use these?
+    // Perhaps store the results of these values somewhere, to avoid recalculating?
+    void calcWorldScale(glm::vec3& scale);
+    void calcWorldOrientation(glm::quat& orientation);
+    void calcWorldTranslation(glm::vec3& translation);
 
     const glm::mat4& calcLocalTransform();
     const glm::mat4& calcWorldTransform();

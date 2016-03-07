@@ -88,6 +88,36 @@ const glm::mat4& SceneNode::calcWorldTransform() {
 
     return mWorldTransform;
 }
+
+void SceneNode::calcWorldScale(glm::vec3& scale) {
+    if(mParent) {
+        const glm::mat4& parentTransform = mParent->calcWorldTransform();
+        // Not completely sure if this calculation is correct
+        scale = glm::vec3(parentTransform * glm::vec4(mLocalScale, 0.f));
+    }
+    else {
+        scale = mLocalScale;
+    }
+}
+void SceneNode::calcWorldOrientation(glm::quat& orientation) {
+    if(mParent) {
+        // Not completely sure if this calculation is correct
+        orientation = glm::quat_cast(this->calcWorldTransform());
+    }
+    else {
+        orientation = mLocalOrientation;
+    }
+}
+void SceneNode::calcWorldTranslation(glm::vec3& translation) {
+    if(mParent) {
+        const glm::mat4& parentTransform = mParent->calcWorldTransform();
+        translation = glm::vec3(parentTransform * glm::vec4(mLocalTranslation, 1.f));
+    }
+    else {
+        translation = mLocalTranslation;
+    }
+}
+
 void SceneNode::setLocalScale(const glm::vec3& scale) {
     mLocalScale = scale;
     this->markBothTransformsDirty();
@@ -147,7 +177,7 @@ void SceneNode::dropModel() {
 }
 
 void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat) {
-    calcWorldTransform();
+    this->calcWorldTransform();
 
     if(mModelRes) {
         mModelRes->render(viewMat, projMat, mWorldTransform);
