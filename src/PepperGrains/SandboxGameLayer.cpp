@@ -108,6 +108,9 @@ void SandboxGameLayer::onBegin() {
             else if(entry.name == "position") {
                 mPositionHandle = entry.handle;
             }
+            else if(entry.name == "depth") {
+                mDepthHandle = entry.handle;
+            }
             /*
             else if(entry.name == "bright") {
                 mBrightHandle = entry.handle;
@@ -206,13 +209,6 @@ void SandboxGameLayer::onBegin() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
-        
-        /*
-        glGenRenderbuffers(1, &mDepthStencilRenderBuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, mDepthStencilRenderBuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 720);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-        */
     }
     
     // Create framebuffer
@@ -222,9 +218,8 @@ void SandboxGameLayer::onBegin() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthStencilTexture, 0);
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
-        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
@@ -377,12 +372,18 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
     glUniform1i(mDiffuseHandle, 0);
+    
     glActiveTexture(GL_TEXTURE0 + 1);
     glBindTexture(GL_TEXTURE_2D, mNormalTexture);
     glUniform1i(mNormalHandle, 1);
+    
     glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, mPositionTexture);
     glUniform1i(mPositionHandle, 2);
+    
+    glActiveTexture(GL_TEXTURE0 + 3);
+    glBindTexture(GL_TEXTURE_2D, mDepthStencilTexture);
+    glUniform1i(mDepthHandle, 3);
     /*
     glBindTexture(GL_TEXTURE_2D, mBrightTexture);
     glUniform1i(mBrightHandle, 3);
