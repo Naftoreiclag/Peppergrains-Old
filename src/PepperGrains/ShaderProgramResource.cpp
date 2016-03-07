@@ -315,7 +315,7 @@ void ShaderProgramResource::load() {
         else {
             const Json::Value& modelMatrix = matrices["model"];
             const Json::Value& viewMatrix = matrices["view"];
-            const Json::Value& projMatrix = matrices["proj"];
+            const Json::Value& projMatrix = matrices["projection"];
 
             if(modelMatrix.isNull()) {
                 mUseModelMatrix = false;
