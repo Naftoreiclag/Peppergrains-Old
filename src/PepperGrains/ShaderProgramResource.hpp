@@ -42,6 +42,22 @@ private:
 
     std::vector<Sampler2DControl> mSampler2Ds;
 
+    /*
+     * Model
+     * View
+     * Proj
+     * ModelView
+     * ViewProj
+     * ModelViewProj
+     * 
+     * InvModel
+     * InvView
+     * InvProj
+     * InvModelView
+     * InvViewProj
+     * InvModelViewProj
+     */
+    
     bool mUseModelMatrix;
     GLuint mModelMatrixUnif;
 
@@ -50,6 +66,9 @@ private:
 
     bool mUseProjMatrix;
     GLuint mProjMatrixUnif;
+    
+    bool mUseInvViewProjMatrix;
+    GLuint mInvViewProjMatrixUnif;
 
     bool mUsePosAttrib;
     GLuint mPosAttrib;
@@ -80,6 +99,7 @@ public:
     bool needsModelMatrix() const;
     bool needsViewMatrix() const;
     bool needsProjMatrix() const;
+    bool needsInvViewProjMatrix() const;
     bool needsPosAttrib() const;
     bool needsColorAttrib() const;
     bool needsUVAttrib() const;
@@ -87,6 +107,7 @@ public:
     GLuint getModelMatrixUnif() const;
     GLuint getViewMatrixUnif() const;
     GLuint getProjMatrixUnif() const;
+    GLuint getInvViewProjMatrixUnif() const;
     GLuint getPosAttrib() const;
     GLuint getColorAttrib() const;
     GLuint getUVAttrib() const;
