@@ -229,7 +229,7 @@ void SandboxGameLayer::makeSun() {
     // DepthStencil mapping
     glGenTextures(1, &mSunDepthTexture);
     glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1280, 720, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     // TODO: change this
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -442,7 +442,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-    glUniform1i(mDepthHandle, 3);
+    glUniform1i(mSunDepthHandle, 3);
     /*
     glBindTexture(GL_TEXTURE_2D, mBrightTexture);
     glUniform1i(mBrightHandle, 3);
