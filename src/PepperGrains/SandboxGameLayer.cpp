@@ -210,15 +210,45 @@ void SandboxGameLayer::makeGBuffer() {
         glDrawBuffers(3, colorAttachments);
         
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "Complete" << std::endl;
+            std::cout << "G Complete" << std::endl;
         }
         else {
-            std::cout << "Incomplete" << std::endl;
+            std::cout << "G Incomplete" << std::endl;
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
     }
+}
+
+void SandboxGameLayer::makeSun() {
+    // DepthStencil mapping
+    glGenTextures(1, &mSunDepthTexture);
+    glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    // TODO: change this
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glGenFramebuffers(1, &mSunFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSunDepthTexture, 0);
+    glDrawBuffer(GL_NONE);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Sun Complete" << std::endl;
+    }
+    else {
+        std::cout << "Sun Incomplete" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    mSunDir = glm::vec3(1.f, 1.f, 1.f);
+    
+    mSunViewMatr = glm::lookAt(mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    mSunProjMatr = glm::ortho(-20.f, 20.f, -20.f, 20.f, -20.f, 20.f);
 }
 
 // Lifecycle
@@ -235,6 +265,7 @@ void SandboxGameLayer::onBegin() {
     
     makeGBuffer();
     makeLightVao();
+    makeSun();
 
     rootNode = new SceneNode();
     friendNodeX = new SceneNode();
@@ -273,10 +304,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel = new AxesModel();
     mAxesModel->grab();
     
-    mSunDir = glm::vec3(1.f, 1.f, 1.f);
     
-    mSunViewMatr = glm::lookAt(mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-    mSunProjMatr = glm::ortho(-20.f, 20.f, -20.f, 20.f, -20.f, 20.f);
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -292,6 +320,9 @@ void SandboxGameLayer::onEnd() {
     glDeleteTextures(1, &mNormalTexture);
     glDeleteTextures(1, &mDepthStencilTexture);
     //glDeleteTextures(1, &mBrightTexture);
+    
+    glDeleteTextures(1, &mSunDepthTexture);
+    glDeleteFramebuffers(1, &mSunFrameBuffer);
 
     mGBufferShaderProg->drop();
 
@@ -330,6 +361,18 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
+    // Sun? buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    rootNode->render(mSunViewMatr, mSunProjMatr);
+    
+    
+    // G-buffer
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);

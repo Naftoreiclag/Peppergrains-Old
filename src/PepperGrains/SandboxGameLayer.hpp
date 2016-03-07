@@ -27,6 +27,7 @@ class SandboxGameLayer : public GameLayer {
 private:
     void makeGBuffer();
     void makeLightVao();
+    void makeSun();
 public:
     SandboxGameLayer();
     ~SandboxGameLayer();
@@ -59,6 +60,8 @@ public:
     GLuint mDLightVbo;
     GLuint mDLightIbo;
     
+    GLuint mSunFrameBuffer;
+    GLuint mSunDepthTexture;
     glm::vec3 mSunDir;
     glm::mat4 mSunProjMatr;
     glm::mat4 mSunViewMatr;
