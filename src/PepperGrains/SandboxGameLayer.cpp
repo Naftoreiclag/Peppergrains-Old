@@ -80,16 +80,7 @@ void SandboxGameLayer::makeLightVao() {
     glBindVertexArray(0);
 }
 
-// Lifecycle
-void SandboxGameLayer::onBegin() {
-
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1.f, 0.f, (float) 1.f);
-    
-    glm::vec4 test(0.0f, 0.0f, 0.0f, 1.0f);
-    test = projMatOverlay * test;
-    
-    std::cout << glm::to_string(test) << std::endl;
-
+void SandboxGameLayer::makeGBuffer() {
     ResourceManager* resman = ResourceManager::getSingleton();
     
     // Locate where to send the sampler
@@ -228,7 +219,21 @@ void SandboxGameLayer::onBegin() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
     }
+}
+
+// Lifecycle
+void SandboxGameLayer::onBegin() {
+
+    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1.f, 0.f, (float) 1.f);
     
+    glm::vec4 test(0.0f, 0.0f, 0.0f, 1.0f);
+    test = projMatOverlay * test;
+    
+    std::cout << glm::to_string(test) << std::endl;
+
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    makeGBuffer();
     makeLightVao();
 
     rootNode = new SceneNode();
@@ -237,7 +242,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("Iagoaa.model"));
+    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -267,6 +272,11 @@ void SandboxGameLayer::onBegin() {
 
     mAxesModel = new AxesModel();
     mAxesModel->grab();
+    
+    mSunDir = glm::vec3(1.f, 1.f, 1.f);
+    
+    mSunViewMatr = glm::lookAt(mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    mSunProjMatr = glm::ortho(-20.f, 20.f, -20.f, 20.f, -20.f, 20.f);
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -308,7 +318,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glm::vec3 camPos;
     camNode->calcWorldTranslation(camPos);
     glm::mat4 viewMat = glm::lookAt(camPos, glm::vec3(0.f, 2.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 10.f);
+    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 1000.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);

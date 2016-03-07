@@ -25,6 +25,7 @@ namespace pgg {
 
 class SandboxGameLayer : public GameLayer {
 private:
+    void makeGBuffer();
     void makeLightVao();
 public:
     SandboxGameLayer();
@@ -57,6 +58,11 @@ public:
     GLuint mDLightVao;
     GLuint mDLightVbo;
     GLuint mDLightIbo;
+    
+    glm::vec3 mSunDir;
+    glm::mat4 mSunProjMatr;
+    glm::mat4 mSunViewMatr;
+    glm::mat4 mSunModelMatr;
     
     GLuint mFramebuffer;
     GLuint mDiffuseTexture;
