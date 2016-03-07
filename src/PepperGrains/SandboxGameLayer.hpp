@@ -43,6 +43,7 @@ public:
     GLuint mDiffuseHandle;
     GLuint mNormalHandle;
     GLuint mPositionHandle;
+    //GLuint mBrightHandle;
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
@@ -58,6 +59,7 @@ public:
     GLuint mDiffuseTexture;
     GLuint mNormalTexture;
     GLuint mPositionTexture;
+    //GLuint mBrightTexture;
     GLuint mDepthStencilRenderBuffer;
     
     FontResource* rainstormFont;

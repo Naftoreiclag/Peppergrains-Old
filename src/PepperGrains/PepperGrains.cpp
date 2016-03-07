@@ -68,6 +68,10 @@ int PepperGrains::run(int argc, char* argv[]) {
     glewExperimental = GL_TRUE;
     glewInit();
     
+    GLint maxDrawBuffers;
+    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+    std::cout << "Max draw buffers: " << maxDrawBuffers << std::endl;
+    
     boost::filesystem::path resourceDef = "../../../resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
     resman->mapAll(resourceDef);

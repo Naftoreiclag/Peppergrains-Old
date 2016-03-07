@@ -108,6 +108,11 @@ void SandboxGameLayer::onBegin() {
             else if(entry.name == "position") {
                 mPositionHandle = entry.handle;
             }
+            /*
+            else if(entry.name == "bright") {
+                mBrightHandle = entry.handle;
+            }
+            */
         }
     }
     
@@ -150,6 +155,7 @@ void SandboxGameLayer::onBegin() {
     
     // Create renderbuffer/textures for deferred shading
     {
+        // Diffuse mapping
         glGenTextures(1, &mDiffuseTexture);
         glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
@@ -159,6 +165,7 @@ void SandboxGameLayer::onBegin() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
         
+        // Normal mapping
         glGenTextures(1, &mNormalTexture);
         glBindTexture(GL_TEXTURE_2D, mNormalTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
@@ -168,6 +175,7 @@ void SandboxGameLayer::onBegin() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
         
+        // Position mapping
         glGenTextures(1, &mPositionTexture);
         glBindTexture(GL_TEXTURE_2D, mPositionTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
@@ -176,6 +184,18 @@ void SandboxGameLayer::onBegin() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
+        
+        // Bright mapping
+        /*
+        glGenTextures(1, &mBrightHandle);
+        glBindTexture(GL_TEXTURE_2D, mBrightHandle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        */
         
         glGenRenderbuffers(1, &mDepthStencilRenderBuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, mDepthStencilRenderBuffer);
@@ -190,12 +210,14 @@ void SandboxGameLayer::onBegin() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionTexture, 0);
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthStencilRenderBuffer);
         
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
             GL_COLOR_ATTACHMENT1,
             GL_COLOR_ATTACHMENT2
+            //GL_COLOR_ATTACHMENT3
         };
         glDrawBuffers(3, colorAttachments);
         
@@ -255,6 +277,7 @@ void SandboxGameLayer::onEnd() {
     glDeleteTextures(1, &mDiffuseTexture);
     glDeleteTextures(1, &mNormalTexture);
     glDeleteTextures(1, &mPositionTexture);
+    //glDeleteTextures(1, &mBrightTexture);
 
     mGBufferShaderProg->drop();
 
@@ -292,7 +315,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -303,6 +326,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(viewMat, projMat);
     mAxesModel->render(viewMat, projMat, testMM);
     
+    /*
     glDepthMask(GL_FALSE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -326,14 +350,13 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBindVertexArray(0);
     
     glUseProgram(0);
-    
+    */
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
-    
     
     glUseProgram(mGBufferShaderProg->getHandle());
     
@@ -346,6 +369,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, mPositionTexture);
     glUniform1i(mPositionHandle, 2);
+    /*
+    glBindTexture(GL_TEXTURE_2D, mBrightTexture);
+    glUniform1i(mBrightHandle, 3);
+    */
     
     glBindVertexArray(mFullscreenVao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
