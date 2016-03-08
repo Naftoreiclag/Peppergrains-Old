@@ -5,10 +5,10 @@
     <WorkspaceConfiguration Name="LinuxDebug" Selected="no">
       <Project Name="PepperGrains" ConfigName="LinuxDebug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="LinuxRelease" Selected="yes">
+    <WorkspaceConfiguration Name="LinuxRelease" Selected="no">
       <Project Name="PepperGrains" ConfigName="LinuxRelease"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="WinDebug" Selected="no">
+    <WorkspaceConfiguration Name="WinDebug" Selected="yes">
       <Project Name="PepperGrains" ConfigName="WinDebug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="WinRelease" Selected="no">
