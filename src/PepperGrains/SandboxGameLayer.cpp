@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "glm/gtx/string_cast.hpp"
+#include "SDL2/SDL.h"
 
 namespace pgg
 {
@@ -259,6 +260,8 @@ void SandboxGameLayer::makeSun() {
 // Lifecycle
 void SandboxGameLayer::onBegin() {
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1.f, 0.f, (float) 1.f);
     
     glm::vec4 test(0.0f, 0.0f, 0.0f, 1.0f);
@@ -299,17 +302,24 @@ void SandboxGameLayer::onBegin() {
     friendNodeY->move(glm::vec3(0.f, 2.f, 0.f));
     friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
     
-    camPivot = new SceneNode();
-    rootNode->addChild(camPivot);
+    mCamRollNode = new SceneNode();
+    mCamPitchNode = new SceneNode();
+    mCamYawNode = new SceneNode();
+    mCamLocNode = new SceneNode();
+    mCamLocNode->move(glm::vec3(2.f, 4.f, 3.f));
     
-    camNode = new SceneNode();
-    camNode->move(glm::vec3(2.f, 4.f, 3.f));
-    camPivot->addChild(camNode);
+    rootNode->addChild(mCamLocNode);
+    mCamLocNode->addChild(mCamYawNode);
+    mCamYawNode->addChild(mCamPitchNode);
+    mCamPitchNode->addChild(mCamRollNode);
 
     mAxesModel = new AxesModel();
     mAxesModel->grab();
     
-    
+    iago = new SceneNode();
+    iago->grabModel(resman->findModel("Iago.model"));
+    iago->move(glm::vec3(0.f, 3.5f, 0.f));
+    rootNode->addChild(iago);
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -351,16 +361,27 @@ void SandboxGameLayer::onEnd() {
 // Ticks
 void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
-    glm::vec3 camPos;
-    camNode->calcWorldTranslation(camPos);
-    glm::mat4 viewMat = glm::lookAt(camPos, glm::vec3(0.f, 2.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
+    }
+
+    
+    glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
     glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 1000.f);
+    
+    /*
+    mCamYawNode->rotateYaw(tpf * 0.2f);
+    mCamPitchNode->rotatePitch(tpf * 0.2f);
+    */
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
-    
-    camPivot->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf * 0.2);
     
     friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
@@ -480,6 +501,18 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
+}
+
+bool SandboxGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
+    float x = event.x;
+    float y = event.y;
+    float dx = event.xrel;
+    float dy = event.yrel;
+    
+    mCamYawNode->rotateYaw(-dx * 0.003f);
+    mCamPitchNode->rotatePitch(-dy * 0.003f);
+    
+    return true;
 }
 
 bool SandboxGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {

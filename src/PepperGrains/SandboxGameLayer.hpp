@@ -16,6 +16,8 @@
 
 #include "GameLayer.hpp" // Base class: pgg::GameLayer
 
+#include "SDL2/SDL.h"
+
 #include "AxesModel.hpp"
 #include "SceneNode.hpp"
 #include "ResourceManager.hpp"
@@ -36,9 +38,12 @@ public:
     SceneNode* friendNodeX;
     SceneNode* friendNodeY;
     SceneNode* friendNodeZ;
+    SceneNode* iago;
     
-    SceneNode* camPivot;
-    SceneNode* camNode;
+    SceneNode* mCamLocNode;
+    SceneNode* mCamYawNode;
+    SceneNode* mCamPitchNode;
+    SceneNode* mCamRollNode;
     
     SceneNode* testPlaneNode;
     
@@ -87,6 +92,7 @@ public:
     
     // Ticks
     void onTick(float tps, const Uint8* keyStates);
+    bool onMouseMove(const SDL_MouseMotionEvent& event);
     
     bool onWindowSizeUpdate(const SDL_WindowEvent& event);
 };
