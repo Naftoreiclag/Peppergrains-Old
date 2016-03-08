@@ -134,6 +134,10 @@ void SceneNode::scale(const glm::vec3& scale) {
     mLocalScale *= scale;
     this->markBothTransformsDirty();
 }
+void SceneNode::scale(const float& scale) {
+    mLocalScale *= scale;
+    this->markBothTransformsDirty();
+}
 void SceneNode::rotate(const glm::quat& rotation) {
     mLocalOrientation = rotation * mLocalOrientation;
     this->markBothTransformsDirty();

@@ -75,6 +75,7 @@ public:
 
     // Same as above, but is relative to previous transform
     void scale(const glm::vec3& scale);
+    void scale(const float& scale);
     void rotate(const glm::quat& rotation);
     void rotate(const glm::vec3& axis, const float& radians);
     void move(const glm::vec3& translation);
