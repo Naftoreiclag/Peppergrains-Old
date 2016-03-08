@@ -78,6 +78,9 @@ public:
     void scale(const float& scale);
     void rotate(const glm::quat& rotation);
     void rotate(const glm::vec3& axis, const float& radians);
+    void rotatePitch(const float& radians);
+    void rotateYaw(const float& radians);
+    void rotateRoll(const float& radians);
     void move(const glm::vec3& translation);
 
     // Model

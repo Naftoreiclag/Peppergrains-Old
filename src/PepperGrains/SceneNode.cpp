@@ -146,6 +146,15 @@ void SceneNode::rotate(const glm::vec3& axis, const float& radians) {
     mLocalOrientation = glm::rotate(mLocalOrientation, radians, axis);
     this->markBothTransformsDirty();
 }
+void SceneNode::rotatePitch(const float& radians) {
+    this->rotate(glm::vec3(1.f, 0.f, 0.f), radians);
+}
+void SceneNode::rotateYaw(const float& radians) {
+    this->rotate(glm::vec3(0.f, 1.f, 0.f), radians);
+}
+void SceneNode::rotateRoll(const float& radians) {
+    this->rotate(glm::vec3(0.f, 0.f, 1.f), radians);
+}
 void SceneNode::move(const glm::vec3& translation) {
     mLocalTranslation += translation;
     this->markBothTransformsDirty();
