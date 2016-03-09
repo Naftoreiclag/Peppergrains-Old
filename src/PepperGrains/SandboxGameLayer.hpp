@@ -66,6 +66,7 @@ public:
     GLuint mDLightVbo;
     GLuint mDLightIbo;
     
+    uint32_t mSunTextureWidth;
     GLuint mSunFrameBuffer;
     GLuint mSunDepthTexture;
     glm::vec3 mSunDir;

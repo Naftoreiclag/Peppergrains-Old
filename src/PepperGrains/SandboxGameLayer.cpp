@@ -227,10 +227,12 @@ void SandboxGameLayer::makeGBuffer() {
 }
 
 void SandboxGameLayer::makeSun() {
+    mSunTextureWidth = 1024;
+    
     // DepthStencil mapping
     glGenTextures(1, &mSunDepthTexture);
     glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSunTextureWidth, mSunTextureWidth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     // TODO: change this
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -399,7 +401,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
     // Sun? buffer
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
     glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
