@@ -26,12 +26,13 @@ namespace pgg {
 
 class ShaderProgramResource : public Resource {
 public:
-    struct Sampler2DControl {
+    struct Control {
         std::string name;
         GLuint handle;
     };
 
-    const std::vector<Sampler2DControl>& getSampler2Ds() const;
+    const std::vector<Control>& getSampler2Ds() const;
+    const std::vector<Control>& getVec3s() const;
 
 private:
 
@@ -40,7 +41,8 @@ private:
 
     std::vector<ShaderResource*> mLinkedShaders;
 
-    std::vector<Sampler2DControl> mSampler2Ds;
+    std::vector<Control> mSampler2Ds;
+    std::vector<Control> mVec3s;
 
     /*
      * Model

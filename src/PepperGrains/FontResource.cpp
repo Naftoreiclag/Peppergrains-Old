@@ -51,10 +51,10 @@ void FontResource::load() {
     mShaderProg = rmgr->findShaderProgram("Font.shaderProgram");
     mShaderProg->grab();
 
-    const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mShaderProg->getSampler2Ds();
+    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getSampler2Ds();
 
-    for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-        const ShaderProgramResource::Sampler2DControl& entry = *iter;
+    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+        const ShaderProgramResource::Control& entry = *iter;
 
         mTextureHandle = entry.handle;
 

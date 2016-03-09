@@ -54,6 +54,7 @@ public:
     GLuint mNormalHandle;
     GLuint mDepthHandle;
     GLuint mSunDepthHandle;
+    GLuint mSunDirectionHandle;
     //GLuint mBrightHandle;
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;

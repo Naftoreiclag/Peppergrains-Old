@@ -35,9 +35,9 @@ void SandboxGameLayer::makeLightVao() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mDLightShaderProg = resman->findShaderProgram("DLight.shaderProgram");
     mDLightShaderProg->grab();
-    const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mDLightShaderProg->getSampler2Ds();
-    for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-        const ShaderProgramResource::Sampler2DControl& entry = *iter;
+    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDLightShaderProg->getSampler2Ds();
+    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+        const ShaderProgramResource::Control& entry = *iter;
         
         if(entry.name == "diffuse") {
             mDLightDiff = entry.handle;
@@ -88,9 +88,9 @@ void SandboxGameLayer::makeGBuffer() {
     {
         mGBufferShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
         mGBufferShaderProg->grab();
-        const std::vector<ShaderProgramResource::Sampler2DControl>& sampler2DControls = mGBufferShaderProg->getSampler2Ds();
-        for(std::vector<ShaderProgramResource::Sampler2DControl>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-            const ShaderProgramResource::Sampler2DControl& entry = *iter;
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mGBufferShaderProg->getSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
             
             if(entry.name == "diffuse") {
                 mDiffuseHandle = entry.handle;
@@ -109,6 +109,14 @@ void SandboxGameLayer::makeGBuffer() {
                 mBrightHandle = entry.handle;
             }
             */
+        }
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mGBufferShaderProg->getSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "sunDirection") {
+                mSunDirectionHandle = entry.handle;
+            }
         }
         
         assert(mGBufferShaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
@@ -253,10 +261,6 @@ void SandboxGameLayer::makeSun() {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    mSunDir = glm::vec3(1.f, 1.f, 1.f);
-    
-    mSunViewMatr = glm::lookAt(mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-    mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
 }
 
 // Lifecycle
@@ -400,6 +404,12 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
     
+    mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
+    mSunDir = glm::normalize(mSunDir);
+    
+    mSunViewMatr = glm::lookAt(-mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+    
     // Sun? buffer
     glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
     glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
@@ -465,6 +475,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glUniformMatrix4fv(mGBufferShaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
     glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
     glUniformMatrix4fv(mGBufferShaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
+    glUniform3fv(mSunDirectionHandle, 1, glm::value_ptr(mSunDir));
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);

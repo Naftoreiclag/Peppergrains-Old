@@ -150,7 +150,7 @@ void ShaderProgramResource::loadError() {
     mProjMatrixUnif = glGetUniformLocation(mShaderProg, "uProj");
         
     // Setup controls
-    Sampler2DControl control;
+    Control control;
     control.name = "Happy Birthday";
     control.handle = glGetUniformLocation(mShaderProg, "ambientTex");
     mSampler2Ds.push_back(control);
@@ -358,6 +358,7 @@ void ShaderProgramResource::load() {
 
         if(!controls.isNull()) {
             const Json::Value& sampler2Ds = controls["sampler2D"];
+            const Json::Value& vec3s = controls["vec3"];
 
             if(!sampler2Ds.isNull()) {
                 for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
@@ -367,11 +368,23 @@ void ShaderProgramResource::load() {
                     // Key = name used for referencing
                     // Value = symbol searched for in shader code
 
-                    Sampler2DControl control;
+                    Control control;
                     control.name = key.asString();
                     control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
 
                     mSampler2Ds.push_back(control);
+                }
+            }
+            if(!vec3s.isNull()) {
+                for(Json::Value::const_iterator iter = vec3s.begin(); iter != vec3s.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
+
+                    mVec3s.push_back(control);
                 }
             }
         }
@@ -419,6 +432,7 @@ GLuint ShaderProgramResource::getPosAttrib() const { return mPosAttrib; }
 GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }
 GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
 GLuint ShaderProgramResource::getNormalAttrib() const { return mNormalAttrib; }
-const std::vector<ShaderProgramResource::Sampler2DControl>& ShaderProgramResource::getSampler2Ds() const { return mSampler2Ds; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getSampler2Ds() const { return mSampler2Ds; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getVec3s() const { return mVec3s; }
 
 }
