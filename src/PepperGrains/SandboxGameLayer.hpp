@@ -72,6 +72,8 @@ public:
     glm::mat4 mSunProjMatr;
     glm::mat4 mSunViewMatr;
     
+    float mIago;
+    
     GLuint mFramebuffer;
     GLuint mDiffuseTexture;
     GLuint mNormalTexture;

@@ -322,6 +322,7 @@ void SandboxGameLayer::onBegin() {
     rootNode->addChild(iago);
 
     fps = 0.f;
+    mIago = 0.f;
     fpsWeight = 0.85f;
 
     oneSecondTimer = 0.f;
@@ -361,27 +362,37 @@ void SandboxGameLayer::onEnd() {
 // Ticks
 void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
+    glm::vec3 movement;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
+        movement.z -= 1.0;
     }
     if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
+        movement.x -= 1.0;
     }
     if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
+        movement.z += 1.0;
     }
     if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
+        movement.x += 1.0;
+    }
+    if(movement != glm::vec3(0.f)) {
+        glm::normalize(movement);
+        
+        movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
+        mCamLocNode->move(movement);
     }
 
     
     glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 1.f, 1000.f);
-    
-    /*
-    mCamYawNode->rotateYaw(tpf * 0.2f);
-    mCamPitchNode->rotatePitch(tpf * 0.2f);
-    */
+    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 0.1f, 500.f);
 
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
     glm::mat4 testMM;
+    
+    mIago += tpf;
+    
+    iago->setLocalTranslation(glm::vec3(0.f, 1.f + glm::sin(mIago), 3.f));
     
     friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
@@ -398,7 +409,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Lazy
     rootNode->render(mSunViewMatr, mSunProjMatr);
-    mAxesModel->render(viewMat, projMat, testMM);
+    mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
     
     // G-buffer
     glViewport(0, 0, 1280, 720);
