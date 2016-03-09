@@ -75,8 +75,8 @@ void SandboxGameLayer::makeLightVao() {
     glBindBuffer(GL_ARRAY_BUFFER, mDLightVbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mDLightIbo);
 
-    glEnableVertexAttribArray(mGBufferShaderProg->getPosAttrib());
-    glVertexAttribPointer(mGBufferShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
+    glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
 }
@@ -86,23 +86,23 @@ void SandboxGameLayer::makeGBuffer() {
     
     // Locate where to send the sampler
     {
-        mGBufferShaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
-        mGBufferShaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mGBufferShaderProg->getSampler2Ds();
+        mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
+        mScreenShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
             if(entry.name == "diffuse") {
-                mDiffuseHandle = entry.handle;
+                mScreenShader.diffuseHandle = entry.handle;
             }
             else if(entry.name == "normal") {
-                mNormalHandle = entry.handle;
+                mScreenShader.normalHandle = entry.handle;
             }
             else if(entry.name == "depth") {
-                mDepthHandle = entry.handle;
+                mScreenShader.depthHandle = entry.handle;
             }
             else if(entry.name == "sunDepth") {
-                mSunDepthHandle = entry.handle;
+                mScreenShader.sunDepthHandle = entry.handle;
             }
             /*
             else if(entry.name == "bright") {
@@ -110,17 +110,17 @@ void SandboxGameLayer::makeGBuffer() {
             }
             */
         }
-        const std::vector<ShaderProgramResource::Control>& vec3Controls = mGBufferShaderProg->getSampler2Ds();
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getVec3s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
             if(entry.name == "sunDirection") {
-                mSunDirectionHandle = entry.handle;
+                mScreenShader.sunDirectionHandle = entry.handle;
             }
         }
         
-        assert(mGBufferShaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
-        assert(mGBufferShaderProg->needsSunViewProjMatrix() && "G-buffer shader does not accept sun view projection matrix");
+        assert(mScreenShader.shaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
+        assert(mScreenShader.shaderProg->needsSunViewProjMatrix() && "G-buffer shader does not accept sun view projection matrix");
     }
     
     // Fullscreen quad
@@ -152,10 +152,10 @@ void SandboxGameLayer::makeGBuffer() {
         glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
 
-        glEnableVertexAttribArray(mGBufferShaderProg->getPosAttrib());
-        glVertexAttribPointer(mGBufferShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(mGBufferShaderProg->getUVAttrib());
-        glVertexAttribPointer(mGBufferShaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
+        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(mScreenShader.shaderProg->getUVAttrib());
+        glVertexAttribPointer(mScreenShader.shaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
 
         glBindVertexArray(0);
     }
@@ -163,8 +163,8 @@ void SandboxGameLayer::makeGBuffer() {
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
-        glGenTextures(1, &mDiffuseTexture);
-        glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
+        glGenTextures(1, &mGDiffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -173,8 +173,8 @@ void SandboxGameLayer::makeGBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);
         
         // Normal mapping
-        glGenTextures(1, &mNormalTexture);
-        glBindTexture(GL_TEXTURE_2D, mNormalTexture);
+        glGenTextures(1, &mGNormalTexture);
+        glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -195,8 +195,8 @@ void SandboxGameLayer::makeGBuffer() {
         */
         
         // DepthStencil mapping
-        glGenTextures(1, &mDepthStencilTexture);
-        glBindTexture(GL_TEXTURE_2D, mDepthStencilTexture);
+        glGenTextures(1, &mGDepthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 1280, 720, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -207,12 +207,12 @@ void SandboxGameLayer::makeGBuffer() {
     
     // Create framebuffer
     {
-        glGenFramebuffers(1, &mFramebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalTexture, 0);
+        glGenFramebuffers(1, &mGFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mGFramebuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGDiffuseTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGNormalTexture, 0);
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthStencilTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGDepthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
@@ -338,15 +338,15 @@ void SandboxGameLayer::onEnd() {
     glDeleteBuffers(1, &mFullscreenIbo);
     glDeleteBuffers(1, &mFullscreenVbo);
     
-    glDeleteTextures(1, &mDiffuseTexture);
-    glDeleteTextures(1, &mNormalTexture);
-    glDeleteTextures(1, &mDepthStencilTexture);
+    glDeleteTextures(1, &mGDiffuseTexture);
+    glDeleteTextures(1, &mGNormalTexture);
+    glDeleteTextures(1, &mGDepthStencilTexture);
     //glDeleteTextures(1, &mBrightTexture);
     
     glDeleteTextures(1, &mSunDepthTexture);
     glDeleteFramebuffers(1, &mSunFrameBuffer);
 
-    mGBufferShaderProg->drop();
+    mScreenShader.shaderProg->drop();
 
     glDeleteVertexArrays(1, &mFullscreenVao);
     
@@ -362,7 +362,7 @@ void SandboxGameLayer::onEnd() {
     
     rainstormFont->drop();
     
-    glDeleteFramebuffers(1, &mFramebuffer);
+    glDeleteFramebuffers(1, &mGFramebuffer);
 }
 
 // Ticks
@@ -425,7 +425,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // G-buffer
     glViewport(0, 0, 1280, 720);
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, mGFramebuffer);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -437,61 +437,35 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(viewMat, projMat);
     mAxesModel->render(viewMat, projMat, testMM);
     
-    /*
-    glDepthMask(GL_FALSE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_ONE, GL_ONE);
-    
-    // Render lights here
-    glUseProgram(mDLightShaderProg->getHandle());
-    
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
-    glUniform1i(mDLightDiff, 0);
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, mNormalTexture);
-    glUniform1i(mDLightNorm, 1);
-    
-    glBindVertexArray(mDLightVao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    glBindVertexArray(0);
-    
-    glUseProgram(0);
-    */
-    
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     
-    glUseProgram(mGBufferShaderProg->getHandle());
+    glUseProgram(mScreenShader.shaderProg->getHandle());
     
     glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
-    glUniformMatrix4fv(mGBufferShaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+    glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
     glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
-    glUniformMatrix4fv(mGBufferShaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
-    glUniform3fv(mSunDirectionHandle, 1, glm::value_ptr(mSunDir));
+    glUniformMatrix4fv(mScreenShader.shaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
+    glUniform3fv(mScreenShader.sunDirectionHandle, 1, glm::value_ptr(mSunDir));
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, mDiffuseTexture);
-    glUniform1i(mDiffuseHandle, 0);
+    glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
+    glUniform1i(mScreenShader.diffuseHandle, 0);
     
     glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, mNormalTexture);
-    glUniform1i(mNormalHandle, 1);
+    glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
+    glUniform1i(mScreenShader.normalHandle, 1);
     
     glActiveTexture(GL_TEXTURE0 + 2);
-    glBindTexture(GL_TEXTURE_2D, mDepthStencilTexture);
-    glUniform1i(mDepthHandle, 2);
+    glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
+    glUniform1i(mScreenShader.depthHandle, 2);
     
     glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-    glUniform1i(mSunDepthHandle, 3);
+    glUniform1i(mScreenShader.sunDepthHandle, 3);
     /*
     glBindTexture(GL_TEXTURE_2D, mBrightTexture);
     glUniform1i(mBrightHandle, 3);

@@ -27,6 +27,18 @@ namespace pgg {
 
 class SandboxGameLayer : public GameLayer {
 private:
+    struct ScreenShader {
+        ShaderProgramResource* shaderProg;
+        GLuint diffuseHandle;
+        GLuint normalHandle;
+        GLuint depthHandle;
+        GLuint sunDepthHandle;
+        GLuint sunDirectionHandle;
+    };
+    
+    ScreenShader mScreenShader;
+    
+private:
     void makeGBuffer();
     void makeLightVao();
     void makeSun();
@@ -49,13 +61,6 @@ public:
     
     AxesModel* mAxesModel;
     
-    ShaderProgramResource* mGBufferShaderProg;
-    GLuint mDiffuseHandle;
-    GLuint mNormalHandle;
-    GLuint mDepthHandle;
-    GLuint mSunDepthHandle;
-    GLuint mSunDirectionHandle;
-    //GLuint mBrightHandle;
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
@@ -76,11 +81,10 @@ public:
     
     float mIago;
     
-    GLuint mFramebuffer;
-    GLuint mDiffuseTexture;
-    GLuint mNormalTexture;
-    GLuint mDepthStencilTexture;
-    //GLuint mBrightTexture;
+    GLuint mGFramebuffer;
+    GLuint mGDiffuseTexture;
+    GLuint mGNormalTexture;
+    GLuint mGDepthStencilTexture;
     
     FontResource* rainstormFont;
     TextModel* fpsCounter;
