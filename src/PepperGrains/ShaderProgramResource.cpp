@@ -235,12 +235,6 @@ void ShaderProgramResource::load() {
                 std::string symbol = normalSym.asString();
                 glBindFragDataLocation(mShaderProg, 1, symbol.c_str());
             }
-            /*
-            if(!brightSym.isNull()) {
-                std::string symbol = brightSym.asString();
-                glBindFragDataLocation(mShaderProg, 3, symbol.c_str());
-            }
-            */
         }
     }
 
@@ -359,6 +353,7 @@ void ShaderProgramResource::load() {
         if(!controls.isNull()) {
             const Json::Value& sampler2Ds = controls["sampler2D"];
             const Json::Value& vec3s = controls["vec3"];
+            const Json::Value& vec4s = controls["vec4"];
 
             if(!sampler2Ds.isNull()) {
                 for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
@@ -385,6 +380,18 @@ void ShaderProgramResource::load() {
                     control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
 
                     mVec3s.push_back(control);
+                }
+            }
+            if(!vec4s.isNull()) {
+                for(Json::Value::const_iterator iter = vec4s.begin(); iter != vec4s.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
+
+                    mVec4s.push_back(control);
                 }
             }
         }
@@ -434,5 +441,6 @@ GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
 GLuint ShaderProgramResource::getNormalAttrib() const { return mNormalAttrib; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getSampler2Ds() const { return mSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getVec3s() const { return mVec3s; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getVec4s() const { return mVec4s; }
 
 }

@@ -33,6 +33,7 @@ public:
 
     const std::vector<Control>& getSampler2Ds() const;
     const std::vector<Control>& getVec3s() const;
+    const std::vector<Control>& getVec4s() const;
 
 private:
 
@@ -43,6 +44,7 @@ private:
 
     std::vector<Control> mSampler2Ds;
     std::vector<Control> mVec3s;
+    std::vector<Control> mVec4s;
 
     /*
      * Model
