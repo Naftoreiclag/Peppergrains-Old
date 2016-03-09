@@ -13,8 +13,6 @@
 
 #include "AxesModel.hpp"
 
-#include <iostream>
-
 #include "ResourceManager.hpp"
 
 namespace pgg
@@ -55,13 +53,6 @@ void AxesModel::load() {
                 cuboid.pos1 = glm::vec3(-rad, -rad, org);
                 cuboid.pos2 = glm::vec3(rad, rad, siz);
             }
-            
-            std::cout << cuboid.pos1.x << std::endl;
-            std::cout << cuboid.pos1.y << std::endl;
-            std::cout << cuboid.pos1.z << std::endl;
-            std::cout << cuboid.pos2.x << std::endl;
-            std::cout << cuboid.pos2.y << std::endl;
-            std::cout << cuboid.pos2.z << std::endl << std::endl;
     
             float r = cube == 0 ? 1.f : 0.f;
             float g = cube == 1 ? 1.f : 0.f;
@@ -183,8 +174,6 @@ void AxesModel::load() {
             vertices[vo ++] = b;
             
         }
-        std::cout << vo << std::endl;
-        std::cout << io << std::endl;
     }
     
     
