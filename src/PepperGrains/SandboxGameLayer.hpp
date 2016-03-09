@@ -38,7 +38,17 @@ private:
     
     ScreenShader mScreenShader;
     
-private:
+    struct DebugScreenShader {
+        ShaderProgramResource* shaderProg;
+        GLuint diffuseHandle;
+        GLuint normalHandle;
+        GLuint depthHandle;
+        GLuint viewHandle;
+    };
+    
+    DebugScreenShader mDebugScreenShader;
+    
+    void makeScreenShader();
     void makeGBuffer();
     void makeLightVao();
     void makeSun();
