@@ -36,10 +36,10 @@ void GeometryResource::loadError() {
     
     std::cout << "Error data" << std::endl;
     
-    mUsePositions = true;
+    mUsePosition = true;
     mUseColor = true;
     mUseUV = true;
-    mUseNormals = true;
+    mUseNormal = true;
     
     mNumVertices = 8;
     mNumTriangles = 12;
@@ -47,11 +47,11 @@ void GeometryResource::loadError() {
     // pppcccttnnn
     mPositionOff = 0;
     mColorOff = 3;
-    mTextureOff = 6;
+    mUVOff = 6;
     mNormalOff = 8;
-    mSizeVertices = 11;
+    mVertexSize = 11;
     
-    GLfloat vertices[mNumVertices * mSizeVertices];
+    GLfloat vertices[mNumVertices * mVertexSize];
     GLuint indices[mNumTriangles * 3];
     
     // Generate cube
@@ -196,41 +196,52 @@ void GeometryResource::load() {
         return;
     }
 
-    mUsePositions = readBool(input);
+    mUsePosition = readBool(input);
     mUseColor = readBool(input);
     mUseUV = readBool(input);
-    mUseNormals = readBool(input);
+    mUseNormal = readBool(input);
+    mUseTangent = readBool(input);
 
     mNumVertices = readU32(input);
     mNumTriangles = readU32(input);
 
     mPositionOff = 0;
-    mColorOff = mPositionOff + (mUsePositions ? 3 : 0);
-    mTextureOff = mColorOff + (mUseColor ? 3 : 0);
-    mNormalOff = mTextureOff + (mUseUV ? 2 : 0);
-    mSizeVertices = mNormalOff + (mUseNormals ? 3 : 0);
+    mColorOff = mPositionOff + (mUsePosition ? 3 : 0);
+    mUVOff = mColorOff + (mUseColor ? 3 : 0);
+    mNormalOff = mUVOff + (mUseUV ? 2 : 0);
+    mTangentOff = mNormalOff + (mUseNormal ? 3 : 0);
+    
+    mVertexSize = mTangentOff + (mUseTangent ? 6 : 0);
 
-    GLfloat vertices[mNumVertices * mSizeVertices];
+    GLfloat vertices[mNumVertices * mVertexSize];
 
     for(uint32_t i = 0; i < mNumVertices; ++ i) {
-        if(mUsePositions) {
-            vertices[(i * mSizeVertices) + mPositionOff + 0] = readF32(input);
-            vertices[(i * mSizeVertices) + mPositionOff + 1] = readF32(input);
-            vertices[(i * mSizeVertices) + mPositionOff + 2] = readF32(input);
+        if(mUsePosition) {
+            vertices[(i * mVertexSize) + mPositionOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mPositionOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mPositionOff + 2] = readF32(input);
         }
         if(mUseColor) {
-            vertices[(i * mSizeVertices) + mColorOff + 0] = readF32(input);
-            vertices[(i * mSizeVertices) + mColorOff + 1] = readF32(input);
-            vertices[(i * mSizeVertices) + mColorOff + 2] = readF32(input);
+            vertices[(i * mVertexSize) + mColorOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mColorOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mColorOff + 2] = readF32(input);
         }
         if(mUseUV) {
-            vertices[(i * mSizeVertices) + mTextureOff + 0] = readF32(input);
-            vertices[(i * mSizeVertices) + mTextureOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mUVOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mUVOff + 1] = readF32(input);
         }
-        if(mUseNormals) {
-            vertices[(i * mSizeVertices) + mNormalOff + 0] = readF32(input);
-            vertices[(i * mSizeVertices) + mNormalOff + 1] = readF32(input);
-            vertices[(i * mSizeVertices) + mNormalOff + 2] = readF32(input);
+        if(mUseNormal) {
+            vertices[(i * mVertexSize) + mNormalOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mNormalOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mNormalOff + 2] = readF32(input);
+        }
+        if(mUseTangent) {
+            vertices[(i * mVertexSize) + mTangentOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff + 2] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff + 3] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff + 4] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff + 5] = readF32(input);
         }
     }
 
@@ -279,27 +290,35 @@ void GeometryResource::bindBuffers() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 }
 void GeometryResource::enablePositionAttrib(GLuint posAttrib) {
-    if(mUsePositions) {
+    if(mUsePosition) {
         glEnableVertexAttribArray(posAttrib);
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mPositionOff * sizeof(GLfloat)));
+        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mPositionOff * sizeof(GLfloat)));
     }
 }
 void GeometryResource::enableColorAttrib(GLuint colorAttrib) {
     if(mUseColor) {
         glEnableVertexAttribArray(colorAttrib);
-        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mColorOff * sizeof(GLfloat)));
+        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mColorOff * sizeof(GLfloat)));
     }
 }
 void GeometryResource::enableUVAttrib(GLuint textureAttrib) {
     if(mUseUV) {
         glEnableVertexAttribArray(textureAttrib);
-        glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mTextureOff * sizeof(GLfloat)));
+        glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mUVOff * sizeof(GLfloat)));
     }
 }
 void GeometryResource::enableNormalAttrib(GLuint normalAttrib) {
-    if(mUseNormals) {
+    if(mUseNormal) {
         glEnableVertexAttribArray(normalAttrib);
-        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mSizeVertices * sizeof(GLfloat), (void*) (mNormalOff * sizeof(GLfloat)));
+        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mNormalOff * sizeof(GLfloat)));
+    }
+}
+void GeometryResource::enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib) {
+    if(mUseTangent) {
+        glEnableVertexAttribArray(tangentAttrib);
+        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mTangentOff * sizeof(GLfloat)));
+        glEnableVertexAttribArray(bitangentAttrib);
+        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) ((mTangentOff + 3) * sizeof(GLfloat)));
     }
 }
 

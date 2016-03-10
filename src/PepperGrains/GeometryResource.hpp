@@ -44,6 +44,14 @@ private:
         float nx;
         float ny;
         float nz;
+        
+        // Tangent
+        float tx;
+        float ty;
+        float tz;
+        float btx;
+        float bty;
+        float btz;
 
         Vertex()
         : x(0.f)
@@ -69,16 +77,19 @@ private:
     typedef std::vector<Vertex> VertexBuffer;
     typedef std::vector<Triangle> TriangleBuffer;
 
+    bool mUsePosition;
     bool mUseColor;
     bool mUseUV;
-    bool mUseNormals;
-    bool mUsePositions;
+    bool mUseNormal;
+    bool mUseTangent;
 
     uint32_t mPositionOff;
     uint32_t mColorOff;
-    uint32_t mTextureOff;
+    uint32_t mUVOff;
     uint32_t mNormalOff;
-    uint32_t mSizeVertices;
+    uint32_t mTangentOff;
+    
+    uint32_t mVertexSize;
 
     uint32_t mNumVertices;
     uint32_t mNumTriangles;
@@ -110,6 +121,7 @@ public:
     void enableColorAttrib(GLuint colorAttrib);
     void enableUVAttrib(GLuint textureAttrib);
     void enableNormalAttrib(GLuint normalAttrib);
+    void enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib);
 
     GLuint getHandle() const;
 };
