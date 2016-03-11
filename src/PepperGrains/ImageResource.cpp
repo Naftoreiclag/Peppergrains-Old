@@ -34,15 +34,22 @@ void ImageResource::loadError() {
     mComponents = 3;
     mImage = new uint8_t[mWidth * mHeight * mComponents];
     
+    float amt = 255.f / ((float) mWidth);
+    
     for(uint32_t y = 0; y < mHeight; ++ y) {
         for(uint32_t x = 0; x < mWidth; ++ x) {
-            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? 0 : 255;
-            mImage[((y * mWidth) + x) * mComponents + 1] = 0;
-            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : 255;
+            float fx = x;
+            float fy = y;
+            
+            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? fx * amt : 255;
+            mImage[((y * mWidth) + x) * mComponents + 1] = ((x + y) % 2 ) == 0 ? fy * amt : fx * amt;
+            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : fy * amt;
         }
     }
     mLoaded = true;
     mIsErrorResource = true;
+    
+    std::cout << "Image error: " << this->getName() << std::endl;
 }
 
 void ImageResource::unloadError() {
