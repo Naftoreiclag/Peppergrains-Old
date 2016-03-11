@@ -52,10 +52,10 @@ void MaterialResource::loadError() {
         mSampler2Ds.push_back(input);
     }
     
-    std::cout << "Hello Errors" << std::endl;
-    
     mLoaded = true;
     mIsErrorResource = true;
+    
+    std::cout << "Material error: " << this->getName() << std::endl;
 }
 
 void MaterialResource::unloadError() {

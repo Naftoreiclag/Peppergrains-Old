@@ -157,6 +157,8 @@ void ShaderProgramResource::loadError() {
 
     mLoaded = true;
     mIsErrorResource = true;
+    
+    std::cout << "Shader program error: " << this->getName() << std::endl;
 }
 
 void ShaderProgramResource::unloadError() {
