@@ -41,9 +41,9 @@ void ImageResource::loadError() {
             float fx = x;
             float fy = y;
             
-            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? fx * amt : 255;
-            mImage[((y * mWidth) + x) * mComponents + 1] = ((x + y) % 2 ) == 0 ? fy * amt : fx * amt;
-            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : fy * amt;
+            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? fx * amt : fx * amt;
+            mImage[((y * mWidth) + x) * mComponents + 1] = ((x + y) % 2 ) == 0 ? fy * amt : fy * amt;
+            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : 255;
         }
     }
     mLoaded = true;
