@@ -64,6 +64,12 @@ void ModelResource::loadError() {
     if(shaderProg->needsNormalAttrib()) {
         mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
     }
+    if(shaderProg->needsTangentAttrib()) {
+        mGeometry->enableTangentAttrib(shaderProg->getTangentAttrib());
+    }
+    if(shaderProg->needsBitangentAttrib()) {
+        mGeometry->enableBitangentAttrib(shaderProg->getBitangentAttrib());
+    }
 
     // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
@@ -137,6 +143,12 @@ void ModelResource::load() {
     }
     if(shaderProg->needsNormalAttrib()) {
         mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
+    }
+    if(shaderProg->needsTangentAttrib()) {
+        mGeometry->enableTangentAttrib(shaderProg->getTangentAttrib());
+    }
+    if(shaderProg->needsBitangentAttrib()) {
+        mGeometry->enableBitangentAttrib(shaderProg->getBitangentAttrib());
     }
 
     // Finished initalizing vertex array object, so unbind

@@ -263,6 +263,8 @@ void ShaderProgramResource::load() {
             const Json::Value& diffuseSym = attributes["color"];
             const Json::Value& uvSym = attributes["uv"];
             const Json::Value& normalSym = attributes["normal"];
+            const Json::Value& tangentSym = attributes["tangent"];
+            const Json::Value& bitangentSym = attributes["bitangent"];
 
             if(posSym.isNull()) {
                 mUsePosAttrib = false;
@@ -291,6 +293,20 @@ void ShaderProgramResource::load() {
                 mUseNormalAttrib = true;
                 std::string symbol = normalSym.asString();
                 mNormalAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
+            if(tangentSym.isNull()) {
+                mUseTangentAttrib = false;
+            } else {
+                mUseTangentAttrib = true;
+                std::string symbol = tangentSym.asString();
+                mTangentAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
+            }
+            if(bitangentSym.isNull()) {
+                mUseBitangentAttrib = false;
+            } else {
+                mUseBitangentAttrib = true;
+                std::string symbol = bitangentSym.asString();
+                mBitangentAttrib = glGetAttribLocation(mShaderProg, symbol.c_str());
             }
         }
     }
@@ -432,6 +448,8 @@ bool ShaderProgramResource::needsPosAttrib() const { return mUsePosAttrib; }
 bool ShaderProgramResource::needsColorAttrib() const { return mUseColorAttrib; }
 bool ShaderProgramResource::needsUVAttrib() const { return mUseUVAttrib; }
 bool ShaderProgramResource::needsNormalAttrib() const { return mUseNormalAttrib; }
+bool ShaderProgramResource::needsTangentAttrib() const { return mUseTangentAttrib; }
+bool ShaderProgramResource::needsBitangentAttrib() const { return mUseBitangentAttrib; }
 GLuint ShaderProgramResource::getModelMatrixUnif() const { return mModelMatrixUnif; }
 GLuint ShaderProgramResource::getViewMatrixUnif() const { return mViewMatrixUnif; }
 GLuint ShaderProgramResource::getProjMatrixUnif() const { return mProjMatrixUnif; }
@@ -441,6 +459,8 @@ GLuint ShaderProgramResource::getPosAttrib() const { return mPosAttrib; }
 GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }
 GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
 GLuint ShaderProgramResource::getNormalAttrib() const { return mNormalAttrib; }
+GLuint ShaderProgramResource::getTangentAttrib() const { return mTangentAttrib; }
+GLuint ShaderProgramResource::getBitangentAttrib() const { return mBitangentAttrib; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getSampler2Ds() const { return mSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getVec3s() const { return mVec3s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getVec4s() const { return mVec4s; }

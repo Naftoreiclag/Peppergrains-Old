@@ -90,6 +90,12 @@ private:
 
     bool mUseNormalAttrib;
     GLuint mNormalAttrib;
+
+    bool mUseTangentAttrib;
+    GLuint mTangentAttrib;
+
+    bool mUseBitangentAttrib;
+    GLuint mBitangentAttrib;
     
     void loadError();
     void unloadError();
@@ -114,6 +120,8 @@ public:
     bool needsColorAttrib() const;
     bool needsUVAttrib() const;
     bool needsNormalAttrib() const;
+    bool needsTangentAttrib() const;
+    bool needsBitangentAttrib() const;
     GLuint getModelMatrixUnif() const;
     GLuint getViewMatrixUnif() const;
     GLuint getProjMatrixUnif() const;
@@ -123,6 +131,8 @@ public:
     GLuint getColorAttrib() const;
     GLuint getUVAttrib() const;
     GLuint getNormalAttrib() const;
+    GLuint getTangentAttrib() const;
+    GLuint getBitangentAttrib() const;
 
 };
 

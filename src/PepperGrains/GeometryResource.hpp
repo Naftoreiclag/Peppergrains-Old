@@ -82,12 +82,14 @@ private:
     bool mUseUV;
     bool mUseNormal;
     bool mUseTangent;
+    bool mUseBitangent;
 
     uint32_t mPositionOff;
     uint32_t mColorOff;
     uint32_t mUVOff;
     uint32_t mNormalOff;
     uint32_t mTangentOff;
+    uint32_t mBitangentOff;
     
     uint32_t mVertexSize;
 
@@ -121,7 +123,9 @@ public:
     void enableColorAttrib(GLuint colorAttrib);
     void enableUVAttrib(GLuint textureAttrib);
     void enableNormalAttrib(GLuint normalAttrib);
-    void enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib);
+    void enableTangentAttrib(GLuint tangentAttrib);
+    void enableBitangentAttrib(GLuint bitangentAttrib);
+    //void enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib);
 
     GLuint getHandle() const;
 };

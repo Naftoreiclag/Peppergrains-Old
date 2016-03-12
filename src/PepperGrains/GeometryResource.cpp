@@ -201,6 +201,7 @@ void GeometryResource::load() {
     mUseUV = readBool(input);
     mUseNormal = readBool(input);
     mUseTangent = readBool(input);
+    mUseBitangent = readBool(input);
 
     mNumVertices = readU32(input);
     mNumTriangles = readU32(input);
@@ -210,8 +211,9 @@ void GeometryResource::load() {
     mUVOff = mColorOff + (mUseColor ? 3 : 0);
     mNormalOff = mUVOff + (mUseUV ? 2 : 0);
     mTangentOff = mNormalOff + (mUseNormal ? 3 : 0);
+    mBitangentOff = mTangentOff + (mUseTangent ? 3 : 0);
     
-    mVertexSize = mTangentOff + (mUseTangent ? 6 : 0);
+    mVertexSize = mBitangentOff + (mUseBitangent ? 3 : 0);
 
     GLfloat vertices[mNumVertices * mVertexSize];
 
@@ -239,9 +241,11 @@ void GeometryResource::load() {
             vertices[(i * mVertexSize) + mTangentOff + 0] = readF32(input);
             vertices[(i * mVertexSize) + mTangentOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mTangentOff + 2] = readF32(input);
-            vertices[(i * mVertexSize) + mTangentOff + 3] = readF32(input);
-            vertices[(i * mVertexSize) + mTangentOff + 4] = readF32(input);
-            vertices[(i * mVertexSize) + mTangentOff + 5] = readF32(input);
+        }
+        if(mUseBitangent) {
+            vertices[(i * mVertexSize) + mBitangentOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mBitangentOff + 1] = readF32(input);
+            vertices[(i * mVertexSize) + mBitangentOff + 2] = readF32(input);
         }
     }
 
@@ -313,6 +317,19 @@ void GeometryResource::enableNormalAttrib(GLuint normalAttrib) {
         glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mNormalOff * sizeof(GLfloat)));
     }
 }
+void GeometryResource::enableTangentAttrib(GLuint tangentAttrib) {
+    if(mUseTangent) {
+        glEnableVertexAttribArray(tangentAttrib);
+        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mTangentOff * sizeof(GLfloat)));
+    }
+}
+void GeometryResource::enableBitangentAttrib(GLuint bitangentAttrib) {
+    if(mUseBitangent) {
+        glEnableVertexAttribArray(bitangentAttrib);
+        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mBitangentOff * sizeof(GLfloat)));
+    }
+}
+/*
 void GeometryResource::enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib) {
     if(mUseTangent) {
         glEnableVertexAttribArray(tangentAttrib);
@@ -321,5 +338,6 @@ void GeometryResource::enableTangentAttrib(GLuint tangentAttrib, GLuint bitangen
         glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) ((mTangentOff + 3) * sizeof(GLfloat)));
     }
 }
+*/
 
 }
