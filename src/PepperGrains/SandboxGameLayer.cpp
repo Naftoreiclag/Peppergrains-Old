@@ -284,6 +284,7 @@ void SandboxGameLayer::makeSun() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glGenFramebuffers(1, &mSunFrameBuffer);
@@ -326,7 +327,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
+    testPlaneNode->grabModel(resman->findModel("Hills.model"));
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -336,7 +337,7 @@ void SandboxGameLayer::onBegin() {
     fpsCounter->grab();
 
     friendNodeX->grabModel(resman->findModel("JellySmoothTorus.model"));
-    friendNodeY->grabModel(resman->findModel("JellySmoothTorus.model"));
+    friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
     friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
 
     rootNode->addChild(friendNodeX);
@@ -344,7 +345,7 @@ void SandboxGameLayer::onBegin() {
     rootNode->addChild(friendNodeZ);
     
     friendNodeX->move(glm::vec3(-2.f, 2.f, 0.f));
-    friendNodeY->move(glm::vec3(0.f, 2.f, 0.f));
+    friendNodeY->move(glm::vec3(0.f, 3.f, 0.f));
     friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
     
     mCamRollNode = new SceneNode();
@@ -362,7 +363,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    iago->grabModel(resman->findModel("Iago.model"));
+    //iago->grabModel(resman->findModel("Iago.model"));
     iago->move(glm::vec3(0.f, 3.5f, 0.f));
     rootNode->addChild(iago);
 
@@ -438,13 +439,16 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     mIago += tpf;
     
-    iago->setLocalTranslation(glm::vec3(0.f, 1.f + glm::sin(mIago), 3.f));
+    iago->setLocalTranslation(glm::vec3(0.f, 0.2f + glm::sin(mIago), 3.f));
     
-    friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), (float) tpf);
-    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), (float) tpf);
-    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), (float) tpf);
+    friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), tpf);
+    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
+    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
     
-    mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
+    //mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
+    //mSunDir = glm::normalize(mSunDir);
+    
+    mSunDir = glm::vec3(-1.f, -1.f, -1.f);
     mSunDir = glm::normalize(mSunDir);
     
     mSunViewMatr = glm::lookAt(-mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
@@ -461,7 +465,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Lazy
     rootNode->render(mSunViewMatr, mSunProjMatr);
-    mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
+    //mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
     
     // G-buffer render
     glViewport(0, 0, 1280, 720);
@@ -473,19 +477,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    rootNode->render(viewMat, projMat);
-    mAxesModel->render(viewMat, projMat, testMM);
-    
-    // Screen render
-    glViewport(0, 0, 1280, 720);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    
     glm::vec4 debugShow;
-    
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
         debugShow.x = 1.f;
     }
@@ -498,6 +490,24 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
         debugShow.w = 1.f;
     }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        debugShow.x = 1.f;
+    }
+    
+    rootNode->render(viewMat, projMat);
+    //mAxesModel->render(viewMat, projMat, testMM);
+    
+    // Screen render
+    glViewport(0, 0, 1280, 720);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    
     
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
