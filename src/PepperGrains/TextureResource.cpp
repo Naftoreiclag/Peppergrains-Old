@@ -44,6 +44,10 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
         return GL_CLAMP_TO_EDGE;
     } else if(val == "clampToBorder") {
         return GL_CLAMP_TO_BORDER;
+    } else if(val == "RGB") {
+        return GL_RGB;
+    } else if(val == "SRGB") {
+        return GL_SRGB;
     } else {
         return errorVal;
     }
@@ -92,7 +96,7 @@ void TextureResource::load() {
 
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
+    glTexImage2D(GL_TEXTURE_2D, 0, toEnum(textureData["internalFormat"].asString(), GL_RGB), mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toEnum(textureData["wrapX"].asString(), GL_CLAMP_TO_EDGE));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toEnum(textureData["wrapY"].asString(), GL_CLAMP_TO_EDGE));
