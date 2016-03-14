@@ -22,11 +22,11 @@ namespace pgg {
 TerrainModel::TerrainModel()
 {
     std::cout << "terrain" << std::endl;
-    mMapSize = 32;
+    mMapSize = 128;
     std::cout << mMapSize << std::endl;
-    mHorizSize = 16.f;
+    mHorizSize = 256.f;
     std::cout << mHorizSize << std::endl;
-    mVertSize = 8.f;
+    mVertSize = 16.f;
     std::cout << mVertSize << std::endl;
     mComponents = 6;
     std::cout << mComponents << std::endl;
@@ -41,21 +41,25 @@ void TerrainModel::load() {
     mIndicesSize = (mMapSize - 1) * (mMapSize - 1) * 6;
     GLuint indices[mIndicesSize];
     
-    
     {
         ImageResource* heightmap = resman->findImage("HeightmapWheat.image");
         heightmap->grab();
+        
+        uint32_t skip = heightmap->getNumComponents();
+        uint32_t imgSize = 512;
+        
+        std::cout << "numcomp " << skip << std::endl;
         
         const uint8_t* image = heightmap->getImage();
         
         for(uint32_t z = 0; z < mMapSize; ++ z) {
             for(uint32_t x = 0; x < mMapSize; ++ x) {
-                float oY = image[(z * mMapSize) + x];
+                float oY = image[((z * imgSize) + x) * skip];
                 float oX = x;
                 float oZ = z;
                 oY /= 255.f;
-                oX /= mMapSize;
-                oZ /= mMapSize;
+                oX /= imgSize;
+                oZ /= imgSize;
                 
                 oY *= mVertSize;
                 oX *= mHorizSize;
