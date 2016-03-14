@@ -107,6 +107,8 @@ public:
 
     float oneSecondTimer;
     
+    bool mDebugWireframe;
+    
     // Lifecycle
     void onBegin();
     void onEnd();

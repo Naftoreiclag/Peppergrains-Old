@@ -374,6 +374,8 @@ void SandboxGameLayer::onBegin() {
     fps = 0.f;
     mIago = 0.f;
     fpsWeight = 0.85f;
+    
+    mDebugWireframe = false;
 
     oneSecondTimer = 0.f;
 }
@@ -458,6 +460,27 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
     }
     
+    
+    glm::vec4 debugShow;
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
+        debugShow.x = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
+        debugShow.y = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
+        debugShow.z = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
+        debugShow.w = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+        mDebugWireframe = true;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
+        mDebugWireframe = false;
+    }
+    
     //mCamRollNode->calcWorldTranslation(mSunPos);
     //mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
     //mSunDir = glm::normalize(mSunDir);
@@ -494,23 +517,11 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glm::vec4 debugShow;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
-        debugShow.x = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
-        debugShow.y = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
-        debugShow.z = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
-        debugShow.w = 1.f;
-    }
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+    if(mDebugWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        debugShow.x = 1.f;
+    }
+    else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
     rootNode->render(viewMat, projMat);
