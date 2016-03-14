@@ -22,7 +22,7 @@ namespace pgg {
 TerrainModel::TerrainModel()
 {
     std::cout << "terrain" << std::endl;
-    mMapSize = 512;
+    mMapSize = 32;
     std::cout << mMapSize << std::endl;
     mHorizSize = 16.f;
     std::cout << mHorizSize << std::endl;
