@@ -21,6 +21,7 @@
 #include "AxesModel.hpp"
 #include "SceneNode.hpp"
 #include "ResourceManager.hpp"
+#include "TerrainModel.hpp"
 #include "TextModel.hpp"
 
 namespace pgg {
@@ -86,6 +87,7 @@ public:
     GLuint mSunFrameBuffer;
     GLuint mSunDepthTexture;
     glm::vec3 mSunDir;
+    glm::vec3 mSunPos;
     glm::mat4 mSunProjMatr;
     glm::mat4 mSunViewMatr;
     
@@ -98,6 +100,7 @@ public:
     
     FontResource* rainstormFont;
     TextModel* fpsCounter;
+    TerrainModel* testTerrain;
 
     float fps;
     float fpsWeight;

@@ -320,6 +320,9 @@ void SandboxGameLayer::onBegin() {
     makeGBuffer();
     makeLightVao();
     makeSun();
+    
+    //testTerrain = new TerrainModel();
+    //testTerrain->grab();
 
     rootNode = new SceneNode();
     friendNodeX = new SceneNode();
@@ -327,7 +330,8 @@ void SandboxGameLayer::onBegin() {
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("Hills.model"));
+    //testPlaneNode->grabModel(resman->findModel("Hills.model"));
+    testPlaneNode->grabModel(new TerrainModel());
     rootNode->addChild(testPlaneNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -403,6 +407,8 @@ void SandboxGameLayer::onEnd() {
     
     rainstormFont->drop();
     
+    //testTerrain->drop();
+    
     glDeleteFramebuffers(1, &mGFramebuffer);
 }
 
@@ -424,6 +430,9 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     if(movement != glm::vec3(0.f)) {
         glm::normalize(movement);
+        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
+            movement *= 10.f;
+        }
         
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
         mCamLocNode->move(movement);
@@ -445,13 +454,20 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
     
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
+        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
+    }
+    
+    //mCamRollNode->calcWorldTranslation(mSunPos);
     //mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
     //mSunDir = glm::normalize(mSunDir);
     
+    /*
     mSunDir = glm::vec3(-1.f, -1.f, -1.f);
     mSunDir = glm::normalize(mSunDir);
+    */
     
-    mSunViewMatr = glm::lookAt(-mSunDir, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    mSunViewMatr = glm::lookAt(mSunPos - mSunDir, mSunPos, glm::vec3(0.f, 1.f, 0.f));
     mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
     
     // Sun? buffer
@@ -465,6 +481,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Lazy
     rootNode->render(mSunViewMatr, mSunProjMatr);
+    //testTerrain->render(mSunViewMatr, mSunProjMatr, testMM);
     //mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
     
     // G-buffer render
@@ -497,6 +514,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     rootNode->render(viewMat, projMat);
+    //testTerrain->render(viewMat, projMat, testMM);
     //mAxesModel->render(viewMat, projMat, testMM);
     
     // Screen render
