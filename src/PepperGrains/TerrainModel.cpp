@@ -35,24 +35,84 @@ TerrainModel::~TerrainModel() {}
 
 void TerrainModel::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
-
+    
+    GLfloat vertices[mMapSize * mMapSize * mComponents];
+    
+    mIndicesSize = (mMapSize - 1) * (mMapSize - 1) * 6;
+    GLuint indices[mIndicesSize];
     
     
-    GLfloat vertices[] = {
-        -50.f, 0.f,  50.f,
-         50.f, 0.f,  50.f,
-        -50.f, 0.f, -50.f,
-         50.f, 0.f, -50.f
-    };
-    GLuint indices[] = {
-        0, 1, 2,
-        1, 3, 2,
-    };
+    {
+        ImageResource* heightmap = resman->findImage("HeightmapWheat.image");
+        heightmap->grab();
+        
+        const uint8_t* image = heightmap->getImage();
+        
+        for(uint32_t z = 0; z < mMapSize; ++ z) {
+            for(uint32_t x = 0; x < mMapSize; ++ x) {
+                float oY = image[(z * mMapSize) + x];
+                float oX = x;
+                float oZ = z;
+                oY /= 255.f;
+                oX /= mMapSize;
+                oZ /= mMapSize;
+                
+                oY *= mVertSize;
+                oX *= mHorizSize;
+                oZ *= mHorizSize;
+                
+                // Position
+                vertices[((z * mMapSize) + x) * mComponents + 0] = oX;
+                vertices[((z * mMapSize) + x) * mComponents + 1] = oY;
+                vertices[((z * mMapSize) + x) * mComponents + 2] = oZ;
+                
+                // Normals (fix later)
+                vertices[((z * mMapSize) + x) * mComponents + 3] = 0.f;
+                vertices[((z * mMapSize) + x) * mComponents + 4] = 1.f;
+                vertices[((z * mMapSize) + x) * mComponents + 5] = 0.f;
+            }
+        }
+        
+        // This stands for index index...
+        uint32_t iIndex = 0;
+        for(uint32_t z = 0; z < mMapSize - 1; ++ z) {
+            for(uint32_t x = 0; x < mMapSize - 1; ++ x) {
+                
+                /*
+                 *   x >
+                 * z    
+                 * v   A       B
+                 * 
+                 * 
+                 *     C       D
+                 * 
+                 */
+
+                 
+                 uint32_t iA = (z + 0) * mMapSize + x + 0;
+                 uint32_t iB = (z + 0) * mMapSize + x + 1;
+                 uint32_t iC = (z + 1) * mMapSize + x + 0;
+                 uint32_t iD = (z + 1) * mMapSize + x + 1;
+                 
+                 indices[iIndex ++] = iA;
+                 indices[iIndex ++] = iD;
+                 indices[iIndex ++] = iB;
+                 
+                 indices[iIndex ++] = iA;
+                 indices[iIndex ++] = iC;
+                 indices[iIndex ++] = iD;
+            }
+        }
+        
+        heightmap->drop();
+    }
     
-    mIndicesSize = 6;
+    std::cout << "sizeof(vertices) = " << sizeof(vertices) << std::endl;
+    std::cout << "sizeof(indices) = " << sizeof(indices) << std::endl;
+    
 
 
-    mShaderProg = resman->findShaderProgram("Red.shaderProgram");
+    mShaderProg = resman->findShaderProgram("GrassTerrain.shaderProgram");
     mShaderProg->grab();
 
     glGenBuffers(1, &mVertexBufferObject);
@@ -72,7 +132,9 @@ void TerrainModel::load() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 
     glEnableVertexAttribArray(mShaderProg->getPosAttrib());
-    glVertexAttribPointer(mShaderProg->getPosAttrib(), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+    glVertexAttribPointer(mShaderProg->getPosAttrib(), 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(mShaderProg->getNormalAttrib());
+    glVertexAttribPointer(mShaderProg->getNormalAttrib(), 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) (3 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
 }
