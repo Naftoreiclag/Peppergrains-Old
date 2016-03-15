@@ -24,7 +24,7 @@ TerrainModel::TerrainModel()
     std::cout << "terrain" << std::endl;
     mMapSize = 128;
     std::cout << mMapSize << std::endl;
-    mHorizSize = 256.f;
+    mHorizSize = 1.f;
     std::cout << mHorizSize << std::endl;
     mVertSize = 16.f;
     std::cout << mVertSize << std::endl;
@@ -58,8 +58,6 @@ void TerrainModel::load() {
                 float oX = x;
                 float oZ = z;
                 oY /= 255.f;
-                oX /= imgSize;
-                oZ /= imgSize;
                 
                 oY *= mVertSize;
                 oX *= mHorizSize;
@@ -70,10 +68,31 @@ void TerrainModel::load() {
                 vertices[((z * mMapSize) + x) * mComponents + 1] = oY;
                 vertices[((z * mMapSize) + x) * mComponents + 2] = oZ;
                 
-                // Normals (fix later)
-                vertices[((z * mMapSize) + x) * mComponents + 3] = 0.f;
-                vertices[((z * mMapSize) + x) * mComponents + 4] = 1.f;
-                vertices[((z * mMapSize) + x) * mComponents + 5] = 0.f;
+                {
+                    uint32_t lx = x > 0 ? x - 1 : x;
+                    uint32_t gx = x < (mMapSize - 1) ? x + 1 : x;
+                    uint32_t lz = z > 0 ? z - 1 : z;
+                    uint32_t gz = z < (mMapSize - 1) ? z + 1 : z;
+                    float hA = image[((z * imgSize) + lx) * skip];
+                    float hB = image[((z * imgSize) + gx) * skip];
+                    float hC = image[((lz * imgSize) + x) * skip];
+                    float hD = image[((gz * imgSize) + x) * skip];
+                    
+                    hA /= 255.f;
+                    hB /= 255.f;
+                    hC /= 255.f;
+                    hD /= 255.f;
+                    
+                    float dx = hB - hA;
+                    float dz = hD - hC;
+                    
+                    glm::vec3 asdf = glm::normalize(glm::vec3(dx * mVertSize, 2 * mHorizSize, dz * mVertSize));
+                    
+                    vertices[((z * mMapSize) + x) * mComponents + 3] = asdf.x;
+                    vertices[((z * mMapSize) + x) * mComponents + 4] = asdf.y;
+                    vertices[((z * mMapSize) + x) * mComponents + 5] = asdf.z;
+                }
+                
             }
         }
         
