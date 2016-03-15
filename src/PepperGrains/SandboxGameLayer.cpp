@@ -20,6 +20,8 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "InstancedModel.hpp"
+
 namespace pgg
 {
 
@@ -35,7 +37,7 @@ void SandboxGameLayer::makeLightVao() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mDLightShaderProg = resman->findShaderProgram("DLight.shaderProgram");
     mDLightShaderProg->grab();
-    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDLightShaderProg->getSampler2Ds();
+    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDLightShaderProg->getUniformSampler2Ds();
     for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
         const ShaderProgramResource::Control& entry = *iter;
         
@@ -88,7 +90,7 @@ void SandboxGameLayer::makeScreenShader() {
     {
         mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
         mScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getSampler2Ds();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
@@ -110,7 +112,7 @@ void SandboxGameLayer::makeScreenShader() {
             }
             */
         }
-        const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getVec3s();
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getUniformVec3s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
@@ -126,7 +128,7 @@ void SandboxGameLayer::makeScreenShader() {
     {
         mDebugScreenShader.shaderProg = resman->findShaderProgram("GBufferDebug.shaderProgram");
         mDebugScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDebugScreenShader.shaderProg->getSampler2Ds();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDebugScreenShader.shaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
@@ -140,7 +142,7 @@ void SandboxGameLayer::makeScreenShader() {
                 mDebugScreenShader.depthHandle = entry.handle;
             }
         }
-        const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugScreenShader.shaderProg->getVec4s();
+        const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugScreenShader.shaderProg->getUniformVec4s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
@@ -318,21 +320,27 @@ void SandboxGameLayer::onBegin() {
     
     makeScreenShader();
     makeGBuffer();
-    makeLightVao();
+    //makeLightVao();
     makeSun();
     
     //testTerrain = new TerrainModel();
     //testTerrain->grab();
+    
+    mSunDir = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
 
     rootNode = new SceneNode();
     friendNodeX = new SceneNode();
     friendNodeY = new SceneNode();
     friendNodeZ = new SceneNode();
     testPlaneNode = new SceneNode();
+    testGrassNode = new SceneNode();
     
-    //testPlaneNode->grabModel(resman->findModel("Hills.model"));
-    testPlaneNode->grabModel(new TerrainModel());
+    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
+    //testPlaneNode->grabModel(new TerrainModel());
     rootNode->addChild(testPlaneNode);
+    
+    testGrassNode->grabModel(new InstancedModel());
+    rootNode->addChild(testGrassNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
@@ -344,6 +352,7 @@ void SandboxGameLayer::onBegin() {
     friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
     friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
 
+    
     rootNode->addChild(friendNodeX);
     rootNode->addChild(friendNodeY);
     rootNode->addChild(friendNodeZ);

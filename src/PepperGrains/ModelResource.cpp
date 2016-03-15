@@ -200,7 +200,7 @@ void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, c
     glBindVertexArray(mVertexArrayObject);
 
     // Draw elements as specified by the geometry
-    mGeometry->render();
+    mGeometry->drawElements();
 
     // Unbind vertex array object
     glBindVertexArray(0);

@@ -41,7 +41,7 @@ void MaterialResource::loadError() {
     mShaderProg->grab();
     
     // Iterate through all the Sampler2Ds that the shader program requests
-    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getSampler2Ds();
+    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
     for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
         const ShaderProgramResource::Control& entry = *iter;
         
@@ -100,7 +100,7 @@ void MaterialResource::load() {
         if(!sampler2Ds.isNull()) {
             
             // Iterate through all the Sampler2Ds that the shader program requests
-            const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getSampler2Ds();
+            const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
             for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
                 const ShaderProgramResource::Control& entry = *iter;
                 

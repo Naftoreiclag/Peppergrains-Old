@@ -69,6 +69,7 @@ public:
     SceneNode* mCamRollNode;
     
     SceneNode* testPlaneNode;
+    SceneNode* testGrassNode;
     
     AxesModel* mAxesModel;
     

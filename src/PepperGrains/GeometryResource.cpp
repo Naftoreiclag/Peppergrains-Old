@@ -285,8 +285,11 @@ void GeometryResource::unload() {
     mLoaded = false;
 }
 
-void GeometryResource::render() {
+void GeometryResource::drawElements() const {
     glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
+}
+void GeometryResource::drawElementsInstanced(const uint32_t& num) const {
+    glDrawElementsInstanced(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0, num);
 }
 
 void GeometryResource::bindBuffers() {
@@ -329,15 +332,8 @@ void GeometryResource::enableBitangentAttrib(GLuint bitangentAttrib) {
         glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mBitangentOff * sizeof(GLfloat)));
     }
 }
-/*
-void GeometryResource::enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib) {
-    if(mUseTangent) {
-        glEnableVertexAttribArray(tangentAttrib);
-        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) (mTangentOff * sizeof(GLfloat)));
-        glEnableVertexAttribArray(bitangentAttrib);
-        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mVertexSize * sizeof(GLfloat), (void*) ((mTangentOff + 3) * sizeof(GLfloat)));
-    }
-}
-*/
+
+const GLuint& GeometryResource::getVertexBufferObjectHandle() const { return mVertexBufferObject; }
+const GLuint& GeometryResource::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
 
 }

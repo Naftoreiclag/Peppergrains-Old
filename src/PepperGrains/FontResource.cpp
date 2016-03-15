@@ -51,7 +51,7 @@ void FontResource::load() {
     mShaderProg = rmgr->findShaderProgram("Font.shaderProgram");
     mShaderProg->grab();
 
-    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getSampler2Ds();
+    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
 
     for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
         const ShaderProgramResource::Control& entry = *iter;

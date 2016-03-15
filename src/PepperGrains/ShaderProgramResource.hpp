@@ -31,9 +31,13 @@ public:
         GLuint handle;
     };
 
-    const std::vector<Control>& getSampler2Ds() const;
-    const std::vector<Control>& getVec3s() const;
-    const std::vector<Control>& getVec4s() const;
+    const std::vector<Control>& getUniformSampler2Ds() const;
+    const std::vector<Control>& getUniformVec3s() const;
+    const std::vector<Control>& getUniformVec4s() const;
+    
+    const std::vector<Control>& getInstancedSampler2Ds() const;
+    const std::vector<Control>& getInstancedVec3s() const;
+    const std::vector<Control>& getInstancedVec4s() const;
 
 private:
 
@@ -42,9 +46,13 @@ private:
 
     std::vector<ShaderResource*> mLinkedShaders;
 
-    std::vector<Control> mSampler2Ds;
-    std::vector<Control> mVec3s;
-    std::vector<Control> mVec4s;
+    std::vector<Control> mUniformSampler2Ds;
+    std::vector<Control> mUniformVec3s;
+    std::vector<Control> mUniformVec4s;
+    
+    std::vector<Control> mInstancedSampler2Ds;
+    std::vector<Control> mInstancedVec3s;
+    std::vector<Control> mInstancedVec4s;
 
     /*
      * Model
