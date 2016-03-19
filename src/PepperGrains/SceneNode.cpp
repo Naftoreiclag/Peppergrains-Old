@@ -189,17 +189,17 @@ void SceneNode::dropModel() {
     }
 }
 
-void SceneNode::render(const glm::mat4& viewMat, const glm::mat4& projMat) {
+void SceneNode::render(const Model::RenderPassConfiguration& rendPass) {
     this->calcWorldTransform();
 
     if(mModelRes) {
-        mModelRes->render(viewMat, projMat, mWorldTransform);
+        mModelRes->render(rendPass, mWorldTransform);
     }
 
     // Render all children
     for(std::vector<SceneNode*>::iterator iter = mChildren.begin(); iter != mChildren.end(); ++ iter) {
         SceneNode* child = *iter;
-        child->render(viewMat, projMat);
+        child->render(rendPass);
     }
 }
 

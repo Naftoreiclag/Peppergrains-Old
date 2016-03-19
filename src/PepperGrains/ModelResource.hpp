@@ -41,7 +41,7 @@ public:
     void unload();
 
     // Render this model with the provided matrices
-    void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat);
+    void render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat);
 };
 
 }

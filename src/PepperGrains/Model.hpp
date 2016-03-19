@@ -24,8 +24,16 @@ class Model : virtual public ReferenceCounted {
 public:
     Model();
     virtual ~Model();
+    
+    // Might someday have different configs fore different renderables
+    struct RenderPassConfiguration {
+        glm::mat4 viewMat;
+        glm::mat4 projMat;
+        
+        bool shadowCasting;
+    };
 
-    virtual void render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) = 0;
+    virtual void render(const RenderPassConfiguration& rendPass, const glm::mat4& modelMat) = 0;
 };
 
 }

@@ -511,10 +511,11 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    // Lazy
-    rootNode->render(mSunViewMatr, mSunProjMatr);
-    //testTerrain->render(mSunViewMatr, mSunProjMatr, testMM);
-    //mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
+    Model::RenderPassConfiguration sunRPC;
+    sunRPC.viewMat = mSunViewMatr;
+    sunRPC.projMat = mSunProjMatr;
+    sunRPC.shadowCasting = true;
+    rootNode->render(sunRPC);
     
     // G-buffer render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
@@ -533,7 +534,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
-    rootNode->render(viewMat, projMat);
+    Model::RenderPassConfiguration rootNodeRPC;
+    rootNodeRPC.viewMat = viewMat;
+    rootNodeRPC.projMat = projMat;
+    rootNode->render(rootNodeRPC);
     //testTerrain->render(viewMat, projMat, testMM);
     //mAxesModel->render(viewMat, projMat, testMM);
     
@@ -626,7 +630,11 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         fpsCounter->grab();
     }
     
-    fpsCounter->render(viewMatOverlay, projMatOverlay, testMM);
+    
+    Model::RenderPassConfiguration fpsRPC;
+    fpsRPC.viewMat = viewMatOverlay;
+    fpsRPC.projMat = projMatOverlay;
+    fpsCounter->render(fpsRPC, testMM);
 }
 
 bool SandboxGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {

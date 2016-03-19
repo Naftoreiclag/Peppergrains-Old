@@ -175,7 +175,7 @@ void ModelResource::unload() {
     mLoaded = false;
 }
 
-void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
+void ModelResource::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     // Get the shader program specified by the material
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
 
@@ -187,10 +187,10 @@ void ModelResource::render(const glm::mat4& viewMat, const glm::mat4& projMat, c
         glUniformMatrix4fv(shaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
     }
     if(shaderProg->needsViewMatrix()) {
-        glUniformMatrix4fv(shaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
+        glUniformMatrix4fv(shaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.viewMat));
     }
     if(shaderProg->needsProjMatrix()) {
-        glUniformMatrix4fv(shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
+        glUniformMatrix4fv(shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.projMat));
     }
 
     // Bind the textures specified by the material

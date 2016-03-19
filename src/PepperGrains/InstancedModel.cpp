@@ -110,17 +110,17 @@ void InstancedModel::unload() {
 
     delete this;
 }
-void InstancedModel::render(const glm::mat4& viewMat, const glm::mat4& projMat, const glm::mat4& modelMat) {
+void InstancedModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     glUseProgram(mShaderProg->getHandle());
 
     if(mShaderProg->needsModelMatrix()) {
         glUniformMatrix4fv(mShaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
     }
     if(mShaderProg->needsViewMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
+        glUniformMatrix4fv(mShaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.viewMat));
     }
     if(mShaderProg->needsProjMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
+        glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.projMat));
     }
 
     glBindVertexArray(mVertexArrayObject);

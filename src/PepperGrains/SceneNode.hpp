@@ -88,7 +88,7 @@ public:
     void dropModel();
 
     // Calculates world transform (which becomes the model matrix) and then renders
-    void render(const glm::mat4& viewMat, const glm::mat4& projMat);
+    void render(const Model::RenderPassConfiguration& rendPass);
 
 private:
     void markWorldTransformDirty();
