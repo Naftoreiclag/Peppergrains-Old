@@ -111,6 +111,8 @@
       <File Name="TerrainModel.cpp"/>
       <File Name="InstancedModel.hpp"/>
       <File Name="InstancedModel.cpp"/>
+      <File Name="GrassModel.hpp"/>
+      <File Name="GrassModel.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>
