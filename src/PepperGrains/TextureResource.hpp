@@ -40,6 +40,7 @@ public:
     GLuint getHandle() const;
 
     static GLenum toEnum(const std::string& val, GLenum errorVal);
+    static GLenum toEnumPF(const std::string& val, GLenum errorVal);
 
 };
 

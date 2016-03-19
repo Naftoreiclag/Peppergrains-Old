@@ -31,6 +31,36 @@ TextureResource::TextureResource()
 TextureResource::~TextureResource() {
 }
 
+GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {
+    if(val == "RED") {
+        return GL_RED;
+    } else if(val == "GREEN") {
+        return GL_GREEN;
+    } else if(val == "BLUE") {
+        return GL_BLUE;
+    } else if(val == "RED_INTEGER") {
+        return GL_RED_INTEGER;
+    } else if(val == "GREEN_INTEGER") {
+        return GL_GREEN_INTEGER;
+    } else if(val == "BLUE_INTEGER") {
+        return GL_BLUE_INTEGER;
+    } else if(val == "RG") {
+        return GL_RG;
+    } else if(val == "RG_INTEGER") {
+        return GL_RG_INTEGER;
+    } else if(val == "RGB") {
+        return GL_RGB;
+    } else if(val == "RGB_INTEGER") {
+        return GL_RGB_INTEGER;
+    } else if(val == "RGBA") {
+        return GL_RGBA;
+    } else if(val == "RGBA_INTEGER") {
+        return GL_RGBA_INTEGER;
+    } else {
+        return errorVal;
+    }
+}
+
 GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
     if(val == "linear") {
         return GL_LINEAR;
@@ -44,10 +74,12 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
         return GL_CLAMP_TO_EDGE;
     } else if(val == "clampToBorder") {
         return GL_CLAMP_TO_BORDER;
-    } else if(val == "RGB") {
-        return GL_RGB;
-    } else if(val == "SRGB") {
-        return GL_SRGB;
+    } else if(val == "RGB8") {
+        return GL_RGB8;
+    } else if(val == "R8") {
+        return GL_R8;
+    } else if(val == "SRGB8") {
+        return GL_SRGB8;
     } else {
         return errorVal;
     }
@@ -62,7 +94,7 @@ void TextureResource::loadError() {
     
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -96,7 +128,7 @@ void TextureResource::load() {
 
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
-    glTexImage2D(GL_TEXTURE_2D, 0, toEnum(textureData["internalFormat"].asString(), GL_RGB), mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
+    glTexImage2D(GL_TEXTURE_2D, 0, toEnum(textureData["internalFormat"].asString(), GL_RGB8), mImage->getWidth(), mImage->getHeight(), 0, toEnumPF(textureData["pixelFormat"].asString(), GL_RGB), GL_UNSIGNED_BYTE, mImage->getImage());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toEnum(textureData["wrapX"].asString(), GL_CLAMP_TO_EDGE));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toEnum(textureData["wrapY"].asString(), GL_CLAMP_TO_EDGE));
