@@ -49,12 +49,15 @@ private:
     
     DebugScreenShader mDebugScreenShader;
     
+    uint32_t mScreenWidth;
+    uint32_t mScreenHeight;
+    
     void makeScreenShader();
     void makeGBuffer();
     void makeLightVao();
     void makeSun();
 public:
-    SandboxGameLayer();
+    SandboxGameLayer(uint32_t width, uint32_t height);
     ~SandboxGameLayer();
     
     SceneNode* rootNode;

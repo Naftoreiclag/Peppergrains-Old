@@ -41,8 +41,8 @@ int PepperGrains::run(int argc, char* argv[]) {
         return -1;
     }
 
-    uint32_t windowWidth = 1280;
-    uint32_t windowHeight = 720;
+    uint32_t windowWidth = 1680;
+    uint32_t windowHeight = 1050;
     
     SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     
@@ -84,7 +84,7 @@ int PepperGrains::run(int argc, char* argv[]) {
 
     mGameLayerMachine = new GameLayerMachine();
     
-    mGameLayerMachine->addBottom(new SandboxGameLayer());
+    mGameLayerMachine->addBottom(new SandboxGameLayer(windowWidth, windowHeight));
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;

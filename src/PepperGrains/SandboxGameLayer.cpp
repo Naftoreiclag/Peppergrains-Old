@@ -20,13 +20,14 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
-#include "InstancedModel.hpp"
+#include "GrassModel.hpp"
 
 namespace pgg
 {
 
-SandboxGameLayer::SandboxGameLayer()
-{
+SandboxGameLayer::SandboxGameLayer(uint32_t width, uint32_t height)
+: mScreenWidth(width)
+, mScreenHeight(height) {
 }
 
 SandboxGameLayer::~SandboxGameLayer()
@@ -205,7 +206,7 @@ void SandboxGameLayer::makeGBuffer() {
         // Diffuse mapping
         glGenTextures(1, &mGDiffuseTexture);
         glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -215,7 +216,7 @@ void SandboxGameLayer::makeGBuffer() {
         // Normal mapping
         glGenTextures(1, &mGNormalTexture);
         glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -226,7 +227,7 @@ void SandboxGameLayer::makeGBuffer() {
         /*
         glGenTextures(1, &mBrightHandle);
         glBindTexture(GL_TEXTURE_2D, mBrightHandle);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 1280, 720, 0, GL_RGB, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -237,7 +238,7 @@ void SandboxGameLayer::makeGBuffer() {
         // DepthStencil mapping
         glGenTextures(1, &mGDepthStencilTexture);
         glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 1280, 720, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -339,7 +340,7 @@ void SandboxGameLayer::onBegin() {
     //testPlaneNode->grabModel(new TerrainModel());
     rootNode->addChild(testPlaneNode);
     
-    testGrassNode->grabModel(new InstancedModel());
+    testGrassNode->grabModel(new GrassModel());
     rootNode->addChild(testGrassNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -348,7 +349,7 @@ void SandboxGameLayer::onBegin() {
     fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
     fpsCounter->grab();
 
-    friendNodeX->grabModel(resman->findModel("JellySmoothTorus.model"));
+    friendNodeX->grabModel(resman->findModel("Door.model"));
     friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
     friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
 
@@ -357,7 +358,7 @@ void SandboxGameLayer::onBegin() {
     rootNode->addChild(friendNodeY);
     rootNode->addChild(friendNodeZ);
     
-    friendNodeX->move(glm::vec3(-2.f, 2.f, 0.f));
+    friendNodeX->move(glm::vec3(-3.f, 0.f, 0.f));
     friendNodeY->move(glm::vec3(0.f, 3.f, 0.f));
     friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
     
@@ -451,17 +452,16 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
 
     
     glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), 1280.f / 720.f, 0.1f, 500.f);
+    glm::mat4 projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
 
     glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1280, 0.f, (float) 720);
+    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
     glm::mat4 testMM;
     
     mIago += tpf;
     
     iago->setLocalTranslation(glm::vec3(0.f, 0.2f + glm::sin(mIago), 3.f));
     
-    friendNodeX->rotate(glm::vec3(1.0f, 0.0f, 0.0f), tpf);
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
     
@@ -517,7 +517,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     //mAxesModel->render(mSunViewMatr, mSunProjMatr, testMM);
     
     // G-buffer render
-    glViewport(0, 0, 1280, 720);
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, mGFramebuffer);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
@@ -538,7 +538,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     //mAxesModel->render(viewMat, projMat, testMM);
     
     // Screen render
-    glViewport(0, 0, 1280, 720);
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_DEPTH_TEST);
