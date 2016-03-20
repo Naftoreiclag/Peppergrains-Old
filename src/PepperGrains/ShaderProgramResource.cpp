@@ -142,12 +142,12 @@ void ShaderProgramResource::loadError() {
     mNormalAttrib = glGetAttribLocation(mShaderProg, "iNormal");
                 
     // Setup uniform matrices
-    mUseModelMatrix = true;
-    mUseViewMatrix = true;
-    mUseProjMatrix = true;
-    mModelMatrixUnif = glGetUniformLocation(mShaderProg, "uModel");
-    mViewMatrixUnif = glGetUniformLocation(mShaderProg, "uView");
-    mProjMatrixUnif = glGetUniformLocation(mShaderProg, "uProj");
+    mUseMMat = true;
+    mUseVMat = true;
+    mUsePMat = true;
+    mMMatUnif = glGetUniformLocation(mShaderProg, "uModel");
+    mVMatUnif = glGetUniformLocation(mShaderProg, "uView");
+    mPMatUnif = glGetUniformLocation(mShaderProg, "uProj");
         
     // Setup controls
     Control control;
@@ -315,9 +315,9 @@ void ShaderProgramResource::load() {
     {
         const Json::Value& matrices = progData["matrices"];
         if(matrices.isNull()) {
-            mUseModelMatrix = false;
-            mUseViewMatrix = false;
-            mUseProjMatrix = false;
+            mUseMMat = false;
+            mUseVMat = false;
+            mUsePMat = false;
         }
         else {
             const Json::Value& mMat = matrices["model"];
@@ -334,40 +334,46 @@ void ShaderProgramResource::load() {
             const Json::Value& imvpMat = matrices["inverseModelViewProjection"];
             const Json::Value& svpMat = matrices["sunViewProjection"];
 
-            if(mMat.isNull()) {
-                mUseModelMatrix = false;
-            } else {
-                mUseModelMatrix = true;
-                std::string symbol = mMat.asString();
-                mModelMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            if(mMat.isNull()) { mUseMMat = false; } else { mUseMMat = true;
+                mMMatUnif = glGetUniformLocation(mShaderProg, mMat.asString().c_str());
             }
-            if(vMat.isNull()) {
-                mUseViewMatrix = false;
-            } else {
-                mUseViewMatrix = true;
-                std::string symbol = vMat.asString();
-                mViewMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            if(vMat.isNull()) { mUseVMat = false; } else { mUseVMat = true;
+                mVMatUnif = glGetUniformLocation(mShaderProg, vMat.asString().c_str());
             }
-            if(pMat.isNull()) {
-                mUseProjMatrix = false;
-            } else {
-                mUseProjMatrix = true;
-                std::string symbol = pMat.asString();
-                mProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            if(pMat.isNull()) { mUsePMat = false; } else { mUsePMat = true;
+                mPMatUnif = glGetUniformLocation(mShaderProg, pMat.asString().c_str());
             }
-            if(ivpMat.isNull()) {
-                mUseInvViewProjMatrix = false;
-            } else {
-                mUseInvViewProjMatrix = true;
-                std::string symbol = ivpMat.asString();
-                mInvViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+            if(mvMat.isNull()) { mUseMVMat = false; } else { mUseMVMat = true;
+                mMVMatUnif = glGetUniformLocation(mShaderProg, mvMat.asString().c_str());
             }
-            if(svpMat.isNull()) {
-                mUseSunViewProjMatrix = false;
-            } else {
+            if(vpMat.isNull()) { mUseVPMat = false; } else { mUseVPMat = true;
+                mVPMatUnif = glGetUniformLocation(mShaderProg, vpMat.asString().c_str());
+            }
+            if(mvpMat.isNull()) { mUseMVPMat = false; } else { mUseMVPMat = true;
+                mMVPMatUnif = glGetUniformLocation(mShaderProg, mvpMat.asString().c_str());
+            }
+            if(imMat.isNull()) { mUseIMMat = false; } else { mUseIMMat = true;
+                mIMMatUnif = glGetUniformLocation(mShaderProg, imMat.asString().c_str());
+            }
+            if(ivMat.isNull()) { mUseIVMat = false; } else { mUseIVMat = true;
+                mIVMatUnif = glGetUniformLocation(mShaderProg, ivMat.asString().c_str());
+            }
+            if(ipMat.isNull()) { mUseIPMat = false; } else { mUseIPMat = true;
+                mIPMatUnif = glGetUniformLocation(mShaderProg, ipMat.asString().c_str());
+            }
+            if(imvMat.isNull()) { mUseIMVMat = false; } else { mUseIMVMat = true;
+                mIMVMatUnif = glGetUniformLocation(mShaderProg, imvMat.asString().c_str());
+            }
+            if(ivpMat.isNull()) { mUseIVPMat = false; } else { mUseIVPMat = true;
+                mIVPMatUnif = glGetUniformLocation(mShaderProg, ivpMat.asString().c_str());
+            }
+            if(imvpMat.isNull()) { mUseIMVPMat = false; } else { mUseIMVPMat = true;
+                mIMVPMatUnif = glGetUniformLocation(mShaderProg, imvpMat.asString().c_str());
+            }
+            
+            if(svpMat.isNull()) { mUseSunViewProjMatrix = false; } else {
                 mUseSunViewProjMatrix = true;
-                std::string symbol = svpMat.asString();
-                mSunViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
+                mSunViewProjMatrixUnif = glGetUniformLocation(mShaderProg, svpMat.asString().c_str());
             }
         }
     }
@@ -523,27 +529,73 @@ void ShaderProgramResource::unload() {
     mLoaded = false;
 }
 
-void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const {
-    if(this->needsModelMatrix()) {
-        glUniformMatrix4fv(this->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
+void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const {
+    if(mUseMMat) {
+        glUniformMatrix4fv(mMMatUnif, 1, GL_FALSE, glm::value_ptr(mMat));
     }
-    if(this->needsViewMatrix()) {
-        glUniformMatrix4fv(this->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
+    if(mUseVMat) {
+        glUniformMatrix4fv(mVMatUnif, 1, GL_FALSE, glm::value_ptr(vMat));
     }
-    if(this->needsProjMatrix()) {
-        glUniformMatrix4fv(this->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
+    if(mUsePMat) {
+        glUniformMatrix4fv(mPMatUnif, 1, GL_FALSE, glm::value_ptr(pMat));
     }
-    if(this->needsInvViewProjMatrix()) {
-        glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
-        glUniformMatrix4fv(this->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+    if(mUseMVMat) {
+        glUniformMatrix4fv(mMVMatUnif, 1, GL_FALSE, glm::value_ptr(vMat * mMat));
+    }
+    if(mUseVPMat) {
+        glUniformMatrix4fv(mVPMatUnif, 1, GL_FALSE, glm::value_ptr(pMat * vMat));
+    }
+    if(mUseMVPMat) {
+        glUniformMatrix4fv(mMVPMatUnif, 1, GL_FALSE, glm::value_ptr(pMat * vMat * mMat));
+    }
+    if(mUseIMMat) {
+        glUniformMatrix4fv(mIMMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(mMat)));
+    }
+    if(mUseIVMat) {
+        glUniformMatrix4fv(mIVMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(vMat)));
+    }
+    if(mUseIPMat) {
+        glUniformMatrix4fv(mIPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat)));
+    }
+    if(mUseIMVMat) {
+        glUniformMatrix4fv(mIMVMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(vMat * mMat)));
+    }
+    if(mUseIVPMat) {
+        glUniformMatrix4fv(mIVPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat * vMat)));
+    }
+    if(mUseIMVPMat) {
+        glUniformMatrix4fv(mIMVPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat * vMat * mMat)));
     }
 }
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }
-bool ShaderProgramResource::needsModelMatrix() const { return mUseModelMatrix; }
-bool ShaderProgramResource::needsViewMatrix() const { return mUseViewMatrix; }
-bool ShaderProgramResource::needsProjMatrix() const { return mUseProjMatrix; }
-bool ShaderProgramResource::needsInvViewProjMatrix() const { return mUseInvViewProjMatrix; }
+
+bool ShaderProgramResource::needsModelMatrix() const { return mUseMMat; }
+bool ShaderProgramResource::needsViewMatrix() const { return mUseVMat; }
+bool ShaderProgramResource::needsProjMatrix() const { return mUsePMat; }
+bool ShaderProgramResource::needsModelViewMatrix() const { return mUseMVMat; }
+bool ShaderProgramResource::needsViewProjMatrix() const { return mUseVPMat; }
+bool ShaderProgramResource::needsModelViewProjMatrix() const { return mUseMVPMat; }
+bool ShaderProgramResource::needsInvModelMatrix() const { return mUseIMMat; }
+bool ShaderProgramResource::needsInvViewMatrix() const { return mUseIVMat; }
+bool ShaderProgramResource::needsInvProjMatrix() const { return mUseIPMat; }
+bool ShaderProgramResource::needsInvModelViewMatrix() const { return mUseIMVMat; }
+bool ShaderProgramResource::needsInvViewProjMatrix() const { return mUseIVPMat; }
+bool ShaderProgramResource::needsInvModelViewProjMatrix() const { return mUseIMVPMat; }
+
+GLuint ShaderProgramResource::getModelMatrixUnif() const { return mMMatUnif; }
+GLuint ShaderProgramResource::getViewMatrixUnif() const { return mVMatUnif; }
+GLuint ShaderProgramResource::getProjMatrixUnif() const { return mPMatUnif; }
+GLuint ShaderProgramResource::getModelViewMatrixUnif() const { return mMVMatUnif; }
+GLuint ShaderProgramResource::getViewProjMatrixUnif() const { return mVPMatUnif; }
+GLuint ShaderProgramResource::getModelViewProjMatrixUnif() const { return mMVPMatUnif; }
+GLuint ShaderProgramResource::getInvModelMatrixUnif() const { return mIMMatUnif; }
+GLuint ShaderProgramResource::getInvViewMatrixUnif() const { return mIVMatUnif; }
+GLuint ShaderProgramResource::getInvProjMatrixUnif() const { return mIPMatUnif; }
+GLuint ShaderProgramResource::getInvModelViewMatrixUnif() const { return mIMVMatUnif; }
+GLuint ShaderProgramResource::getInvViewProjMatrixUnif() const { return mIVPMatUnif; }
+GLuint ShaderProgramResource::getInvModelViewProjMatrixUnif() const { return mIMVPMatUnif; }
+
 bool ShaderProgramResource::needsSunViewProjMatrix() const { return mUseSunViewProjMatrix; }
 bool ShaderProgramResource::needsPosAttrib() const { return mUsePosAttrib; }
 bool ShaderProgramResource::needsColorAttrib() const { return mUseColorAttrib; }
@@ -551,10 +603,6 @@ bool ShaderProgramResource::needsUVAttrib() const { return mUseUVAttrib; }
 bool ShaderProgramResource::needsNormalAttrib() const { return mUseNormalAttrib; }
 bool ShaderProgramResource::needsTangentAttrib() const { return mUseTangentAttrib; }
 bool ShaderProgramResource::needsBitangentAttrib() const { return mUseBitangentAttrib; }
-GLuint ShaderProgramResource::getModelMatrixUnif() const { return mModelMatrixUnif; }
-GLuint ShaderProgramResource::getViewMatrixUnif() const { return mViewMatrixUnif; }
-GLuint ShaderProgramResource::getProjMatrixUnif() const { return mProjMatrixUnif; }
-GLuint ShaderProgramResource::getInvViewProjMatrixUnif() const { return mInvViewProjMatrixUnif; }
 GLuint ShaderProgramResource::getSunViewProjMatrixUnif() const { return mSunViewProjMatrixUnif; }
 GLuint ShaderProgramResource::getPosAttrib() const { return mPosAttrib; }
 GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }

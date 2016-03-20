@@ -76,17 +76,32 @@ private:
      * SunViewProj
      */
     
-    bool mUseModelMatrix;
-    GLuint mModelMatrixUnif;
-
-    bool mUseViewMatrix;
-    GLuint mViewMatrixUnif;
-
-    bool mUseProjMatrix;
-    GLuint mProjMatrixUnif;
+    // Note to self: do not name any member variables mMat
     
-    bool mUseInvViewProjMatrix;
-    GLuint mInvViewProjMatrixUnif;
+    bool mUseMMat;
+    bool mUseVMat;
+    bool mUsePMat;
+    bool mUseMVMat;
+    bool mUseVPMat;
+    bool mUseMVPMat;
+    bool mUseIMMat;
+    bool mUseIVMat;
+    bool mUseIPMat;
+    bool mUseIMVMat;
+    bool mUseIVPMat;
+    bool mUseIMVPMat;
+    GLuint mMMatUnif;
+    GLuint mVMatUnif;
+    GLuint mPMatUnif;
+    GLuint mMVMatUnif;
+    GLuint mVPMatUnif;
+    GLuint mMVPMatUnif;
+    GLuint mIMMatUnif;
+    GLuint mIVMatUnif;
+    GLuint mIPMatUnif;
+    GLuint mIMVMatUnif;
+    GLuint mIVPMatUnif;
+    GLuint mIMVPMatUnif;
     
     bool mUseSunViewProjMatrix;
     GLuint mSunViewProjMatrixUnif;
@@ -125,10 +140,33 @@ public:
     void unload();
     
     GLuint getHandle() const;
+    
     bool needsModelMatrix() const;
     bool needsViewMatrix() const;
     bool needsProjMatrix() const;
+    bool needsModelViewMatrix() const;
+    bool needsViewProjMatrix() const;
+    bool needsModelViewProjMatrix() const;
+    bool needsInvModelMatrix() const;
+    bool needsInvViewMatrix() const;
+    bool needsInvProjMatrix() const;
+    bool needsInvModelViewMatrix() const;
     bool needsInvViewProjMatrix() const;
+    bool needsInvModelViewProjMatrix() const;
+    
+    GLuint getModelMatrixUnif() const;
+    GLuint getViewMatrixUnif() const;
+    GLuint getProjMatrixUnif() const;
+    GLuint getModelViewMatrixUnif() const;
+    GLuint getViewProjMatrixUnif() const;
+    GLuint getModelViewProjMatrixUnif() const;
+    GLuint getInvModelMatrixUnif() const;
+    GLuint getInvViewMatrixUnif() const;
+    GLuint getInvProjMatrixUnif() const;
+    GLuint getInvModelViewMatrixUnif() const;
+    GLuint getInvViewProjMatrixUnif() const;
+    GLuint getInvModelViewProjMatrixUnif() const;
+    
     bool needsSunViewProjMatrix() const;
     bool needsPosAttrib() const;
     bool needsColorAttrib() const;
@@ -136,10 +174,6 @@ public:
     bool needsNormalAttrib() const;
     bool needsTangentAttrib() const;
     bool needsBitangentAttrib() const;
-    GLuint getModelMatrixUnif() const;
-    GLuint getViewMatrixUnif() const;
-    GLuint getProjMatrixUnif() const;
-    GLuint getInvViewProjMatrixUnif() const;
     GLuint getSunViewProjMatrixUnif() const;
     GLuint getPosAttrib() const;
     GLuint getColorAttrib() const;
