@@ -220,15 +220,7 @@ void AxesModel::render(const Model::RenderPassConfiguration& rendPass, const glm
 
     glUseProgram(mShaderProg->getHandle());
 
-    if(mShaderProg->needsModelMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
-    }
-    if(mShaderProg->needsViewMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.viewMat));
-    }
-    if(mShaderProg->needsProjMatrix()) {
-        glUniformMatrix4fv(mShaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.projMat));
-    }
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
 
     glBindVertexArray(mVertexArrayObject);
 
