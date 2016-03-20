@@ -119,6 +119,8 @@ public:
     ShaderProgramResource();
     virtual ~ShaderProgramResource();
     
+    void bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const;
+    
     void load();
     void unload();
     

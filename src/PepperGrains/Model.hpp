@@ -31,6 +31,9 @@ public:
         glm::mat4 projMat;
         
         bool shadowCasting;
+        
+        RenderPassConfiguration();
+        ~RenderPassConfiguration();
     };
 
     virtual void render(const RenderPassConfiguration& rendPass, const glm::mat4& modelMat) = 0;

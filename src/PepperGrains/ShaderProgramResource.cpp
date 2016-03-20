@@ -320,45 +320,53 @@ void ShaderProgramResource::load() {
             mUseProjMatrix = false;
         }
         else {
-            const Json::Value& modelMatrix = matrices["model"];
-            const Json::Value& viewMatrix = matrices["view"];
-            const Json::Value& projMatrix = matrices["projection"];
-            const Json::Value& invViewProjMatrix = matrices["inverseViewProjection"];
-            const Json::Value& sunViewProjMatrix = matrices["sunViewProjection"];
+            const Json::Value& mMat = matrices["model"];
+            const Json::Value& vMat = matrices["view"];
+            const Json::Value& pMat = matrices["projection"];
+            const Json::Value& mvMat = matrices["modelView"];
+            const Json::Value& vpMat = matrices["viewProjection"];
+            const Json::Value& mvpMat = matrices["modelViewProjection"];
+            const Json::Value& imMat = matrices["inverseModel"];
+            const Json::Value& ivMat = matrices["inverseView"];
+            const Json::Value& ipMat = matrices["inverseProjection"];
+            const Json::Value& imvMat = matrices["inverseModelView"];
+            const Json::Value& ivpMat = matrices["inverseViewProjection"];
+            const Json::Value& imvpMat = matrices["inverseModelViewProjection"];
+            const Json::Value& svpMat = matrices["sunViewProjection"];
 
-            if(modelMatrix.isNull()) {
+            if(mMat.isNull()) {
                 mUseModelMatrix = false;
             } else {
                 mUseModelMatrix = true;
-                std::string symbol = modelMatrix.asString();
+                std::string symbol = mMat.asString();
                 mModelMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
-            if(viewMatrix.isNull()) {
+            if(vMat.isNull()) {
                 mUseViewMatrix = false;
             } else {
                 mUseViewMatrix = true;
-                std::string symbol = viewMatrix.asString();
+                std::string symbol = vMat.asString();
                 mViewMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
-            if(projMatrix.isNull()) {
+            if(pMat.isNull()) {
                 mUseProjMatrix = false;
             } else {
                 mUseProjMatrix = true;
-                std::string symbol = projMatrix.asString();
+                std::string symbol = pMat.asString();
                 mProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
-            if(invViewProjMatrix.isNull()) {
+            if(ivpMat.isNull()) {
                 mUseInvViewProjMatrix = false;
             } else {
                 mUseInvViewProjMatrix = true;
-                std::string symbol = invViewProjMatrix.asString();
+                std::string symbol = ivpMat.asString();
                 mInvViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
-            if(sunViewProjMatrix.isNull()) {
+            if(svpMat.isNull()) {
                 mUseSunViewProjMatrix = false;
             } else {
                 mUseSunViewProjMatrix = true;
-                std::string symbol = sunViewProjMatrix.asString();
+                std::string symbol = svpMat.asString();
                 mSunViewProjMatrixUnif = glGetUniformLocation(mShaderProg, symbol.c_str());
             }
         }
@@ -513,6 +521,22 @@ void ShaderProgramResource::unload() {
     }
 
     mLoaded = false;
+}
+
+void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const {
+    if(this->needsModelMatrix()) {
+        glUniformMatrix4fv(this->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
+    }
+    if(this->needsViewMatrix()) {
+        glUniformMatrix4fv(this->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(viewMat));
+    }
+    if(this->needsProjMatrix()) {
+        glUniformMatrix4fv(this->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(projMat));
+    }
+    if(this->needsInvViewProjMatrix()) {
+        glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
+        glUniformMatrix4fv(this->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+    }
 }
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }

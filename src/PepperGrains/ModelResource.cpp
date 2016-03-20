@@ -183,15 +183,7 @@ void ModelResource::render(const Model::RenderPassConfiguration& rendPass, const
     glUseProgram(shaderProg->getHandle());
 
     // Tell OpenGL to use the provided matrices
-    if(shaderProg->needsModelMatrix()) {
-        glUniformMatrix4fv(shaderProg->getModelMatrixUnif(), 1, GL_FALSE, glm::value_ptr(modelMat));
-    }
-    if(shaderProg->needsViewMatrix()) {
-        glUniformMatrix4fv(shaderProg->getViewMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.viewMat));
-    }
-    if(shaderProg->needsProjMatrix()) {
-        glUniformMatrix4fv(shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.projMat));
-    }
+    shaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
 
     // Bind the textures specified by the material
     mMaterial->bindTextures();

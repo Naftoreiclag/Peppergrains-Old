@@ -579,9 +579,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
-        
+     
         glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
         glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+        
         glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
         glUniformMatrix4fv(mScreenShader.shaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
         glUniform3fv(mScreenShader.sunDirectionHandle, 1, glm::value_ptr(mSunDir));
