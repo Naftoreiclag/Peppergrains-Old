@@ -148,6 +148,16 @@ void ShaderProgramResource::loadError() {
     mMMatUnif = glGetUniformLocation(mShaderProg, "uModel");
     mVMatUnif = glGetUniformLocation(mShaderProg, "uView");
     mPMatUnif = glGetUniformLocation(mShaderProg, "uProj");
+    
+    mUseMVMat = false;
+    mUseVPMat = false;
+    mUseMVPMat = false;
+    mUseIMMat = false;
+    mUseIVMat = false;
+    mUseIPMat = false;
+    mUseIMVMat = false;
+    mUseIVPMat = false;
+    mUseIMVPMat = false;
         
     // Setup controls
     Control control;
