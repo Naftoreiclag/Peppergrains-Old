@@ -232,7 +232,7 @@ void ShaderProgramResource::load() {
             const Json::Value& colorSym = fragOut["color"];
             const Json::Value& diffuseSym = fragOut["diffuse"];
             const Json::Value& normalSym = fragOut["normal"];
-            //const Json::Value& brightSym = fragOut["bright"];
+            const Json::Value& brightSym = fragOut["bright"];
             
             // TODO: use enums instead of 0, 1, 2...
             if(!colorSym.isNull()) {
@@ -246,6 +246,10 @@ void ShaderProgramResource::load() {
             if(!normalSym.isNull()) {
                 std::string symbol = normalSym.asString();
                 glBindFragDataLocation(mShaderProg, 1, symbol.c_str());
+            }
+            if(!brightSym.isNull()) {
+                std::string symbol = brightSym.asString();
+                glBindFragDataLocation(mShaderProg, 2, symbol.c_str());
             }
         }
     }

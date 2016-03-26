@@ -32,6 +32,7 @@ private:
         GLuint framebuffer;
         GLuint diffuseTexture;
         GLuint normalTexture;
+        GLuint brightTexture;
         GLuint depthStencilTexture;
     };
     
@@ -39,9 +40,12 @@ private:
 
     struct ScreenShader {
         ShaderProgramResource* shaderProg;
+        
         GLuint diffuseHandle;
         GLuint normalHandle;
         GLuint depthHandle;
+        GLuint brightHandle;
+        
         GLuint sunDepthHandle;
         GLuint sunDirectionHandle;
     };
@@ -50,9 +54,12 @@ private:
     
     struct DebugScreenShader {
         ShaderProgramResource* shaderProg;
+        
         GLuint diffuseHandle;
         GLuint normalHandle;
         GLuint depthHandle;
+        GLuint brightHandle;
+        
         GLuint viewHandle;
     };
     

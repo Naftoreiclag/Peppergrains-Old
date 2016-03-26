@@ -103,14 +103,12 @@ void SandboxGameLayer::makeScreenShader() {
             else if(entry.name == "depth") {
                 mScreenShader.depthHandle = entry.handle;
             }
+            else if(entry.name == "bright") {
+                mScreenShader.brightHandle = entry.handle;
+            }
             else if(entry.name == "sunDepth") {
                 mScreenShader.sunDepthHandle = entry.handle;
             }
-            /*
-            else if(entry.name == "bright") {
-                mBrightHandle = entry.handle;
-            }
-            */
         }
         const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getUniformVec3s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
@@ -139,6 +137,9 @@ void SandboxGameLayer::makeScreenShader() {
             }
             else if(entry.name == "depth") {
                 mDebugScreenShader.depthHandle = entry.handle;
+            }
+            else if(entry.name == "bright") {
+                mDebugScreenShader.brightHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugScreenShader.shaderProg->getUniformVec4s();
@@ -227,16 +228,14 @@ void SandboxGameLayer::makeGBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);
         
         // Bright mapping
-        /*
-        glGenTextures(1, &mBrightHandle);
-        glBindTexture(GL_TEXTURE_2D, mBrightHandle);
+        glGenTextures(1, &mGBuff.brightTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
-        */
         
         // DepthStencil mapping
         glGenTextures(1, &mGBuff.depthStencilTexture);
@@ -255,7 +254,7 @@ void SandboxGameLayer::makeGBuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.diffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
-        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
@@ -401,7 +400,7 @@ void SandboxGameLayer::onEnd() {
     glDeleteTextures(1, &mGBuff.diffuseTexture);
     glDeleteTextures(1, &mGBuff.normalTexture);
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
-    //glDeleteTextures(1, &mBrightTexture);
+    glDeleteTextures(1, &mGBuff.brightTexture);
     
     glDeleteTextures(1, &mSunDepthTexture);
     glDeleteFramebuffers(1, &mSunFrameBuffer);
@@ -572,8 +571,12 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glUniform1i(mDebugScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
+        glUniform1i(mDebugScreenShader.brightHandle, 2);
+        
+        glActiveTexture(GL_TEXTURE0 + 3);
         glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
-        glUniform1i(mDebugScreenShader.depthHandle, 2);
+        glUniform1i(mDebugScreenShader.depthHandle, 3);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -604,8 +607,12 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glUniform1i(mScreenShader.depthHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
+        glUniform1i(mScreenShader.brightHandle, 3);
+        
+        glActiveTexture(GL_TEXTURE0 + 4);
         glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-        glUniform1i(mScreenShader.sunDepthHandle, 3);
+        glUniform1i(mScreenShader.sunDepthHandle, 4);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
