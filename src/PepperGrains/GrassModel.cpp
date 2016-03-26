@@ -155,6 +155,7 @@ void GrassModel::unload() {
 void GrassModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     
     if(rendPass.shadowCasting) {
+        // Disable casting of shadows
         return;
     }
     
