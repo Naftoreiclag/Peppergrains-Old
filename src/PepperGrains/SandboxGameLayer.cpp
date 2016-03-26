@@ -87,7 +87,6 @@ void SandboxGameLayer::makeLightVao() {
 void SandboxGameLayer::makeScreenShader() {
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    // Locate where to send the sampler
     {
         mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
         mScreenShader.shaderProg->grab();
@@ -125,7 +124,6 @@ void SandboxGameLayer::makeScreenShader() {
         assert(mScreenShader.shaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
         assert(mScreenShader.shaderProg->needsSunViewProjMatrix() && "G-buffer shader does not accept sun view projection matrix");
     }
-    // Locate where to send the sampler
     {
         mDebugScreenShader.shaderProg = resman->findShaderProgram("GBufferDebug.shaderProgram");
         mDebugScreenShader.shaderProg->grab();
@@ -154,6 +152,11 @@ void SandboxGameLayer::makeScreenShader() {
         
         assert(mDebugScreenShader.shaderProg->needsInvViewProjMatrix() && "Debug G-buffer shader does not accept inverse view projection matrix");
     }
+    {
+        mDebugFillScreenShader.shaderProg = resman->findShaderProgram("GBufferDebugFill.shaderProgram");
+        mDebugFillScreenShader.shaderProg->grab();
+    }
+    
     
     // Fullscreen quad
     {
@@ -204,8 +207,8 @@ void SandboxGameLayer::makeGBuffer() {
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
-        glGenTextures(1, &mGDiffuseTexture);
-        glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
+        glGenTextures(1, &mGBuff.diffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -214,8 +217,8 @@ void SandboxGameLayer::makeGBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);
         
         // Normal mapping
-        glGenTextures(1, &mGNormalTexture);
-        glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
+        glGenTextures(1, &mGBuff.normalTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -236,8 +239,8 @@ void SandboxGameLayer::makeGBuffer() {
         */
         
         // DepthStencil mapping
-        glGenTextures(1, &mGDepthStencilTexture);
-        glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
+        glGenTextures(1, &mGBuff.depthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -248,12 +251,12 @@ void SandboxGameLayer::makeGBuffer() {
     
     // Create framebuffer
     {
-        glGenFramebuffers(1, &mGFramebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mGFramebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGDiffuseTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGNormalTexture, 0);
+        glGenFramebuffers(1, &mGBuff.framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.framebuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.diffuseTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
         //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mBrightTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGDepthStencilTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
@@ -395,9 +398,9 @@ void SandboxGameLayer::onEnd() {
     glDeleteBuffers(1, &mFullscreenIbo);
     glDeleteBuffers(1, &mFullscreenVbo);
     
-    glDeleteTextures(1, &mGDiffuseTexture);
-    glDeleteTextures(1, &mGNormalTexture);
-    glDeleteTextures(1, &mGDepthStencilTexture);
+    glDeleteTextures(1, &mGBuff.diffuseTexture);
+    glDeleteTextures(1, &mGBuff.normalTexture);
+    glDeleteTextures(1, &mGBuff.depthStencilTexture);
     //glDeleteTextures(1, &mBrightTexture);
     
     glDeleteTextures(1, &mSunDepthTexture);
@@ -422,7 +425,7 @@ void SandboxGameLayer::onEnd() {
     
     //testTerrain->drop();
     
-    glDeleteFramebuffers(1, &mGFramebuffer);
+    glDeleteFramebuffers(1, &mGBuff.framebuffer);
 }
 
 // Ticks
@@ -505,9 +508,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Sun? buffer
     glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
-    glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSunFrameBuffer);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -520,10 +524,11 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // G-buffer render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
-    glBindFramebuffer(GL_FRAMEBUFFER, mGFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -544,13 +549,12 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDepthMask(GL_TRUE);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_EQUAL);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
     
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
@@ -560,15 +564,15 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glUniform4fv(mDebugScreenShader.viewHandle, 1, glm::value_ptr(debugShow));
         
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glUniform1i(mDebugScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
         glUniform1i(mDebugScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
         glUniform1i(mDebugScreenShader.depthHandle, 2);
         
         glBindVertexArray(mFullscreenVao);
@@ -577,8 +581,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glBindVertexArray(0);
         
         glUseProgram(0);
-    }
-    else {
+    } else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
      
         glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
@@ -589,15 +592,15 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glUniform3fv(mScreenShader.sunDirectionHandle, 1, glm::value_ptr(mSunDir));
         
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mGDiffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glUniform1i(mScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, mGNormalTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
         glUniform1i(mScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mGDepthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
         glUniform1i(mScreenShader.depthHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);
@@ -611,6 +614,24 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         
         glUseProgram(0);
     }
+    
+    // Skybox render
+    /*
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    
+    glUseProgram(mDebugFillScreenShader.shaderProg->getHandle());
+    glBindVertexArray(mFullscreenVao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+    */
+    
     
     
     if(tpf > 0) {

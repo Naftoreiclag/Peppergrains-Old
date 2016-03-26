@@ -28,6 +28,15 @@ namespace pgg {
 
 class SandboxGameLayer : public GameLayer {
 private:
+    struct GBuffer {
+        GLuint framebuffer;
+        GLuint diffuseTexture;
+        GLuint normalTexture;
+        GLuint depthStencilTexture;
+    };
+    
+    GBuffer mGBuff;
+
     struct ScreenShader {
         ShaderProgramResource* shaderProg;
         GLuint diffuseHandle;
@@ -48,6 +57,12 @@ private:
     };
     
     DebugScreenShader mDebugScreenShader;
+    
+    struct DebugFillScreenShader {
+        ShaderProgramResource* shaderProg;
+    };
+    
+    DebugFillScreenShader mDebugFillScreenShader;
     
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
@@ -96,11 +111,6 @@ public:
     glm::mat4 mSunViewMatr;
     
     float mIago;
-    
-    GLuint mGFramebuffer;
-    GLuint mGDiffuseTexture;
-    GLuint mGNormalTexture;
-    GLuint mGDepthStencilTexture;
     
     FontResource* rainstormFont;
     TextModel* fpsCounter;
