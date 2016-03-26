@@ -20,6 +20,7 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "PointLightModel.hpp"
 #include "GrassModel.hpp"
 
 namespace pgg
@@ -378,7 +379,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    //iago->grabModel(resman->findModel("Iago.model"));
+    iago->grabModel(new PointLightModel());
     iago->move(glm::vec3(0.f, 3.5f, 0.f));
     rootNode->addChild(iago);
 
@@ -540,13 +541,22 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNodeRPC.viewMat = viewMat;
     rootNodeRPC.projMat = projMat;
     rootNode->render(rootNodeRPC);
-    //testTerrain->render(viewMat, projMat, testMM);
-    //mAxesModel->render(viewMat, projMat, testMM);
     
+    // Brightness Render
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    
+    
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
     brightRPC.viewMat = viewMat;
     brightRPC.projMat = projMat;
+    brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
+    brightRPC.normalTexture = mGBuff.normalTexture;
     rootNode->render(brightRPC);
     
     // Screen render

@@ -37,6 +37,12 @@ public:
         glm::mat4 viewMat;
         glm::mat4 projMat;
         
+        GLuint framebuffer;
+        GLuint diffuseTexture;
+        GLuint normalTexture;
+        GLuint brightTexture;
+        GLuint depthStencilTexture;
+        
         RenderPassType type;
         
         RenderPassConfiguration(RenderPassType renderPassType);
