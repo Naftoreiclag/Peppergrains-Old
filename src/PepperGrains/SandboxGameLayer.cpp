@@ -203,8 +203,6 @@ void SandboxGameLayer::makeScreenShader() {
 }
 
 void SandboxGameLayer::makeGBuffer() {
-    ResourceManager* resman = ResourceManager::getSingleton();
-    
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
@@ -515,10 +513,9 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    Model::RenderPassConfiguration sunRPC;
+    Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
     sunRPC.viewMat = mSunViewMatr;
     sunRPC.projMat = mSunProjMatr;
-    sunRPC.shadowCasting = true;
     rootNode->render(sunRPC);
     
     // G-buffer render
@@ -539,12 +536,18 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
-    Model::RenderPassConfiguration rootNodeRPC;
+    Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
     rootNodeRPC.viewMat = viewMat;
     rootNodeRPC.projMat = projMat;
     rootNode->render(rootNodeRPC);
     //testTerrain->render(viewMat, projMat, testMM);
     //mAxesModel->render(viewMat, projMat, testMM);
+    
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
+    brightRPC.viewMat = viewMat;
+    brightRPC.projMat = projMat;
+    rootNode->render(brightRPC);
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
@@ -554,6 +557,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDepthFunc(GL_EQUAL);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
@@ -661,7 +665,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     
-    Model::RenderPassConfiguration fpsRPC;
+    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, testMM);
@@ -681,6 +685,8 @@ bool SandboxGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
 
 bool SandboxGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
     std::cout << event.data1 << ", " << event.data2 << std::endl;
+    
+    return true;
 }
 }
 

@@ -16,8 +16,8 @@
 namespace pgg {
 Model::Model() { }
 Model::~Model() { }
-Model::RenderPassConfiguration::RenderPassConfiguration()
-: shadowCasting(false)
+Model::RenderPassConfiguration::RenderPassConfiguration(RenderPassType renderPassType)
+: type(renderPassType)
 { }
 Model::RenderPassConfiguration::~RenderPassConfiguration() { }
 }

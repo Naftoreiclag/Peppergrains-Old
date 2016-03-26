@@ -176,6 +176,11 @@ void ModelResource::unload() {
 }
 
 void ModelResource::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+    
+    if(rendPass.type != Model::RenderPassType::GEOMETRY && rendPass.type != Model::RenderPassType::SHADOW) {
+        return;
+    }
+    
     // Get the shader program specified by the material
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
 

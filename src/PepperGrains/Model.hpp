@@ -25,14 +25,21 @@ public:
     Model();
     virtual ~Model();
     
-    // Might someday have different configs fore different renderables
+    enum RenderPassType {
+        GEOMETRY,
+        SHADOW,
+        BRIGHT,
+        SCREEN
+    };
+    
+    // Might someday have different configs for different renderables
     struct RenderPassConfiguration {
         glm::mat4 viewMat;
         glm::mat4 projMat;
         
-        bool shadowCasting;
+        RenderPassType type;
         
-        RenderPassConfiguration();
+        RenderPassConfiguration(RenderPassType renderPassType);
         ~RenderPassConfiguration();
     };
 

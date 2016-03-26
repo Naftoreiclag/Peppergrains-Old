@@ -173,6 +173,10 @@ void TerrainModel::unload() {
 }
 void TerrainModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
 
+    if(rendPass.type != RenderPassType::GEOMETRY && rendPass.type != RenderPassType::SHADOW) {
+        return;
+    }
+    
     glUseProgram(mShaderProg->getHandle());
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
