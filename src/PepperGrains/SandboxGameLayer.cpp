@@ -247,22 +247,19 @@ void SandboxGameLayer::makeGBuffer() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     
-    // Create framebuffer
+    // Create framebuffers
     {
-        glGenFramebuffers(1, &mGBuff.framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.framebuffer);
+        glGenFramebuffers(1, &mGBuff.gFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.gFramebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.diffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
-            GL_COLOR_ATTACHMENT1,
-            GL_COLOR_ATTACHMENT2
-            //GL_COLOR_ATTACHMENT3
+            GL_COLOR_ATTACHMENT1
         };
-        glDrawBuffers(3, colorAttachments);
+        glDrawBuffers(2, colorAttachments);
         
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
             std::cout << "G Complete" << std::endl;
@@ -272,7 +269,26 @@ void SandboxGameLayer::makeGBuffer() {
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    {
+        glGenFramebuffers(1, &mGBuff.bFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.bFramebuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "B Complete" << std::endl;
+        }
+        else {
+            std::cout << "B Incomplete" << std::endl;
+        }
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 
@@ -423,7 +439,8 @@ void SandboxGameLayer::onEnd() {
     
     //testTerrain->drop();
     
-    glDeleteFramebuffers(1, &mGBuff.framebuffer);
+    glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
+    glDeleteFramebuffers(1, &mGBuff.bFramebuffer);
 }
 
 // Ticks
@@ -521,7 +538,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // G-buffer render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -543,13 +560,17 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(rootNodeRPC);
     
     // Brightness Render
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.bFramebuffer);
+    glClearColor(0.f, 0.0f, 0.f, 1.f);
     glDepthMask(GL_FALSE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glClear(GL_COLOR_BUFFER_BIT);
     
     
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);

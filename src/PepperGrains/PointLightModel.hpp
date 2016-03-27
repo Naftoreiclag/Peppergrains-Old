@@ -4,6 +4,7 @@
 #include "Model.hpp"
 #include "GeometryResource.hpp"
 #include "ShaderProgramResource.hpp"
+#include "ModelResource.hpp"
 
 namespace pgg {
 
@@ -16,6 +17,8 @@ private:
     GLuint mDepthHandle;
     
     GeometryResource* mGeometry;
+    
+    ModelResource* mDebug;
 public:
     PointLightModel();
     virtual ~PointLightModel();

@@ -249,7 +249,7 @@ void ShaderProgramResource::load() {
             }
             if(!brightSym.isNull()) {
                 std::string symbol = brightSym.asString();
-                glBindFragDataLocation(mShaderProg, 2, symbol.c_str());
+                glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
             }
         }
     }

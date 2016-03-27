@@ -15,8 +15,10 @@ void PointLightModel::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mGeometry = resman->findGeometry("PointLightVolume.geometry");
     mShaderProg = resman->findShaderProgram("PointLightVolume.shaderProgram");
+    mDebug = resman->findModel("adfgeriojfdkwrg");
     mGeometry->grab();
     mShaderProg->grab();
+    mDebug->grab();
     
     std::cout << "Is errorrrrrrr: " << mShaderProg->isFallback() << std::endl;
     
@@ -45,14 +47,19 @@ void PointLightModel::load() {
     
 }
 void PointLightModel::unload() {
+    mDebug->drop();
     mGeometry->drop();
     mShaderProg->drop();
 }
 
 void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     if(rendPass.type != Model::RenderPassType::BRIGHT) {
+        //mDebug->render(rendPass, modelMat);
         return;
     }
+    Model::RenderPassConfiguration mod = rendPass;
+    mod.type = Model::RenderPassType::GEOMETRY;
+    mDebug->render(mod, modelMat);
     glUseProgram(mShaderProg->getHandle());
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);

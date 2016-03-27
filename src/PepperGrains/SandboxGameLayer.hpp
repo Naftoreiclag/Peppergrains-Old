@@ -29,7 +29,9 @@ namespace pgg {
 class SandboxGameLayer : public GameLayer {
 private:
     struct GBuffer {
-        GLuint framebuffer;
+        GLuint gFramebuffer;
+        GLuint bFramebuffer;
+        
         GLuint diffuseTexture;
         GLuint normalTexture;
         GLuint brightTexture;
