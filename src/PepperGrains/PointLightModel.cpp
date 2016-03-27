@@ -57,9 +57,12 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
         //mDebug->render(rendPass, modelMat);
         return;
     }
+    /*
     Model::RenderPassConfiguration mod = rendPass;
     mod.type = Model::RenderPassType::GEOMETRY;
     mDebug->render(mod, modelMat);
+    */
+    
     glUseProgram(mShaderProg->getHandle());
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);

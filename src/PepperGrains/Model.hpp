@@ -28,6 +28,7 @@ public:
     enum RenderPassType {
         GEOMETRY,
         SHADOW,
+        BRIGHT_STENCIL,
         BRIGHT,
         SCREEN
     };

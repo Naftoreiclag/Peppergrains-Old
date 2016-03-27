@@ -543,6 +543,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glDisable(GL_STENCIL_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -561,8 +562,15 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     // Brightness Render
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.bFramebuffer);
+    
+    // Clear brightness
     glClearColor(0.f, 0.0f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Do not write to the depth buffer
     glDepthMask(GL_FALSE);
+    
+    // Use depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
@@ -570,7 +578,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClear(GL_COLOR_BUFFER_BIT);
     
     
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
