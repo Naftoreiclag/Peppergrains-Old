@@ -563,8 +563,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.bFramebuffer);
     glClearColor(0.f, 0.0f, 0.f, 1.f);
     glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
