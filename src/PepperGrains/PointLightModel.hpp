@@ -12,6 +12,7 @@ class PointLightModel : public Model {
 private:
     GLuint mVertexArrayObject;
     
+    ShaderProgramResource* mMinimalShader;
     ShaderProgramResource* mShaderProg;
     GLuint mNormalHandle;
     GLuint mDepthHandle;

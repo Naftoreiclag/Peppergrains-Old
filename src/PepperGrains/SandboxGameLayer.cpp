@@ -573,12 +573,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     // Use depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
     
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
     brightRPC.viewMat = viewMat;
@@ -586,6 +580,11 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
     brightRPC.normalTexture = mGBuff.normalTexture;
     rootNode->render(brightRPC);
+    
+    // Stencil, culling, and blending were modified, reset to default values
+    glDisable(GL_STENCIL_TEST);
+    glEnable(GL_CULL_FACE);    
+    glDisable(GL_BLEND);
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
