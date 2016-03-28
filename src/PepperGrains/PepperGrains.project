@@ -113,8 +113,12 @@
       <File Name="InstancedModel.cpp"/>
       <File Name="GrassModel.hpp"/>
       <File Name="GrassModel.cpp"/>
-      <File Name="PointLightModel.hpp"/>
-      <File Name="PointLightModel.cpp"/>
+      <VirtualDirectory Name="Light">
+        <File Name="PointLightModel.cpp"/>
+        <File Name="PointLightModel.hpp"/>
+        <File Name="DirectionalLightModel.hpp"/>
+        <File Name="DirectionalLightModel.cpp"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>

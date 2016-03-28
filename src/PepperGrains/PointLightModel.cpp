@@ -65,11 +65,9 @@ void PointLightModel::SharedResources::load() {
             const ShaderProgramResource::Control& entry = *iter;
             if(entry.name == "radius") {
                 mRadiusHandle = entry.handle;
-                std::cout << "aaa" << mRadiusHandle << std::endl;
             }
             else if(entry.name == "volumeRadius") {
                 mVolumeRadiusHandle = entry.handle;
-                std::cout << "ccc" << mVolumeRadiusHandle << std::endl;
             }
         }
     }

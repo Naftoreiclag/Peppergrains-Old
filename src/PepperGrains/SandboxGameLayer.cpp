@@ -20,6 +20,7 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "DirectionalLightModel.hpp"
 #include "PointLightModel.hpp"
 #include "GrassModel.hpp"
 
@@ -50,7 +51,6 @@ void SandboxGameLayer::makeLightVao() {
             mDLightNorm = entry.handle;
         }
     }
-    
     
     GLfloat vertices[] = {
         -1.f, -1.f,
@@ -380,7 +380,7 @@ void SandboxGameLayer::onBegin() {
     iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
     rootNode->addChild(iago);
     
-    mCamLocNode->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f), 1.f));
+    mCamLocNode->grabModel(new DirectionalLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
 
     fps = 0.f;
     mIago = 0.f;
@@ -561,10 +561,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     // Do not write to the depth buffer
     glDepthMask(GL_FALSE);
     
-    // Use depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
     brightRPC.viewMat = viewMat;
     brightRPC.projMat = projMat;
@@ -577,6 +573,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glEnable(GL_CULL_FACE);    
     glDisable(GL_BLEND);
     glCullFace(GL_BACK);
+    glDepthFunc(GL_LESS);
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
