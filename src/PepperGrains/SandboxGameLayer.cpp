@@ -253,6 +253,7 @@ void SandboxGameLayer::makeGBuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.gFramebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.diffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
@@ -266,26 +267,6 @@ void SandboxGameLayer::makeGBuffer() {
         }
         else {
             std::cout << "G Incomplete" << std::endl;
-        }
-        
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    {
-        glGenFramebuffers(1, &mGBuff.bFramebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.bFramebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
-        
-        GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0
-        };
-        glDrawBuffers(1, colorAttachments);
-        
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "B Complete" << std::endl;
-        }
-        else {
-            std::cout << "B Incomplete" << std::endl;
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -441,7 +422,6 @@ void SandboxGameLayer::onEnd() {
     //testTerrain->drop();
     
     glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
-    glDeleteFramebuffers(1, &mGBuff.bFramebuffer);
 }
 
 // Ticks
@@ -537,9 +517,14 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     sunRPC.projMat = mSunProjMatr;
     rootNode->render(sunRPC);
     
-    // G-buffer render
+    // Geometry pass
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
+    GLuint colorAttachments1[] = {
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1
+    };
+    glDrawBuffers(2, colorAttachments1);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -562,7 +547,10 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(rootNodeRPC);
     
     // Brightness Render
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.bFramebuffer);
+    GLuint colorAttachments2[] = {
+        GL_COLOR_ATTACHMENT2
+    };
+    glDrawBuffers(1, colorAttachments2);
     
     // Clear brightness
     glClearColor(0.f, 0.0f, 0.f, 1.f);

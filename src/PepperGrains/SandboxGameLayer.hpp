@@ -30,8 +30,6 @@ class SandboxGameLayer : public GameLayer {
 private:
     struct GBuffer {
         GLuint gFramebuffer;
-        // TODO: use glDrawBuffers instead of separate framebuffer for brightness?
-        GLuint bFramebuffer;
         
         GLuint diffuseTexture;
         GLuint normalTexture;

@@ -134,7 +134,7 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     glUseProgram(0);
     
     GLuint colorAttachments[] = {
-        GL_COLOR_ATTACHMENT0
+        GL_COLOR_ATTACHMENT2
     };
     glDrawBuffers(1, colorAttachments);
     
