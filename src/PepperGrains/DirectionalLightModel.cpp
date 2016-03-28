@@ -106,11 +106,10 @@ void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfi
     glm::vec3 lightDirection = glm::vec3(modelMat * glm::vec4(0.0, 0.0, 1.0, 0.0));
     lightDirection = glm::vec3(0.0, 1.0, 0.0);
     
-    /*
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawBuffer(GL_NONE);
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_GEQUAL);
+    glDepthFunc(GL_LESS);
     glEnable(GL_STENCIL_TEST);
     glDisable(GL_CULL_FACE);
     glClearStencil(1);
@@ -129,7 +128,6 @@ void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfi
     glBindVertexArray(0);
     
     glUseProgram(0);
-    */
     
     GLuint colorAttachments[] = {
         GL_COLOR_ATTACHMENT2
@@ -137,10 +135,9 @@ void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfi
     glDrawBuffers(1, colorAttachments);
     
     // Only keep pixels for which this conditional is true
-    //glStencilFunc(GL_EQUAL, 0, 0xff);
+    glStencilFunc(GL_EQUAL, 0, 0xff);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_ONE, GL_ONE);

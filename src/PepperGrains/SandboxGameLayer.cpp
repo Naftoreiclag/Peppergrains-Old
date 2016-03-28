@@ -376,7 +376,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 0.25f));
+    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
     iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
     rootNode->addChild(iago);
     
