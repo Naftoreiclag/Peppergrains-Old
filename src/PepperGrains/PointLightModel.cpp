@@ -13,32 +13,27 @@ void PointLightModel::calcAttenFactors() {
     float green = mBrightness.g;
     float blue = mBrightness.b;
     
-    float range = (red > green ? red : (green > blue ? green : blue)) * 5.0f;
+    float color = red > green ? red : (green > blue ? green : blue);
     
-    float linear = 4.0f / range;
-    float quadr = 80.0f / (range * range);
     
-    float minLight = 6.f / 255.f;
+    float minLight = 0.002f;
+    mVolumeRadius = mRadius * std::sqrt(color / minLight);
     
-    float radius = (std::sqrt((linear * linear) - (4.f * quadr * (1.f - (range / minLight)))) - linear) / (2.f * quadr);
-    
-    mAttenLinear = linear;
-    mAttenQuadr = quadr;
-    mVolumeRadius = radius;
-    
-    std::cout << "Range " << range << std::endl;
-    std::cout << "Linear " << linear << std::endl;
-    std::cout << "Quadr " << quadr << std::endl;
-    std::cout << "Radius " << radius << std::endl;
+    std::cout << "color: " << color << std::endl;
+    std::cout << "minimum light: " << minLight << std::endl;
+    std::cout << "radius: " << mRadius << std::endl;
+    std::cout << "volRadius: " << mVolumeRadius << std::endl;
 }
 
-void PointLightModel::setBrightness(glm::vec3 brightness) {
+void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
     mBrightness = brightness;
+    mRadius = radius;
     calcAttenFactors();
 }
 
-PointLightModel::PointLightModel(glm::vec3 brightness)
-: mBrightness(brightness) {
+PointLightModel::PointLightModel(glm::vec3 brightness, float radius)
+: mBrightness(brightness)
+, mRadius(radius) {
     calcAttenFactors();
 }
 
@@ -57,8 +52,8 @@ void PointLightModel::load() {
         const std::vector<ShaderProgramResource::Control>& floatControls = mMinimalShader->getUniformFloats();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
-            if(entry.name == "radius") {
-                mStencilRadiusHandle = entry.handle;
+            if(entry.name == "volumeRadius") {
+                mStencilVolumeRadiusHandle = entry.handle;
             }
         }
     }
@@ -86,17 +81,13 @@ void PointLightModel::load() {
         const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
-            if(entry.name == "linear") {
-                mLinearHandle = entry.handle;
-                std::cout << "aaa" << mLinearHandle << std::endl;
-            }
-            else if(entry.name == "quadratic") {
-                mQuadrHandle = entry.handle;
-                std::cout << "bbb" << mQuadrHandle << std::endl;
-            }
-            else if(entry.name == "radius") {
+            if(entry.name == "radius") {
                 mRadiusHandle = entry.handle;
-                std::cout << "ccc" << mRadiusHandle << std::endl;
+                std::cout << "aaa" << mRadiusHandle << std::endl;
+            }
+            else if(entry.name == "volumeRadius") {
+                mVolumeRadiusHandle = entry.handle;
+                std::cout << "ccc" << mVolumeRadiusHandle << std::endl;
             }
         }
     }
@@ -124,6 +115,21 @@ void PointLightModel::unload() {
 
 void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     if(rendPass.type != Model::RenderPassType::BRIGHT) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glUseProgram(mMinimalShader->getHandle());
+        mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+        glUniform1f(mStencilVolumeRadiusHandle, mRadius);
+        glBindVertexArray(mVertexArrayObject);
+        mGeometry->drawElements();
+        glBindVertexArray(0);
+        glUseProgram(mMinimalShader->getHandle());
+        glUniform1f(mStencilVolumeRadiusHandle, mVolumeRadius);
+        glBindVertexArray(mVertexArrayObject);
+        mGeometry->drawElements();
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        
         return;
     }
     
@@ -142,7 +148,7 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     
     glUseProgram(mMinimalShader->getHandle());
     mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-    glUniform1f(mStencilRadiusHandle, mVolumeRadius);
+    glUniform1f(mStencilVolumeRadiusHandle, mVolumeRadius);
     glBindVertexArray(mVertexArrayObject);
     mGeometry->drawElements();
     glBindVertexArray(0);
@@ -169,9 +175,8 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(mBrightness));
     glUniform3fv(mPositionHandle, 1, glm::value_ptr(lightPosition));
-    glUniform1f(mLinearHandle, mAttenLinear);
-    glUniform1f(mQuadrHandle, mAttenQuadr);
-    glUniform1f(mRadiusHandle, mVolumeRadius);
+    glUniform1f(mRadiusHandle, mRadius);
+    glUniform1f(mVolumeRadiusHandle, mVolumeRadius);
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);

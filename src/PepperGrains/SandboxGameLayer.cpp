@@ -395,8 +395,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
-    iago->move(glm::vec3(0.f, 3.5f, 0.f));
+    iago->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
     rootNode->addChild(iago);
 
     fps = 0.f;
@@ -479,7 +478,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     mIago += tpf;
     
-    iago->setLocalTranslation(glm::vec3(0.f, 1.2f + glm::sin(mIago), 3.f));
+    iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
     
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);

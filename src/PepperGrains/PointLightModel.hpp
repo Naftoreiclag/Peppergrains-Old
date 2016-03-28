@@ -16,21 +16,19 @@ private:
     GLuint mDepthHandle;
     GLuint mPositionHandle;
     GLuint mColorHandle;
-    GLuint mLinearHandle;
-    GLuint mQuadrHandle;
     GLuint mRadiusHandle;
-    GLuint mStencilRadiusHandle;
+    GLuint mVolumeRadiusHandle;
+    GLuint mStencilVolumeRadiusHandle;
     GeometryResource* mGeometry;
     
     GLfloat mVolumeRadius;
-    GLfloat mAttenLinear;
-    GLfloat mAttenQuadr;
+    GLfloat mRadius;
     
     glm::vec3 mBrightness;
     
     void calcAttenFactors();
 public:
-    PointLightModel(glm::vec3 brightness = glm::vec3(1.0));
+    PointLightModel(glm::vec3 brightness = glm::vec3(1.0), float radius = 1.f);
     virtual ~PointLightModel();
 
     void load();
@@ -38,7 +36,7 @@ public:
 
     void render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat);
     
-    void setBrightness(glm::vec3 brightness);
+    void setBrightness(glm::vec3 brightness, float radius);
 };
 
 }
