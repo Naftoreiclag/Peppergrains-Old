@@ -585,6 +585,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_CULL_FACE);    
     glDisable(GL_BLEND);
+    glCullFace(GL_BACK);
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
