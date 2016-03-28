@@ -21,6 +21,7 @@ public:
         GLuint mRadiusHandle;
         GLuint mVolumeRadiusHandle;
         GLuint mStencilVolumeRadiusHandle;
+        GLuint mStencilPositionHandle;
         GeometryResource* mGeometry;
         
         SharedResources();

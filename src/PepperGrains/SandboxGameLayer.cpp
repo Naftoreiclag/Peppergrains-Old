@@ -377,6 +377,7 @@ void SandboxGameLayer::onBegin() {
     
     iago = new SceneNode();
     iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 0.25f));
+    iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
     rootNode->addChild(iago);
     
     mCamLocNode->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f), 1.f));
@@ -460,7 +461,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     mIago += tpf;
     
-    iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
+    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
+    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
     
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);

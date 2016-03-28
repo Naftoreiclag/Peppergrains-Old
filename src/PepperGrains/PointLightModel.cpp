@@ -24,6 +24,13 @@ void PointLightModel::SharedResources::load() {
     mMinimalShader->grab();
     
     {
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mMinimalShader->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "position") {
+                mStencilPositionHandle = entry.handle;
+            }
+        }
         const std::vector<ShaderProgramResource::Control>& floatControls = mMinimalShader->getUniformFloats();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
@@ -93,6 +100,9 @@ void PointLightModel::SharedResources::render(const Model::RenderPassConfigurati
         return;
     }
     
+    glm::vec3 lightPosition = glm::vec3(modelMat[3]);
+    float lightScale = (modelMat[0][0] + modelMat[1][1] + modelMat[2][2]) / 3.f;
+    
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawBuffer(GL_NONE);
     glEnable(GL_DEPTH_TEST);
@@ -108,7 +118,8 @@ void PointLightModel::SharedResources::render(const Model::RenderPassConfigurati
     
     glUseProgram(mMinimalShader->getHandle());
     mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-    glUniform1f(mStencilVolumeRadiusHandle, lightVolRad);
+    glUniform3fv(mStencilPositionHandle, 1, glm::value_ptr(lightPosition));
+    glUniform1f(mStencilVolumeRadiusHandle, lightVolRad * lightScale);
     glBindVertexArray(mVertexArrayObject);
     mGeometry->drawElements();
     glBindVertexArray(0);
@@ -129,22 +140,13 @@ void PointLightModel::SharedResources::render(const Model::RenderPassConfigurati
     glBlendFunc(GL_ONE, GL_ONE);
     
     glUseProgram(mShaderProg->getHandle());
-
-    glm::vec3 lightPosition = glm::vec3(modelMat[3]);
     
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mPositionHandle, 1, glm::value_ptr(lightPosition));
-    
-    float lightScale = (modelMat[0][0] + modelMat[1][1] + modelMat[2][2]) / 3.f;
-    
-    if(lightScale > 0.9999f && lightScale < 1.0001f) {
-        glUniform1f(mRadiusHandle, lightRad);
-        glUniform1f(mVolumeRadiusHandle, lightVolRad);
-    } else {
-        glUniform1f(mRadiusHandle, lightRad * lightScale);
-        glUniform1f(mVolumeRadiusHandle, PointLightModel::calcVolumeRadius(lightColor, lightRad * lightScale));
-    }
+
+    glUniform1f(mRadiusHandle, lightRad * lightScale);
+    glUniform1f(mVolumeRadiusHandle, lightVolRad * lightScale);
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
@@ -177,13 +179,13 @@ float PointLightModel::calcVolumeRadius(const glm::vec3& color, const float& rad
 void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
     mColor = brightness;
     mRadius = radius;
-    mVolumeRadius = PointLightModel::calcVolumeRadius(mColor, mRadius);
+    mVolumeRadius = calcVolumeRadius(mColor, mRadius);
 }
 
 PointLightModel::PointLightModel(glm::vec3 color, float radius)
 : mColor(color)
 , mRadius(radius)
-, mVolumeRadius(PointLightModel::calcVolumeRadius(color, radius)) {
+, mVolumeRadius(calcVolumeRadius(color, radius)) {
 }
 PointLightModel::~PointLightModel() {
 }
