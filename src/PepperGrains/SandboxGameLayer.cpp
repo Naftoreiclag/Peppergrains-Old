@@ -395,8 +395,10 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
+    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 0.25f));
     rootNode->addChild(iago);
+    
+    mCamLocNode->grabModel(new PointLightModel(glm::vec3(1.0f, 1.0f, 1.0f), 1.f));
 
     fps = 0.f;
     mIago = 0.f;

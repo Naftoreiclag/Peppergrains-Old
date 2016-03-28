@@ -15,14 +15,8 @@ void PointLightModel::calcAttenFactors() {
     
     float color = red > green ? red : (green > blue ? green : blue);
     
-    
-    float minLight = 0.002f;
+    float minLight = 0.005f;
     mVolumeRadius = mRadius * std::sqrt(color / minLight);
-    
-    std::cout << "color: " << color << std::endl;
-    std::cout << "minimum light: " << minLight << std::endl;
-    std::cout << "radius: " << mRadius << std::endl;
-    std::cout << "volRadius: " << mVolumeRadius << std::endl;
 }
 
 void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
@@ -115,21 +109,6 @@ void PointLightModel::unload() {
 
 void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     if(rendPass.type != Model::RenderPassType::BRIGHT) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glUseProgram(mMinimalShader->getHandle());
-        mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-        glUniform1f(mStencilVolumeRadiusHandle, mRadius);
-        glBindVertexArray(mVertexArrayObject);
-        mGeometry->drawElements();
-        glBindVertexArray(0);
-        glUseProgram(mMinimalShader->getHandle());
-        glUniform1f(mStencilVolumeRadiusHandle, mVolumeRadius);
-        glBindVertexArray(mVertexArrayObject);
-        mGeometry->drawElements();
-        glBindVertexArray(0);
-        glUseProgram(0);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        
         return;
     }
     
