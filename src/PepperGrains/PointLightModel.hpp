@@ -8,23 +8,38 @@
 namespace pgg {
 
 class PointLightModel : public Model {
+public:
+    class SharedResources : public ReferenceCounted {
+    private:
+        GLuint mVertexArrayObject;
+        ShaderProgramResource* mMinimalShader;
+        ShaderProgramResource* mShaderProg;
+        GLuint mNormalHandle;
+        GLuint mDepthHandle;
+        GLuint mPositionHandle;
+        GLuint mColorHandle;
+        GLuint mRadiusHandle;
+        GLuint mVolumeRadiusHandle;
+        GLuint mStencilVolumeRadiusHandle;
+        GeometryResource* mGeometry;
+        
+        SharedResources();
+        ~SharedResources();
+        
+    public:
+        static SharedResources* getSharedInstance();
+        
+        void load();
+        void unload();
+        void render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& color, const GLfloat& radius, const GLfloat& volumeRadius);
+    };
 private:
-    GLuint mVertexArrayObject;
-    ShaderProgramResource* mMinimalShader;
-    ShaderProgramResource* mShaderProg;
-    GLuint mNormalHandle;
-    GLuint mDepthHandle;
-    GLuint mPositionHandle;
-    GLuint mColorHandle;
-    GLuint mRadiusHandle;
-    GLuint mVolumeRadiusHandle;
-    GLuint mStencilVolumeRadiusHandle;
-    GeometryResource* mGeometry;
     
-    GLfloat mVolumeRadius;
+    SharedResources* mSharedRes;
+    
+    glm::vec3 mColor;
     GLfloat mRadius;
-    
-    glm::vec3 mBrightness;
+    GLfloat mVolumeRadius;
     
     void calcAttenFactors();
 public:

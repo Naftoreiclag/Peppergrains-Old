@@ -6,34 +6,15 @@
 #include "ResourceManager.hpp"
 
 namespace pgg {
-    
-void PointLightModel::calcAttenFactors() {
-    
-    float red = mBrightness.r;
-    float green = mBrightness.g;
-    float blue = mBrightness.b;
-    
-    float color = red > green ? red : (green > blue ? green : blue);
-    
-    float minLight = 0.005f;
-    mVolumeRadius = mRadius * std::sqrt(color / minLight);
+
+PointLightModel::SharedResources::SharedResources() { }
+PointLightModel::SharedResources::~SharedResources() { }
+PointLightModel::SharedResources* PointLightModel::SharedResources::getSharedInstance() {
+    static SharedResources instance;
+    return &instance;
 }
 
-void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
-    mBrightness = brightness;
-    mRadius = radius;
-    calcAttenFactors();
-}
-
-PointLightModel::PointLightModel(glm::vec3 brightness, float radius)
-: mBrightness(brightness)
-, mRadius(radius) {
-    calcAttenFactors();
-}
-
-PointLightModel::~PointLightModel() {
-}
-void PointLightModel::load() {
+void PointLightModel::SharedResources::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mGeometry = resman->findGeometry("PointLightVolume.geometry");
     mShaderProg = resman->findShaderProgram("PointLightVolume.shaderProgram");
@@ -99,15 +80,15 @@ void PointLightModel::load() {
     }
     
     glBindVertexArray(0);
-    
 }
-void PointLightModel::unload() {
+void PointLightModel::SharedResources::unload() {
     mGeometry->drop();
     mShaderProg->drop();
     mMinimalShader->drop();
+    
+    glDeleteVertexArrays(1, &mVertexArrayObject);
 }
-
-void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+void PointLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor, const GLfloat& lightRad, const GLfloat& lightVolRad) {
     if(rendPass.type != Model::RenderPassType::BRIGHT) {
         return;
     }
@@ -127,7 +108,7 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     
     glUseProgram(mMinimalShader->getHandle());
     mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-    glUniform1f(mStencilVolumeRadiusHandle, mVolumeRadius);
+    glUniform1f(mStencilVolumeRadiusHandle, lightVolRad);
     glBindVertexArray(mVertexArrayObject);
     mGeometry->drawElements();
     glBindVertexArray(0);
@@ -152,10 +133,10 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     glm::vec3 lightPosition = glm::vec3(modelMat[3]);
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-    glUniform3fv(mColorHandle, 1, glm::value_ptr(mBrightness));
+    glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mPositionHandle, 1, glm::value_ptr(lightPosition));
-    glUniform1f(mRadiusHandle, mRadius);
-    glUniform1f(mVolumeRadiusHandle, mVolumeRadius);
+    glUniform1f(mRadiusHandle, lightRad);
+    glUniform1f(mVolumeRadiusHandle, lightVolRad);
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
@@ -172,6 +153,43 @@ void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, con
     glBindVertexArray(0);
 
     glUseProgram(0);
+}
+
+void PointLightModel::calcAttenFactors() {
+    
+    float red = mColor.r;
+    float green = mColor.g;
+    float blue = mColor.b;
+    
+    float color = red > green ? red : (green > blue ? green : blue);
+    
+    float minLight = 0.005f;
+    mVolumeRadius = mRadius * std::sqrt(color / minLight);
+}
+
+void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
+    mColor = brightness;
+    mRadius = radius;
+    calcAttenFactors();
+}
+
+PointLightModel::PointLightModel(glm::vec3 brightness, float radius)
+: mColor(brightness)
+, mRadius(radius) {
+    calcAttenFactors();
+}
+PointLightModel::~PointLightModel() {
+}
+void PointLightModel::load() {
+    mSharedRes = SharedResources::getSharedInstance();
+    mSharedRes->grab();
+}
+void PointLightModel::unload() {
+    mSharedRes->drop();
+}
+
+void PointLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+    mSharedRes->render(rendPass, modelMat, mColor, mRadius, mVolumeRadius);
 }
 
 
