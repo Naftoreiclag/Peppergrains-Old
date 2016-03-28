@@ -11,7 +11,7 @@
    limitations under the License.
 */
 
-#include "DirectionalLightModel.hpp"
+#include "SunLightModel.hpp"
 
 #include <iostream>
 
@@ -19,16 +19,16 @@
 
 namespace pgg {
 
-DirectionalLightModel::SharedResources::SharedResources() { }
-DirectionalLightModel::SharedResources::~SharedResources() { }
-DirectionalLightModel::SharedResources* DirectionalLightModel::SharedResources::getSharedInstance() {
+SunLightModel::SharedResources::SharedResources() { }
+SunLightModel::SharedResources::~SharedResources() { }
+SunLightModel::SharedResources* SunLightModel::SharedResources::getSharedInstance() {
     static SharedResources instance;
     return &instance;
 }
 
-void DirectionalLightModel::SharedResources::load() {
+void SunLightModel::SharedResources::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
-    mShaderProg = resman->findShaderProgram("DirectionalLightVolume.shaderProgram");
+    mShaderProg = resman->findShaderProgram("SunLightVolume.shaderProgram");
     mMinimalShader = resman->findShaderProgram("DirectionalLightStencil.shaderProgram");
     mShaderProg->grab();
     mMinimalShader->grab();
@@ -39,6 +39,10 @@ void DirectionalLightModel::SharedResources::load() {
             const ShaderProgramResource::Control& entry = *iter;
             if(entry.name == "normal") {
                 mNormalHandle = entry.handle;
+            } else if(entry.name == "depth") {
+                mDepthHandle = entry.handle;
+            } else if(entry.name == "sunDepth") {
+                mSunDepthHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& vec3Controls = mShaderProg->getUniformVec3s();
@@ -46,11 +50,8 @@ void DirectionalLightModel::SharedResources::load() {
             const ShaderProgramResource::Control& entry = *iter;
             if(entry.name == "direction") {
                 mDirectionHandle = entry.handle;
-                std::cout << "aaa" << mDirectionHandle << std::endl;
-            }
-            else if(entry.name == "color") {
+            } else if(entry.name == "color") {
                 mColorHandle = entry.handle;
-                std::cout << "bbb" << mColorHandle << std::endl;
             }
         }
     }
@@ -90,7 +91,7 @@ void DirectionalLightModel::SharedResources::load() {
 
     glBindVertexArray(0);
 }
-void DirectionalLightModel::SharedResources::unload() {
+void SunLightModel::SharedResources::unload() {
     mShaderProg->drop();
     mMinimalShader->drop();
     
@@ -98,7 +99,7 @@ void DirectionalLightModel::SharedResources::unload() {
     glDeleteBuffers(1, &mDLightVbo);
     glDeleteVertexArrays(1, &mDLightVao);
 }
-void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
+void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
     if(rendPass.type != Model::RenderPassType::BRIGHT) {
         return;
     }
@@ -143,12 +144,24 @@ void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfi
     
     glUseProgram(mShaderProg->getHandle());
     
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
+    
+    glUniformMatrix4fv(mShaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr));
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
     glUniform1i(mNormalHandle, 0);
+    
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
+    glUniform1i(mDepthHandle, 1);
+    
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, rendPass.sunDepthTexture);
+    glUniform1i(mSunDepthHandle, 2);
 
     glBindVertexArray(mDLightVao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -157,24 +170,24 @@ void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfi
     glUseProgram(0);
 }
 
-void DirectionalLightModel::setColor(const glm::vec3& color) {
+void SunLightModel::setColor(const glm::vec3& color) {
     mColor = color;
 }
 
-DirectionalLightModel::DirectionalLightModel(glm::vec3 color)
+SunLightModel::SunLightModel(glm::vec3 color)
 : mColor(color) {
 }
-DirectionalLightModel::~DirectionalLightModel() {
+SunLightModel::~SunLightModel() {
 }
-void DirectionalLightModel::load() {
+void SunLightModel::load() {
     mSharedRes = SharedResources::getSharedInstance();
     mSharedRes->grab();
 }
-void DirectionalLightModel::unload() {
+void SunLightModel::unload() {
     mSharedRes->drop();
 }
 
-void DirectionalLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+void SunLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
     mSharedRes->render(rendPass, modelMat, mColor);
 }
 

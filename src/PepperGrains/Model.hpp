@@ -43,6 +43,8 @@ public:
         GLuint normalTexture;
         GLuint brightTexture;
         GLuint depthStencilTexture;
+        GLuint sunDepthTexture;
+        glm::mat4 sunViewProjMatr;
         
         RenderPassType type;
         

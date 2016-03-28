@@ -118,6 +118,8 @@
         <File Name="PointLightModel.hpp"/>
         <File Name="DirectionalLightModel.hpp"/>
         <File Name="DirectionalLightModel.cpp"/>
+        <File Name="SunLightModel.hpp"/>
+        <File Name="SunLightModel.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">

@@ -20,6 +20,7 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "SunLightModel.hpp"
 #include "DirectionalLightModel.hpp"
 #include "PointLightModel.hpp"
 #include "GrassModel.hpp"
@@ -380,7 +381,8 @@ void SandboxGameLayer::onBegin() {
     iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
     rootNode->addChild(iago);
     
-    mCamLocNode->grabModel(new DirectionalLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
+    //mCamLocNode->grabModel(new DirectionalLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
+    mCamRollNode->grabModel(new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
 
     fps = 0.f;
     mIago = 0.f;
@@ -561,11 +563,15 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     // Do not write to the depth buffer
     glDepthMask(GL_FALSE);
     
+    glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
+    
     Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
     brightRPC.viewMat = viewMat;
     brightRPC.projMat = projMat;
     brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
     brightRPC.normalTexture = mGBuff.normalTexture;
+    brightRPC.sunViewProjMatr = sunViewProjMat;
+    brightRPC.sunDepthTexture = mSunDepthTexture;
     rootNode->render(brightRPC);
     
     // Stencil, culling, and blending were modified, reset to default values
@@ -620,7 +626,6 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
         glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
         
-        glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
         glUniformMatrix4fv(mScreenShader.shaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
         glUniform3fv(mScreenShader.sunDirectionHandle, 1, glm::value_ptr(mSunDir));
         
