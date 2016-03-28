@@ -131,12 +131,20 @@ void PointLightModel::SharedResources::render(const Model::RenderPassConfigurati
     glUseProgram(mShaderProg->getHandle());
 
     glm::vec3 lightPosition = glm::vec3(modelMat[3]);
-
+    
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mPositionHandle, 1, glm::value_ptr(lightPosition));
-    glUniform1f(mRadiusHandle, lightRad);
-    glUniform1f(mVolumeRadiusHandle, lightVolRad);
+    
+    float lightScale = (modelMat[0][0] + modelMat[1][1] + modelMat[2][2]) / 3.f;
+    
+    if(lightScale > 0.9999f && lightScale < 1.0001f) {
+        glUniform1f(mRadiusHandle, lightRad);
+        glUniform1f(mVolumeRadiusHandle, lightVolRad);
+    } else {
+        glUniform1f(mRadiusHandle, lightRad * lightScale);
+        glUniform1f(mVolumeRadiusHandle, PointLightModel::calcVolumeRadius(lightColor, lightRad * lightScale));
+    }
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
@@ -155,28 +163,27 @@ void PointLightModel::SharedResources::render(const Model::RenderPassConfigurati
     glUseProgram(0);
 }
 
-void PointLightModel::calcAttenFactors() {
+float PointLightModel::calcVolumeRadius(const glm::vec3& color, const float& radius) {
+    float red = color.r;
+    float green = color.g;
+    float blue = color.b;
     
-    float red = mColor.r;
-    float green = mColor.g;
-    float blue = mColor.b;
-    
-    float color = red > green ? red : (green > blue ? green : blue);
+    float bright = red > green ? red : (green > blue ? green : blue);
     
     float minLight = 0.005f;
-    mVolumeRadius = mRadius * std::sqrt(color / minLight);
+    return radius * std::sqrt(bright / minLight);
 }
 
 void PointLightModel::setBrightness(glm::vec3 brightness, float radius) {
     mColor = brightness;
     mRadius = radius;
-    calcAttenFactors();
+    mVolumeRadius = PointLightModel::calcVolumeRadius(mColor, mRadius);
 }
 
-PointLightModel::PointLightModel(glm::vec3 brightness, float radius)
-: mColor(brightness)
-, mRadius(radius) {
-    calcAttenFactors();
+PointLightModel::PointLightModel(glm::vec3 color, float radius)
+: mColor(color)
+, mRadius(radius)
+, mVolumeRadius(PointLightModel::calcVolumeRadius(color, radius)) {
 }
 PointLightModel::~PointLightModel() {
 }

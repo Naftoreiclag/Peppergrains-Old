@@ -41,7 +41,7 @@ private:
     GLfloat mRadius;
     GLfloat mVolumeRadius;
     
-    void calcAttenFactors();
+    static float calcVolumeRadius(const glm::vec3& color, const float& radius);
 public:
     PointLightModel(glm::vec3 brightness = glm::vec3(1.0), float radius = 1.f);
     virtual ~PointLightModel();
