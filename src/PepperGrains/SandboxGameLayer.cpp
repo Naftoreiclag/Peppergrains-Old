@@ -126,6 +126,9 @@ void SandboxGameLayer::makeScreenShader() {
         
         glEnableVertexAttribArray(mDebugScreenShader.shaderProg->getPosAttrib());
         glVertexAttribPointer(mDebugScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        
+        glEnableVertexAttribArray(mSkyStencilShader.shaderProg->getPosAttrib());
+        glVertexAttribPointer(mSkyStencilShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
         glBindVertexArray(0);
     }
@@ -208,7 +211,6 @@ void SandboxGameLayer::makeSun() {
     glGenTextures(1, &mSunDepthTexture);
     glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSunTextureWidth, mSunTextureWidth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    // TODO: change this
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -502,9 +504,55 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(brightRPC);
     
     // Render global lights
-    brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
-    mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
     
+    // Prepare stencil
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDrawBuffer(GL_NONE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glDisable(GL_CULL_FACE);
+        glClearStencil(1);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        
+        glStencilFunc(GL_ALWAYS, 0, 0);
+        
+        // 1 = sky
+        // 0 = ground
+        glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_ZERO, GL_KEEP);
+        
+        glUseProgram(mSkyStencilShader.shaderProg->getHandle());
+        
+        glBindVertexArray(mFullscreenVao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        
+        glUseProgram(0);
+        
+        // Only keep pixels that are not a part of the sky
+        glStencilFunc(GL_EQUAL, 0, 0xff);
+    }
+    
+    // Prepare blending
+    {
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT2
+        };
+        glDrawBuffers(1, colorAttachments);
+        
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_ONE, GL_ONE);
+    }
+    
+    {    
+        brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
+        rootNode->render(brightRPC);
+        mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
+    }
     
     
     // Stencil, culling, and blending were modified, reset to default values

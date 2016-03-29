@@ -106,42 +106,6 @@ void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration
     
     glm::vec3 lightDirection = glm::vec3(modelMat * glm::vec4(0.0, 0.0, 1.0, 0.0));
     
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawBuffer(GL_NONE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glDisable(GL_CULL_FACE);
-    glClearStencil(1);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    
-    glStencilFunc(GL_ALWAYS, 0, 0);
-    
-    // 1 = sky
-    // 0 = lit
-    glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_ZERO, GL_KEEP);
-    
-    glUseProgram(mMinimalShader->getHandle());
-    
-    glBindVertexArray(mDLightVao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    
-    glUseProgram(0);
-    
-    GLuint colorAttachments[] = {
-        GL_COLOR_ATTACHMENT2
-    };
-    glDrawBuffers(1, colorAttachments);
-    
-    // Only keep pixels for which this conditional is true
-    glStencilFunc(GL_EQUAL, 0, 0xff);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_ONE, GL_ONE);
-    
     glUseProgram(mShaderProg->getHandle());
     
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
