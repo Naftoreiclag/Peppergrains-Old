@@ -276,11 +276,11 @@ void SandboxGameLayer::onBegin() {
     testPlaneNode = new SceneNode();
     testGrassNode = new SceneNode();
     
-    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
+    testPlaneNode->attachModel(resman->findModel("TestPlane.model"));
     //testPlaneNode->grabModel(new TerrainModel());
     rootNode->addChild(testPlaneNode);
     
-    testGrassNode->grabModel(new GrassModel());
+    testGrassNode->attachModel(new GrassModel());
     rootNode->addChild(testGrassNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -289,9 +289,9 @@ void SandboxGameLayer::onBegin() {
     fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
     fpsCounter->grab();
 
-    friendNodeX->grabModel(resman->findModel("Door.model"));
-    friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
-    friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
+    friendNodeX->attachModel(resman->findModel("Door.model"));
+    friendNodeY->attachModel(resman->findModel("NormalMapTestCube.model"));
+    friendNodeZ->attachModel(resman->findModel("JellySmoothTorus.model"));
 
     
     rootNode->addChild(friendNodeX);
@@ -317,7 +317,7 @@ void SandboxGameLayer::onBegin() {
     mAxesModel->grab();
     
     iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
+    iago->attachModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
     iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
     rootNode->addChild(iago);
     
@@ -356,13 +356,13 @@ void SandboxGameLayer::onEnd() {
     
     mAxesModel->drop();
 
-    friendNodeX->dropModel();
-    friendNodeY->dropModel();
-    friendNodeZ->dropModel();
+    friendNodeX->detachModel();
+    friendNodeY->detachModel();
+    friendNodeZ->detachModel();
     
     mSunLightModel->drop();
     
-    testPlaneNode->dropModel();
+    testPlaneNode->detachModel();
     
     rainstormFont->drop();
     

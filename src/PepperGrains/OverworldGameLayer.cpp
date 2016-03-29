@@ -48,8 +48,8 @@ void OverworldGameLayer::onBegin() {
     mRootNode = new SceneNode();
     mRootNode->grab();
     
-    mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
-    mRootNode->newChild()->grabModel(new GrassModel());
+    mRootNode->newChild()->attachModel(resman->findModel("TestPlane.model"));
+    mRootNode->newChild()->attachModel(new GrassModel());
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();

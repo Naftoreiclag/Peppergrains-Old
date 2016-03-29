@@ -204,13 +204,13 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
-void SceneNode::grabModel(Model* modelRes) {
-    this->dropModel();
+void SceneNode::attachModel(Model* modelRes) {
+    this->detachModel();
 
     mModelRes = modelRes;
     modelRes->grab();
 }
-void SceneNode::dropModel() {
+void SceneNode::detachModel() {
     if(mModelRes) {
         mModelRes->drop();
         mModelRes = nullptr;
