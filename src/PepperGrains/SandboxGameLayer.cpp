@@ -91,14 +91,14 @@ void SandboxGameLayer::makeScreenShader() {
         mSkyStencilShader.shaderProg->grab();
     }
     {
-        mDebugScreenFillShader.shaderProg = resman->findShaderProgram("DebugFillScreen.shaderProgram");
-        mDebugScreenFillShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& vec3Controls = mDebugScreenFillShader.shaderProg->getUniformVec3s();
+        mFillScreenShader.shaderProg = resman->findShaderProgram("FillScreen.shaderProgram");
+        mFillScreenShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mFillScreenShader.shaderProg->getUniformVec3s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
             if(entry.name == "color") {
-                mDebugScreenFillShader.colorHandle = entry.handle;
+                mFillScreenShader.colorHandle = entry.handle;
             }
         }
     }
@@ -571,6 +571,14 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 rootNode->render(brightRPC);
                 mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
+                
+                // Ambient lighting
+                glUseProgram(mFillScreenShader.shaderProg->getHandle());
+                glUniform3fv(mFillScreenShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+                glBindVertexArray(mFullscreenVao);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+                glUseProgram(0);
             }
         }
     }
@@ -590,9 +598,9 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         // Populate the brightness buffer
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
         
-        glUseProgram(mDebugScreenFillShader.shaderProg->getHandle());
+        glUseProgram(mFillScreenShader.shaderProg->getHandle());
         
-        glUniform3fv(mDebugScreenFillShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.0, 1.0, 1.0)));
+        glUniform3fv(mFillScreenShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.0, 1.0, 1.0)));
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

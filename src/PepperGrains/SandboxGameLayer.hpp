@@ -68,7 +68,7 @@ private:
         ShaderProgramResource* shaderProg;
         GLuint colorHandle;
     };
-    DebugScreenFillShader mDebugScreenFillShader;
+    DebugScreenFillShader mFillScreenShader;
     
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
