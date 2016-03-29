@@ -11,7 +11,7 @@
    limitations under the License.
 */
 
-#include "SandboxGameLayer.hpp"
+#include "OverworldGameLayer.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -28,16 +28,16 @@
 namespace pgg
 {
 
-SandboxGameLayer::SandboxGameLayer(uint32_t width, uint32_t height)
+OverworldGameLayer::OverworldGameLayer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
 , mScreenHeight(height) {
 }
 
-SandboxGameLayer::~SandboxGameLayer()
+OverworldGameLayer::~OverworldGameLayer()
 {
 }
 
-void SandboxGameLayer::makeScreenShader() {
+void OverworldGameLayer::makeScreenShader() {
     ResourceManager* resman = ResourceManager::getSingleton();
     {
         mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
@@ -145,7 +145,7 @@ void SandboxGameLayer::makeScreenShader() {
     }
 }
 
-void SandboxGameLayer::makeGBuffer() {
+void OverworldGameLayer::makeGBuffer() {
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
@@ -215,7 +215,7 @@ void SandboxGameLayer::makeGBuffer() {
     }
 }
 
-void SandboxGameLayer::makeSun() {
+void OverworldGameLayer::makeSun() {
     mSunTextureWidth = 1024;
     
     // DepthStencil mapping
@@ -246,7 +246,7 @@ void SandboxGameLayer::makeSun() {
 }
 
 // Lifecycle
-void SandboxGameLayer::onBegin() {
+void OverworldGameLayer::onBegin() {
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -334,7 +334,7 @@ void SandboxGameLayer::onBegin() {
 
     oneSecondTimer = 0.f;
 }
-void SandboxGameLayer::onEnd() {
+void OverworldGameLayer::onEnd() {
     
     glDeleteBuffers(1, &mFullscreenIbo);
     glDeleteBuffers(1, &mFullscreenVbo);
@@ -372,7 +372,7 @@ void SandboxGameLayer::onEnd() {
 }
 
 // Ticks
-void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
+void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     glm::vec3 movement;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
@@ -712,7 +712,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     fpsCounter->render(fpsRPC, testMM);
 }
 
-bool SandboxGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
+bool OverworldGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
     float x = event.x;
     float y = event.y;
     float dx = event.xrel;
@@ -724,7 +724,7 @@ bool SandboxGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
     return true;
 }
 
-bool SandboxGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
+bool OverworldGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
     std::cout << event.data1 << ", " << event.data2 << std::endl;
     
     return true;

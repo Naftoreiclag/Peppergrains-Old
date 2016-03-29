@@ -155,6 +155,8 @@
     <File Name="PepperGrains.cpp"/>
     <File Name="SandboxGameLayer.hpp"/>
     <File Name="SandboxGameLayer.cpp"/>
+    <File Name="OverworldGameLayer.hpp"/>
+    <File Name="OverworldGameLayer.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

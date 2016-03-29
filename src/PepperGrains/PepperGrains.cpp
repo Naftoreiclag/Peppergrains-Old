@@ -21,6 +21,7 @@
 
 #include "ResourceManager.hpp"
 
+#include "OverworldGameLayer.hpp"
 #include "SandboxGameLayer.hpp"
 
 namespace pgg {
@@ -84,7 +85,7 @@ int PepperGrains::run(int argc, char* argv[]) {
 
     mGameLayerMachine = new GameLayerMachine();
     
-    mGameLayerMachine->addBottom(new SandboxGameLayer(windowWidth, windowHeight));
+    mGameLayerMachine->addBottom(new OverworldGameLayer(windowWidth, windowHeight));
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
