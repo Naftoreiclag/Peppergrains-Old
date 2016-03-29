@@ -29,7 +29,7 @@ SunLightModel::SharedResources* SunLightModel::SharedResources::getSharedInstanc
 void SunLightModel::SharedResources::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("SunLightVolume.shaderProgram");
-    mMinimalShader = resman->findShaderProgram("DirectionalLightStencil.shaderProgram");
+    mMinimalShader = resman->findShaderProgram("SkyStencil.shaderProgram");
     mShaderProg->grab();
     mMinimalShader->grab();
     
@@ -100,7 +100,7 @@ void SunLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mDLightVao);
 }
 void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Model::RenderPassType::BRIGHT) {
+    if(rendPass.type != Model::RenderPassType::GLOBAL_LIGHTS) {
         return;
     }
     

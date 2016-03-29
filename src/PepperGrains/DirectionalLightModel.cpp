@@ -29,7 +29,7 @@ DirectionalLightModel::SharedResources* DirectionalLightModel::SharedResources::
 void DirectionalLightModel::SharedResources::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("DirectionalLightVolume.shaderProgram");
-    mMinimalShader = resman->findShaderProgram("DirectionalLightStencil.shaderProgram");
+    mMinimalShader = resman->findShaderProgram("SkyStencil.shaderProgram");
     mShaderProg->grab();
     mMinimalShader->grab();
     
@@ -99,7 +99,7 @@ void DirectionalLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mDLightVao);
 }
 void DirectionalLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Model::RenderPassType::BRIGHT) {
+    if(rendPass.type != Model::RenderPassType::GLOBAL_LIGHTS) {
         return;
     }
     

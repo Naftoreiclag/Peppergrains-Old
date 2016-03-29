@@ -21,6 +21,7 @@
 #include "AxesModel.hpp"
 #include "SceneNode.hpp"
 #include "ResourceManager.hpp"
+#include "SunLightModel.hpp"
 #include "TerrainModel.hpp"
 #include "TextModel.hpp"
 
@@ -43,12 +44,7 @@ private:
         ShaderProgramResource* shaderProg;
         
         GLuint diffuseHandle;
-        GLuint normalHandle;
-        GLuint depthHandle;
         GLuint brightHandle;
-        
-        GLuint sunDepthHandle;
-        GLuint sunDirectionHandle;
     };
     
     ScreenShader mScreenShader;
@@ -66,22 +62,25 @@ private:
     
     DebugScreenShader mDebugScreenShader;
     
-    struct DebugFillScreenShader {
+    struct SkyStencilShader {
         ShaderProgramResource* shaderProg;
     };
     
-    DebugFillScreenShader mDebugFillScreenShader;
+    SkyStencilShader mSkyStencilShader;
     
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
     void makeScreenShader();
     void makeGBuffer();
-    void makeLightVao();
     void makeSun();
 public:
     SandboxGameLayer(uint32_t width, uint32_t height);
     ~SandboxGameLayer();
+    
+    SceneNode* mSun;
+    
+    SunLightModel* mSunLightModel;
     
     SceneNode* rootNode;
     SceneNode* friendNodeX;
@@ -102,13 +101,6 @@ public:
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
-    
-    ShaderProgramResource* mDLightShaderProg;
-    GLuint mDLightDiff;
-    GLuint mDLightNorm;
-    GLuint mDLightVao;
-    GLuint mDLightVbo;
-    GLuint mDLightIbo;
     
     uint32_t mSunTextureWidth;
     GLuint mSunFrameBuffer;

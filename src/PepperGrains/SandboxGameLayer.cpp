@@ -37,55 +37,6 @@ SandboxGameLayer::~SandboxGameLayer()
 {
 }
 
-void SandboxGameLayer::makeLightVao() {
-    ResourceManager* resman = ResourceManager::getSingleton();
-    mDLightShaderProg = resman->findShaderProgram("DLight.shaderProgram");
-    mDLightShaderProg->grab();
-    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDLightShaderProg->getUniformSampler2Ds();
-    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-        const ShaderProgramResource::Control& entry = *iter;
-        
-        if(entry.name == "diffuse") {
-            mDLightDiff = entry.handle;
-        }
-        else if(entry.name == "normal") {
-            mDLightNorm = entry.handle;
-        }
-    }
-    
-    GLfloat vertices[] = {
-        -1.f, -1.f,
-         1.f, -1.f,
-        -1.f,  1.f,
-         1.f,  1.f
-    };
-    GLuint indices[] = {
-        2, 0, 3,
-        3, 0, 1,
-    };
-    
-    glGenBuffers(1, &mDLightVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, mDLightVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &mDLightIbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mDLightIbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    
-    glGenVertexArrays(1, &mDLightVao);
-    glBindVertexArray(mDLightVao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, mDLightVbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mDLightIbo);
-
-    glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
-    glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-
-    glBindVertexArray(0);
-}
-
 void SandboxGameLayer::makeScreenShader() {
     ResourceManager* resman = ResourceManager::getSingleton();
     
@@ -99,30 +50,10 @@ void SandboxGameLayer::makeScreenShader() {
             if(entry.name == "diffuse") {
                 mScreenShader.diffuseHandle = entry.handle;
             }
-            else if(entry.name == "normal") {
-                mScreenShader.normalHandle = entry.handle;
-            }
-            else if(entry.name == "depth") {
-                mScreenShader.depthHandle = entry.handle;
-            }
             else if(entry.name == "bright") {
                 mScreenShader.brightHandle = entry.handle;
             }
-            else if(entry.name == "sunDepth") {
-                mScreenShader.sunDepthHandle = entry.handle;
-            }
         }
-        const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getUniformVec3s();
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
-            const ShaderProgramResource::Control& entry = *iter;
-            
-            if(entry.name == "sunDirection") {
-                mScreenShader.sunDirectionHandle = entry.handle;
-            }
-        }
-        
-        assert(mScreenShader.shaderProg->needsInvViewProjMatrix() && "G-buffer shader does not accept inverse view projection matrix");
-        assert(mScreenShader.shaderProg->needsSunViewProjMatrix() && "G-buffer shader does not accept sun view projection matrix");
     }
     {
         mDebugScreenShader.shaderProg = resman->findShaderProgram("GBufferDebug.shaderProgram");
@@ -156,18 +87,18 @@ void SandboxGameLayer::makeScreenShader() {
         assert(mDebugScreenShader.shaderProg->needsInvViewProjMatrix() && "Debug G-buffer shader does not accept inverse view projection matrix");
     }
     {
-        mDebugFillScreenShader.shaderProg = resman->findShaderProgram("GBufferDebugFill.shaderProgram");
-        mDebugFillScreenShader.shaderProg->grab();
+        mSkyStencilShader.shaderProg = resman->findShaderProgram("SkyStencil.shaderProgram");
+        mSkyStencilShader.shaderProg->grab();
     }
     
     
     // Fullscreen quad
     {
         GLfloat vertices[] = {
-            -1.f, -1.f, 0.f, 0.f,
-             1.f, -1.f, 1.f, 0.f,
-            -1.f,  1.f, 0.f, 1.f,
-             1.f,  1.f, 1.f, 1.f
+            -1.f, -1.f,
+             1.f, -1.f,
+            -1.f,  1.f,
+             1.f,  1.f
         };
         GLuint indices[] = {
             2, 0, 3,
@@ -191,14 +122,10 @@ void SandboxGameLayer::makeScreenShader() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
 
         glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(mScreenShader.shaderProg->getUVAttrib());
-        glVertexAttribPointer(mScreenShader.shaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
+        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
         
         glEnableVertexAttribArray(mDebugScreenShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mDebugScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(mDebugScreenShader.shaderProg->getUVAttrib());
-        glVertexAttribPointer(mDebugScreenShader.shaderProg->getUVAttrib(), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (2 * sizeof(GLfloat)));
+        glVertexAttribPointer(mDebugScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
         glBindVertexArray(0);
     }
@@ -382,7 +309,9 @@ void SandboxGameLayer::onBegin() {
     rootNode->addChild(iago);
     
     //mCamLocNode->grabModel(new DirectionalLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
-    mCamRollNode->grabModel(new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
+    
+    mSunLightModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
+    mSunLightModel->grab();
 
     fps = 0.f;
     mIago = 0.f;
@@ -417,6 +346,8 @@ void SandboxGameLayer::onEnd() {
     friendNodeX->dropModel();
     friendNodeY->dropModel();
     friendNodeZ->dropModel();
+    
+    mSunLightModel->drop();
     
     testPlaneNode->dropModel();
     
@@ -468,12 +399,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
     friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
-    
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
-        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
-    }
-    
-    
+
     glm::vec4 debugShow;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
         debugShow.x = 1.f;
@@ -494,17 +420,12 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         mDebugWireframe = false;
     }
     
-    //mCamRollNode->calcWorldTranslation(mSunPos);
-    //mSunDir = glm::vec3(glm::sin(mIago), -1.f, glm::cos(mIago));
-    //mSunDir = glm::normalize(mSunDir);
-    
-    /*
-    mSunDir = glm::vec3(-1.f, -1.f, -1.f);
-    mSunDir = glm::normalize(mSunDir);
-    */
-    
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
+        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
+    }
     mSunViewMatr = glm::lookAt(mSunPos - mSunDir, mSunPos, glm::vec3(0.f, 1.f, 0.f));
     mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+    
     
     // Sun? buffer
     glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
@@ -524,11 +445,13 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     // Geometry pass
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
-    GLuint colorAttachments1[] = {
-        GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1
-    };
-    glDrawBuffers(2, colorAttachments1);
+    {
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0,
+            GL_COLOR_ATTACHMENT1
+        };
+        glDrawBuffers(2, colorAttachments);
+    }
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -551,32 +474,42 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(rootNodeRPC);
     
     // Brightness Render
-    GLuint colorAttachments2[] = {
-        GL_COLOR_ATTACHMENT2
-    };
-    glDrawBuffers(1, colorAttachments2);
     
     // Clear brightness
-    glClearColor(0.f, 0.0f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    {
+        GLuint colorAttachment[] = {
+            GL_COLOR_ATTACHMENT2
+        };
+        glDrawBuffers(1, colorAttachment);
+        glClearColor(0.f, 0.0f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
     
     // Do not write to the depth buffer
     glDepthMask(GL_FALSE);
     
     glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
     
-    Model::RenderPassConfiguration brightRPC(Model::RenderPassType::BRIGHT);
+    Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
     brightRPC.viewMat = viewMat;
     brightRPC.projMat = projMat;
     brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
     brightRPC.normalTexture = mGBuff.normalTexture;
     brightRPC.sunViewProjMatr = sunViewProjMat;
     brightRPC.sunDepthTexture = mSunDepthTexture;
+    
+    // Render local lights
     rootNode->render(brightRPC);
+    
+    // Render global lights
+    brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
+    mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
+    
+    
     
     // Stencil, culling, and blending were modified, reset to default values
     glDisable(GL_STENCIL_TEST);
-    glEnable(GL_CULL_FACE);    
+    glDisable(GL_CULL_FACE);    
     glDisable(GL_BLEND);
     glCullFace(GL_BACK);
     glDepthFunc(GL_LESS);
@@ -622,36 +555,17 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glUseProgram(0);
     } else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
-     
-        glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
-        glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
-        
-        glUniformMatrix4fv(mScreenShader.shaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(sunViewProjMat));
-        glUniform3fv(mScreenShader.sunDirectionHandle, 1, glm::value_ptr(mSunDir));
         
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glUniform1i(mScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
-        glUniform1i(mScreenShader.normalHandle, 1);
-        
-        glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
-        glUniform1i(mScreenShader.depthHandle, 2);
-        
-        glActiveTexture(GL_TEXTURE0 + 3);
         glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
-        glUniform1i(mScreenShader.brightHandle, 3);
-        
-        glActiveTexture(GL_TEXTURE0 + 4);
-        glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-        glUniform1i(mScreenShader.sunDepthHandle, 4);
+        glUniform1i(mScreenShader.brightHandle, 1);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        
         glBindVertexArray(0);
         
         glUseProgram(0);
