@@ -76,6 +76,7 @@ private:
     void makeScreenShader();
     void makeGBuffer();
     void makeSun();
+    void renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe);
 public:
     OverworldGameLayer(uint32_t width, uint32_t height);
     ~OverworldGameLayer();
@@ -134,6 +135,7 @@ public:
     bool onMouseMove(const SDL_MouseMotionEvent& event);
     
     bool onWindowSizeUpdate(const SDL_WindowEvent& event);
+    
 };
 
 }

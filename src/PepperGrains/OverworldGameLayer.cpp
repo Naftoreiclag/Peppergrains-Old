@@ -370,76 +370,7 @@ void OverworldGameLayer::onEnd() {
     
     glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
 }
-
-// Ticks
-void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
-    
-    glm::vec3 movement;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
-        movement.z -= 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
-        movement.x -= 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
-        movement.z += 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
-        movement.x += 1.0;
-    }
-    if(movement != glm::vec3(0.f)) {
-        glm::normalize(movement);
-        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
-            movement *= 10.f;
-        }
-        
-        movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
-        mCamLocNode->move(movement);
-    }
-
-    
-    glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
-
-    glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
-    glm::mat4 testMM;
-    
-    mIago += tpf;
-    
-    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
-    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
-    
-    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
-    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
-
-    glm::vec4 debugShow;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
-        debugShow.x = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
-        debugShow.y = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
-        debugShow.z = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
-        debugShow.w = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
-        mDebugWireframe = true;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
-        mDebugWireframe = false;
-    }
-    
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
-        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
-    }
-    mSunViewMatr = glm::lookAt(mSunPos - mSunDir, mSunPos, glm::vec3(0.f, 1.f, 0.f));
-    mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
-    
-    
+void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe) {
     // Sun? buffer
     glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSunFrameBuffer);
@@ -475,7 +406,7 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        if(mDebugWireframe) {
+        if(wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         else {
@@ -666,25 +597,72 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         
         glUseProgram(0);
     }
+}
+
+// Ticks
+void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
+    glm::vec3 movement;
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
+        movement.z -= 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
+        movement.x -= 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
+        movement.z += 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
+        movement.x += 1.0;
+    }
+    if(movement != glm::vec3(0.f)) {
+        glm::normalize(movement);
+        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
+            movement *= 10.f;
+        }
+        
+        movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
+        mCamLocNode->move(movement);
+    }
+
     
-    // Skybox render
-    /*
-    glViewport(0, 0, mScreenWidth, mScreenHeight);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glDepthMask(GL_FALSE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
+    glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
+    glm::mat4 projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
     
-    glUseProgram(mDebugFillScreenShader.shaderProg->getHandle());
-    glBindVertexArray(mFullscreenVao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-    */
+    mIago += tpf;
     
+    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
+    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
     
+    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
+    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
+
+    glm::vec4 debugShow;
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
+        debugShow.x = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
+        debugShow.y = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
+        debugShow.z = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
+        debugShow.w = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+        mDebugWireframe = true;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
+        mDebugWireframe = false;
+    }
+    
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
+        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
+    }
+    mSunViewMatr = glm::lookAt(mSunPos - mSunDir, mSunPos, glm::vec3(0.f, 1.f, 0.f));
+    mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+    
+    renderFrame(viewMat, projMat, debugShow, mDebugWireframe);
     
     if(tpf > 0) {
         float fpsNew = 1 / tpf;
@@ -705,11 +683,13 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         fpsCounter->grab();
     }
     
+    glm::mat4 viewMatOverlay;
+    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
     
     Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
-    fpsCounter->render(fpsRPC, testMM);
+    fpsCounter->render(fpsRPC, glm::mat4());
 }
 
 bool OverworldGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
