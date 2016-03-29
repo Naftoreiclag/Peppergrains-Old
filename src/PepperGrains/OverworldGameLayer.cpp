@@ -37,115 +37,89 @@ OverworldGameLayer::~OverworldGameLayer()
 {
 }
 
-void OverworldGameLayer::makeScreenShader() {
+// Lifecycle
+void OverworldGameLayer::onBegin() {
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    
+    loadGBuffer();
+    loadSun();
+
     ResourceManager* resman = ResourceManager::getSingleton();
-    {
-        mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
-        mScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-            const ShaderProgramResource::Control& entry = *iter;
-            
-            if(entry.name == "diffuse") {
-                mScreenShader.diffuseHandle = entry.handle;
-            }
-            else if(entry.name == "bright") {
-                mScreenShader.brightHandle = entry.handle;
-            }
-        }
-    }
-    {
-        mDebugScreenShader.shaderProg = resman->findShaderProgram("GBufferDebug.shaderProgram");
-        mDebugScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDebugScreenShader.shaderProg->getUniformSampler2Ds();
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-            const ShaderProgramResource::Control& entry = *iter;
-            
-            if(entry.name == "diffuse") {
-                mDebugScreenShader.diffuseHandle = entry.handle;
-            }
-            else if(entry.name == "normal") {
-                mDebugScreenShader.normalHandle = entry.handle;
-            }
-            else if(entry.name == "depth") {
-                mDebugScreenShader.depthHandle = entry.handle;
-            }
-            else if(entry.name == "bright") {
-                mDebugScreenShader.brightHandle = entry.handle;
-            }
-        }
-        const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugScreenShader.shaderProg->getUniformVec4s();
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
-            const ShaderProgramResource::Control& entry = *iter;
-            
-            if(entry.name == "showWhat") {
-                mDebugScreenShader.viewHandle = entry.handle;
-            }
-        }
-        
-        assert(mDebugScreenShader.shaderProg->needsInvViewProjMatrix() && "Debug G-buffer shader does not accept inverse view projection matrix");
-    }
-    {
-        mSkyStencilShader.shaderProg = resman->findShaderProgram("SkyStencil.shaderProgram");
-        mSkyStencilShader.shaderProg->grab();
-    }
-    {
-        mFillScreenShader.shaderProg = resman->findShaderProgram("FillScreen.shaderProgram");
-        mFillScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& vec3Controls = mFillScreenShader.shaderProg->getUniformVec3s();
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
-            const ShaderProgramResource::Control& entry = *iter;
-            
-            if(entry.name == "color") {
-                mFillScreenShader.colorHandle = entry.handle;
-            }
-        }
-    }
+
+    rootNode = new SceneNode();
+    friendNodeX = new SceneNode();
+    friendNodeY = new SceneNode();
+    friendNodeZ = new SceneNode();
+    testPlaneNode = new SceneNode();
+    testGrassNode = new SceneNode();
     
+    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
+    //testPlaneNode->grabModel(new TerrainModel());
+    rootNode->addChild(testPlaneNode);
     
-    // Fullscreen quad
-    {
-        GLfloat vertices[] = {
-            -1.f, -1.f,
-             1.f, -1.f,
-            -1.f,  1.f,
-             1.f,  1.f
-        };
-        GLuint indices[] = {
-            2, 0, 3,
-            3, 0, 1,
-        };
-        
-        glGenBuffers(1, &mFullscreenVbo);
-        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    testGrassNode->grabModel(new GrassModel());
+    rootNode->addChild(testGrassNode);
+    
+    rainstormFont = resman->findFont("Rainstorm.font");
+    rainstormFont->grab();
 
-        glGenBuffers(1, &mFullscreenIbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        
-        glGenVertexArrays(1, &mFullscreenVao);
-        glBindVertexArray(mFullscreenVao);
+    fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
+    fpsCounter->grab();
 
-        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
+    friendNodeX->grabModel(resman->findModel("Door.model"));
+    friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
+    friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
 
-        glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        
-        glEnableVertexAttribArray(mDebugScreenShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mDebugScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-        
-        glEnableVertexAttribArray(mSkyStencilShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mSkyStencilShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+    
+    rootNode->addChild(friendNodeX);
+    rootNode->addChild(friendNodeY);
+    rootNode->addChild(friendNodeZ);
+    
+    friendNodeX->move(glm::vec3(-3.f, 0.f, 0.f));
+    friendNodeY->move(glm::vec3(0.f, 3.f, 0.f));
+    friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
+    
+    mCamRollNode = new SceneNode();
+    mCamPitchNode = new SceneNode();
+    mCamYawNode = new SceneNode();
+    mCamLocNode = new SceneNode();
+    mCamLocNode->move(glm::vec3(2.f, 4.f, 3.f));
+    
+    rootNode->addChild(mCamLocNode);
+    mCamLocNode->addChild(mCamYawNode);
+    mCamYawNode->addChild(mCamPitchNode);
+    mCamPitchNode->addChild(mCamRollNode);
 
-        glBindVertexArray(0);
-    }
+    mAxesModel = new AxesModel();
+    mAxesModel->grab();
+    
+    iago = new SceneNode();
+    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
+    iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
+    rootNode->addChild(iago);
+
+    fps = 0.f;
+    mIago = 0.f;
+    fpsWeight = 0.85f;
+    
+    mDebugWireframe = false;
+
+    oneSecondTimer = 0.f;
+}
+void OverworldGameLayer::onEnd() {
+    unloadGBuffer();
+    unloadSun();
+    
+    fpsCounter->drop();
+    mAxesModel->drop();
+    friendNodeX->dropModel();
+    friendNodeY->dropModel();
+    friendNodeZ->dropModel();
+    testPlaneNode->dropModel();
+    rainstormFont->drop();
 }
 
-void OverworldGameLayer::makeGBuffer() {
+void OverworldGameLayer::loadGBuffer() {
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
@@ -213,10 +187,136 @@ void OverworldGameLayer::makeGBuffer() {
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-}
+    
+    ResourceManager* resman = ResourceManager::getSingleton();
+    // GBuffer shader
+    {
+        mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
+        mScreenShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "diffuse") {
+                mScreenShader.diffuseHandle = entry.handle;
+            }
+            else if(entry.name == "bright") {
+                mScreenShader.brightHandle = entry.handle;
+            }
+        }
+    }
+    // Debug shader
+    {
+        mDebugScreenShader.shaderProg = resman->findShaderProgram("GBufferDebug.shaderProgram");
+        mDebugScreenShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDebugScreenShader.shaderProg->getUniformSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "diffuse") {
+                mDebugScreenShader.diffuseHandle = entry.handle;
+            }
+            else if(entry.name == "normal") {
+                mDebugScreenShader.normalHandle = entry.handle;
+            }
+            else if(entry.name == "depth") {
+                mDebugScreenShader.depthHandle = entry.handle;
+            }
+            else if(entry.name == "bright") {
+                mDebugScreenShader.brightHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugScreenShader.shaderProg->getUniformVec4s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "showWhat") {
+                mDebugScreenShader.viewHandle = entry.handle;
+            }
+        }
+        
+        assert(mDebugScreenShader.shaderProg->needsInvViewProjMatrix() && "Debug G-buffer shader does not accept inverse view projection matrix");
+    }
+    // Sky stencil shader
+    {
+        mSkyStencilShader.shaderProg = resman->findShaderProgram("SkyStencil.shaderProgram");
+        mSkyStencilShader.shaderProg->grab();
+    }
+    // Fill screen shader
+    {
+        mFillScreenShader.shaderProg = resman->findShaderProgram("FillScreen.shaderProgram");
+        mFillScreenShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mFillScreenShader.shaderProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "color") {
+                mFillScreenShader.colorHandle = entry.handle;
+            }
+        }
+    }
+    // Fullscreen quad
+    {
+        GLfloat vertices[] = {
+            -1.f, -1.f,
+             1.f, -1.f,
+            -1.f,  1.f,
+             1.f,  1.f
+        };
+        GLuint indices[] = {
+            2, 0, 3,
+            3, 0, 1,
+        };
+        
+        glGenBuffers(1, &mFullscreenVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-void OverworldGameLayer::makeSun() {
+        glGenBuffers(1, &mFullscreenIbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        
+        glGenVertexArrays(1, &mFullscreenVao);
+        glBindVertexArray(mFullscreenVao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
+
+        glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
+        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        
+        glEnableVertexAttribArray(mDebugScreenShader.shaderProg->getPosAttrib());
+        glVertexAttribPointer(mDebugScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        
+        glEnableVertexAttribArray(mSkyStencilShader.shaderProg->getPosAttrib());
+        glVertexAttribPointer(mSkyStencilShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+
+        glBindVertexArray(0);
+    }
+}
+void OverworldGameLayer::unloadGBuffer() {
+    glDeleteBuffers(1, &mFullscreenIbo);
+    glDeleteBuffers(1, &mFullscreenVbo);
+    glDeleteVertexArrays(1, &mFullscreenVao);
+    
+    glDeleteTextures(1, &mGBuff.diffuseTexture);
+    glDeleteTextures(1, &mGBuff.normalTexture);
+    glDeleteTextures(1, &mGBuff.depthStencilTexture);
+    glDeleteTextures(1, &mGBuff.brightTexture);
+    glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
+
+    mScreenShader.shaderProg->drop();
+    mDebugScreenShader.shaderProg->drop();
+    mSkyStencilShader.shaderProg->drop();
+    mFillScreenShader.shaderProg->drop();
+}
+void OverworldGameLayer::loadSun() {
     mSunTextureWidth = 1024;
+    mSunDir = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
+    mSunLightModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
+    mSunLightModel->grab();
     
     // DepthStencil mapping
     glGenTextures(1, &mSunDepthTexture);
@@ -227,7 +327,6 @@ void OverworldGameLayer::makeSun() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glGenFramebuffers(1, &mSunFrameBuffer);
@@ -242,133 +341,11 @@ void OverworldGameLayer::makeSun() {
         std::cout << "Sun Incomplete" << std::endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
 }
-
-// Lifecycle
-void OverworldGameLayer::onBegin() {
-
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-    
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) 1.f, 0.f, (float) 1.f);
-    
-    glm::vec4 test(0.0f, 0.0f, 0.0f, 1.0f);
-    test = projMatOverlay * test;
-    
-    std::cout << glm::to_string(test) << std::endl;
-
-    ResourceManager* resman = ResourceManager::getSingleton();
-    
-    makeScreenShader();
-    makeGBuffer();
-    //makeLightVao();
-    makeSun();
-    
-    //testTerrain = new TerrainModel();
-    //testTerrain->grab();
-    
-    mSunDir = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
-
-    rootNode = new SceneNode();
-    friendNodeX = new SceneNode();
-    friendNodeY = new SceneNode();
-    friendNodeZ = new SceneNode();
-    testPlaneNode = new SceneNode();
-    testGrassNode = new SceneNode();
-    
-    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
-    //testPlaneNode->grabModel(new TerrainModel());
-    rootNode->addChild(testPlaneNode);
-    
-    testGrassNode->grabModel(new GrassModel());
-    rootNode->addChild(testGrassNode);
-    
-    rainstormFont = resman->findFont("Rainstorm.font");
-    rainstormFont->grab();
-
-    fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
-    fpsCounter->grab();
-
-    friendNodeX->grabModel(resman->findModel("Door.model"));
-    friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
-    friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
-
-    
-    rootNode->addChild(friendNodeX);
-    rootNode->addChild(friendNodeY);
-    rootNode->addChild(friendNodeZ);
-    
-    friendNodeX->move(glm::vec3(-3.f, 0.f, 0.f));
-    friendNodeY->move(glm::vec3(0.f, 3.f, 0.f));
-    friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
-    
-    mCamRollNode = new SceneNode();
-    mCamPitchNode = new SceneNode();
-    mCamYawNode = new SceneNode();
-    mCamLocNode = new SceneNode();
-    mCamLocNode->move(glm::vec3(2.f, 4.f, 3.f));
-    
-    rootNode->addChild(mCamLocNode);
-    mCamLocNode->addChild(mCamYawNode);
-    mCamYawNode->addChild(mCamPitchNode);
-    mCamPitchNode->addChild(mCamRollNode);
-
-    mAxesModel = new AxesModel();
-    mAxesModel->grab();
-    
-    iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
-    iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
-    rootNode->addChild(iago);
-    
-    //mCamLocNode->grabModel(new DirectionalLightModel(glm::vec3(1.0f, 1.0f, 1.0f)));
-    
-    mSunLightModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
-    mSunLightModel->grab();
-
-    fps = 0.f;
-    mIago = 0.f;
-    fpsWeight = 0.85f;
-    
-    mDebugWireframe = false;
-
-    oneSecondTimer = 0.f;
-}
-void OverworldGameLayer::onEnd() {
-    
-    glDeleteBuffers(1, &mFullscreenIbo);
-    glDeleteBuffers(1, &mFullscreenVbo);
-    
-    glDeleteTextures(1, &mGBuff.diffuseTexture);
-    glDeleteTextures(1, &mGBuff.normalTexture);
-    glDeleteTextures(1, &mGBuff.depthStencilTexture);
-    glDeleteTextures(1, &mGBuff.brightTexture);
-    
+void OverworldGameLayer::unloadSun() {
     glDeleteTextures(1, &mSunDepthTexture);
     glDeleteFramebuffers(1, &mSunFrameBuffer);
-
-    mScreenShader.shaderProg->drop();
-    mDebugScreenShader.shaderProg->drop();
-
-    glDeleteVertexArrays(1, &mFullscreenVao);
-    
-    fpsCounter->drop();
-    
-    mAxesModel->drop();
-
-    friendNodeX->dropModel();
-    friendNodeY->dropModel();
-    friendNodeZ->dropModel();
-    
     mSunLightModel->drop();
-    
-    testPlaneNode->dropModel();
-    
-    rainstormFont->drop();
-    
-    //testTerrain->drop();
-    
-    glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
 }
 void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe) {
     // Sun? buffer

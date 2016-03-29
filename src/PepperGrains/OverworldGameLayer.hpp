@@ -73,9 +73,11 @@ private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
-    void makeScreenShader();
-    void makeGBuffer();
-    void makeSun();
+    void loadGBuffer();
+    void unloadGBuffer();
+    void loadSun();
+    void unloadSun();
+    
     void renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe);
 public:
     OverworldGameLayer(uint32_t width, uint32_t height);
