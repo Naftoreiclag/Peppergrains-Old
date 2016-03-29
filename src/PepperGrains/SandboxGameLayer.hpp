@@ -37,7 +37,6 @@ private:
         GLuint brightTexture;
         GLuint depthStencilTexture;
     };
-    
     GBuffer mGBuff;
 
     struct ScreenShader {
@@ -46,7 +45,6 @@ private:
         GLuint diffuseHandle;
         GLuint brightHandle;
     };
-    
     ScreenShader mScreenShader;
     
     struct DebugScreenShader {
@@ -59,14 +57,18 @@ private:
         
         GLuint viewHandle;
     };
-    
     DebugScreenShader mDebugScreenShader;
     
     struct SkyStencilShader {
         ShaderProgramResource* shaderProg;
     };
-    
     SkyStencilShader mSkyStencilShader;
+    
+    struct DebugScreenFillShader {
+        ShaderProgramResource* shaderProg;
+        GLuint colorHandle;
+    };
+    DebugScreenFillShader mDebugScreenFillShader;
     
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;

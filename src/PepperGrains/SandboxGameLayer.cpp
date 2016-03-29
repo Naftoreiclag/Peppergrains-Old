@@ -90,6 +90,18 @@ void SandboxGameLayer::makeScreenShader() {
         mSkyStencilShader.shaderProg = resman->findShaderProgram("SkyStencil.shaderProgram");
         mSkyStencilShader.shaderProg->grab();
     }
+    {
+        mDebugScreenFillShader.shaderProg = resman->findShaderProgram("DebugFillScreen.shaderProgram");
+        mDebugScreenFillShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mDebugScreenFillShader.shaderProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "color") {
+                mDebugScreenFillShader.colorHandle = entry.handle;
+            }
+        }
+    }
     
     
     // Fullscreen quad
@@ -436,6 +448,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
     
@@ -445,84 +458,141 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     rootNode->render(sunRPC);
     
     // Geometry pass
-    glViewport(0, 0, mScreenWidth, mScreenHeight);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
     {
+        glViewport(0, 0, mScreenWidth, mScreenHeight);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
             GL_COLOR_ATTACHMENT1
         };
         glDrawBuffers(2, colorAttachments);
-    }
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glDisable(GL_STENCIL_TEST);
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    if(mDebugWireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-    
-    Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
-    rootNodeRPC.viewMat = viewMat;
-    rootNodeRPC.projMat = projMat;
-    rootNode->render(rootNodeRPC);
-    
-    // Brightness Render
-    
-    // Clear brightness
-    {
-        GLuint colorAttachment[] = {
-            GL_COLOR_ATTACHMENT2
-        };
-        glDrawBuffers(1, colorAttachment);
-        glClearColor(0.f, 0.0f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-    
-    // Do not write to the depth buffer
-    glDepthMask(GL_FALSE);
-    
-    glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
-    
-    Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
-    brightRPC.viewMat = viewMat;
-    brightRPC.projMat = projMat;
-    brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
-    brightRPC.normalTexture = mGBuff.normalTexture;
-    brightRPC.sunViewProjMatr = sunViewProjMat;
-    brightRPC.sunDepthTexture = mSunDepthTexture;
-    
-    // Render local lights
-    rootNode->render(brightRPC);
-    
-    // Render global lights
-    
-    // Prepare stencil
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDrawBuffer(GL_NONE);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glEnable(GL_STENCIL_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        if(mDebugWireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        
+        Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
+        rootNodeRPC.viewMat = viewMat;
+        rootNodeRPC.projMat = projMat;
+        rootNode->render(rootNodeRPC);
+    }
+    
+    // Brightness Render
+    {
+        // Clear brightness
+        {
+            GLuint colorAttachment[] = {
+                GL_COLOR_ATTACHMENT2
+            };
+            glDrawBuffers(1, colorAttachment);
+            glClearColor(0.f, 0.0f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+        
+        // Do not write to the depth buffer
+        glDepthMask(GL_FALSE);
+        
+        // Filled polygons
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        
+        glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
+        
+        // Render pass config
+        Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
+        brightRPC.viewMat = viewMat;
+        brightRPC.projMat = projMat;
+        brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
+        brightRPC.normalTexture = mGBuff.normalTexture;
+        brightRPC.sunViewProjMatr = sunViewProjMat;
+        brightRPC.sunDepthTexture = mSunDepthTexture;
+        
+        // Render local lights
+        rootNode->render(brightRPC);
+        
+        // Render global lights
+        {
+            // Prepare stencil
+            // This also fills the diffuse buffer with white
+            {
+                glDrawBuffer(GL_COLOR_ATTACHMENT0);
+                glEnable(GL_DEPTH_TEST);
+                glDepthFunc(GL_LESS);
+                glEnable(GL_STENCIL_TEST);
+                glDisable(GL_CULL_FACE);
+                glClearStencil(1);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                
+                glStencilFunc(GL_ALWAYS, 0, 0);
+                
+                // 1 = sky
+                // 0 = ground
+                glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_ZERO, GL_KEEP);
+                
+                glUseProgram(mSkyStencilShader.shaderProg->getHandle());
+                
+                glBindVertexArray(mFullscreenVao);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+                
+                glUseProgram(0);
+                
+                // Only keep pixels that are not a part of the sky
+                glStencilFunc(GL_EQUAL, 0, 0xff);
+            }
+            
+            // Prepare blending
+            {
+                GLuint colorAttachments[] = {
+                    GL_COLOR_ATTACHMENT2
+                };
+                glDrawBuffers(1, colorAttachments);
+                
+                glDisable(GL_DEPTH_TEST);
+                glDisable(GL_CULL_FACE);
+                glEnable(GL_BLEND);
+                glBlendEquation(GL_FUNC_ADD);
+                glBlendFunc(GL_ONE, GL_ONE);
+            }
+            
+            // Actual rendering
+            {    
+                brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
+                rootNode->render(brightRPC);
+                mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
+            }
+        }
+    }
+    
+    // Sky render
+    {
+        // Note: this makes use of the stencil created during the global brightness render
+        
+        glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
-        glClearStencil(1);
-        glClear(GL_STENCIL_BUFFER_BIT);
+        glDisable(GL_BLEND);
+        glEnable(GL_STENCIL_TEST);
         
-        glStencilFunc(GL_ALWAYS, 0, 0);
+        // Only keep pixels that are a part of the sky
+        glStencilFunc(GL_EQUAL, 1, 0xff);
         
-        // 1 = sky
-        // 0 = ground
-        glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_ZERO, GL_KEEP);
+        // Populate the brightness buffer
+        glDrawBuffer(GL_COLOR_ATTACHMENT2);
         
-        glUseProgram(mSkyStencilShader.shaderProg->getHandle());
+        glUseProgram(mDebugScreenFillShader.shaderProg->getHandle());
+        
+        glUniform3fv(mDebugScreenFillShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.0, 1.0, 1.0)));
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -530,45 +600,16 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         
         glUseProgram(0);
         
-        // Only keep pixels that are not a part of the sky
-        glStencilFunc(GL_EQUAL, 0, 0xff);
     }
-    
-    // Prepare blending
-    {
-        GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT2
-        };
-        glDrawBuffers(1, colorAttachments);
-        
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFunc(GL_ONE, GL_ONE);
-    }
-    
-    {    
-        brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
-        rootNode->render(brightRPC);
-        mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
-    }
-    
-    
-    // Stencil, culling, and blending were modified, reset to default values
-    glDisable(GL_STENCIL_TEST);
-    glDisable(GL_CULL_FACE);    
-    glDisable(GL_BLEND);
-    glCullFace(GL_BACK);
-    glDepthFunc(GL_LESS);
     
     // Screen render
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
     glDepthFunc(GL_EQUAL);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
