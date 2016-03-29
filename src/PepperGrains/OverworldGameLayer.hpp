@@ -102,11 +102,7 @@ public:
     ~OverworldGameLayer();
     
     
-    SceneNode* rootNode;
-    SceneNode* friendNodeX;
-    SceneNode* friendNodeY;
-    SceneNode* friendNodeZ;
-    SceneNode* iago;
+    SceneNode* mRootNode;
     
     SceneNode* mCamLocNode;
     SceneNode* mCamYawNode;
@@ -116,13 +112,9 @@ public:
     SceneNode* testPlaneNode;
     SceneNode* testGrassNode;
     
-    AxesModel* mAxesModel;
-    
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
-    
-    float mIago;
     
     FontResource* rainstormFont;
     TextModel* fpsCounter;

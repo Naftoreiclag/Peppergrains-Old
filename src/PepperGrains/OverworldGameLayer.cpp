@@ -45,38 +45,21 @@ void OverworldGameLayer::onBegin() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
 
-    rootNode = new SceneNode();
-    friendNodeX = new SceneNode();
-    friendNodeY = new SceneNode();
-    friendNodeZ = new SceneNode();
+    mRootNode = new SceneNode();
     testPlaneNode = new SceneNode();
     testGrassNode = new SceneNode();
     
     testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
-    //testPlaneNode->grabModel(new TerrainModel());
-    rootNode->addChild(testPlaneNode);
+    mRootNode->addChild(testPlaneNode);
     
     testGrassNode->grabModel(new GrassModel());
-    rootNode->addChild(testGrassNode);
+    mRootNode->addChild(testGrassNode);
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
 
     fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
     fpsCounter->grab();
-
-    friendNodeX->grabModel(resman->findModel("Door.model"));
-    friendNodeY->grabModel(resman->findModel("NormalMapTestCube.model"));
-    friendNodeZ->grabModel(resman->findModel("JellySmoothTorus.model"));
-
-    
-    rootNode->addChild(friendNodeX);
-    rootNode->addChild(friendNodeY);
-    rootNode->addChild(friendNodeZ);
-    
-    friendNodeX->move(glm::vec3(-3.f, 0.f, 0.f));
-    friendNodeY->move(glm::vec3(0.f, 3.f, 0.f));
-    friendNodeZ->move(glm::vec3(2.f, 2.f, 0.f));
     
     mCamRollNode = new SceneNode();
     mCamPitchNode = new SceneNode();
@@ -84,21 +67,12 @@ void OverworldGameLayer::onBegin() {
     mCamLocNode = new SceneNode();
     mCamLocNode->move(glm::vec3(2.f, 4.f, 3.f));
     
-    rootNode->addChild(mCamLocNode);
+    mRootNode->addChild(mCamLocNode);
     mCamLocNode->addChild(mCamYawNode);
     mCamYawNode->addChild(mCamPitchNode);
     mCamPitchNode->addChild(mCamRollNode);
 
-    mAxesModel = new AxesModel();
-    mAxesModel->grab();
-    
-    iago = new SceneNode();
-    iago->grabModel(new PointLightModel(glm::vec3(0.0f, 1.0f, 1.0f), 1.00f));
-    iago->setLocalTranslation(glm::vec3(0.f, 1.5f, 3.f));
-    rootNode->addChild(iago);
-
     fps = 0.f;
-    mIago = 0.f;
     fpsWeight = 0.85f;
     
     mDebugWireframe = false;
@@ -110,10 +84,6 @@ void OverworldGameLayer::onEnd() {
     unloadSun();
     
     fpsCounter->drop();
-    mAxesModel->drop();
-    friendNodeX->dropModel();
-    friendNodeY->dropModel();
-    friendNodeZ->dropModel();
     testPlaneNode->dropModel();
     rainstormFont->drop();
 }
@@ -141,18 +111,9 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
         mCamLocNode->move(movement);
     }
-
     
     mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
     mCamera.projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
-    
-    mIago += tpf;
-    
-    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
-    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
-    
-    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
-    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
 
     glm::vec4 debugShow;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
@@ -455,7 +416,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
     sunRPC.viewMat = mSky.sunViewMatr;
     sunRPC.projMat = mSky.sunProjMatr;
-    rootNode->render(sunRPC);
+    mRootNode->render(sunRPC);
     
     // Geometry pass
     {
@@ -486,7 +447,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
-        rootNode->render(rootNodeRPC);
+        mRootNode->render(rootNodeRPC);
     }
     
     // Brightness Render
@@ -519,7 +480,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         brightRPC.sunDepthTexture = mSky.sunDepthTexture;
         
         // Render local lights
-        rootNode->render(brightRPC);
+        mRootNode->render(brightRPC);
         
         // Render global lights
         {
@@ -569,7 +530,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             // Actual rendering
             {    
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
-                rootNode->render(brightRPC);
+                mRootNode->render(brightRPC);
                 mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunViewMatr));
                 
                 // Ambient lighting
