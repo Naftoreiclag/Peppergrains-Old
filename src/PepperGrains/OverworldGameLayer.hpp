@@ -70,6 +70,24 @@ private:
     };
     DebugScreenFillShader mFillScreenShader;
     
+    struct Camera {
+        glm::mat4 viewMat;
+        glm::mat4 projMat;
+    };
+    Camera mCamera;
+    
+    struct Sky {
+        uint32_t sunTextureSize;
+        GLuint sunFramebuffer;
+        GLuint sunDepthTexture;
+        glm::vec3 sunDirection;
+        glm::vec3 sunPosition;
+        glm::mat4 sunProjMatr;
+        glm::mat4 sunViewMatr;
+        SunLightModel* sunModel;
+    };
+    Sky mSky;
+    
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
@@ -78,14 +96,11 @@ private:
     void loadSun();
     void unloadSun();
     
-    void renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe);
+    void renderFrame(glm::vec4 debugShow, bool wireframe);
 public:
     OverworldGameLayer(uint32_t width, uint32_t height);
     ~OverworldGameLayer();
     
-    SceneNode* mSun;
-    
-    SunLightModel* mSunLightModel;
     
     SceneNode* rootNode;
     SceneNode* friendNodeX;
@@ -106,14 +121,6 @@ public:
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
-    
-    uint32_t mSunTextureWidth;
-    GLuint mSunFrameBuffer;
-    GLuint mSunDepthTexture;
-    glm::vec3 mSunDir;
-    glm::vec3 mSunPos;
-    glm::mat4 mSunProjMatr;
-    glm::mat4 mSunViewMatr;
     
     float mIago;
     

@@ -33,8 +33,7 @@ OverworldGameLayer::OverworldGameLayer(uint32_t width, uint32_t height)
 , mScreenHeight(height) {
 }
 
-OverworldGameLayer::~OverworldGameLayer()
-{
+OverworldGameLayer::~OverworldGameLayer() {
 }
 
 // Lifecycle
@@ -117,6 +116,98 @@ void OverworldGameLayer::onEnd() {
     friendNodeZ->dropModel();
     testPlaneNode->dropModel();
     rainstormFont->drop();
+}
+
+void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
+    glm::vec3 movement;
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
+        movement.z -= 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
+        movement.x -= 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
+        movement.z += 1.0;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
+        movement.x += 1.0;
+    }
+    if(movement != glm::vec3(0.f)) {
+        glm::normalize(movement);
+        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
+            movement *= 10.f;
+        }
+        
+        movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
+        mCamLocNode->move(movement);
+    }
+
+    
+    mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
+    mCamera.projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
+    
+    mIago += tpf;
+    
+    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
+    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
+    
+    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
+    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
+
+    glm::vec4 debugShow;
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
+        debugShow.x = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
+        debugShow.y = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
+        debugShow.z = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
+        debugShow.w = 1.f;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+        mDebugWireframe = true;
+    }
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
+        mDebugWireframe = false;
+    }
+    
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
+        mSky.sunDirection = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
+    }
+    mSky.sunViewMatr = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+    mSky.sunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+    
+    renderFrame(debugShow, mDebugWireframe);
+    
+    if(tpf > 0) {
+        float fpsNew = 1 / tpf;
+        fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
+    }
+
+    oneSecondTimer += tpf;
+    if(oneSecondTimer > 1.f) {
+        oneSecondTimer -= 1.f;
+
+        fpsCounter->drop();
+
+        std::stringstream ss;
+        ss << "FPS: ";
+        ss << (uint32_t) fps;
+
+        fpsCounter = new TextModel(rainstormFont, ss.str());
+        fpsCounter->grab();
+    }
+    
+    glm::mat4 viewMatOverlay;
+    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
+    
+    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
+    fpsRPC.viewMat = viewMatOverlay;
+    fpsRPC.projMat = projMatOverlay;
+    fpsCounter->render(fpsRPC, glm::mat4());
 }
 
 void OverworldGameLayer::loadGBuffer() {
@@ -312,16 +403,17 @@ void OverworldGameLayer::unloadGBuffer() {
     mSkyStencilShader.shaderProg->drop();
     mFillScreenShader.shaderProg->drop();
 }
+
 void OverworldGameLayer::loadSun() {
-    mSunTextureWidth = 1024;
-    mSunDir = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
-    mSunLightModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
-    mSunLightModel->grab();
+    mSky.sunTextureSize = 1024;
+    mSky.sunDirection = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
+    mSky.sunModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
+    mSky.sunModel->grab();
     
     // DepthStencil mapping
-    glGenTextures(1, &mSunDepthTexture);
-    glBindTexture(GL_TEXTURE_2D, mSunDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSunTextureWidth, mSunTextureWidth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glGenTextures(1, &mSky.sunDepthTexture);
+    glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSky.sunTextureSize, mSky.sunTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -329,9 +421,9 @@ void OverworldGameLayer::loadSun() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glGenFramebuffers(1, &mSunFrameBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, mSunFrameBuffer);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSunDepthTexture, 0);
+    glGenFramebuffers(1, &mSky.sunFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, mSky.sunFramebuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSky.sunDepthTexture, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
@@ -343,14 +435,15 @@ void OverworldGameLayer::loadSun() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 void OverworldGameLayer::unloadSun() {
-    glDeleteTextures(1, &mSunDepthTexture);
-    glDeleteFramebuffers(1, &mSunFrameBuffer);
-    mSunLightModel->drop();
+    glDeleteTextures(1, &mSky.sunDepthTexture);
+    glDeleteFramebuffers(1, &mSky.sunFramebuffer);
+    mSky.sunModel->drop();
 }
-void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::vec4 debugShow, bool wireframe) {
+
+void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     // Sun? buffer
-    glViewport(0, 0, mSunTextureWidth, mSunTextureWidth);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSunFrameBuffer);
+    glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffer);
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -360,8 +453,8 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
     glClear(GL_DEPTH_BUFFER_BIT);
     
     Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
-    sunRPC.viewMat = mSunViewMatr;
-    sunRPC.projMat = mSunProjMatr;
+    sunRPC.viewMat = mSky.sunViewMatr;
+    sunRPC.projMat = mSky.sunProjMatr;
     rootNode->render(sunRPC);
     
     // Geometry pass
@@ -391,8 +484,8 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
         }
         
         Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
-        rootNodeRPC.viewMat = viewMat;
-        rootNodeRPC.projMat = projMat;
+        rootNodeRPC.viewMat = mCamera.viewMat;
+        rootNodeRPC.projMat = mCamera.projMat;
         rootNode->render(rootNodeRPC);
     }
     
@@ -414,16 +507,16 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
         // Filled polygons
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
-        glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
+        glm::mat4 sunViewProjMat = mSky.sunProjMatr * mSky.sunViewMatr;
         
         // Render pass config
         Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
-        brightRPC.viewMat = viewMat;
-        brightRPC.projMat = projMat;
+        brightRPC.viewMat = mCamera.viewMat;
+        brightRPC.projMat = mCamera.projMat;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         brightRPC.sunViewProjMatr = sunViewProjMat;
-        brightRPC.sunDepthTexture = mSunDepthTexture;
+        brightRPC.sunDepthTexture = mSky.sunDepthTexture;
         
         // Render local lights
         rootNode->render(brightRPC);
@@ -477,7 +570,7 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
             {    
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 rootNode->render(brightRPC);
-                mSunLightModel->render(brightRPC, glm::inverse(mSunViewMatr));
+                mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunViewMatr));
                 
                 // Ambient lighting
                 glUseProgram(mFillScreenShader.shaderProg->getHandle());
@@ -531,7 +624,7 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
         
-        glm::mat4 invViewProjMat = glm::inverse(projMat * viewMat);
+        glm::mat4 invViewProjMat = glm::inverse(mCamera.projMat * mCamera.viewMat);
         glUniformMatrix4fv(mDebugScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
         glUniform4fv(mDebugScreenShader.viewHandle, 1, glm::value_ptr(debugShow));
         
@@ -574,99 +667,6 @@ void OverworldGameLayer::renderFrame(glm::mat4 viewMat, glm::mat4 projMat, glm::
         
         glUseProgram(0);
     }
-}
-
-// Ticks
-void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
-    glm::vec3 movement;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
-        movement.z -= 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
-        movement.x -= 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
-        movement.z += 1.0;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
-        movement.x += 1.0;
-    }
-    if(movement != glm::vec3(0.f)) {
-        glm::normalize(movement);
-        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
-            movement *= 10.f;
-        }
-        
-        movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
-        mCamLocNode->move(movement);
-    }
-
-    
-    glm::mat4 viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    glm::mat4 projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
-    
-    mIago += tpf;
-    
-    //iago->setLocalTranslation(glm::vec3(0.f, 1.5f + (glm::sin(mIago) * 1.5f), 3.f));
-    iago->setLocalScale(glm::vec3(1.0f + (glm::sin(mIago) * 0.5f)));
-    
-    friendNodeY->rotate(glm::vec3(0.0f, 1.0f, 0.0f), tpf);
-    friendNodeZ->rotate(glm::vec3(0.0f, 0.0f, 1.0f), tpf);
-
-    glm::vec4 debugShow;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
-        debugShow.x = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
-        debugShow.y = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
-        debugShow.z = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
-        debugShow.w = 1.f;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
-        mDebugWireframe = true;
-    }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
-        mDebugWireframe = false;
-    }
-    
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
-        mSunDir = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
-    }
-    mSunViewMatr = glm::lookAt(mSunPos - mSunDir, mSunPos, glm::vec3(0.f, 1.f, 0.f));
-    mSunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
-    
-    renderFrame(viewMat, projMat, debugShow, mDebugWireframe);
-    
-    if(tpf > 0) {
-        float fpsNew = 1 / tpf;
-        fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
-    }
-
-    oneSecondTimer += tpf;
-    if(oneSecondTimer > 1.f) {
-        oneSecondTimer -= 1.f;
-
-        fpsCounter->drop();
-
-        std::stringstream ss;
-        ss << "FPS: ";
-        ss << (uint32_t) fps;
-
-        fpsCounter = new TextModel(rainstormFont, ss.str());
-        fpsCounter->grab();
-    }
-    
-    glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
-    
-    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
-    fpsRPC.viewMat = viewMatOverlay;
-    fpsRPC.projMat = projMatOverlay;
-    fpsCounter->render(fpsRPC, glm::mat4());
 }
 
 bool OverworldGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
