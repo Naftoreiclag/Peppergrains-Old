@@ -153,10 +153,14 @@
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
-    <File Name="SandboxGameLayer.hpp"/>
-    <File Name="SandboxGameLayer.cpp"/>
     <File Name="OverworldGameLayer.hpp"/>
     <File Name="OverworldGameLayer.cpp"/>
+    <File Name="TerrainRenderer.hpp"/>
+    <File Name="TerrainRenderer.cpp"/>
+    <VirtualDirectory Name="Debug">
+      <File Name="SandboxGameLayer.cpp"/>
+      <File Name="SandboxGameLayer.hpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

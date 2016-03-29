@@ -22,10 +22,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Model.hpp"
+#include "ReferenceCounted.hpp"
 
 namespace pgg {
 
-class SceneNode {
+class SceneNode : public ReferenceCounted {
 public:
     SceneNode();
     ~SceneNode();
@@ -58,6 +59,9 @@ public:
     void calcWorldScale(glm::vec3& scale);
     void calcWorldOrientation(glm::quat& orientation);
     void calcWorldTranslation(glm::vec3& translation);
+    
+    void load();
+    void unload();
 
     const glm::mat4& calcLocalTransform();
     const glm::mat4& calcWorldTransform();
@@ -65,8 +69,10 @@ public:
     SceneNode* getParent() const;
     const std::vector<SceneNode*>& getChildren() const;
 
-    void addChild(SceneNode* child);
+    SceneNode* addChild(SceneNode* child);
+    SceneNode* newChild();
     void detachChild(SceneNode* child);
+    void detachAllChildren();
 
     // Change transform, marks both transforms as dirty
     void setLocalScale(const glm::vec3& scale);

@@ -29,6 +29,14 @@ SceneNode::SceneNode()
 }
 
 SceneNode::~SceneNode() {
+    this->detachAllChildren();
+}
+
+void SceneNode::load() {
+}
+
+void SceneNode::unload() {
+    delete this;
 }
 
 const glm::vec3& SceneNode::getLocalScale() const { return mLocalScale; }
@@ -37,23 +45,44 @@ const glm::vec3& SceneNode::getLocalTranslation() const { return mLocalTranslati
 SceneNode* SceneNode::getParent() const { return mParent; }
 const std::vector<SceneNode*>& SceneNode::getChildren() const { return mChildren; }
 
-void SceneNode::addChild(SceneNode* child) {
+SceneNode* SceneNode::addChild(SceneNode* child) {
     if(child->mParent == this) {
-        return;
+        return child;
     }
 
+    // If the child had a previous parent, then remove child from parent's child list
     if(child->mParent) {
         child->mParent->mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
+        // No need to change child's reference count, as ownership is being transfered
+    }
+    // Child did not previously have a parent, therefore increment reference count
+    else {
+        child->grab();
     }
 
     mChildren.push_back(child);
     child->mParent = this;
     child->markWorldTransformDirty();
+    
+    return child;
+}
+SceneNode* SceneNode::newChild() {
+    return addChild(new SceneNode());
 }
 void SceneNode::detachChild(SceneNode* child) {
     mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
     child->mParent = nullptr;
     child->markWorldTransformDirty();
+    child->drop();
+}
+void SceneNode::detachAllChildren() {
+    for(std::vector<SceneNode*>::iterator iter = mChildren.begin(); iter != mChildren.end(); ++ iter) {
+        SceneNode* child = *iter;
+        child->mParent = nullptr;
+        child->markWorldTransformDirty();
+        child->drop();
+    }
+    mChildren.clear();
 }
 
 const glm::mat4& SceneNode::calcLocalTransform() {
@@ -92,7 +121,6 @@ const glm::mat4& SceneNode::calcWorldTransform() {
 void SceneNode::calcWorldScale(glm::vec3& scale) {
     if(mParent) {
         const glm::mat4& parentTransform = mParent->calcWorldTransform();
-        // Not completely sure if this calculation is correct
         scale = glm::vec3(parentTransform * glm::vec4(mLocalScale, 0.f));
     }
     else {

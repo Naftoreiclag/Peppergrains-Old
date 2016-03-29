@@ -46,14 +46,10 @@ void OverworldGameLayer::onBegin() {
     ResourceManager* resman = ResourceManager::getSingleton();
 
     mRootNode = new SceneNode();
-    testPlaneNode = new SceneNode();
-    testGrassNode = new SceneNode();
+    mRootNode->grab();
     
-    testPlaneNode->grabModel(resman->findModel("TestPlane.model"));
-    mRootNode->addChild(testPlaneNode);
-    
-    testGrassNode->grabModel(new GrassModel());
-    mRootNode->addChild(testGrassNode);
+    mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
+    mRootNode->newChild()->grabModel(new GrassModel());
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
@@ -71,6 +67,10 @@ void OverworldGameLayer::onBegin() {
     mCamLocNode->addChild(mCamYawNode);
     mCamYawNode->addChild(mCamPitchNode);
     mCamPitchNode->addChild(mCamRollNode);
+    
+    mTerrainModel = new TerrainModel();
+    mTerrainModel->grab();
+    
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -83,8 +83,11 @@ void OverworldGameLayer::onEnd() {
     unloadGBuffer();
     unloadSun();
     
+    mRootNode->drop();
+    
+    mTerrainModel->drop();
+    
     fpsCounter->drop();
-    testPlaneNode->dropModel();
     rainstormFont->drop();
 }
 
@@ -448,6 +451,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
         mRootNode->render(rootNodeRPC);
+        mTerrainModel->render(rootNodeRPC, glm::mat4());
     }
     
     // Brightness Render
@@ -458,7 +462,8 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
                 GL_COLOR_ATTACHMENT2
             };
             glDrawBuffers(1, colorAttachment);
-            glClearColor(0.f, 0.0f, 0.f, 1.f);
+            // Ambient light
+            glClearColor(0.2f, 0.2f, 0.2f, 1.f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
         
@@ -485,7 +490,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         // Render global lights
         {
             // Prepare stencil
-            // This also fills the diffuse buffer with white
+            // This also fills the diffuse buffer with white where the sky is
             {
                 glDrawBuffer(GL_COLOR_ATTACHMENT0);
                 glEnable(GL_DEPTH_TEST);
@@ -532,14 +537,6 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
                 mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunViewMatr));
-                
-                // Ambient lighting
-                glUseProgram(mFillScreenShader.shaderProg->getHandle());
-                glUniform3fv(mFillScreenShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-                glBindVertexArray(mFullscreenVao);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                glBindVertexArray(0);
-                glUseProgram(0);
             }
         }
     }

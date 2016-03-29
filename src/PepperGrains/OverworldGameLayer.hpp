@@ -19,10 +19,11 @@
 #include "SDL2/SDL.h"
 
 #include "AxesModel.hpp"
-#include "SceneNode.hpp"
 #include "ResourceManager.hpp"
+#include "SceneNode.hpp"
 #include "SunLightModel.hpp"
 #include "TerrainModel.hpp"
+#include "TerrainRenderer.hpp"
 #include "TextModel.hpp"
 
 namespace pgg {
@@ -88,6 +89,8 @@ private:
     };
     Sky mSky;
     
+    TerrainModel* mTerrainModel;
+    
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
@@ -108,9 +111,6 @@ public:
     SceneNode* mCamYawNode;
     SceneNode* mCamPitchNode;
     SceneNode* mCamRollNode;
-    
-    SceneNode* testPlaneNode;
-    SceneNode* testGrassNode;
     
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
