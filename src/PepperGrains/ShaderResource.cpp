@@ -13,9 +13,82 @@
 
 #include "ShaderResource.hpp"
 
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
 namespace pgg {
 
-ShaderResource::ShaderResource() {}
-ShaderResource::~ShaderResource() {}
+ShaderResource::ShaderResource(ShaderResource::Type type)
+: mType(type)
+, mLoaded(false) {
+}
+
+ShaderResource::~ShaderResource() {
+}
+
+void ShaderResource::load() {
+    assert(!mLoaded && "Attempted to load shader that is already loaded");
+
+    std::ifstream loader(this->getFile().string().c_str());
+    std::stringstream ss;
+    ss << loader.rdbuf();
+    loader.close();
+
+    std::string shaderSrcStr = ss.str();
+    const GLchar* shaderSrc = shaderSrcStr.c_str();
+
+    switch(mType) {
+        case VERTEX: {
+            mHandle = glCreateShader(GL_VERTEX_SHADER);
+            break;
+        }
+        case TESS_CONTROL: {
+            mHandle = glCreateShader(GL_TESS_CONTROL_SHADER);
+            break;
+        }
+        case TESS_EVALUATION: {
+            mHandle = glCreateShader(GL_TESS_EVALUATION_SHADER);
+            break;
+        }
+        case GEOMETRY: {
+            mHandle = glCreateShader(GL_GEOMETRY_SHADER);
+            break;
+        }
+        case FRAGMENT: {
+            mHandle = glCreateShader(GL_FRAGMENT_SHADER);
+            break;
+        }
+        default: {
+            assert(false && "Unknown shader type?");
+            break; // what
+        }
+    }
+    glShaderSource(mHandle, 1, &shaderSrc, 0);
+    glCompileShader(mHandle);
+    
+    GLint compileStatus;
+    glGetShaderiv(mHandle, GL_COMPILE_STATUS, &compileStatus);
+    if(compileStatus == GL_FALSE) {
+        std::cout << "Error while compiling shader " << this->getName() << std::endl;
+        char infoLog[512];
+        glGetShaderInfoLog(mHandle, 512, 0, infoLog);
+        std::cout << infoLog;
+    }
+
+    mLoaded = true;
+}
+
+void ShaderResource::unload() {
+    assert(mLoaded && "Attempted to unload shader before loading it");
+    glDeleteShader(mHandle);
+    mLoaded = false;
+}
+
+GLuint ShaderResource::getHandle() {
+    return mHandle;
+}
 
 }

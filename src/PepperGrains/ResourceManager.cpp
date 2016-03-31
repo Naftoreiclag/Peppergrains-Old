@@ -36,7 +36,7 @@ mFallbacksGrabbed(false) {
     mFallbackModel = new ModelResource();
     mFallbackMaterial = new MaterialResource();
     mFallbackGeometry = new GeometryResource();
-    mFallbackShader = new FragmentShaderResource();
+    mFallbackShader = new ShaderResource(ShaderResource::Type::FRAGMENT);
     mFallbackShaderProgram = new ShaderProgramResource();
     mFallbackFont = new FontResource();
 }
@@ -106,9 +106,9 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
         if(resType == "text") {
             newRes = mStrings[name] = new StringResource();
         } else if(resType == "vertex-shader") {
-            newRes = mShaders[name] = new VertexShaderResource();
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::VERTEX);
         } else if(resType == "fragment-shader") {
-            newRes = mShaders[name] = new FragmentShaderResource();
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::FRAGMENT);
         } else if(resType == "shader-program") {
             newRes = mShaderPrograms[name] = new ShaderProgramResource();
         } else if(resType == "image") {

@@ -79,14 +79,6 @@
       <File Name="StringResource.hpp"/>
       <File Name="TextureResource.cpp"/>
       <File Name="TextureResource.hpp"/>
-      <File Name="ShaderProgramResource.hpp"/>
-      <File Name="ShaderProgramResource.cpp"/>
-      <File Name="VertexShaderResource.cpp"/>
-      <File Name="VertexShaderResource.hpp"/>
-      <File Name="FragmentShaderResource.hpp"/>
-      <File Name="FragmentShaderResource.cpp"/>
-      <File Name="ShaderResource.hpp"/>
-      <File Name="ShaderResource.cpp"/>
       <File Name="MaterialResource.hpp"/>
       <File Name="MaterialResource.cpp"/>
       <File Name="GeometryResource.cpp"/>
@@ -95,6 +87,12 @@
       <File Name="ModelResource.hpp"/>
       <File Name="FontResource.cpp"/>
       <File Name="FontResource.hpp"/>
+      <VirtualDirectory Name="Shaders">
+        <File Name="ShaderProgramResource.cpp"/>
+        <File Name="ShaderProgramResource.hpp"/>
+        <File Name="ShaderResource.cpp"/>
+        <File Name="ShaderResource.hpp"/>
+      </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Rendering">
       <File Name="ManualModel.hpp"/>

@@ -22,13 +22,26 @@ namespace pgg {
 
 class ShaderResource : public Resource {
 public:
-    ShaderResource();
+    enum Type {
+        VERTEX,
+        TESS_CONTROL,
+        TESS_EVALUATION,
+        GEOMETRY,
+        FRAGMENT
+    };
+private:
+    GLuint mHandle;
+    bool mLoaded;
+public:
+    const Type mType;
+
+    ShaderResource(Type type);
     virtual ~ShaderResource();
     
-    virtual void load() = 0;
-    virtual void unload() = 0;
+    void load();
+    void unload();
     
-    virtual GLuint getHandle() = 0;
+    GLuint getHandle();
 };
 
 }

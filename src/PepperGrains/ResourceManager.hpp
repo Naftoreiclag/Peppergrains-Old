@@ -28,8 +28,6 @@
 #include "GeometryResource.hpp"
 #include "ShaderResource.hpp"
 #include "ShaderProgramResource.hpp"
-#include "VertexShaderResource.hpp"
-#include "FragmentShaderResource.hpp"
 #include "FontResource.hpp"
 
 namespace pgg {
