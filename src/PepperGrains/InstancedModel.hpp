@@ -11,8 +11,8 @@
    limitations under the License.
 */
 
-#ifndef PGG_INSTANCED_MODEL
-#define PGG_INSTANCED_MODEL
+#ifndef PGG_INSTANCEDMODEL_HPP
+#define PGG_INSTANCEDMODEL_HPP
 
 #include "Model.hpp"
 #include "GeometryResource.hpp"
@@ -44,4 +44,4 @@ public:
 }
 
 
-#endif // PGG_INSTANCED_MODEL
+#endif // PGG_INSTANCEDMODEL_HPP
