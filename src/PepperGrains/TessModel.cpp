@@ -48,14 +48,14 @@ void TessModel::load() {
         }
     }
     
-    /*  01
-     *  23
+    /*  02
+     *  13
      */
     
     indices[0] = 0;
-    indices[1] = 2;
-    indices[2] = 3;
-    indices[3] = 1;
+    indices[1] = 1;
+    indices[2] = 2;
+    indices[3] = 3;
     
     {
         const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
@@ -110,8 +110,8 @@ void TessModel::render(const Model::RenderPassConfiguration& rendPass, const glm
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
 
-    glUniform1f(mInner, 3.f);
-    glUniform1f(mOuter, 3.f);
+    glUniform1f(mInner, 5.f);
+    glUniform1f(mOuter, 5.f);
 
     glBindVertexArray(mVertexArrayObject);
 
