@@ -107,6 +107,12 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
             newRes = mStrings[name] = new StringResource();
         } else if(resType == "vertex-shader") {
             newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::VERTEX);
+        } else if(resType == "tess-control-shader") {
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::TESS_CONTROL);
+        } else if(resType == "tess-evaluation-shader") {
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::TESS_EVALUATION);
+        } else if(resType == "geometry-shader") {
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::GEOMETRY);
         } else if(resType == "fragment-shader") {
             newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::FRAGMENT);
         } else if(resType == "shader-program") {
