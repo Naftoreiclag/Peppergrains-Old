@@ -56,9 +56,9 @@ public:
     
     // Mostly for utility, might be less efficient to use these?
     // Perhaps store the results of these values somewhere, to avoid recalculating?
-    void calcWorldScale(glm::vec3& scale);
-    void calcWorldOrientation(glm::quat& orientation);
-    void calcWorldTranslation(glm::vec3& translation);
+    SceneNode* calcWorldScale(glm::vec3& scale);
+    SceneNode* calcWorldOrientation(glm::quat& orientation);
+    SceneNode* calcWorldTranslation(glm::vec3& translation);
     
     void load();
     void unload();
@@ -75,23 +75,23 @@ public:
     void detachAllChildren();
 
     // Change transform, marks both transforms as dirty
-    void setLocalScale(const glm::vec3& scale);
-    void setLocalOrientation(const glm::quat& orientation);
-    void setLocalTranslation(const glm::vec3& translation);
+    SceneNode* setLocalScale(const glm::vec3& scale);
+    SceneNode* setLocalOrientation(const glm::quat& orientation);
+    SceneNode* setLocalTranslation(const glm::vec3& translation);
 
     // Same as above, but is relative to previous transform
-    void scale(const glm::vec3& scale);
-    void scale(const float& scale);
-    void rotate(const glm::quat& rotation);
-    void rotate(const glm::vec3& axis, const float& radians);
-    void rotatePitch(const float& radians);
-    void rotateYaw(const float& radians);
-    void rotateRoll(const float& radians);
-    void move(const glm::vec3& translation);
+    SceneNode* scale(const glm::vec3& scale);
+    SceneNode* scale(const float& scale);
+    SceneNode* rotate(const glm::quat& rotation);
+    SceneNode* rotate(const glm::vec3& axis, const float& radians);
+    SceneNode* rotatePitch(const float& radians);
+    SceneNode* rotateYaw(const float& radians);
+    SceneNode* rotateRoll(const float& radians);
+    SceneNode* move(const glm::vec3& translation);
 
     // Model
-    void attachModel(Model* modelRes);
-    void detachModel();
+    SceneNode* attachModel(Model* modelRes);
+    SceneNode* detachModel();
 
     // Calculates world transform (which becomes the model matrix) and then renders
     void render(const Model::RenderPassConfiguration& rendPass);

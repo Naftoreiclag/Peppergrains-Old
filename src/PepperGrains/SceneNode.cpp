@@ -118,7 +118,7 @@ const glm::mat4& SceneNode::calcWorldTransform() {
     return mWorldTransform;
 }
 
-void SceneNode::calcWorldScale(glm::vec3& scale) {
+SceneNode* SceneNode::calcWorldScale(glm::vec3& scale) {
     if(mParent) {
         const glm::mat4& parentTransform = mParent->calcWorldTransform();
         scale = glm::vec3(parentTransform * glm::vec4(mLocalScale, 0.f));
@@ -126,8 +126,9 @@ void SceneNode::calcWorldScale(glm::vec3& scale) {
     else {
         scale = mLocalScale;
     }
+    return this;
 }
-void SceneNode::calcWorldOrientation(glm::quat& orientation) {
+SceneNode* SceneNode::calcWorldOrientation(glm::quat& orientation) {
     if(mParent) {
         // Not completely sure if this calculation is correct
         orientation = glm::quat_cast(this->calcWorldTransform());
@@ -135,8 +136,9 @@ void SceneNode::calcWorldOrientation(glm::quat& orientation) {
     else {
         orientation = mLocalOrientation;
     }
+    return this;
 }
-void SceneNode::calcWorldTranslation(glm::vec3& translation) {
+SceneNode* SceneNode::calcWorldTranslation(glm::vec3& translation) {
     if(mParent) {
         const glm::mat4& parentTransform = mParent->calcWorldTransform();
         translation = glm::vec3(parentTransform * glm::vec4(mLocalTranslation, 1.f));
@@ -144,48 +146,63 @@ void SceneNode::calcWorldTranslation(glm::vec3& translation) {
     else {
         translation = mLocalTranslation;
     }
+    return this;
 }
 
-void SceneNode::setLocalScale(const glm::vec3& scale) {
+SceneNode* SceneNode::setLocalScale(const glm::vec3& scale) {
     mLocalScale = scale;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::setLocalOrientation(const glm::quat& orientation) {
+SceneNode* SceneNode::setLocalOrientation(const glm::quat& orientation) {
     mLocalOrientation = orientation;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::setLocalTranslation(const glm::vec3& translation) {
+SceneNode* SceneNode::setLocalTranslation(const glm::vec3& translation) {
     mLocalTranslation = translation;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::scale(const glm::vec3& scale) {
+SceneNode* SceneNode::scale(const glm::vec3& scale) {
     mLocalScale *= scale;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::scale(const float& scale) {
+SceneNode* SceneNode::scale(const float& scale) {
     mLocalScale *= scale;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::rotate(const glm::quat& rotation) {
+SceneNode* SceneNode::rotate(const glm::quat& rotation) {
     mLocalOrientation = rotation * mLocalOrientation;
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::rotate(const glm::vec3& axis, const float& radians) {
+SceneNode* SceneNode::rotate(const glm::vec3& axis, const float& radians) {
     mLocalOrientation = glm::rotate(mLocalOrientation, radians, axis);
     this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::rotatePitch(const float& radians) {
+SceneNode* SceneNode::rotatePitch(const float& radians) {
     this->rotate(glm::vec3(1.f, 0.f, 0.f), radians);
+    this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::rotateYaw(const float& radians) {
+SceneNode* SceneNode::rotateYaw(const float& radians) {
     this->rotate(glm::vec3(0.f, 1.f, 0.f), radians);
+    this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::rotateRoll(const float& radians) {
+SceneNode* SceneNode::rotateRoll(const float& radians) {
     this->rotate(glm::vec3(0.f, 0.f, 1.f), radians);
+    this->markBothTransformsDirty();
+    return this;
 }
-void SceneNode::move(const glm::vec3& translation) {
+SceneNode* SceneNode::move(const glm::vec3& translation) {
     mLocalTranslation += translation;
     this->markBothTransformsDirty();
+    return this;
 }
 void SceneNode::markWorldTransformDirty() {
     // Avoid unnecessary tree iteration
@@ -204,17 +221,19 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
-void SceneNode::attachModel(Model* modelRes) {
+SceneNode* SceneNode::attachModel(Model* modelRes) {
     this->detachModel();
 
     mModelRes = modelRes;
     modelRes->grab();
+    return this;
 }
-void SceneNode::detachModel() {
+SceneNode* SceneNode::detachModel() {
     if(mModelRes) {
         mModelRes->drop();
         mModelRes = nullptr;
     }
+    return this;
 }
 
 void SceneNode::render(const Model::RenderPassConfiguration& rendPass) {
