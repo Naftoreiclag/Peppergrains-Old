@@ -24,6 +24,7 @@
 #include "DirectionalLightModel.hpp"
 #include "PointLightModel.hpp"
 #include "GrassModel.hpp"
+#include "TessModel.hpp"
 
 namespace pgg
 {
@@ -50,6 +51,9 @@ void OverworldGameLayer::onBegin() {
     
     mRootNode->newChild()->attachModel(resman->findModel("TestPlane.model"));
     mRootNode->newChild()->attachModel(new GrassModel());
+    mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
+    mRootNode->newChild()->move(glm::vec3(-3.0, 3.0, -3.0))->attachModel(new TessModel());
+    
     
     rainstormFont = resman->findFont("Rainstorm.font");
     rainstormFont->grab();
@@ -163,6 +167,8 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
 
         fpsCounter = new TextModel(rainstormFont, ss.str());
         fpsCounter->grab();
+        
+        std::cout << "Cam location: " << glm::to_string(mCamLocNode->calcWorldTransform()[3]) << std::endl;
     }
     
     glm::mat4 viewMatOverlay;
