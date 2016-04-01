@@ -38,6 +38,8 @@ public:
         glm::mat4 viewMat;
         glm::mat4 projMat;
         
+        glm::vec3 camPos;
+        
         GLuint framebuffer;
         GLuint diffuseTexture;
         GLuint normalTexture;

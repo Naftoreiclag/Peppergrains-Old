@@ -33,8 +33,12 @@ private:
     GLuint mOffsetHandle;
     GLuint mInstanceBuffer;
     
-    GLuint mInner;
-    GLuint mOuter;
+    
+    GLuint mCamPos;
+    GLuint mMinTess;
+    GLuint mMaxTess;
+    GLuint mMinDist;
+    GLuint mMaxDist;
 public:
     TessModel();
     virtual ~TessModel();

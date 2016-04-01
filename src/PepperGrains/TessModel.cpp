@@ -25,7 +25,7 @@ TessModel::~TessModel() {}
 void TessModel::load() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
-    mShaderProg = resman->findShaderProgram("Tessellate.shaderProgram");
+    mShaderProg = resman->findShaderProgram("Heightmap.shaderProgram");
     mShaderProg->grab();
     
     std::cout << "Is error: " << mShaderProg->isFallback() << std::endl;
@@ -48,24 +48,48 @@ void TessModel::load() {
         }
     }
     
-    /*  02
+    /* Order of vertices in buffer
+     *  02
      *  13
      */
     
     indices[0] = 0;
     indices[1] = 1;
-    indices[2] = 2;
-    indices[3] = 3;
+    indices[2] = 3;
+    indices[3] = 2;
+    
+    /* Order of indices in buffer
+     *  03
+     *  12
+     */
     
     {
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mShaderProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+
+            if(entry.name == "camPos") {
+                mCamPos = entry.handle;
+                std::cout << "e" << std::endl;
+                break;
+            }
+        }
         const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
 
-            if(entry.name == "levelInner") {
-                mInner = entry.handle;
-            } else if(entry.name == "levelOuter") {
-                mOuter = entry.handle;
+            if(entry.name == "maxTess") {
+                mMaxTess = entry.handle;
+                std::cout << "a" << std::endl;
+            } else if(entry.name == "minTess") {
+                mMinTess = entry.handle;
+                std::cout << "b" << std::endl;
+            } else if(entry.name == "maxDist") {
+                mMaxDist = entry.handle;
+                std::cout << "c" << std::endl;
+            } else if(entry.name == "minDist") {
+                mMinDist = entry.handle;
+                std::cout << "d" << std::endl;
             }
         }
     }
@@ -110,8 +134,11 @@ void TessModel::render(const Model::RenderPassConfiguration& rendPass, const glm
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
 
-    glUniform1f(mInner, 5.f);
-    glUniform1f(mOuter, 5.f);
+    glUniform3fv(mCamPos, 1, glm::value_ptr(rendPass.camPos));
+    glUniform1f(mMinTess, 1.f);
+    glUniform1f(mMaxTess, 32.f);
+    glUniform1f(mMinDist, 0.5f);
+    glUniform1f(mMaxDist, 10.f);
 
     glBindVertexArray(mVertexArrayObject);
 

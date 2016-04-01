@@ -53,6 +53,7 @@ void OverworldGameLayer::onBegin() {
     mRootNode->newChild()->attachModel(new GrassModel());
     mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
     mRootNode->newChild()->move(glm::vec3(-3.0, 3.0, -3.0))->attachModel(new TessModel());
+    mRootNode->newChild()->move(glm::vec3(-3.0, 3.0, -3.0))->attachModel(resman->findModel("Door.model"));
     
     
     rainstormFont = resman->findFont("Rainstorm.font");
@@ -121,6 +122,7 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     
     mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
     mCamera.projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
+    mCamRollNode->calcWorldTranslation(mCamera.position);
 
     glm::vec4 debugShow;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
@@ -425,6 +427,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
     sunRPC.viewMat = mSky.sunViewMatr;
     sunRPC.projMat = mSky.sunProjMatr;
+    sunRPC.camPos = mSky.sunDirection * 10000.f;
     mRootNode->render(sunRPC);
     
     // Geometry pass
@@ -456,6 +459,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
+        rootNodeRPC.camPos = mCamera.position;
         mRootNode->render(rootNodeRPC);
         mTerrainModel->render(rootNodeRPC, glm::mat4());
     }
@@ -485,6 +489,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
+        brightRPC.camPos = mCamera.position;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         brightRPC.sunViewProjMatr = sunViewProjMat;
