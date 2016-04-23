@@ -161,6 +161,10 @@
       <File Name="SandboxGameLayer.cpp"/>
       <File Name="SandboxGameLayer.hpp"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="WorkInProgress">
+      <File Name="TerrainResolver.hpp"/>
+      <File Name="TerrainResolver.cpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

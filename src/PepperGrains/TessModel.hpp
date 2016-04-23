@@ -18,6 +18,7 @@
 #include "GeometryResource.hpp"
 #include "ShaderProgramResource.hpp"
 #include "OpenGLStuff.hpp"
+#include "TextureResource.hpp"
 
 namespace pgg {
 
@@ -32,6 +33,7 @@ private:
     ShaderProgramResource* mShaderProg;
     GLuint mOffsetHandle;
     GLuint mInstanceBuffer;
+    TextureResource* mHeightTexture;
     
     
     GLuint mCamPos;
@@ -39,6 +41,7 @@ private:
     GLuint mMaxTess;
     GLuint mMinDist;
     GLuint mMaxDist;
+    GLuint mHeightMap;
 public:
     TessModel();
     virtual ~TessModel();

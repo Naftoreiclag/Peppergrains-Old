@@ -42,8 +42,8 @@ int PepperGrains::run(int argc, char* argv[]) {
         return -1;
     }
 
-    uint32_t windowWidth = 1680;
-    uint32_t windowHeight = 1050;
+    uint32_t windowWidth = 1280;
+    uint32_t windowHeight = 720;
     
     SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     

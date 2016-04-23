@@ -26,7 +26,9 @@ void TessModel::load() {
 
     ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("Heightmap.shaderProgram");
+    mHeightTexture = resman->findTexture("GrassHeight.texture");
     mShaderProg->grab();
+    mHeightTexture->grab();
     
     std::cout << "Is error: " << mShaderProg->isFallback() << std::endl;
 
@@ -92,6 +94,18 @@ void TessModel::load() {
                 std::cout << "d" << std::endl;
             }
         }
+        
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+
+                std::cout << entry.name << std::endl;
+            if(entry.name == "heightMap") {
+                mHeightMap = entry.handle;
+                std::cout << "asdf" << std::endl;
+                break;
+            }
+        }
     }
 
     glGenBuffers(1, &mVertexBufferObject);
@@ -117,6 +131,7 @@ void TessModel::load() {
 }
 void TessModel::unload() {
     mShaderProg->drop();
+    mHeightTexture->drop();
 
     glDeleteVertexArrays(1, &mVertexArrayObject);
     glDeleteBuffers(1, &mVertexBufferObject);
@@ -133,6 +148,10 @@ void TessModel::render(const Model::RenderPassConfiguration& rendPass, const glm
     glUseProgram(mShaderProg->getHandle());
 
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, mHeightTexture->getHandle());
+    glUniform1i(mHeightMap, 0);
 
     glUniform3fv(mCamPos, 1, glm::value_ptr(rendPass.camPos));
     glUniform1f(mMinTess, 1.f);
