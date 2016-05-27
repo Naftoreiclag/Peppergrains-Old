@@ -41,6 +41,10 @@ void ShaderResource::load() {
     const GLchar* shaderSrc = shaderSrcStr.c_str();
 
     switch(mType) {
+        case COMPUTE: {
+            mHandle = glCreateShader(GL_COMPUTE_SHADER);
+            break;
+        }
         case VERTEX: {
             mHandle = glCreateShader(GL_VERTEX_SHADER);
             break;

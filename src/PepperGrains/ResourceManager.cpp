@@ -105,6 +105,8 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
         Resource* newRes;
         if(resType == "text") {
             newRes = mStrings[name] = new StringResource();
+        } else if(resType == "compute-shader") {
+            newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::COMPUTE);
         } else if(resType == "vertex-shader") {
             newRes = mShaders[name] = new ShaderResource(ShaderResource::Type::VERTEX);
         } else if(resType == "tess-control-shader") {

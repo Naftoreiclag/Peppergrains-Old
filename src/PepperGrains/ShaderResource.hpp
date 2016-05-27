@@ -23,6 +23,7 @@ namespace pgg {
 class ShaderResource : public Resource {
 public:
     enum Type {
+        COMPUTE,
         VERTEX,
         TESS_CONTROL,
         TESS_EVALUATION,

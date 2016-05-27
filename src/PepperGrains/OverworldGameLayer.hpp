@@ -90,6 +90,8 @@ private:
     };
     Sky mSky;
     
+    ShaderProgramResource* mComputer;
+    
     TerrainModel* mTerrainModel;
     
     uint32_t mScreenWidth;
