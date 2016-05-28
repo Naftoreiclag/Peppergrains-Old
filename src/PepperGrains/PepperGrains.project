@@ -301,7 +301,8 @@
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
+        <![CDATA[BOOST_HOME=C:/boost
+SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM]]>
       </Environment>
@@ -362,7 +363,8 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinRelease" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
+        <![CDATA[BOOST_HOME=C:/boost
+SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM]]>
       </Environment>
