@@ -25,6 +25,7 @@
 #include "TerrainModel.hpp"
 #include "TerrainRenderer.hpp"
 #include "TextModel.hpp"
+#include "TextureResource.hpp"
 
 namespace pgg {
 
@@ -91,6 +92,7 @@ private:
     Sky mSky;
     
     ShaderProgramResource* mComputer;
+    TextureResource* mRoseTexture;
     
     TerrainModel* mTerrainModel;
     

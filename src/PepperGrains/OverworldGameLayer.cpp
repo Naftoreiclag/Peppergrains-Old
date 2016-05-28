@@ -47,13 +47,27 @@ void OverworldGameLayer::onBegin() {
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");
     mComputer->grab();
+    
+    mRoseTexture = resman->findTexture("128Rose.texture");
+    mRoseTexture->grab();
+    
+    mRoseTexture->getHandle();
+    
+    glUseProgram(mComputer->getHandle());
+    
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindImageTexture(0, mRoseTexture->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    
+    glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
+    glUseProgram(0);
 
     mRootNode = new SceneNode();
     mRootNode->grab();
     
     mRootNode->newChild()->attachModel(resman->findModel("TestPlane.model"));
     mRootNode->newChild()->attachModel(new GrassModel());
-    mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
+    //mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
+    mRootNode->newChild()->attachModel(resman->findModel("RoseCube.model"));
     mRootNode->newChild()->move(glm::vec3(-3.0, 3.0, -3.0))->attachModel(new TessModel());
     mRootNode->newChild()->move(glm::vec3(-3.0, 3.0, -3.0))->attachModel(resman->findModel("Door.model"));
     
@@ -624,11 +638,6 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         
         glUseProgram(0);
         
-        glUseProgram(mComputer->getHandle());
-        
-        glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
-        
-        glUseProgram(0);
     } else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
         
