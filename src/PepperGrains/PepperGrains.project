@@ -304,7 +304,8 @@
         <![CDATA[BOOST_HOME=C:/boost
 SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
-GLM_HOME=../../dependencies-win/header-only/GLM]]>
+GLM_HOME=../../dependencies-win/header-only/GLM
+MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -313,11 +314,14 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
       </Debugger>
       <PreBuild/>
       <PostBuild>
-        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
-        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes"/>
       </PostBuild>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
@@ -369,7 +373,8 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
         <![CDATA[BOOST_HOME=C:/boost
 SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
-GLM_HOME=../../dependencies-win/header-only/GLM]]>
+GLM_HOME=../../dependencies-win/header-only/GLM
+MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -378,11 +383,13 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
       </Debugger>
       <PreBuild/>
       <PostBuild>
-        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
-        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes"/>
         <Command Enabled="yes"/>
       </PostBuild>
