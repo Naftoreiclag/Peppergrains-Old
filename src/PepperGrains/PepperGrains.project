@@ -315,6 +315,9 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
       <PostBuild>
         <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># In case the environment variables fail:</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
       </PostBuild>
       <CustomBuild Enabled="no">
         <RebuildCommand/>
@@ -377,6 +380,10 @@ GLM_HOME=../../dependencies-win/header-only/GLM]]>
       <PostBuild>
         <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># In case the environment variables fail:</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes"/>
         <Command Enabled="yes"/>
       </PostBuild>
       <CustomBuild Enabled="no">
