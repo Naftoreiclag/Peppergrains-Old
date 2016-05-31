@@ -150,6 +150,10 @@
       <File Name="GameLayerMachine.hpp"/>
       <File Name="EntSignal.cpp"/>
       <File Name="EntSignal.hpp"/>
+      <File Name="OpenGLContextData.cpp"/>
+      <File Name="OpenGLContextData.hpp"/>
+      <File Name="SDLRendererData.cpp"/>
+      <File Name="SDLRendererData.hpp"/>
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
@@ -160,8 +164,6 @@
     <VirtualDirectory Name="Debug">
       <File Name="SandboxGameLayer.cpp"/>
       <File Name="SandboxGameLayer.hpp"/>
-      <File Name="OpenGLContextData.cpp"/>
-      <File Name="OpenGLContextData.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>

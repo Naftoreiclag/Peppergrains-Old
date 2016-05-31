@@ -24,6 +24,7 @@
 #include "OverworldGameLayer.hpp"
 #include "SandboxGameLayer.hpp"
 #include "OpenGLContextData.hpp"
+#include "SDLRendererData.hpp"
 
 namespace pgg {
 
@@ -46,18 +47,29 @@ int PepperGrains::run(int argc, char* argv[]) {
     uint32_t windowWidth = 1280;
     uint32_t windowHeight = 720;
     
-    SDL_Window* sdlWindow = SDL_CreateWindow("What, you egg?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    
+    int glMajorVersion;
+    int glMinorVersion;
+    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &glMajorVersion);
+    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &glMinorVersion);
+    
+    std::cout << "OpenGL Version (Default): " << glMajorVersion << "." << glMinorVersion << std::endl;
+    
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    
+    SDL_Window* sdlWindow;
+    SDL_Renderer* sdlRenderer;
+    
+    SDL_CreateWindowAndRenderer(windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI, &sdlWindow, &sdlRenderer);
+    SDL_SetWindowTitle(sdlWindow, "Window Title");
+    SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     
     if(!sdlWindow) {
         std::cout << "SDL Window Error" << std::endl;
         return -1;
     }
-    
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    
-    // Use OpenGL 3.3
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     
     // Enable double-buffers
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -73,15 +85,25 @@ int PepperGrains::run(int argc, char* argv[]) {
     glEnable(GL_DEBUG_OUTPUT);
     
     {
+        SDLRendererData* rendData = SDLRendererData::getSingleton();
+        rendData->loadData(sdlRenderer);
+        const SDLRendererData::SDLInfo& info = rendData->getData();
+        
+        std::cout << "SDL Renderer name: " << info.name << std::endl;
+        std::cout << "SDL Software fallback: " << info.softwareFallback << std::endl;
+        std::cout << "SDL Hardware accelerated: " << info.hardwareAccelerated << std::endl;
+        std::cout << "SDL Texture renderering: " << info.supportTextureRender << std::endl;
+    }
+    {
         OpenGLContextData* context = OpenGLContextData::getSingleton();
         
         const OpenGLContextData::OpenGLInfo& info = context->getData();
         
-        std::cout << "Version (Integral): " << info.iMinorVersion << "." << info.iMajorVersion << std::endl;
-        std::cout << "Version (String): " << info.sVersion << std::endl;
-        std::cout << "Debug output enabled: " << info.bDebugOutput << std::endl;
-        std::cout << "Max draw buffers: " << info.iMaxDrawBuffers << std::endl;
-        std::cout << "Max color attachments: " << info.iMaxColorAttachments << std::endl;
+        std::cout << "OpenGL Version (Integral): " << info.iMinorVersion << "." << info.iMajorVersion << std::endl;
+        std::cout << "OpenGL Version (String): " << info.sVersion << std::endl;
+        std::cout << "OpenGL Debug output enabled: " << info.bDebugOutput << std::endl;
+        std::cout << "OpenGL Max draw buffers: " << info.iMaxDrawBuffers << std::endl;
+        std::cout << "OpenGL Max color attachments: " << info.iMaxColorAttachments << std::endl;
     }
     
     boost::filesystem::path resourceDef = "../../../resources/data.package";
@@ -163,7 +185,10 @@ int PepperGrains::run(int argc, char* argv[]) {
     }
     
     SDL_GL_DeleteContext(glContext);
+    
     SDL_DestroyWindow(sdlWindow);
+    SDL_DestroyRenderer(sdlRenderer);
+    
     SDL_Quit();
     
     return 0;
