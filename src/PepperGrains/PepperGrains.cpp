@@ -40,7 +40,12 @@ PepperGrains::~PepperGrains() { }
 int PepperGrains::run(int argc, char* argv[]) {
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "SDL Error" << std::endl;
+        std::cout << "SDL Error 1" << std::endl;
+        return -1;
+    }
+    
+    if(SDL_Init(SDL_INIT_EVENTS) < 0) {
+        std::cout << "SDL Error 3" << std::endl;
         return -1;
     }
 
@@ -56,8 +61,8 @@ int PepperGrains::run(int argc, char* argv[]) {
     
     std::cout << "OpenGL Version (Default): " << glMajorVersion << "." << glMinorVersion << std::endl;
     
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 999);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 999);
     
     SDL_Window* sdlWindow;
     SDL_Renderer* sdlRenderer;
@@ -66,8 +71,8 @@ int PepperGrains::run(int argc, char* argv[]) {
     SDL_SetWindowTitle(sdlWindow, "Window Title");
     SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     
-    if(!sdlWindow) {
-        std::cout << "SDL Window Error" << std::endl;
+    if(!sdlWindow || !sdlRenderer) {
+        std::cout << "SDL Error 2" << std::endl;
         return -1;
     }
     
