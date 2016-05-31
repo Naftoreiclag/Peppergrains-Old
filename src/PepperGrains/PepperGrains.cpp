@@ -23,6 +23,7 @@
 
 #include "OverworldGameLayer.hpp"
 #include "SandboxGameLayer.hpp"
+#include "OpenGLContextData.hpp"
 
 namespace pgg {
 
@@ -69,14 +70,18 @@ int PepperGrains::run(int argc, char* argv[]) {
     glewExperimental = GL_TRUE;
     glewInit();
     
+    glEnable(GL_DEBUG_OUTPUT);
+    
     {
-        GLint maxDrawBuffers;
-        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
-        std::cout << "Max draw buffers: " << maxDrawBuffers << std::endl;
+        OpenGLContextData* context = OpenGLContextData::getSingleton();
         
-        GLint maxColorAttachments;
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
-        std::cout << "Max color attachments: " << maxColorAttachments << std::endl;
+        const OpenGLContextData::OpenGLInfo& info = context->getData();
+        
+        std::cout << "Version (Integral): " << info.iMinorVersion << "." << info.iMajorVersion << std::endl;
+        std::cout << "Version (String): " << info.sVersion << std::endl;
+        std::cout << "Debug output enabled: " << info.bDebugOutput << std::endl;
+        std::cout << "Max draw buffers: " << info.iMaxDrawBuffers << std::endl;
+        std::cout << "Max color attachments: " << info.iMaxColorAttachments << std::endl;
     }
     
     boost::filesystem::path resourceDef = "../../../resources/data.package";

@@ -53,13 +53,16 @@ void OverworldGameLayer::onBegin() {
     
     mRoseTexture->getHandle();
     
+    /*
     glUseProgram(mComputer->getHandle());
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindImageTexture(0, mRoseTexture->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    //glBindImageTexture(0, mRoseTexture->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
     
     glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
     glUseProgram(0);
+    */
+    mComputer->drop();
 
     mRootNode = new SceneNode();
     mRootNode->grab();
@@ -104,7 +107,6 @@ void OverworldGameLayer::onEnd() {
     unloadGBuffer();
     unloadSun();
     
-    mComputer->drop();
     
     mRootNode->drop();
     

@@ -76,10 +76,41 @@ void ShaderResource::load() {
     GLint compileStatus;
     glGetShaderiv(mHandle, GL_COMPILE_STATUS, &compileStatus);
     if(compileStatus == GL_FALSE) {
-        std::cout << "Error while compiling shader " << this->getName() << std::endl;
+        std::cout << "Error while compiling ";
+        switch(mType) {
+            case COMPUTE: {
+                std::cout << "COMPUTE";
+                break;
+            }
+            case VERTEX: {
+                std::cout << "VERTEX";
+                break;
+            }
+            case TESS_CONTROL: {
+                std::cout << "TESS CONTROL";
+                break;
+            }
+            case TESS_EVALUATION: {
+                std::cout << "TESS EVALUATION";
+                break;
+            }
+            case GEOMETRY: {
+                std::cout << "GEOMETRY";
+                break;
+            }
+            case FRAGMENT: {
+                std::cout << "FRAGMENT";
+                break;
+            }
+            default: {
+                break; // what
+            }
+        }
+        std::cout << " shader " << this->getName() << std::endl;
         char infoLog[512];
         glGetShaderInfoLog(mHandle, 512, 0, infoLog);
         std::cout << infoLog;
+        std::cout << shaderSrcStr;
     }
 
     mLoaded = true;

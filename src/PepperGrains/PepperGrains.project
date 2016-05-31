@@ -160,6 +160,8 @@
     <VirtualDirectory Name="Debug">
       <File Name="SandboxGameLayer.cpp"/>
       <File Name="SandboxGameLayer.hpp"/>
+      <File Name="OpenGLContextData.cpp"/>
+      <File Name="OpenGLContextData.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
