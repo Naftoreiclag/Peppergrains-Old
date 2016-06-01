@@ -40,12 +40,12 @@ PepperGrains::~PepperGrains() { }
 int PepperGrains::run(int argc, char* argv[]) {
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "SDL Error 1" << std::endl;
+        std::cout << "Could not initalize SDL video" << std::endl;
         return -1;
     }
     
     if(SDL_Init(SDL_INIT_EVENTS) < 0) {
-        std::cout << "SDL Error 3" << std::endl;
+        std::cout << "Could not initialize SDL events" << std::endl;
         return -1;
     }
 
@@ -64,24 +64,21 @@ int PepperGrains::run(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 999);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 999);
     
-    SDL_Window* sdlWindow;
-    SDL_Renderer* sdlRenderer;
-    
-    SDL_CreateWindowAndRenderer(windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI, &sdlWindow, &sdlRenderer);
-    SDL_SetWindowTitle(sdlWindow, "Window Title");
-    SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    
-    if(!sdlWindow || !sdlRenderer) {
-        std::cout << "SDL Error 2" << std::endl;
+    SDL_Window* sdlWindow = SDL_CreateWindow("Window Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    if(!sdlWindow) {
+        std::cout << "Could not create SDL window" << std::endl;
         return -1;
     }
     
-    // Enable double-buffers
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    
-    // Create SDL context
     SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetSwapInterval(1);
+    
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+    if(!sdlRenderer) {
+        std::cout << "Could not create SDL renderer" << std::endl;
+        return -1;
+    }
     
     // Use experimental drivers #yolo
     glewExperimental = GL_TRUE;
