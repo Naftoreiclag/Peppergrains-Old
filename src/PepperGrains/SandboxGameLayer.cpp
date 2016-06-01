@@ -356,13 +356,13 @@ void SandboxGameLayer::onEnd() {
     
     mAxesModel->drop();
 
-    friendNodeX->detachModel();
-    friendNodeY->detachModel();
-    friendNodeZ->detachModel();
+    friendNodeX->dropModel();
+    friendNodeY->dropModel();
+    friendNodeZ->dropModel();
     
     mSunLightModel->drop();
     
-    testPlaneNode->detachModel();
+    testPlaneNode->dropModel();
     
     rainstormFont->drop();
     

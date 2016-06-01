@@ -54,6 +54,7 @@ SceneNode* SceneNode::addChild(SceneNode* child) {
     if(child->mParent) {
         child->mParent->mChildren.erase(std::remove(mChildren.begin(), mChildren.end(), child), mChildren.end());
         // No need to change child's reference count, as ownership is being transfered
+        // Also an increment may not be possible after a decrement since the reference count could drop to zero
     }
     // Child did not previously have a parent, therefore increment reference count
     else {
@@ -221,14 +222,14 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
-SceneNode* SceneNode::attachModel(Model* modelRes) {
-    this->detachModel();
+SceneNode* SceneNode::grabModel(Model* modelRes) {
+    this->dropModel();
 
     mModelRes = modelRes;
     modelRes->grab();
     return this;
 }
-SceneNode* SceneNode::detachModel() {
+SceneNode* SceneNode::dropModel() {
     if(mModelRes) {
         mModelRes->drop();
         mModelRes = nullptr;

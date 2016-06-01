@@ -67,13 +67,13 @@ void OverworldGameLayer::onBegin() {
     mRootNode = new SceneNode();
     mRootNode->grab();
     
-    mRootNode->newChild()->attachModel(resman->findModel("TestPlane.model"));
-    mRootNode->newChild()->attachModel(new GrassModel());
+    mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
+    mRootNode->newChild()->grabModel(new GrassModel());
     //mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
-    mRootNode->newChild()->attachModel(resman->findModel("RoseCube.model"));
-    mRootNode->newChild()->move(glm::vec3(1.5f, 1.5f, 1.5f))->attachModel(new PointLightModel(glm::vec3(2.f, 0.f, 2.f), 2.f));
-    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->attachModel(new TessModel());
-    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->attachModel(resman->findModel("Door.model"));
+    mRootNode->newChild()->grabModel(resman->findModel("RoseCube.model"));
+    mRootNode->newChild()->move(glm::vec3(1.5f, 1.5f, 1.5f))->grabModel(new PointLightModel(glm::vec3(2.f, 0.f, 2.f), 2.f));
+    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(new TessModel());
+    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(resman->findModel("Door.model"));
     
     
     rainstormFont = resman->findFont("Rainstorm.font");
