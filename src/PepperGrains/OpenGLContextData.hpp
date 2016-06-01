@@ -52,6 +52,9 @@ public:
         std::string sVendor;
         std::string sRenderer;
         std::string sShadingLanguageVersion;
+        
+        bool supportsGeometryShaders() const;
+        bool supportsTessellationShaders() const;
     };
 private:
     OpenGLInfo mInfo;

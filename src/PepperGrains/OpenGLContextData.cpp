@@ -15,6 +15,23 @@
 
 namespace pgg {
 
+bool OpenGLContextData::OpenGLInfo::supportsGeometryShaders() const {
+    if(iMajorVersion > 3) {
+        return true;
+    }
+    if(iMajorVersion == 3 && iMinorVersion >= 2) {
+        return true;
+    }
+    return false;
+}
+
+bool OpenGLContextData::OpenGLInfo::supportsTessellationShaders() const {
+    if(iMajorVersion >= 4) {
+        return true;
+    }
+    return false;
+}
+    
 OpenGLContextData* OpenGLContextData::getSingleton() {
     static OpenGLContextData instance;
     return &instance;
