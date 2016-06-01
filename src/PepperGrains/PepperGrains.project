@@ -127,20 +127,6 @@
       <File Name="StreamStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="nres">
-      <File Name="NRES.hpp"/>
-      <File Name="nresComponent.cpp"/>
-      <File Name="nresComponent.hpp"/>
-      <File Name="nresEntity.cpp"/>
-      <File Name="nresEntity.hpp"/>
-      <File Name="nresListener.cpp"/>
-      <File Name="nresListener.hpp"/>
-      <File Name="nresSystem.cpp"/>
-      <File Name="nresSystem.hpp"/>
-      <File Name="nresTypedefs.hpp"/>
-      <File Name="nresWorld.cpp"/>
-      <File Name="nresWorld.hpp"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
@@ -168,6 +154,26 @@
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Entity System">
+      <VirtualDirectory Name="nres">
+        <File Name="NRES.hpp"/>
+        <File Name="nresComponent.cpp"/>
+        <File Name="nresComponent.hpp"/>
+        <File Name="nresEntity.cpp"/>
+        <File Name="nresEntity.hpp"/>
+        <File Name="nresListener.cpp"/>
+        <File Name="nresListener.hpp"/>
+        <File Name="nresSystem.cpp"/>
+        <File Name="nresSystem.hpp"/>
+        <File Name="nresTypedefs.hpp"/>
+        <File Name="nresWorld.cpp"/>
+        <File Name="nresWorld.hpp"/>
+      </VirtualDirectory>
+      <File Name="SceneNodeESys.hpp"/>
+      <File Name="SceneNodeESys.cpp"/>
+      <File Name="SceneNodeComp.cpp"/>
+      <File Name="SceneNodeComp.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

@@ -75,7 +75,7 @@ void Entity::publish() {
         for(std::vector<ComponentID>::const_iterator reqIter = requirements.begin(); reqIter != requirements.end(); ++ reqIter) {
             const ComponentID& reqId = *reqIter;
             
-            // Check if we fulfill this requirements
+            // Check if we fulfill this requirement
             bool haveRequirement = false;
             for(std::vector<Component*>::iterator compIter = components.begin(); compIter != components.end(); ++ compIter) {
                 Component* myComponent = *compIter;

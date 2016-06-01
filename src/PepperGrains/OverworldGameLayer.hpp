@@ -16,6 +16,7 @@
 
 #include "GameLayer.hpp" // Base class: pgg::GameLayer
 
+#include "NRES.hpp"
 #include "SDL2/SDL.h"
 
 #include "AxesModel.hpp"
@@ -91,6 +92,8 @@ private:
     };
     Sky mSky;
     
+    nres::World* mEntityWorld;
+    
     ShaderProgramResource* mComputer;
     TextureResource* mRoseTexture;
     
@@ -108,7 +111,6 @@ private:
 public:
     OverworldGameLayer(uint32_t width, uint32_t height);
     ~OverworldGameLayer();
-    
     
     SceneNode* mRootNode;
     

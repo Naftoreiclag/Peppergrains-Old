@@ -30,6 +30,7 @@ SceneNode::SceneNode()
 
 SceneNode::~SceneNode() {
     this->detachAllChildren();
+    this->dropModel();
 }
 
 void SceneNode::load() {
@@ -226,7 +227,7 @@ SceneNode* SceneNode::grabModel(Model* modelRes) {
     this->dropModel();
 
     mModelRes = modelRes;
-    modelRes->grab();
+    mModelRes->grab();
     return this;
 }
 SceneNode* SceneNode::dropModel() {
