@@ -15,8 +15,8 @@
 
 */
 
-#ifndef VSE_ENTSIGNAL_HPP
-#define VSE_ENTSIGNAL_HPP
+#ifndef PGG_ENTSIGNAL_HPP
+#define PGG_ENTSIGNAL_HPP
 
 namespace pgg
 {
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif // VSE_ENTSIGNAL_HPP
+#endif // PGG_ENTSIGNAL_HPP
