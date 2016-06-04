@@ -24,14 +24,14 @@
 
 namespace pgg {
 
-class InputMoveESignal : public EntitySignal {
+class InputMoveESignal : public ESignal {
 public:
     InputMoveESignal(const Vec3& displacement);
     ~InputMoveESignal();
     
     const Vec3 mDisplacement;
     
-    EntitySignal::Type getType() const;
+    ESignal::Type getType() const;
 };
 
 }

@@ -19,8 +19,8 @@
 
 namespace pgg {
 
-EntitySignal::EntitySignal() { }
-EntitySignal::~EntitySignal() { }
+ESignal::ESignal() { }
+ESignal::~ESignal() { }
 
 }
 

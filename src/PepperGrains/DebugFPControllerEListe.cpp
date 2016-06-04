@@ -32,7 +32,7 @@ void DebugFPControllerEListe::onEntityDestroyed(nres::Entity* entity) {
     
 }
 void DebugFPControllerEListe::onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data) {
-    if(data->getType() == EntitySignal::Type::MOVE_INPUT) {
+    if(data->getType() == ESignal::Type::INPUT_MOVE) {
         entity->broadcast()
     }
 }

@@ -20,12 +20,16 @@
 
 #include "NRES.hpp"
 
+#include "EntitySignal.hpp"
+
 namespace pgg {
 
-class PhysicsLocationUpdateESignal : public EntitySignal {
+class PhysicsLocationUpdateESignal : public ESignal {
 public:
     PhysicsLocationUpdateESignal();
     ~PhysicsLocationUpdateESignal();
+    
+    ESignal::Type getType() const;
 
 };
 

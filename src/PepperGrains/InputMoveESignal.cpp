@@ -26,8 +26,8 @@ InputMoveESignal::InputMoveESignal(const Vec3& displacement)
 InputMoveESignal::~InputMoveESignal() {
 }
 
-EntitySignal::Type InputMoveESignal::getType() const {
-    return EntitySignal::MOVE_INPUT;
+ESignal::Type InputMoveESignal::getType() const {
+    return ESignal::INPUT_MOVE;
 }
 
 

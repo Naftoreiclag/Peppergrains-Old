@@ -28,17 +28,17 @@ namespace pgg {
  * be initated directly by player input and PhysicsLocationUpdate
  * should be initiated by a system that works with physics.
  */
-class EntitySignal {
+class ESignal {
 public:
     enum Type {
-        MOVE_INPUT, // Player input requests movement
-        LOCATION, // Physics changed location
+        INPUT_MOVE, // Player input requests movement
+        PHYSICS_LOCATION, // Physics changed location
         ORIENTATION, // Physics changed orientation (i.e. rotation)
         ANIMATION // Play an animation
     };
 public:
-    EntitySignal();
-    virtual ~EntitySignal();
+    ESignal();
+    virtual ~ESignal();
     
     virtual Type getType() const = 0;
 

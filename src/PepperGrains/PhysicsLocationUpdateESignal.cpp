@@ -27,6 +27,10 @@ PhysicsLocationUpdateESignal::~PhysicsLocationUpdateESignal()
 {
 }
 
+ESignal::Type PhysicsLocationUpdateESignal::getType() const {
+    return ESignal::Type::LOCATION;
+}
+
 
 }
 
