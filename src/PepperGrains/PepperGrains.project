@@ -179,8 +179,8 @@
       <VirtualDirectory Name="signals">
         <File Name="EntitySignal.cpp"/>
         <File Name="EntitySignal.hpp"/>
-        <File Name="MoveInputESignal.cpp"/>
-        <File Name="MoveInputESignal.hpp"/>
+        <File Name="InputMoveESignal.hpp"/>
+        <File Name="InputMoveESignal.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Math Abstraction">

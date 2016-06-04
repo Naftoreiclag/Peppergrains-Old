@@ -15,20 +15,25 @@
 
 */
 
-#include "MoveInputESignal.hpp"
+#ifndef PGG_MOVEINPUTESIGNAL_HPP
+#define PGG_MOVEINPUTESIGNAL_HPP
+
+#include "EntitySignal.hpp"
+
+#include "Vec3.hpp"
 
 namespace pgg {
 
-MoveInputESignal::MoveInputESignal() {
+class InputMoveESignal : public EntitySignal {
+public:
+    InputMoveESignal(const Vec3& displacement);
+    ~InputMoveESignal();
+    
+    const Vec3 mDisplacement;
+    
+    EntitySignal::Type getType() const;
+};
+
 }
 
-MoveInputESignal::~MoveInputESignal() {
-}
-
-EntitySignal::Type MoveInputESignal::getType() const {
-    return EntitySignal::MOVE_INPUT;
-}
-
-
-}
-
+#endif // PGG_MOVEINPUTESIGNAL_HPP

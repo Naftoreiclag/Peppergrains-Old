@@ -15,21 +15,21 @@
 
 */
 
-#ifndef PGG_MOVEINPUTESIGNAL_HPP
-#define PGG_MOVEINPUTESIGNAL_HPP
-
-#include "EntitySignal.hpp"
+#include "InputMoveESignal.hpp"
 
 namespace pgg {
 
-class MoveInputESignal : public EntitySignal {
-public:
-    MoveInputESignal();
-    ~MoveInputESignal();
-    
-    EntitySignal::Type getType() const;
-};
+InputMoveESignal::InputMoveESignal(const Vec3& displacement)
+: mDisplacement(displacement) {
+}
+
+InputMoveESignal::~InputMoveESignal() {
+}
+
+EntitySignal::Type InputMoveESignal::getType() const {
+    return EntitySignal::MOVE_INPUT;
+}
+
 
 }
 
-#endif // PGG_MOVEINPUTESIGNAL_HPP
