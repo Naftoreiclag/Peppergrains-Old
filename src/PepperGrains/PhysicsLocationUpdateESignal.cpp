@@ -19,16 +19,15 @@
 
 namespace pgg {
 
-PhysicsLocationUpdateESignal::PhysicsLocationUpdateESignal()
-{
+PhysicsLocationUpdateESignal::PhysicsLocationUpdateESignal(const Vec3& absLocation)
+: mAbsoluteLocation(absLocation) {
 }
 
-PhysicsLocationUpdateESignal::~PhysicsLocationUpdateESignal()
-{
+PhysicsLocationUpdateESignal::~PhysicsLocationUpdateESignal() {
 }
 
 ESignal::Type PhysicsLocationUpdateESignal::getType() const {
-    return ESignal::Type::LOCATION;
+    return ESignal::Type::PHYSICS_LOCATION;
 }
 
 

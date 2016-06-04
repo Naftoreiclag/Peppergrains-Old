@@ -17,9 +17,13 @@
 
 #include "DebugFPControllerEListe.hpp"
 
+#include "InputMoveESignal.hpp"
+#include "PhysicsLocationUpdateESignal.hpp"
+
 namespace pgg {
 
-DebugFPControllerEListe::DebugFPControllerEListe() {
+DebugFPControllerEListe::DebugFPControllerEListe(Vec3 initialLocation)
+: mAbsoluteLocation(initialLocation) {
 }
 
 DebugFPControllerEListe::~DebugFPControllerEListe() {
@@ -31,9 +35,13 @@ void DebugFPControllerEListe::onEntityExists(nres::Entity* entity) {
 void DebugFPControllerEListe::onEntityDestroyed(nres::Entity* entity) {
     
 }
-void DebugFPControllerEListe::onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data) {
+void DebugFPControllerEListe::onEntityBroadcast(nres::Entity* entity, const ESignal* data) {
     if(data->getType() == ESignal::Type::INPUT_MOVE) {
-        entity->broadcast()
+        const InputMoveESignal* input = (const InputMoveESignal*) data;
+        
+        mAbsoluteLocation += input->mDisplacement;
+        
+        entity->broadcast(new PhysicsLocationUpdateESignal(mAbsoluteLocation));
     }
 }
 

@@ -18,6 +18,7 @@
 #include "SceneNodeESys.hpp"
 
 #include "SceneNodeEComp.hpp"
+#include "PhysicsLocationUpdateESignal.hpp"
 
 namespace pgg {
 
@@ -41,7 +42,23 @@ void SceneNodeESys::onEntityDestroyed(nres::Entity* entity) {
     SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);
     comp->mSceneNode->drop();
 }
-void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data) {
+void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const ESignal* data) {
+    ESignal::Type type = data->getType();
+    
+    if(type != ESignal::Type::PHYSICS_LOCATION) {
+        return;
+    }
+    
+    SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);
+    
+    switch(data->getType()) {
+        case ESignal::Type::PHYSICS_LOCATION: {
+            const PhysicsLocationUpdateESignal* physUpdate = (const PhysicsLocationUpdateESignal*) data;
+            comp->mSceneNode->setLocalTranslation(physUpdate->mAbsoluteLocation);
+            break;
+        }
+        default: break;
+    }
 }
 
 const std::vector<nres::ComponentID>& SceneNodeESys::getRequiredComponents() {

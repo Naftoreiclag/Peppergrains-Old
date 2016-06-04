@@ -52,6 +52,14 @@ Vec3::Vec3(const btVector3& v)
 , y(v.getY())
 , z(v.getZ()) {
 }
+Vec3::operator glm::vec3() const {
+    return glm::vec3(x, y, z);
+}
+Vec3::Vec3(const glm::vec3& v)
+: x(v.x)
+, y(v.y)
+, z(v.z) {
+}
 
 // Equals
 bool Vec3::operator==(const Vec3& v1) const {

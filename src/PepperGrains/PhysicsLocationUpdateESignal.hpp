@@ -21,13 +21,16 @@
 #include "NRES.hpp"
 
 #include "EntitySignal.hpp"
+#include "Vec3.hpp"
 
 namespace pgg {
 
 class PhysicsLocationUpdateESignal : public ESignal {
 public:
-    PhysicsLocationUpdateESignal();
+    PhysicsLocationUpdateESignal(const Vec3& absLocation);
     ~PhysicsLocationUpdateESignal();
+    
+    const Vec3 mAbsoluteLocation;
     
     ESignal::Type getType() const;
 

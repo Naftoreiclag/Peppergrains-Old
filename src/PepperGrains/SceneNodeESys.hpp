@@ -36,7 +36,7 @@ public:
     
     void onEntityExists(nres::Entity* entity);
     void onEntityDestroyed(nres::Entity* entity);
-    void onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data);
+    void onEntityBroadcast(nres::Entity* entity, const ESignal* data);
     
     const std::vector<nres::ComponentID>& getRequiredComponents();
     

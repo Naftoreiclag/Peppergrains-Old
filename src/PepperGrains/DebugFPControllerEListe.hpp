@@ -20,16 +20,24 @@
 
 #include "NRES.hpp"
 
+#include "Vec3.hpp"
+
 namespace pgg {
 
+/*
+ * Used in place of a normal physics component
+ */
+ 
 class DebugFPControllerEListe : public nres::Listener {
 public:
-    DebugFPControllerEListe();
+    DebugFPControllerEListe(Vec3 initialLocation = Vec3());
     ~DebugFPControllerEListe();
+    
+    Vec3 mAbsoluteLocation;
 public:
     void onEntityExists(nres::Entity* entity);
     void onEntityDestroyed(nres::Entity* entity);
-    void onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data);
+    void onEntityBroadcast(nres::Entity* entity, const ESignal* data);
 
 };
 

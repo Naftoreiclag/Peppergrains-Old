@@ -22,6 +22,8 @@
 
 #include "btBulletDynamicsCommon.h"
 
+#include "OpenGLStuff.hpp"
+
 namespace pgg {
 
 class Vec3 {
@@ -40,6 +42,8 @@ public:
     // Implicit conversions
     operator btVector3() const;
     Vec3(const btVector3& v);
+    operator glm::vec3() const;
+    Vec3(const glm::vec3& v);
     
     // Equals
     bool operator==(const Vec3& v) const;

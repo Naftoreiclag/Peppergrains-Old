@@ -17,7 +17,7 @@
 
 #include "Quate.hpp"
 
-namespace vse {
+namespace pgg {
 
 Quate::Quate()
 : w(0.f)
