@@ -21,6 +21,7 @@
 
 #include "SceneNodeEComp.hpp"
 #include "PhysicsLocationUpdateESignal.hpp"
+#include "PhysicsOrientationUpdateESignal.hpp"
 
 namespace pgg {
 
@@ -48,7 +49,7 @@ void SceneNodeESys::onEntityDestroyed(nres::Entity* entity) {
 void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const ESignal* data) {
     ESignal::Type type = data->getType();
     
-    if(type != ESignal::Type::PHYSICS_LOCATION) {
+    if(type != ESignal::Type::PHYSICS_LOCATION && type != ESignal::Type::PHYSICS_ORIENTATION) {
         return;
     }
     
@@ -58,6 +59,11 @@ void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const ESignal* data)
         case ESignal::Type::PHYSICS_LOCATION: {
             const PhysicsLocationUpdateESignal* physUpdate = (const PhysicsLocationUpdateESignal*) data;
             comp->mSceneNode->setLocalTranslation(physUpdate->mAbsoluteLocation);
+            break;
+        }
+        case ESignal::Type::PHYSICS_ORIENTATION: {
+            const PhysicsOrientationUpdateESignal* physUpdate = (const PhysicsOrientationUpdateESignal*) data;
+            comp->mSceneNode->setLocalOrientation(physUpdate->mOrientation);
             break;
         }
         default: break;

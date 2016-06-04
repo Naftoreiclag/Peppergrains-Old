@@ -44,6 +44,15 @@ Quate::Quate(const Quate& q)
 }
 
 // Implicit conversions
+Quate::operator glm::quat() const {
+    return glm::quat(w, x, y, z);
+}
+Quate::Quate(const glm::quat& q)
+: w(q.w)
+, x(q.x)
+, y(q.y)
+, z(q.z) {
+}
 Quate::operator btQuaternion() const {
     // This kind of nonsense is exactly why I made this class
     return btQuaternion(x, y, z, w);

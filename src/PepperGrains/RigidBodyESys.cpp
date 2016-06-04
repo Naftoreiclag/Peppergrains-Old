@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "PhysicsLocationUpdateESignal.hpp"
+#include "PhysicsOrientationUpdateESignal.hpp"
 
 namespace pgg {
 
@@ -84,7 +85,7 @@ void RigidBodyESys::onTick() {
         
         if(rigidBody->mOnPhysUpdate) {
             entity->broadcast(new PhysicsLocationUpdateESignal(rigidBody->mLocation));
-            // entity->broadcast(new OrientationSignal(Quate(rigidBody->mRotation)));
+            entity->broadcast(new PhysicsOrientationUpdateESignal(rigidBody->mRotation));
             
             rigidBody->mOnPhysUpdate = false;
         }

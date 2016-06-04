@@ -179,6 +179,8 @@
         <File Name="PhysicsLocationUpdateESignal.hpp"/>
         <File Name="InputInteractESignal.hpp"/>
         <File Name="InputInteractESignal.cpp"/>
+        <File Name="PhysicsOrientationUpdateESignal.cpp"/>
+        <File Name="PhysicsOrientationUpdateESignal.hpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="components">
         <File Name="RigidBodyEComp.cpp"/>

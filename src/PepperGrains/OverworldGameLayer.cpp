@@ -76,9 +76,15 @@ void OverworldGameLayer::onBegin() {
     mPlayerEntity->addListener(new DebugFPControllerEListe());
     mPlayerEntity->publish();
     
-    nres::Entity* cube = mEntityWorld->newEntity();
+    nres::Entity* cube;
+    cube = mEntityWorld->newEntity();
     cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(3.f, 3.f, 3.f)));
+    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-3.f, 3.f, -3.f)));
+    cube->publish();
+    
+    cube = mEntityWorld->newEntity();
+    cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
+    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-4.5f, 8.f, -4.5f)));
     cube->publish();
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");

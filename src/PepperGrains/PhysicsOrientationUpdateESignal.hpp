@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,38 +15,27 @@
 
 */
 
-#ifndef PGG_QUATE_HPP
-#define PGG_QUATE_HPP
+#ifndef PGG_PHYSICSORIENTATIONUPDATEESYS_HPP
+#define PGG_PHYSICSORIENTATIONUPDATEESYS_HPP
 
-#include "btBulletDynamicsCommon.h"
+#include "NRES.hpp"
 
-#include "OpenGLStuff.hpp"
-
-// Nothing but a way to easily convert between the many quaternion types
+#include "EntitySignal.hpp"
+#include "Quate.hpp"
 
 namespace pgg {
 
-class Quate {
+class PhysicsOrientationUpdateESignal : public ESignal {
 public:
-    float x;
-    float y;
-    float z;
-    float w;
+    PhysicsOrientationUpdateESignal(const Quate& quaternion);
+    ~PhysicsOrientationUpdateESignal();
+    
+    const Quate mOrientation;
+    
+    ESignal::Type getType() const;
 
-    Quate();
-    Quate(float w, float x, float y, float z);
-    ~Quate();
-    
-    // Copy-constructor
-    Quate(const Quate& q);
-    
-    // Implicit conversions
-    operator glm::quat() const;
-    Quate(const glm::quat& q);
-    operator btQuaternion() const;
-    Quate(const btQuaternion& q);
 };
 
 }
 
-#endif // PGG_QUATE_HPP
+#endif // PGG_PHYSICSORIENTATIONUPDATEESYS_HPP
