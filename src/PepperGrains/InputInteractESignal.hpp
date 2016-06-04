@@ -15,28 +15,18 @@
 
 */
 
-#include "RigidBodyEComp.hpp"
+#ifndef PGG_INPUTINTERACTESIGNAL_HPP
+#define PGG_INPUTINTERACTESIGNAL_HPP
 
 namespace pgg {
 
-const nres::ComponentID RigidBodyEComp::sComponentID = "rb";
+class InputInteractESignal {
+public:
+    InputInteractESignal();
+    ~InputInteractESignal();
 
-RigidBodyEComp::RigidBodyEComp(btCollisionShape* collisionShape, Vec3 initialLoc, float mass)
-: mCollisionShape(collisionShape)
-, mArgInitialLoc(initialLoc)
-, mRigidBody(nullptr)
-, mMotionState(nullptr)
-, mMass(mass) {
-}
-
-RigidBodyEComp::~RigidBodyEComp() {
-    delete mCollisionShape;
-}
-
-const nres::ComponentID& RigidBodyEComp::getID() const {
-    return sComponentID;
-}
-
+};
 
 }
 
+#endif // PGG_INPUTINTERACTESIGNAL_HPP

@@ -32,8 +32,9 @@ class ESignal {
 public:
     enum Type {
         INPUT_MOVE, // Player input requests movement
+        INPUT_INTERACT, // Player input interaction
         PHYSICS_LOCATION, // Physics changed location
-        ORIENTATION, // Physics changed orientation (i.e. rotation)
+        PHYSICS_ORIENTATION, // Physics changed orientation (i.e. rotation)
         ANIMATION // Play an animation
     };
 public:

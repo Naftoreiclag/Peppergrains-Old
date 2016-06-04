@@ -177,6 +177,8 @@
         <File Name="InputMoveESignal.cpp"/>
         <File Name="PhysicsLocationUpdateESignal.cpp"/>
         <File Name="PhysicsLocationUpdateESignal.hpp"/>
+        <File Name="InputInteractESignal.hpp"/>
+        <File Name="InputInteractESignal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="components">
         <File Name="RigidBodyEComp.cpp"/>

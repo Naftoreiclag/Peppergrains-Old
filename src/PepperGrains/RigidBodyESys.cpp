@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include "PhysicsLocationUpdateESignal.hpp"
+
 namespace pgg {
 
 RigidBodyESys::RigidBodyMotionListener::RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyEComp* const sendTo)
@@ -81,7 +83,7 @@ void RigidBodyESys::onTick() {
         RigidBodyEComp* rigidBody = (RigidBodyEComp*) entity->getComponent(RigidBodyEComp::sComponentID);
         
         if(rigidBody->mOnPhysUpdate) {
-            // entity->broadcast(new LocationSignal(Vec3f(rigidBody->mLocation)));
+            entity->broadcast(new PhysicsLocationUpdateESignal(rigidBody->mLocation));
             // entity->broadcast(new OrientationSignal(Quate(rigidBody->mRotation)));
             
             rigidBody->mOnPhysUpdate = false;

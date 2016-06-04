@@ -27,6 +27,7 @@
 #include "SunLightModel.hpp"
 #include "DirectionalLightModel.hpp"
 #include "PointLightModel.hpp"
+#include "RigidBodyEComp.hpp"
 #include "GrassModel.hpp"
 #include "TessModel.hpp"
 #include "Vec3.hpp"
@@ -61,6 +62,10 @@ void OverworldGameLayer::onBegin() {
     mRigidBodyESys = new RigidBodyESys(mDynamicsWorld);
     mEntityWorld->attachSystem(mRigidBodyESys);
     
+    btStaticPlaneShape* planeShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+    mPlaneRigid = new btRigidBody(0, 0, planeShape);
+    mDynamicsWorld->addRigidBody(mPlaneRigid);
+    
     mRootNode = new SceneNode();
     mRootNode->grab();
     mSceneNodeESys = new SceneNodeESys(mRootNode);
@@ -70,6 +75,11 @@ void OverworldGameLayer::onBegin() {
     mPlayerEntity->add(new SceneNodeEComp());
     mPlayerEntity->addListener(new DebugFPControllerEListe());
     mPlayerEntity->publish();
+    
+    nres::Entity* cube = mEntityWorld->newEntity();
+    cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
+    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(3.f, 3.f, 3.f)));
+    cube->publish();
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");
     mComputer->grab();
@@ -138,7 +148,6 @@ void OverworldGameLayer::onEnd() {
     
     
     mInfCheck->drop();
-    
     mRootNode->drop();
     
     //mTerrainModel->drop();

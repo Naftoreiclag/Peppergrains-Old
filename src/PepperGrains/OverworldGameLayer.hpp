@@ -103,6 +103,7 @@ private:
     
     InfiniteCheckerboardModel* mInfCheck;
     
+    btRigidBody* mPlaneRigid;
     
     btBroadphaseInterface* mBroadphase;
     btDefaultCollisionConfiguration* mCollisionConfiguration;

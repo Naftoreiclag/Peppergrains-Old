@@ -22,12 +22,14 @@
 
 #include "NRES.hpp"
 
+#include "Vec3.hpp"
+
 namespace pgg {
 
 class RigidBodyEComp : public nres::Component {
 public:
-    RigidBodyEComp(btCollisionShape* collisionShape, const float& mass = 1);
-    const btVector3 mArgInitialLoc;
+    RigidBodyEComp(btCollisionShape* collisionShape, Vec3 initialLoc = Vec3(), float mass = 1);
+    const Vec3 mArgInitialLoc;
     
     ~RigidBodyEComp();
     
