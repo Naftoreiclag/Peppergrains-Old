@@ -26,8 +26,22 @@ namespace pgg {
 
 class RigidBodyComp : public nres::Component {
 public:
-    RigidBodyComp();
+    RigidBodyComp(btCollisionShape* collisionShape, const float& mass = 1);
     ~RigidBodyComp();
+    
+    btVector3 mInitialLoc;
+    
+    btQuaternion mRotation;
+    btVector3 mLocation;
+    btVector3 mVelocityLinear;
+    
+    bool mOnPhysUpdate;
+    
+    const float mMass;
+    
+    btCollisionShape* mCollisionShape; // For deletion
+    btRigidBody* mRigidBody;
+    btMotionState* mMotionState;
 public:
     static const nres::ComponentID sComponentID;
     const nres::ComponentID& getID() const;

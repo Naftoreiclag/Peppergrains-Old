@@ -18,15 +18,42 @@
 #ifndef PGG_RIGIDBODYESYS_HPP
 #define PGG_RIGIDBODYESYS_HPP
 
-namespace pgg
-{
+#include "btBulletDynamicsCommon.h"
 
-class RigidBodyESys
-{
+#include "NRES.hpp"
+
+#include "RigidBodyComp.hpp"
+
+namespace pgg {
+
+class RigidBodyESys : public nres::System {
 public:
-    RigidBodyESys();
+    class RigidBodyMotionListener : public btMotionState {
+    protected:
+        btTransform initialLoc;
+        RigidBodyComp* const sendTo;
+    public:
+        RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyComp* const sendTo);
+        void getWorldTransform(btTransform& worldTransform) const;
+        void setWorldTransform(const btTransform& worldTransform);
+    };
+public:
+    RigidBodyESys(btDynamicsWorld* dynamicsWorld);
     ~RigidBodyESys();
-
+private:
+    std::vector<nres::ComponentID> mRequiredComponents;
+    std::vector<nres::Entity*> mTrackedEntities;
+    
+    btDynamicsWorld* mDynamicsWorld;
+    
+public:
+    void onEntityExists(nres::Entity* entity);
+    void onEntityDestroyed(nres::Entity* entity);
+    void onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data);
+    
+    const std::vector<nres::ComponentID>& getRequiredComponents();
+    
+    void onTick();
 };
 
 }

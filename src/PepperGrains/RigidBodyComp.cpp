@@ -21,12 +21,15 @@ namespace pgg {
 
 const nres::ComponentID RigidBodyComp::sComponentID = "rb";
 
-RigidBodyComp::RigidBodyComp()
-{
+RigidBodyComp::RigidBodyComp(btCollisionShape* collisionShape, const float& mass)
+: mCollisionShape(collisionShape)
+, mRigidBody(nullptr)
+, mMotionState(nullptr)
+, mMass(mass) {
 }
 
-RigidBodyComp::~RigidBodyComp()
-{
+RigidBodyComp::~RigidBodyComp() {
+    delete mCollisionShape;
 }
 
 const nres::ComponentID& RigidBodyComp::getID() const {
