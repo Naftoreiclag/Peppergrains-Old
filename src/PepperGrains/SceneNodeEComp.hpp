@@ -29,10 +29,11 @@ public:
     static const nres::ComponentID sComponentID;
 
     SceneNodeEComp(Model* model = nullptr);
+    Model* const mArgModel;
+    
     ~SceneNodeEComp();
 
     SceneNode* mSceneNode;
-    Model* mArgModel;
 
     const nres::ComponentID& getID() const;
 };

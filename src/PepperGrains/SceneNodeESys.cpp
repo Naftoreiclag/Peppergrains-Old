@@ -37,8 +37,9 @@ void SceneNodeESys::onEntityExists(nres::Entity* entity) {
     SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);
     comp->mSceneNode = mRootNode->newChild();
     comp->mSceneNode->grab();
-    comp->mSceneNode->grabModel(comp->mArgModel);
-    comp->mArgModel = nullptr;
+    if(comp->mArgModel) {
+        comp->mSceneNode->grabModel(comp->mArgModel);
+    }
 }
 void SceneNodeESys::onEntityDestroyed(nres::Entity* entity) {
     SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);

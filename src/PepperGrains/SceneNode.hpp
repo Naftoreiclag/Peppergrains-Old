@@ -90,7 +90,7 @@ public:
     SceneNode* move(const glm::vec3& translation);
 
     // Model
-    SceneNode* grabModel(Model* modelRes);
+    SceneNode* grabModel(Model* model);
     SceneNode* dropModel();
 
     // Calculates world transform (which becomes the model matrix) and then renders

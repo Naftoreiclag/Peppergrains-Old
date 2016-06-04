@@ -29,6 +29,7 @@
 #include "PointLightModel.hpp"
 #include "GrassModel.hpp"
 #include "TessModel.hpp"
+#include "Vec3.hpp"
 
 namespace pgg {
 
@@ -66,7 +67,7 @@ void OverworldGameLayer::onBegin() {
     mEntityWorld->attachSystem(mSceneNodeESys);
     
     mPlayerEntity = mEntityWorld->newEntity();
-    mPlayerEntity->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
+    mPlayerEntity->add(new SceneNodeEComp());
     mPlayerEntity->addListener(new DebugFPControllerEListe());
     mPlayerEntity->publish();
 
@@ -75,8 +76,6 @@ void OverworldGameLayer::onBegin() {
     
     mRoseTexture = resman->findTexture("128Rose.texture");
     mRoseTexture->grab();
-    
-    mRoseTexture->getHandle();
     
     /*
     glUseProgram(mComputer->getHandle());
@@ -89,7 +88,7 @@ void OverworldGameLayer::onBegin() {
     */
     mComputer->drop();
     
-    mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
+    //mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
     mRootNode->newChild()->grabModel(new GrassModel());
     //mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
     //mRootNode->newChild()->grabModel(resman->findModel("RoseCube.model"));
@@ -104,19 +103,26 @@ void OverworldGameLayer::onBegin() {
     fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
     fpsCounter->grab();
     
+    mCamLocNode = new SceneNode();
+    mCamLocNode->move(Vec3(0.f, 1.5f, 0.f));
+    
     mCamRollNode = new SceneNode();
     mCamPitchNode = new SceneNode();
     mCamYawNode = new SceneNode();
-    mCamLocNode = new SceneNode();
-    mCamLocNode->move(glm::vec3(2.f, 4.f, 3.f));
-    
-    mRootNode->addChild(mCamLocNode);
     mCamLocNode->addChild(mCamYawNode);
     mCamYawNode->addChild(mCamPitchNode);
     mCamPitchNode->addChild(mCamRollNode);
     
+    SceneNodeEComp* plS = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
+    plS->mSceneNode->addChild(mCamLocNode);
+    
+    //mTerrainModel->grab();
+    
+    mInfCheck = new InfiniteCheckerboardModel();
     mTerrainModel = new TerrainModel();
-    mTerrainModel->grab();
+    mInfCheck->grab();
+    mRootNode->newChild()->grabModel(mInfCheck);
+    //mRootNode->newChild()->grabModel(mTerrainModel);
     
 
     fps = 0.f;
@@ -131,9 +137,11 @@ void OverworldGameLayer::onEnd() {
     unloadSun();
     
     
+    mInfCheck->drop();
+    
     mRootNode->drop();
     
-    mTerrainModel->drop();
+    //mTerrainModel->drop();
     
     fpsCounter->drop();
     rainstormFont->drop();
@@ -518,6 +526,11 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         rootNodeRPC.projMat = mCamera.projMat;
         rootNodeRPC.camPos = mCamera.position;
         mRootNode->render(rootNodeRPC);
+        /*
+        SceneNodeEComp* comp = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
+        mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
+        mInfCheck->render(rootNodeRPC, glm::mat4());
+        */
         // mTerrainModel->render(rootNodeRPC, glm::mat4());
     }
     

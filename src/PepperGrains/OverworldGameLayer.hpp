@@ -31,6 +31,7 @@
 #include "TerrainRenderer.hpp"
 #include "TextModel.hpp"
 #include "TextureResource.hpp"
+#include "DebugInfiniteCheckerboardModel.hpp"
 
 namespace pgg {
 
@@ -99,6 +100,9 @@ private:
     nres::World* mEntityWorld;
     
     nres::Entity* mPlayerEntity;
+    
+    InfiniteCheckerboardModel* mInfCheck;
+    
     
     btBroadphaseInterface* mBroadphase;
     btDefaultCollisionConfiguration* mCollisionConfiguration;

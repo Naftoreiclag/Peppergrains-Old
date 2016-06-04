@@ -121,6 +121,8 @@
       </VirtualDirectory>
       <File Name="TessModel.hpp"/>
       <File Name="TessModel.cpp"/>
+      <File Name="DebugInfiniteCheckerboardModel.hpp"/>
+      <File Name="DebugInfiniteCheckerboardModel.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>

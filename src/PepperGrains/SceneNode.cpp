@@ -223,10 +223,10 @@ void SceneNode::markBothTransformsDirty() {
     this->markWorldTransformDirty();
 }
 
-SceneNode* SceneNode::grabModel(Model* modelRes) {
+SceneNode* SceneNode::grabModel(Model* model) {
     this->dropModel();
 
-    mModelRes = modelRes;
+    mModelRes = model;
     mModelRes->grab();
     return this;
 }
