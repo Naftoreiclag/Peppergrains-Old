@@ -44,6 +44,7 @@ Vec3::~Vec3() {
 }
 
 // Implicit conversions
+/*
 Vec3::operator Ogre::Vector3() const {
     return Ogre::Vector3(x, y, z);
 }
@@ -52,6 +53,7 @@ Vec3::Vec3(const Ogre::Vector3& v)
 , y(v.y)
 , z(v.z) {
 }
+*/
 Vec3::operator btVector3() const {
     return btVector3(x, y, z);
 }

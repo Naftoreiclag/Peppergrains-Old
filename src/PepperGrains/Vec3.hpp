@@ -21,58 +21,59 @@
 #include <ostream>
 
 #include "btBulletDynamicsCommon.h"
-#include "OgreVector3.h"
 
 namespace pgg {
 
-class Vec3f {
+class Vec3 {
 public:
     float x;
     float y;
     float z;
 
-    Vec3f();
-    Vec3f(float x, float y, float z);
-    ~Vec3f();
+    Vec3();
+    Vec3(float x, float y, float z);
+    ~Vec3();
     
     // Copy constructor
-    Vec3f(const Vec3f &v); 
+    Vec3(const Vec3 &v); 
     
     // Implicit conversions
+    /*
     operator Ogre::Vector3() const;
-    Vec3f(const Ogre::Vector3& v);
+    Vec3(const Ogre::Vector3& v);
+    */
     operator btVector3() const;
-    Vec3f(const btVector3& v);
+    Vec3(const btVector3& v);
     
     // Equals
-    bool operator==(const Vec3f& v) const;
-    bool operator!=(const Vec3f& v) const;
+    bool operator==(const Vec3& v) const;
+    bool operator!=(const Vec3& v) const;
     
     // Scaling
-    Vec3f operator*(float s) const;
-    Vec3f& operator*=(float s);
+    Vec3 operator*(float s) const;
+    Vec3& operator*=(float s);
     
     // Inverse scaling
-    Vec3f operator/(float s) const;
-    Vec3f& operator/=(float s);
+    Vec3 operator/(float s) const;
+    Vec3& operator/=(float s);
     
     // Addition
-    Vec3f operator+(const Vec3f& v) const;
-    Vec3f& operator+=(const Vec3f& v);
+    Vec3 operator+(const Vec3& v) const;
+    Vec3& operator+=(const Vec3& v);
     
     // Subtraction
-    Vec3f operator-(const Vec3f& v) const;
-    Vec3f& operator-=(const Vec3f& v);
+    Vec3 operator-(const Vec3& v) const;
+    Vec3& operator-=(const Vec3& v);
     
     // Dot product
-    float dot(const Vec3f& v2) const;
+    float dot(const Vec3& v2) const;
     
     // Cross product
-    Vec3f cross(const Vec3f& v2) const;
+    Vec3 cross(const Vec3& v2) const;
     
     // Distance to other vector
-    float dist(const Vec3f& v) const;
-    float distSq(const Vec3f& v) const;
+    float dist(const Vec3& v) const;
+    float distSq(const Vec3& v) const;
     
     // Length of vector
     float mag() const;
@@ -81,7 +82,7 @@ public:
     // Normalize this vector
     void normalize();
     // Normalized vector
-    Vec3f normalized() const;
+    Vec3 normalized() const;
     
     // Make zero
     void zero();
@@ -96,6 +97,6 @@ public:
 }
 
 // For debugging
-std::ostream& operator<<(std::ostream& os, const pgg::Vec3f& v);
+std::ostream& operator<<(std::ostream& os, const pgg::Vec3& v);
 
 #endif // PGG_VEC3F_HPP
