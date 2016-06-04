@@ -20,6 +20,8 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "InputMoveESignal.hpp"
+#include "DebugFPControllerEListe.hpp"
 #include "SceneNodeEComp.hpp"
 #include "SceneNodeESys.hpp"
 #include "SunLightModel.hpp"
@@ -63,9 +65,10 @@ void OverworldGameLayer::onBegin() {
     mSceneNodeESys = new SceneNodeESys(mRootNode);
     mEntityWorld->attachSystem(mSceneNodeESys);
     
-    nres::Entity* entity = mEntityWorld->newEntity();
-    entity->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-    entity->publish();
+    mPlayerEntity = mEntityWorld->newEntity();
+    mPlayerEntity->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
+    mPlayerEntity->addListener(new DebugFPControllerEListe());
+    mPlayerEntity->publish();
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");
     mComputer->grab();
@@ -165,7 +168,9 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         }
         
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
-        mCamLocNode->move(movement);
+        
+        mPlayerEntity->broadcast(new InputMoveESignal(movement));
+        //mCamLocNode->move(movement);
     }
     
     mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
@@ -513,7 +518,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         rootNodeRPC.projMat = mCamera.projMat;
         rootNodeRPC.camPos = mCamera.position;
         mRootNode->render(rootNodeRPC);
-        mTerrainModel->render(rootNodeRPC, glm::mat4());
+        // mTerrainModel->render(rootNodeRPC, glm::mat4());
     }
     
     // Brightness Render

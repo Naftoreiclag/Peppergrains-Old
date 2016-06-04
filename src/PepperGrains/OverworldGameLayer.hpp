@@ -98,6 +98,8 @@ private:
     
     nres::World* mEntityWorld;
     
+    nres::Entity* mPlayerEntity;
+    
     btBroadphaseInterface* mBroadphase;
     btDefaultCollisionConfiguration* mCollisionConfiguration;
     btCollisionDispatcher* mDispatcher;

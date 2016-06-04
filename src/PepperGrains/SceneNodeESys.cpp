@@ -17,6 +17,8 @@
 
 #include "SceneNodeESys.hpp"
 
+#include <iostream>
+
 #include "SceneNodeEComp.hpp"
 #include "PhysicsLocationUpdateESignal.hpp"
 
@@ -54,7 +56,8 @@ void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const ESignal* data)
     switch(data->getType()) {
         case ESignal::Type::PHYSICS_LOCATION: {
             const PhysicsLocationUpdateESignal* physUpdate = (const PhysicsLocationUpdateESignal*) data;
-            comp->mSceneNode->setLocalTranslation(physUpdate->mAbsoluteLocation);
+            comp->mSceneNode->setLocalTranslation(glm::vec3(0, 1, 0));//physUpdate->mAbsoluteLocation);
+            // std::cout << comp->mSceneNode->getLocalTranslation().z << std::endl;
             break;
         }
         default: break;
