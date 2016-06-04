@@ -174,6 +174,10 @@
       <File Name="SceneNodeESys.cpp"/>
       <File Name="SceneNodeComp.cpp"/>
       <File Name="SceneNodeComp.hpp"/>
+      <File Name="RigidBodyComp.hpp"/>
+      <File Name="RigidBodyComp.cpp"/>
+      <File Name="RigidBodyESys.hpp"/>
+      <File Name="RigidBodyESys.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
@@ -295,11 +299,13 @@
         <IncludePath Value="$(GLEW_HOME)/include"/>
         <IncludePath Value="$(GLM_HOME)/include"/>
         <IncludePath Value="$(SDL2_HOME)/include"/>
+        <IncludePath Value="$(BULLET_HOME)/include/bullet"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(GLEW_HOME)/lib"/>
         <LibraryPath Value="$(SDL2_HOME)/lib"/>
         <LibraryPath Value="$(BOOST_HOME)/lib"/>
+        <LibraryPath Value="$(BULLET_HOME)/lib"/>
         <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
@@ -307,6 +313,9 @@
         <Library Value="opengl32"/>
         <Library Value="boost_system-mgw51-s-1_59"/>
         <Library Value="boost_filesystem-mgw51-s-1_59"/>
+        <Library Value="BulletDynamics.dll"/>
+        <Library Value="BulletCollision.dll"/>
+        <Library Value="LinearMath.dll"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
@@ -315,7 +324,8 @@
 SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM
-MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
+MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64
+BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -324,13 +334,16 @@ MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
       </Debugger>
       <PreBuild/>
       <PostBuild>
-        <Command Enabled="no"># cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(BULLET_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
-        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/bullet3-2.83.7/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes"/>
         <Command Enabled="yes"/>
       </PostBuild>
       <CustomBuild Enabled="no">
@@ -363,12 +376,14 @@ MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
         <IncludePath Value="$(GLEW_HOME)/include"/>
         <IncludePath Value="$(GLM_HOME)/include"/>
         <IncludePath Value="$(SDL2_HOME)/include"/>
+        <IncludePath Value="$(BULLET_HOME)/include/bullet"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(GLEW_HOME)/lib"/>
         <LibraryPath Value="$(SDL2_HOME)/lib"/>
         <LibraryPath Value="$(BOOST_HOME)/lib"/>
+        <LibraryPath Value="$(BULLET_HOME)/lib"/>
         <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
@@ -384,7 +399,8 @@ MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
 SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM
-MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
+MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64
+BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -393,13 +409,16 @@ MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64]]>
       </Debugger>
       <PreBuild/>
       <PostBuild>
-        <Command Enabled="no"># cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="no"># cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(SDL2_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(BULLET_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
-        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
-        <Command Enabled="yes">cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/bullet3-2.83.7/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes"/>
         <Command Enabled="yes"/>
         <Command Enabled="yes"/>
       </PostBuild>
