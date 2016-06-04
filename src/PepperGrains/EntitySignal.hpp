@@ -23,7 +23,7 @@ namespace pgg {
 class EntitySignal {
 public:
     enum Type {
-        REQ_WALK, // Player input requests movement
+        MOVE_INPUT, // Player input requests movement
         LOCATION, // Physics changed location
         ORIENTATION, // Physics changed orientation (i.e. rotation)
         ANIMATION // Play an animation

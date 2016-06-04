@@ -18,15 +18,16 @@
 #ifndef PGG_MOVEINPUTESIGNAL_HPP
 #define PGG_MOVEINPUTESIGNAL_HPP
 
-namespace pgg
-{
+#include "EntitySignal.hpp"
 
-class MoveInputESignal
-{
+namespace pgg {
+
+class MoveInputESignal : public EntitySignal {
 public:
     MoveInputESignal();
     ~MoveInputESignal();
-
+    
+    EntitySignal::Type getType() const;
 };
 
 }

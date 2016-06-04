@@ -17,17 +17,10 @@
 
 #include "EntitySignal.hpp"
 
-namespace pgg
-{
+namespace pgg {
 
-EntSignal::EntSignal()
-{
-}
-
-EntSignal::~EntSignal()
-{
-}
-
+EntitySignal::EntitySignal() { }
+EntitySignal::~EntitySignal() { }
 
 }
 

@@ -17,15 +17,16 @@
 
 #include "MoveInputESignal.hpp"
 
-namespace pgg
-{
+namespace pgg {
 
-MoveInputESignal::MoveInputESignal()
-{
+MoveInputESignal::MoveInputESignal() {
 }
 
-MoveInputESignal::~MoveInputESignal()
-{
+MoveInputESignal::~MoveInputESignal() {
+}
+
+EntitySignal::Type MoveInputESignal::getType() const {
+    return EntitySignal::MOVE_INPUT;
 }
 
 
