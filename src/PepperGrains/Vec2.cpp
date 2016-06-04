@@ -72,8 +72,8 @@ Vec2 Vec2::operator+(const Vec2& v) {
     return Vec2(x + v.x, z + v.z);
 }
 Vec2& Vec2::operator+=(const Vec2& v) {
-    x *= v.x;
-    z *= v.z;
+    x += v.x;
+    z += v.z;
     return *this;
 }
 
@@ -82,8 +82,8 @@ Vec2 Vec2::operator-(const Vec2& v) {
     return Vec2(x - v.x, z - v.z);
 }
 Vec2& Vec2::operator-=(const Vec2& v) {
-    x *= v.x;
-    z *= v.z;
+    x -= v.x;
+    z -= v.z;
     return *this;
 }
 
