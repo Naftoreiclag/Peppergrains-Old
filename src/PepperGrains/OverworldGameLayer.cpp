@@ -47,11 +47,21 @@ void OverworldGameLayer::onBegin() {
     loadGBuffer();
     loadSun();
 
+    mEntityWorld = new nres::World();
+
+    mBroadphase = new btDbvtBroadphase();
+    mCollisionConfiguration = new btDefaultCollisionConfiguration();
+    mDispatcher = new btCollisionDispatcher(mCollisionConfiguration);
+    mSolver = new btSequentialImpulseConstraintSolver();
+    mDynamicsWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfiguration);
+    mDynamicsWorld->setGravity(btVector3(0, -9.8, 0));
+    mRigidBodyESys = new RigidBodyESys(mDynamicsWorld);
+    mEntityWorld->attachSystem(mRigidBodyESys);
+    
     mRootNode = new SceneNode();
     mRootNode->grab();
-    
-    mEntityWorld = new nres::World();
-    mEntityWorld->attachSystem(new SceneNodeESys(mRootNode));
+    mSceneNodeESys = new SceneNodeESys(mRootNode);
+    mEntityWorld->attachSystem(mSceneNodeESys);
     
     nres::Entity* entity = mEntityWorld->newEntity();
     entity->add(new SceneNodeComp(resman->findModel("RoseCube.model")));
@@ -124,9 +134,17 @@ void OverworldGameLayer::onEnd() {
     
     fpsCounter->drop();
     rainstormFont->drop();
+    delete mSceneNodeESys;
+    delete mRigidBodyESys;
+    delete mDynamicsWorld;
+    delete mSolver;
+    delete mDispatcher;
+    delete mCollisionConfiguration;
+    delete mBroadphase;
 }
 
 void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
+    
     glm::vec3 movement;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
         movement.z -= 1.0;
@@ -210,6 +228,10 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, glm::mat4());
+    
+    mDynamicsWorld->stepSimulation(tpf, 5);
+    mRigidBodyESys->onTick();
+    mSceneNodeESys->onTick(tpf);
 }
 
 void OverworldGameLayer::loadGBuffer() {
@@ -670,8 +692,8 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
 }
 
 bool OverworldGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
-    float x = event.x;
-    float y = event.y;
+    // float x = event.x;
+    // float y = event.y;
     float dx = event.xrel;
     float dy = event.yrel;
     

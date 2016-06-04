@@ -29,7 +29,7 @@ public:
     RigidBodyComp(btCollisionShape* collisionShape, const float& mass = 1);
     ~RigidBodyComp();
     
-    btVector3 mInitialLoc;
+    btVector3 mArgInitialLoc;
     
     btQuaternion mRotation;
     btVector3 mLocation;

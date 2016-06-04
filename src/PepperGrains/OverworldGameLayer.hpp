@@ -16,12 +16,16 @@
 
 #include "GameLayer.hpp" // Base class: pgg::GameLayer
 
-#include "NRES.hpp"
+#include "btBulletDynamicsCommon.h"
 #include "SDL2/SDL.h"
+
+#include "NRES.hpp"
 
 #include "AxesModel.hpp"
 #include "ResourceManager.hpp"
+#include "RigidBodyESys.hpp"
 #include "SceneNode.hpp"
+#include "SceneNodeESys.hpp"
 #include "SunLightModel.hpp"
 #include "TerrainModel.hpp"
 #include "TerrainRenderer.hpp"
@@ -93,6 +97,16 @@ private:
     Sky mSky;
     
     nres::World* mEntityWorld;
+    
+    btBroadphaseInterface* mBroadphase;
+    btDefaultCollisionConfiguration* mCollisionConfiguration;
+    btCollisionDispatcher* mDispatcher;
+    btSequentialImpulseConstraintSolver* mSolver;
+    
+    btDiscreteDynamicsWorld* mDynamicsWorld;
+    
+    SceneNodeESys* mSceneNodeESys;
+    RigidBodyESys* mRigidBodyESys;
     
     ShaderProgramResource* mComputer;
     TextureResource* mRoseTexture;

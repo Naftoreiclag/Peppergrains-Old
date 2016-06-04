@@ -50,7 +50,7 @@ void RigidBodyESys::onEntityExists(nres::Entity* entity) {
     
     btTransform trans;
     trans.setIdentity();
-    trans.setOrigin(comp->mInitialLoc);
+    trans.setOrigin(comp->mArgInitialLoc);
     comp->mMotionState = new RigidBodyMotionListener(trans, comp);
     btVector3 inertia(0, 0, 0);
     comp->mCollisionShape->calculateLocalInertia(comp->mMass, inertia);
