@@ -226,6 +226,16 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
         mSky.sunDirection = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
     }
+    
+    if(keyStates[SDL_GetScancodeFromKey(SDLK_r)]) {
+        ResourceManager* resman = ResourceManager::getSingleton();
+        
+        nres::Entity* cube;
+        cube = mEntityWorld->newEntity();
+        cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
+        cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(0.f, 3.f, 0.f) + mCamLocNode->calcWorldTranslation()));
+        cube->publish();
+    }
     mSky.sunViewMatr = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
     mSky.sunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
     

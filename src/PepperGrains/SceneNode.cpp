@@ -150,6 +150,11 @@ SceneNode* SceneNode::calcWorldTranslation(glm::vec3& translation) {
     }
     return this;
 }
+glm::vec3 SceneNode::calcWorldTranslation() {
+    glm::vec3 retVal;
+    this->calcWorldTranslation(retVal);
+    return retVal;
+}
 
 SceneNode* SceneNode::setLocalScale(const glm::vec3& scale) {
     mLocalScale = scale;

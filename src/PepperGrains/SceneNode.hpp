@@ -60,6 +60,9 @@ public:
     SceneNode* calcWorldOrientation(glm::quat& orientation);
     SceneNode* calcWorldTranslation(glm::vec3& translation);
     
+    // More utility functions
+    glm::vec3 calcWorldTranslation();
+    
     void load();
     void unload();
 
