@@ -2,11 +2,6 @@ src/.codelite/*
 src/.clang/*
 src/workspace.tags
 
-binDebug/*
-bin/*
-
-*.exe
-
 src/PepperGrains/*.mk
 src/PepperGrains/client.txt
 src/PepperGrains/Debug/*
@@ -19,4 +14,3 @@ built/*
 resources/*
 dependencies/*
 dependencies-win/*
-/runDebug.sh
