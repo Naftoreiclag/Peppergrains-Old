@@ -17,13 +17,13 @@
 
 #include "SceneNodeESys.hpp"
 
-#include "SceneNodeComp.hpp"
+#include "SceneNodeEComp.hpp"
 
 namespace pgg {
 
 SceneNodeESys::SceneNodeESys(SceneNode* rootNode)
 : mRootNode(rootNode) {
-    mRequiredComponents.push_back(SceneNodeComp::sComponentID);
+    mRequiredComponents.push_back(SceneNodeEComp::sComponentID);
 }
 
 SceneNodeESys::~SceneNodeESys() {
@@ -31,14 +31,14 @@ SceneNodeESys::~SceneNodeESys() {
 }
 
 void SceneNodeESys::onEntityExists(nres::Entity* entity) {
-    SceneNodeComp* comp = (SceneNodeComp*) entity->getComponent(SceneNodeComp::sComponentID);
+    SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);
     comp->mSceneNode = mRootNode->newChild();
     comp->mSceneNode->grab();
     comp->mSceneNode->grabModel(comp->mArgModel);
     comp->mArgModel = nullptr;
 }
 void SceneNodeESys::onEntityDestroyed(nres::Entity* entity) {
-    SceneNodeComp* comp = (SceneNodeComp*) entity->getComponent(SceneNodeComp::sComponentID);
+    SceneNodeEComp* comp = (SceneNodeEComp*) entity->getComponent(SceneNodeEComp::sComponentID);
     comp->mSceneNode->drop();
 }
 void SceneNodeESys::onEntityBroadcast(nres::Entity* entity, const nres::EntitySignal* data) {

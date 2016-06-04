@@ -24,10 +24,10 @@
 
 namespace pgg {
 
-class RigidBodyComp : public nres::Component {
+class RigidBodyEComp : public nres::Component {
 public:
-    RigidBodyComp(btCollisionShape* collisionShape, const float& mass = 1);
-    ~RigidBodyComp();
+    RigidBodyEComp(btCollisionShape* collisionShape, const float& mass = 1);
+    ~RigidBodyEComp();
     
     btVector3 mArgInitialLoc;
     

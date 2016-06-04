@@ -15,18 +15,18 @@
 
 */
 
-#include "SceneNodeComp.hpp"
+#include "SceneNodeEComp.hpp"
 
 namespace pgg {
 
-const nres::ComponentID SceneNodeComp::sComponentID = "sn";
+const nres::ComponentID SceneNodeEComp::sComponentID = "sn";
 
-SceneNodeComp::SceneNodeComp(Model* model)
+SceneNodeEComp::SceneNodeEComp(Model* model)
 : mArgModel(model) {
 }
-SceneNodeComp::~SceneNodeComp() {
+SceneNodeEComp::~SceneNodeEComp() {
 }
-const nres::ComponentID& SceneNodeComp::getID() const {
+const nres::ComponentID& SceneNodeEComp::getID() const {
     return sComponentID;
 }
 

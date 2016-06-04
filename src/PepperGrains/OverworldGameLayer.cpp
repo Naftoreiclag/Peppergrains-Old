@@ -20,7 +20,7 @@
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
-#include "SceneNodeComp.hpp"
+#include "SceneNodeEComp.hpp"
 #include "SceneNodeESys.hpp"
 #include "SunLightModel.hpp"
 #include "DirectionalLightModel.hpp"
@@ -64,7 +64,7 @@ void OverworldGameLayer::onBegin() {
     mEntityWorld->attachSystem(mSceneNodeESys);
     
     nres::Entity* entity = mEntityWorld->newEntity();
-    entity->add(new SceneNodeComp(resman->findModel("RoseCube.model")));
+    entity->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
     entity->publish();
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");

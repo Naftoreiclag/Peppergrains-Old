@@ -22,7 +22,7 @@
 
 #include "NRES.hpp"
 
-#include "RigidBodyComp.hpp"
+#include "RigidBodyEComp.hpp"
 
 namespace pgg {
 

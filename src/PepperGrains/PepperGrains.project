@@ -172,12 +172,14 @@
       </VirtualDirectory>
       <File Name="SceneNodeESys.hpp"/>
       <File Name="SceneNodeESys.cpp"/>
-      <File Name="SceneNodeComp.cpp"/>
-      <File Name="SceneNodeComp.hpp"/>
-      <File Name="RigidBodyComp.hpp"/>
-      <File Name="RigidBodyComp.cpp"/>
       <File Name="RigidBodyESys.hpp"/>
       <File Name="RigidBodyESys.cpp"/>
+      <File Name="MoveInputESignal.hpp"/>
+      <File Name="MoveInputESignal.cpp"/>
+      <File Name="RigidBodyEComp.cpp"/>
+      <File Name="RigidBodyEComp.hpp"/>
+      <File Name="SceneNodeEComp.cpp"/>
+      <File Name="SceneNodeEComp.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

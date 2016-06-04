@@ -15,28 +15,27 @@
 
 */
 
-#ifndef PGG_SCENENODECOMPONENT_HPP
-#define PGG_SCENENODECOMPONENT_HPP
-
-#include "NRES.hpp" // Base class: nres::Component
-
-#include "SceneNode.hpp"
+#include "RigidBodyEComp.hpp"
 
 namespace pgg {
 
-class SceneNodeComp : public nres::Component {
-public:
-    static const nres::ComponentID sComponentID;
+const nres::ComponentID RigidBodyComp::sComponentID = "rb";
 
-    SceneNodeComp(Model* model = nullptr);
-    ~SceneNodeComp();
+RigidBodyComp::RigidBodyComp(btCollisionShape* collisionShape, const float& mass)
+: mCollisionShape(collisionShape)
+, mRigidBody(nullptr)
+, mMotionState(nullptr)
+, mMass(mass) {
+}
 
-    SceneNode* mSceneNode;
-    Model* mArgModel;
+RigidBodyComp::~RigidBodyComp() {
+    delete mCollisionShape;
+}
 
-    const nres::ComponentID& getID() const;
-};
+const nres::ComponentID& RigidBodyComp::getID() const {
+    return sComponentID;
+}
+
 
 }
 
-#endif // PGG_SCENENODECOMPONENT_HPP
