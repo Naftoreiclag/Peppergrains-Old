@@ -26,7 +26,7 @@ InfiniteCheckerboardModel::InfiniteCheckerboardModel() {
 
 void InfiniteCheckerboardModel::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
-    GLfloat vertices[(mSize + 1) * (mSize + 1) * 9];
+    GLfloat vertices[mSize * mSize * 4 * 9];
     
     mIndicesSize = mSize * mSize * 6;
     GLuint indices[mIndicesSize];
@@ -39,11 +39,8 @@ void InfiniteCheckerboardModel::load() {
             float originX = ((float) mSize) * -0.5f;
             float originZ = ((float) mSize) * -0.5f;
             
-            for(uint32_t z = 0; z < mSize + 1; ++ z) {
-                for(uint32_t x = 0; x < mSize + 1; ++ x) {
-                    vertices[iVertex ++] = originX + x;
-                    vertices[iVertex ++] = 0.f;
-                    vertices[iVertex ++] = originZ + z;
+            for(uint32_t z = 0; z < mSize; ++ z) {
+                for(uint32_t x = 0; x < mSize; ++ x) {
                     Vec3 color;
                     
                     if(((x & 1) ^ (z & 1)) != 0) {
@@ -51,12 +48,18 @@ void InfiniteCheckerboardModel::load() {
                     } else {
                         color = Vec3(1, 1, 1);
                     }
-                    vertices[iVertex ++] = color.x;
-                    vertices[iVertex ++] = color.y;
-                    vertices[iVertex ++] = color.z;
-                    vertices[iVertex ++] = 0.f;
-                    vertices[iVertex ++] = 1.f;
-                    vertices[iVertex ++] = 0.f;
+                    
+                    for(uint32_t q = 0; q < 4; ++ q) {
+                        vertices[iVertex ++] = originX + x + (q % 2);
+                        vertices[iVertex ++] = 0.f;
+                        vertices[iVertex ++] = originZ + z + (q > 1 ? 1 : 0);
+                        vertices[iVertex ++] = color.x;
+                        vertices[iVertex ++] = color.y;
+                        vertices[iVertex ++] = color.z;
+                        vertices[iVertex ++] = 0.f;
+                        vertices[iVertex ++] = 1.f;
+                        vertices[iVertex ++] = 0.f;
+                    }
                 }
             }
         }
@@ -78,10 +81,10 @@ void InfiniteCheckerboardModel::load() {
                      */
 
                      
-                     uint32_t iA = ((z + 0) * (mSize + 1)) + (x + 0);
-                     uint32_t iB = ((z + 0) * (mSize + 1)) + (x + 1);
-                     uint32_t iC = ((z + 1) * (mSize + 1)) + (x + 0);
-                     uint32_t iD = ((z + 1) * (mSize + 1)) + (x + 1);
+                     uint32_t iA = ((z * mSize) + x) * 4 + 0;
+                     uint32_t iB = ((z * mSize) + x) * 4 + 1;
+                     uint32_t iC = ((z * mSize) + x) * 4 + 2;
+                     uint32_t iD = ((z * mSize) + x) * 4 + 3;
                      
                      indices[iIndex ++] = iA;
                      indices[iIndex ++] = iD;
