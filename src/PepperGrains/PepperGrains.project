@@ -183,6 +183,14 @@
         <File Name="MoveInputESignal.hpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <VirtualDirectory Name="Math Abstraction">
+      <File Name="Quate.cpp"/>
+      <File Name="Quate.hpp"/>
+      <File Name="Vec2.cpp"/>
+      <File Name="Vec2.hpp"/>
+      <File Name="Vec3.cpp"/>
+      <File Name="Vec3.hpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
