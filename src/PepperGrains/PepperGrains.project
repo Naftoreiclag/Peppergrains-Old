@@ -168,19 +168,29 @@
         <File Name="nresWorld.cpp"/>
         <File Name="nresWorld.hpp"/>
       </VirtualDirectory>
-      <File Name="SceneNodeESys.hpp"/>
-      <File Name="SceneNodeESys.cpp"/>
-      <File Name="RigidBodyESys.hpp"/>
-      <File Name="RigidBodyESys.cpp"/>
-      <File Name="RigidBodyEComp.cpp"/>
-      <File Name="RigidBodyEComp.hpp"/>
-      <File Name="SceneNodeEComp.cpp"/>
-      <File Name="SceneNodeEComp.hpp"/>
       <VirtualDirectory Name="signals">
         <File Name="EntitySignal.cpp"/>
         <File Name="EntitySignal.hpp"/>
         <File Name="InputMoveESignal.hpp"/>
         <File Name="InputMoveESignal.cpp"/>
+        <File Name="PhysicsLocationUpdateESignal.cpp"/>
+        <File Name="PhysicsLocationUpdateESignal.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="components">
+        <File Name="RigidBodyEComp.cpp"/>
+        <File Name="RigidBodyEComp.hpp"/>
+        <File Name="SceneNodeEComp.cpp"/>
+        <File Name="SceneNodeEComp.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="listeners">
+        <File Name="DebugFPControllerEListe.cpp"/>
+        <File Name="DebugFPControllerEListe.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="systems">
+        <File Name="RigidBodyESys.cpp"/>
+        <File Name="RigidBodyESys.hpp"/>
+        <File Name="SceneNodeESys.cpp"/>
+        <File Name="SceneNodeESys.hpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Math Abstraction">
