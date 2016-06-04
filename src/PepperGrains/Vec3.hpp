@@ -38,10 +38,6 @@ public:
     Vec3(const Vec3 &v); 
     
     // Implicit conversions
-    /*
-    operator Ogre::Vector3() const;
-    Vec3(const Ogre::Vector3& v);
-    */
     operator btVector3() const;
     Vec3(const btVector3& v);
     

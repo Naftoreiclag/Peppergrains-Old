@@ -44,15 +44,6 @@ Quate::Quate(const Quate& q)
 }
 
 // Implicit conversions
-Quate::operator Ogre::Quaternion() const {
-    return Ogre::Quaternion(w, x, y, z);
-}
-Quate::Quate(const Ogre::Quaternion& q)
-: w(q.w)
-, x(q.x)
-, y(q.y)
-, z(q.z) {
-}
 Quate::operator btQuaternion() const {
     // This kind of nonsense is exactly why I made this class
     return btQuaternion(x, y, z, w);

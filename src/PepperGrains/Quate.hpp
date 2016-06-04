@@ -19,7 +19,6 @@
 #define PGG_QUATE_HPP
 
 #include "btBulletDynamicsCommon.h"
-#include "OgreQuaternion.h"
 
 // Nothing but a way to easily convert between the many quaternion types
 
@@ -40,8 +39,6 @@ public:
     Quate(const Quate& q);
     
     // Implicit conversions
-    operator Ogre::Quaternion() const;
-    Quate(const Ogre::Quaternion& q);
     operator btQuaternion() const;
     Quate(const btQuaternion& q);
 };
