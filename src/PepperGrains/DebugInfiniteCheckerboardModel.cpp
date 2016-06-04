@@ -36,13 +36,8 @@ void InfiniteCheckerboardModel::load() {
         // Generate vertices
         {
             uint32_t iVertex = 0;
-            float originX = -mSize;
-            float originZ = -mSize;
-            originX /= 2.f;
-            originZ /= 2.f;
-            
-            originX = -16;
-            originZ = -16;
+            float originX = ((float) mSize) * -0.5f;
+            float originZ = ((float) mSize) * -0.5f;
             
             for(uint32_t z = 0; z < mSize + 1; ++ z) {
                 for(uint32_t x = 0; x < mSize + 1; ++ x) {
@@ -100,9 +95,6 @@ void InfiniteCheckerboardModel::load() {
         }
     }
     
-    std::cout << "sizeof(vertices) = " << (sizeof(vertices) / 4) << std::endl;
-    std::cout << "sizeof(indices) = " << (sizeof(indices) / 4) << std::endl;
-    
     mShaderProg = resman->findShaderProgram("MinimalCN.shaderProgram");
     mShaderProg->grab();
 
@@ -158,7 +150,7 @@ void InfiniteCheckerboardModel::render(const Model::RenderPassConfiguration& ren
 
     glm::mat4 modelMat = glm::translate(glm::mat4(1.f), glm::vec3(offsetX, 0, offsetZ));
 
-    mShaderProg->bindModelViewProjMatrices(unused, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
 
     glBindVertexArray(mVertexArrayObject);
 
