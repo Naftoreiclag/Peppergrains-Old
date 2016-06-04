@@ -20,6 +20,14 @@
 
 namespace pgg {
 
+// Note to self: Do not shorten to ESig
+
+/*
+ * Concrete classes are prefixed with "who" should be
+ * sending the signal. For example, InputMoveSignal should
+ * be initated directly by player input and PhysicsLocationUpdate
+ * should be initiated by a system that works with physics.
+ */
 class EntitySignal {
 public:
     enum Type {
