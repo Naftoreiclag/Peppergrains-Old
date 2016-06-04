@@ -185,6 +185,9 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     mCamera.projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
     mCamRollNode->calcWorldTranslation(mCamera.position);
 
+    SceneNodeEComp* comp = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
+    mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
+    
     glm::vec4 debugShow;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
         debugShow.x = 1.f;

@@ -145,8 +145,8 @@ void InfiniteCheckerboardModel::render(const Model::RenderPassConfiguration& ren
     
     glUseProgram(mShaderProg->getHandle());
     
-    float offsetX = fmod(fmod(mFocus.x, 2) + 2, 2);
-    float offsetZ = fmod(fmod(mFocus.z, 2) + 2, 2);
+    float offsetX = mFocus.x - fmod(fmod(mFocus.x, 2) + 2, 2);
+    float offsetZ = mFocus.z - fmod(fmod(mFocus.z, 2) + 2, 2);
 
     glm::mat4 modelMat = glm::translate(glm::mat4(1.f), glm::vec3(offsetX, 0, offsetZ));
 
