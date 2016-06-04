@@ -134,8 +134,6 @@
       <File Name="GameLayer.hpp"/>
       <File Name="GameLayerMachine.cpp"/>
       <File Name="GameLayerMachine.hpp"/>
-      <File Name="EntSignal.cpp"/>
-      <File Name="EntSignal.hpp"/>
       <File Name="OpenGLContextData.cpp"/>
       <File Name="OpenGLContextData.hpp"/>
       <File Name="SDLRendererData.cpp"/>
@@ -174,12 +172,16 @@
       <File Name="SceneNodeESys.cpp"/>
       <File Name="RigidBodyESys.hpp"/>
       <File Name="RigidBodyESys.cpp"/>
-      <File Name="MoveInputESignal.hpp"/>
-      <File Name="MoveInputESignal.cpp"/>
       <File Name="RigidBodyEComp.cpp"/>
       <File Name="RigidBodyEComp.hpp"/>
       <File Name="SceneNodeEComp.cpp"/>
       <File Name="SceneNodeEComp.hpp"/>
+      <VirtualDirectory Name="signals">
+        <File Name="EntitySignal.cpp"/>
+        <File Name="EntitySignal.hpp"/>
+        <File Name="MoveInputESignal.cpp"/>
+        <File Name="MoveInputESignal.hpp"/>
+      </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

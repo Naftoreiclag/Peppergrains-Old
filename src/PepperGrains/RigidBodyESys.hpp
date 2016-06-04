@@ -31,9 +31,9 @@ public:
     class RigidBodyMotionListener : public btMotionState {
     protected:
         btTransform initialLoc;
-        RigidBodyComp* const sendTo;
+        RigidBodyEComp* const sendTo;
     public:
-        RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyComp* const sendTo);
+        RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyEComp* const sendTo);
         void getWorldTransform(btTransform& worldTransform) const;
         void setWorldTransform(const btTransform& worldTransform);
     };

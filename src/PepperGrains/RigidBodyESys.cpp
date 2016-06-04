@@ -21,7 +21,7 @@
 
 namespace pgg {
 
-RigidBodyESys::RigidBodyMotionListener::RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyComp* const sendTo)
+RigidBodyESys::RigidBodyMotionListener::RigidBodyMotionListener(const btTransform& initialLoc, RigidBodyEComp* const sendTo)
 : sendTo(sendTo),
 initialLoc(initialLoc) {
 }
@@ -39,14 +39,14 @@ void RigidBodyESys::RigidBodyMotionListener::setWorldTransform(const btTransform
 
 RigidBodyESys::RigidBodyESys(btDynamicsWorld* dynamicsWorld)
 : mDynamicsWorld(dynamicsWorld) {
-    mRequiredComponents.push_back(RigidBodyComp::sComponentID);
+    mRequiredComponents.push_back(RigidBodyEComp::sComponentID);
 }
 
 RigidBodyESys::~RigidBodyESys() {
 }
 
 void RigidBodyESys::onEntityExists(nres::Entity* entity) {
-    RigidBodyComp* comp = (RigidBodyComp*) entity->getComponent(RigidBodyComp::sComponentID);
+    RigidBodyEComp* comp = (RigidBodyEComp*) entity->getComponent(RigidBodyEComp::sComponentID);
     
     btTransform trans;
     trans.setIdentity();
@@ -61,7 +61,7 @@ void RigidBodyESys::onEntityExists(nres::Entity* entity) {
     mTrackedEntities.push_back(entity);
 }
 void RigidBodyESys::onEntityDestroyed(nres::Entity* entity) {
-    RigidBodyComp* comp = (RigidBodyComp*) entity->getComponent(RigidBodyComp::sComponentID);
+    RigidBodyEComp* comp = (RigidBodyEComp*) entity->getComponent(RigidBodyEComp::sComponentID);
     
     mDynamicsWorld->removeRigidBody(comp->mRigidBody);
     delete comp->mMotionState;
@@ -78,7 +78,7 @@ const std::vector<nres::ComponentID>& RigidBodyESys::getRequiredComponents() {
 void RigidBodyESys::onTick() {
     for(std::vector<nres::Entity*>::iterator it = mTrackedEntities.begin(); it != mTrackedEntities.end(); ++ it) {
         nres::Entity* entity = *it;
-        RigidBodyComp* rigidBody = (RigidBodyComp*) entity->getComponent(RigidBodyComp::sComponentID);
+        RigidBodyEComp* rigidBody = (RigidBodyEComp*) entity->getComponent(RigidBodyEComp::sComponentID);
         
         if(rigidBody->mOnPhysUpdate) {
             // entity->broadcast(new LocationSignal(Vec3f(rigidBody->mLocation)));

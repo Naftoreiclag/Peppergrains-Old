@@ -15,19 +15,27 @@
 
 */
 
-#include "EntSignal.hpp"
+#ifndef PGG_ENTSIGNAL_HPP
+#define PGG_ENTSIGNAL_HPP
 
-namespace pgg
-{
+namespace pgg {
 
-EntSignal::EntSignal()
-{
+class EntitySignal {
+public:
+    enum Type {
+        REQ_WALK, // Player input requests movement
+        LOCATION, // Physics changed location
+        ORIENTATION, // Physics changed orientation (i.e. rotation)
+        ANIMATION // Play an animation
+    };
+public:
+    EntitySignal();
+    virtual ~EntitySignal();
+    
+    virtual Type getType() const = 0;
+
+};
+
 }
 
-EntSignal::~EntSignal()
-{
-}
-
-
-}
-
+#endif // PGG_ENTSIGNAL_HPP

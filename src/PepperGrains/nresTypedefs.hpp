@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "EntSignal.hpp"
+#include "EntitySignal.hpp"
 
 namespace nres {
 
