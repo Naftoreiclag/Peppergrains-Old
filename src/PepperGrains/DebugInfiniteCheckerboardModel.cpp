@@ -25,6 +25,7 @@ InfiniteCheckerboardModel::InfiniteCheckerboardModel() {
 }
 
 void InfiniteCheckerboardModel::load() {
+    ResourceManager* resman = ResourceManager::getSingleton();
     GLfloat vertices[(mSize + 1) * (mSize + 1) * 9];
     
     mIndicesSize = mSize * mSize * 6;
@@ -40,8 +41,11 @@ void InfiniteCheckerboardModel::load() {
             originX /= 2.f;
             originZ /= 2.f;
             
-            for(uint32_t x = 0; x < mSize + 1; ++ x) {
-                for(uint32_t z = 0; z < mSize + 1; ++ z) {
+            originX = -16;
+            originZ = -16;
+            
+            for(uint32_t z = 0; z < mSize + 1; ++ z) {
+                for(uint32_t x = 0; x < mSize + 1; ++ x) {
                     vertices[iVertex ++] = originX + x;
                     vertices[iVertex ++] = 0.f;
                     vertices[iVertex ++] = originZ + z;
@@ -60,15 +64,13 @@ void InfiniteCheckerboardModel::load() {
                     vertices[iVertex ++] = 0.f;
                 }
             }
-            std::cout << iVertex << std::endl;
         }
         
         // Generate indices
         {
             uint32_t iIndex = 0;
-            
-            for(uint32_t x = 0; x < mSize; ++ x) {
-                for(uint32_t z = 0; z < mSize; ++ z) {
+            for(uint32_t z = 0; z < mSize; ++ z) {
+                for(uint32_t x = 0; x < mSize; ++ x) {
                     
                     /*
                      *   x >
@@ -95,14 +97,12 @@ void InfiniteCheckerboardModel::load() {
                      indices[iIndex ++] = iD;
                 }
             }
-            std::cout << iIndex << std::endl;
         }
     }
     
     std::cout << "sizeof(vertices) = " << (sizeof(vertices) / 4) << std::endl;
     std::cout << "sizeof(indices) = " << (sizeof(indices) / 4) << std::endl;
     
-    ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("MinimalCN.shaderProgram");
     mShaderProg->grab();
 
