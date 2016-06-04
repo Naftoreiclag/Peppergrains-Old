@@ -21,7 +21,7 @@
 namespace pgg {
 
 InfiniteCheckerboardModel::InfiniteCheckerboardModel() {
-    mSize = 32;
+    mSize = 64;
 }
 
 void InfiniteCheckerboardModel::load() {
@@ -44,7 +44,7 @@ void InfiniteCheckerboardModel::load() {
                     Vec3 color;
                     
                     if(((x & 1) ^ (z & 1)) != 0) {
-                        color = Vec3(0, 0, 0);
+                        color = Vec3(0.5, 0.5, 0.5);
                     } else {
                         color = Vec3(1, 1, 1);
                     }
