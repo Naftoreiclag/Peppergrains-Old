@@ -133,7 +133,7 @@ void OverworldGameLayer::onBegin() {
     mCamera.fov = glm::radians(90.f);
     mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
     mCamera.farDepth = 500.f;
-    mCamera.nearDepth = 500.f;
+    mCamera.nearDepth = 0.2f;
     // Find cascade borders
     mCamera.cascadeBorders[0] = mCamera.nearDepth;
     mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
@@ -142,7 +142,7 @@ void OverworldGameLayer::onBegin() {
     }
     
     for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
-        std::cout << "Slice " << i << mCamera.cascadeBorders[i] << std::endl;
+        std::cout << "Slice " << ((uint32_t) i) << " " << mCamera.cascadeBorders[i] << std::endl;
     }
     
     SceneNodeEComp* plS = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
