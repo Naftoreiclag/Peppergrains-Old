@@ -79,6 +79,13 @@ private:
     DebugScreenFillShader mFillScreenShader;
     
     struct Camera {
+        float fov;
+        float aspect;
+        float nearDepth;
+        float farDepth;
+        
+        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
+        
         glm::mat4 viewMat;
         glm::mat4 projMat;
         glm::vec3 position;
@@ -87,12 +94,19 @@ private:
     
     struct Sky {
         uint32_t sunTextureSize;
-        GLuint sunFramebuffer;
-        GLuint sunDepthTexture;
         glm::vec3 sunDirection;
         glm::vec3 sunPosition;
-        glm::mat4 sunProjMatr;
-        glm::mat4 sunViewMatr;
+        
+        // Todo: just swap out depth textures for each framebuffer
+        GLuint sunFramebuffers[PGG_NUM_SUN_CASCADES];
+        GLuint sunDepthTextures[PGG_NUM_SUN_CASCADES];
+        
+        glm::mat4 sunProjMatrices[PGG_NUM_SUN_CASCADES];
+        glm::mat4 sunViewMatrices[PGG_NUM_SUN_CASCADES];
+        
+        glm::mat4 sunBasicProjectionMatrix;
+        glm::mat4 sunBasicViewMatrix;
+        
         SunLightModel* sunModel;
     };
     Sky mSky;

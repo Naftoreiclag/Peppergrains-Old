@@ -36,13 +36,15 @@ public:
     const std::vector<Control>& getUniformVec2s() const;
     const std::vector<Control>& getUniformVec3s() const;
     const std::vector<Control>& getUniformVec4s() const;
+    const std::vector<Control>& getUniformMat4s() const;
     
     const std::vector<Control>& getInstancedSampler2Ds() const;
     const std::vector<Control>& getInstancedFloats() const;
     const std::vector<Control>& getInstancedVec2s() const;
     const std::vector<Control>& getInstancedVec3s() const;
     const std::vector<Control>& getInstancedVec4s() const;
-
+    const std::vector<Control>& getInstancedMat4s() const;
+    
 private:
 
     GLuint mShaderProg;
@@ -55,12 +57,14 @@ private:
     std::vector<Control> mUniformVec2s;
     std::vector<Control> mUniformVec3s;
     std::vector<Control> mUniformVec4s;
+    std::vector<Control> mUniformMat4s;
     
     std::vector<Control> mInstancedSampler2Ds;
     std::vector<Control> mInstancedFloats;
     std::vector<Control> mInstancedVec2s;
     std::vector<Control> mInstancedVec3s;
     std::vector<Control> mInstancedVec4s;
+    std::vector<Control> mInstancedMat4s;
 
     /*
      * Model

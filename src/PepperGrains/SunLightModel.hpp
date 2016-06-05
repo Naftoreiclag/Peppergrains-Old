@@ -16,6 +16,7 @@
 
 #include "Model.hpp"
 #include "ShaderProgramResource.hpp"
+#include "HardValueStuff.hpp"
 
 namespace pgg {
 
@@ -27,9 +28,12 @@ public:
         ShaderProgramResource* mShaderProg;
         GLuint mNormalHandle;
         GLuint mDepthHandle;
-        GLuint mSunDepthHandle;
+        GLuint mSunDepthHandle[PGG_NUM_SUN_CASCADES];
         GLuint mDirectionHandle;
         GLuint mColorHandle;
+        GLuint mCascadeNearsHandle;
+        
+        GLuint mSunViewProjHandle[PGG_NUM_SUN_CASCADES];
         
         GLuint mDLightVao;
         GLuint mDLightVbo;

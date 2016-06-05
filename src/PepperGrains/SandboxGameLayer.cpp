@@ -514,8 +514,8 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         brightRPC.projMat = projMat;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
-        brightRPC.sunViewProjMatr = sunViewProjMat;
-        brightRPC.sunDepthTexture = mSunDepthTexture;
+        brightRPC.sunViewProjMatr[0] = sunViewProjMat;
+        brightRPC.sunDepthTexture[0] = mSunDepthTexture;
         
         // Render local lights
         rootNode->render(brightRPC);

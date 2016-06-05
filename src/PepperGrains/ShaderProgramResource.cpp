@@ -402,6 +402,7 @@ void ShaderProgramResource::load() {
             const Json::Value& vec2s = instancing["vec2"];
             const Json::Value& vec3s = instancing["vec3"];
             const Json::Value& vec4s = instancing["vec4"];
+            const Json::Value& mat4s = instancing["mat4"];
 
             if(!sampler2Ds.isNull()) {
                 for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
@@ -466,6 +467,18 @@ void ShaderProgramResource::load() {
                     mInstancedVec4s.push_back(control);
                 }
             }
+            if(!mat4s.isNull()) {
+                for(Json::Value::const_iterator iter = mat4s.begin(); iter != mat4s.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetAttribLocation(mShaderProg, value.asString().c_str());
+
+                    mInstancedMat4s.push_back(control);
+                }
+            }
         }
     }
 
@@ -479,6 +492,7 @@ void ShaderProgramResource::load() {
             const Json::Value& vec2s = instancing["vec2"];
             const Json::Value& vec3s = instancing["vec3"];
             const Json::Value& vec4s = instancing["vec4"];
+            const Json::Value& mat4s = instancing["mat4"];
 
             if(!sampler2Ds.isNull()) {
                 for(Json::Value::const_iterator iter = sampler2Ds.begin(); iter != sampler2Ds.end(); ++ iter) {
@@ -541,6 +555,18 @@ void ShaderProgramResource::load() {
                     control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
 
                     mUniformVec4s.push_back(control);
+                }
+            }
+            if(!mat4s.isNull()) {
+                for(Json::Value::const_iterator iter = mat4s.begin(); iter != mat4s.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
+
+                    mUniformMat4s.push_back(control);
                 }
             }
         }
@@ -655,10 +681,12 @@ const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUni
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec2s() const { return mUniformVec2s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec3s() const { return mUniformVec3s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec4s() const { return mUniformVec4s; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformMat4s() const { return mUniformMat4s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedSampler2Ds() const { return mInstancedSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedFloats() const { return mInstancedFloats; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedVec2s() const { return mInstancedVec2s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedVec3s() const { return mInstancedVec3s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedVec4s() const { return mInstancedVec4s; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedMat4s() const { return mInstancedMat4s; }
 
 }

@@ -16,6 +16,7 @@
 
 #include "ReferenceCounted.hpp"
 #include "OpenGLStuff.hpp"
+#include "HardValueStuff.hpp"
 
 namespace pgg {
 
@@ -40,13 +41,15 @@ public:
         
         glm::vec3 camPos;
         
+        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
+        
         GLuint framebuffer;
         GLuint diffuseTexture;
         GLuint normalTexture;
         GLuint brightTexture;
         GLuint depthStencilTexture;
-        GLuint sunDepthTexture;
-        glm::mat4 sunViewProjMatr;
+        GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
+        glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];
         
         RenderPassType type;
         

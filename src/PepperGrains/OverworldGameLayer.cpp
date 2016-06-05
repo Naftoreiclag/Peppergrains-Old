@@ -14,6 +14,7 @@
 #include "OverworldGameLayer.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 
@@ -129,6 +130,21 @@ void OverworldGameLayer::onBegin() {
     mCamYawNode->addChild(mCamPitchNode);
     mCamPitchNode->addChild(mCamRollNode);
     
+    mCamera.fov = glm::radians(90.f);
+    mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
+    mCamera.farDepth = 500.f;
+    mCamera.nearDepth = 500.f;
+    // Find cascade borders
+    mCamera.cascadeBorders[0] = mCamera.nearDepth;
+    mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
+    for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
+        mCamera.cascadeBorders[i] = mCamera.nearDepth * std::pow(mCamera.farDepth / mCamera.nearDepth, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
+    }
+    
+    for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
+        std::cout << "Slice " << i << mCamera.cascadeBorders[i] << std::endl;
+    }
+    
     SceneNodeEComp* plS = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
     plS->mSceneNode->addChild(mCamLocNode);
     
@@ -195,10 +211,6 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         mPlayerEntity->broadcast(new InputMoveESignal(movement));
         //mCamLocNode->move(movement);
     }
-    
-    mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    mCamera.projMat = glm::perspective(glm::radians(90.f), ((float) mScreenWidth) / ((float) mScreenHeight), 0.1f, 500.f);
-    mCamRollNode->calcWorldTranslation(mCamera.position);
 
     SceneNodeEComp* comp = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
     mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
@@ -236,8 +248,59 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
         cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(0.f, 3.f, 0.f) + mCamLocNode->calcWorldTranslation()));
         cube->publish();
     }
-    mSky.sunViewMatr = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-    mSky.sunProjMatr = glm::ortho(-10.f, 10.f, -10.f, 10.f, -10.f, 10.f);
+    mDynamicsWorld->stepSimulation(tpf, 5);
+    mRigidBodyESys->onTick();
+    mSceneNodeESys->onTick(tpf);
+    
+    mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
+    mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
+    mCamRollNode->calcWorldTranslation(mCamera.position);
+    
+    // Calculate shadow map cascades:
+    {
+        
+        mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+        mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        
+        glm::mat4 basicVP = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
+        
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            
+            glm::mat4 projMatrix = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.cascadeBorders[i], mCamera.cascadeBorders[i + 1]);
+            glm::mat4 invVPMatrix = glm::inverse(projMatrix * mCamera.viewMat);
+            
+            glm::vec4 minBB;
+            glm::vec4 maxBB;
+            for(uint8_t i = 0; i < 8; ++ i) {
+                glm::vec4 corner(
+                    (i & (1 << 0)) ? -1.f : 1.f,
+                    (i & (1 << 1)) ? -1.f : 1.f,
+                    (i & (1 << 2)) ? -1.f : 1.f,
+                    1.f
+                );
+                
+                glm::vec4 cornerWorldSpace = invVPMatrix * corner;
+                cornerWorldSpace /= corner.w; // Perspective divide
+                
+                glm::vec4 locInSun = basicVP * cornerWorldSpace;
+                
+                if(i == 0) {
+                    minBB = locInSun;
+                    maxBB = locInSun;
+                } else {
+                    if(locInSun.x < minBB.x) { minBB.x = locInSun.x; }
+                    if(locInSun.y < minBB.y) { minBB.y = locInSun.y; }
+                    if(locInSun.z < minBB.z) { minBB.z = locInSun.z; }
+                    if(locInSun.x > maxBB.x) { maxBB.x = locInSun.x; }
+                    if(locInSun.y > maxBB.y) { maxBB.y = locInSun.y; }
+                    if(locInSun.z > maxBB.z) { maxBB.z = locInSun.z; }
+                }
+            }
+            
+            mSky.sunViewMatrices[i] = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -100.f, 100.f);
+        }
+    }
     
     renderFrame(debugShow, mDebugWireframe);
     
@@ -269,10 +332,6 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, glm::mat4());
-    
-    mDynamicsWorld->stepSimulation(tpf, 5);
-    mRigidBodyESys->onTick();
-    mSceneNodeESys->onTick(tpf);
 }
 
 void OverworldGameLayer::loadGBuffer() {
@@ -475,22 +534,29 @@ void OverworldGameLayer::loadSun() {
     mSky.sunModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
     mSky.sunModel->grab();
     
-    // DepthStencil mapping
-    glGenTextures(1, &mSky.sunDepthTexture);
-    glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSky.sunTextureSize, mSky.sunTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Depth mapping
+    glGenTextures(PGG_NUM_SUN_CASCADES, mSky.sunDepthTextures);
+    
+    for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSky.sunTextureSize, mSky.sunTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glGenFramebuffers(1, &mSky.sunFramebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, mSky.sunFramebuffer);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSky.sunDepthTexture, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+    glGenFramebuffers(PGG_NUM_SUN_CASCADES, mSky.sunFramebuffers);
+    for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+        glBindFramebuffer(GL_FRAMEBUFFER, mSky.sunFramebuffers[i]);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSky.sunDepthTextures[i], 0);
+        
+        // What do these do?
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+    }
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Sun Complete" << std::endl;
     }
@@ -498,10 +564,11 @@ void OverworldGameLayer::loadSun() {
         std::cout << "Sun Incomplete" << std::endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
 }
 void OverworldGameLayer::unloadSun() {
-    glDeleteTextures(1, &mSky.sunDepthTexture);
-    glDeleteFramebuffers(1, &mSky.sunFramebuffer);
+    glDeleteTextures(4, mSky.sunDepthTextures);
+    glDeleteFramebuffers(4, mSky.sunFramebuffers);
     mSky.sunModel->drop();
 }
 
@@ -509,7 +576,6 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     // Sunlight shadow pass
     {
         glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffer);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -517,12 +583,15 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         glCullFace(GL_BACK);
         glDisable(GL_BLEND);
         glClear(GL_DEPTH_BUFFER_BIT);
-        
-        Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
-        sunRPC.viewMat = mSky.sunViewMatr;
-        sunRPC.projMat = mSky.sunProjMatr;
-        sunRPC.camPos = mSky.sunDirection * 10000.f;
-        mRootNode->render(sunRPC);
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffers[i]);
+            
+            Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
+            sunRPC.viewMat = mSky.sunViewMatrices[i];
+            sunRPC.projMat = mSky.sunProjMatrices[i];
+            sunRPC.camPos = mSky.sunDirection * 100000.f;
+            mRootNode->render(sunRPC);
+        }
     }
     
     // Geometry pass
@@ -583,7 +652,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         // Filled polygons
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
-        glm::mat4 sunViewProjMat = mSky.sunProjMatr * mSky.sunViewMatr;
+        // glm::mat4 sunViewProjMat = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
         
         // Render pass config
         Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
@@ -592,8 +661,10 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         brightRPC.camPos = mCamera.position;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
-        brightRPC.sunViewProjMatr = sunViewProjMat;
-        brightRPC.sunDepthTexture = mSky.sunDepthTexture;
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            brightRPC.sunViewProjMatr[i] = mSky.sunProjMatrices[i] * mSky.sunViewMatrices[i];
+            brightRPC.sunDepthTexture[i] = mSky.sunDepthTextures[i];
+        }
         
         // Render local lights
         mRootNode->render(brightRPC);
@@ -647,7 +718,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             {    
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
-                mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunViewMatr));
+                mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunBasicViewMatrix));
             }
         }
     }

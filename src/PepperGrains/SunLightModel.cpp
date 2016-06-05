@@ -41,8 +41,14 @@ void SunLightModel::SharedResources::load() {
                 mNormalHandle = entry.handle;
             } else if(entry.name == "depth") {
                 mDepthHandle = entry.handle;
-            } else if(entry.name == "sunDepth") {
-                mSunDepthHandle = entry.handle;
+            } else if(entry.name == "sunDepth0") {
+                mSunDepthHandle[0] = entry.handle;
+            } else if(entry.name == "sunDepth1") {
+                mSunDepthHandle[1] = entry.handle;
+            } else if(entry.name == "sunDepth2") {
+                mSunDepthHandle[2] = entry.handle;
+            } else if(entry.name == "sunDepth3") {
+                mSunDepthHandle[3] = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& vec3Controls = mShaderProg->getUniformVec3s();
@@ -52,6 +58,26 @@ void SunLightModel::SharedResources::load() {
                 mDirectionHandle = entry.handle;
             } else if(entry.name == "color") {
                 mColorHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& vec4Controls = mShaderProg->getUniformVec4s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "cascadeNears") {
+                mCascadeNearsHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& mat4Controls = mShaderProg->getUniformMat4s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mat4Controls.begin(); iter != mat4Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "sunViewProjection0") {
+                mSunViewProjHandle[0] = entry.handle;
+            } else if(entry.name == "sunViewProjection1") {
+                mSunViewProjHandle[1] = entry.handle;
+            } else if(entry.name == "sunViewProjection2") {
+                mSunViewProjHandle[2] = entry.handle;
+            } else if(entry.name == "sunViewProjection3") {
+                mSunViewProjHandle[3] = entry.handle;
             }
         }
     }
@@ -112,20 +138,27 @@ void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration
     
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
+    glUniform4fv(mCascadeNearsHandle, 1, glm::value_ptr(glm::vec4(
+        rendPass.cascadeBorders[0], 
+        rendPass.cascadeBorders[1], 
+        rendPass.cascadeBorders[2], 
+        rendPass.cascadeBorders[3])));
     
-    glUniformMatrix4fv(mShaderProg->getSunViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr));
+    for(uint32_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+        glUniformMatrix4fv(mSunViewProjHandle[i], 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr[i]));
     
-    glActiveTexture(GL_TEXTURE0 + 0);
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, rendPass.sunDepthTexture[i]);
+        glUniform1i(mNormalHandle, i);
+    }
+    
+    glActiveTexture(GL_TEXTURE0 + 4);
     glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
-    glUniform1i(mNormalHandle, 0);
+    glUniform1i(mNormalHandle, 4);
     
-    glActiveTexture(GL_TEXTURE0 + 1);
+    glActiveTexture(GL_TEXTURE0 + 5);
     glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
-    glUniform1i(mDepthHandle, 1);
-    
-    glActiveTexture(GL_TEXTURE0 + 2);
-    glBindTexture(GL_TEXTURE_2D, rendPass.sunDepthTexture);
-    glUniform1i(mSunDepthHandle, 2);
+    glUniform1i(mDepthHandle, 5);
 
     glBindVertexArray(mDLightVao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
