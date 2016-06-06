@@ -67,6 +67,15 @@ private:
     };
     DebugScreenShader mDebugScreenShader;
     
+    struct DebugSunShader {
+        ShaderProgramResource* shaderProg;
+        
+        GLuint mapHandles[PGG_NUM_SUN_CASCADES];
+        
+        GLuint viewHandle;
+    };
+    DebugSunShader mDebugSunShader;
+    
     struct SkyStencilShader {
         ShaderProgramResource* shaderProg;
     };

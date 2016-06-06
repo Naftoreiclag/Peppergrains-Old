@@ -138,7 +138,11 @@ void OverworldGameLayer::onBegin() {
     mCamera.cascadeBorders[0] = mCamera.nearDepth;
     mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
     for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        mCamera.cascadeBorders[i] = mCamera.nearDepth * std::pow(mCamera.farDepth / mCamera.nearDepth, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
+        // TODO: replace *3 with something more meaningful
+        float near = mCamera.nearDepth * 3;
+        float far = mCamera.farDepth;
+        
+        mCamera.cascadeBorders[i] = near * std::pow(far / near, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
     }
     
     for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
@@ -256,51 +260,6 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
     mCamRollNode->calcWorldTranslation(mCamera.position);
     
-    // Calculate shadow map cascades:
-    {
-        
-        mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-        mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
-        
-        glm::mat4 basicVP = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
-        
-        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-            
-            glm::mat4 projMatrix = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.cascadeBorders[i], mCamera.cascadeBorders[i + 1]);
-            glm::mat4 invVPMatrix = glm::inverse(projMatrix * mCamera.viewMat);
-            
-            glm::vec4 minBB;
-            glm::vec4 maxBB;
-            for(uint8_t i = 0; i < 8; ++ i) {
-                glm::vec4 corner(
-                    (i & (1 << 0)) ? -1.f : 1.f,
-                    (i & (1 << 1)) ? -1.f : 1.f,
-                    (i & (1 << 2)) ? -1.f : 1.f,
-                    1.f
-                );
-                
-                glm::vec4 cornerWorldSpace = invVPMatrix * corner;
-                cornerWorldSpace /= corner.w; // Perspective divide
-                
-                glm::vec4 locInSun = basicVP * cornerWorldSpace;
-                
-                if(i == 0) {
-                    minBB = locInSun;
-                    maxBB = locInSun;
-                } else {
-                    if(locInSun.x < minBB.x) { minBB.x = locInSun.x; }
-                    if(locInSun.y < minBB.y) { minBB.y = locInSun.y; }
-                    if(locInSun.z < minBB.z) { minBB.z = locInSun.z; }
-                    if(locInSun.x > maxBB.x) { maxBB.x = locInSun.x; }
-                    if(locInSun.y > maxBB.y) { maxBB.y = locInSun.y; }
-                    if(locInSun.z > maxBB.z) { maxBB.z = locInSun.z; }
-                }
-            }
-            
-            mSky.sunViewMatrices[i] = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -100.f, 100.f);
-        }
-    }
     
     renderFrame(debugShow, mDebugWireframe);
     
@@ -452,6 +411,36 @@ void OverworldGameLayer::loadGBuffer() {
         
         assert(mDebugScreenShader.shaderProg->needsInvViewProjMatrix() && "Debug G-buffer shader does not accept inverse view projection matrix");
     }
+    // Debug sun shader
+    {
+        mDebugSunShader.shaderProg = resman->findShaderProgram("SunDepthDebug.shaderProgram");
+        mDebugSunShader.shaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mDebugSunShader.shaderProg->getUniformSampler2Ds();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "map0") {
+                mDebugSunShader.mapHandles[0] = entry.handle;
+            }
+            else if(entry.name == "map1") {
+                mDebugSunShader.mapHandles[1] = entry.handle;
+            }
+            else if(entry.name == "map2") {
+                mDebugSunShader.mapHandles[2] = entry.handle;
+            }
+            else if(entry.name == "map3") {
+                mDebugSunShader.mapHandles[3] = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& vec4Controls = mDebugSunShader.shaderProg->getUniformVec4s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "showWhat") {
+                mDebugSunShader.viewHandle = entry.handle;
+            }
+        }
+    }
     // Sky stencil shader
     {
         mSkyStencilShader.shaderProg = resman->findShaderProgram("SkyStencil.shaderProgram");
@@ -573,6 +562,51 @@ void OverworldGameLayer::unloadSun() {
 }
 
 void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
+    // Calculate shadow map cascades:
+    {
+        mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+        mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        
+        glm::mat4 basicVP = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
+        
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            
+            glm::mat4 projMatrix = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.cascadeBorders[i], mCamera.cascadeBorders[i + 1]);
+            glm::mat4 invVPMatrix = glm::inverse(projMatrix * mCamera.viewMat);
+            
+            glm::vec4 minBB;
+            glm::vec4 maxBB;
+            for(uint8_t i = 0; i < 8; ++ i) {
+                glm::vec4 corner(
+                    (i & (1 << 0)) ? -1.f : 1.f,
+                    (i & (1 << 1)) ? -1.f : 1.f,
+                    (i & (1 << 2)) ? -1.f : 1.f,
+                    1.f
+                );
+                
+                glm::vec4 cornerWorldSpace = invVPMatrix * corner;
+                cornerWorldSpace /= corner.w; // Perspective divide
+                
+                glm::vec4 locInSun = basicVP * cornerWorldSpace;
+                
+                if(i == 0) {
+                    minBB = locInSun;
+                    maxBB = locInSun;
+                } else {
+                    if(locInSun.x < minBB.x) { minBB.x = locInSun.x; }
+                    if(locInSun.y < minBB.y) { minBB.y = locInSun.y; }
+                    if(locInSun.z < minBB.z) { minBB.z = locInSun.z; }
+                    if(locInSun.x > maxBB.x) { maxBB.x = locInSun.x; }
+                    if(locInSun.y > maxBB.y) { maxBB.y = locInSun.y; }
+                    if(locInSun.z > maxBB.z) { maxBB.z = locInSun.z; }
+                }
+            }
+            
+            mSky.sunViewMatrices[i] = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -100.f, 100.f);
+        }
+    }
+    
     // Sunlight shadow pass
     {
         glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
@@ -765,6 +799,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     glDisable(GL_BLEND);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
+    /*
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
         
@@ -787,6 +822,36 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         glActiveTexture(GL_TEXTURE0 + 3);
         glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
         glUniform1i(mDebugScreenShader.depthHandle, 3);
+        
+        glBindVertexArray(mFullscreenVao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        
+        glBindVertexArray(0);
+        
+        glUseProgram(0);
+        
+    } else {
+    */
+    if(debugShow != glm::vec4(0.f)) {
+        glUseProgram(mDebugSunShader.shaderProg->getHandle());
+        
+        glUniform4fv(mDebugSunShader.viewHandle, 1, glm::value_ptr(debugShow));
+        
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[0]);
+        glUniform1i(mDebugSunShader.mapHandles[0], 0);
+        
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[1]);
+        glUniform1i(mDebugSunShader.mapHandles[1], 1);
+        
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[2]);
+        glUniform1i(mDebugSunShader.mapHandles[2], 2);
+        
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[3]);
+        glUniform1i(mDebugSunShader.mapHandles[3], 3);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
