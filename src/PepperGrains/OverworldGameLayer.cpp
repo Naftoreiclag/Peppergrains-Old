@@ -132,7 +132,7 @@ void OverworldGameLayer::onBegin() {
     
     mCamera.fov = glm::radians(90.f);
     mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
-    mCamera.farDepth = 500.f;
+    mCamera.farDepth = 200.f;
     mCamera.nearDepth = 0.2f;
     // Find cascade borders
     mCamera.cascadeBorders[0] = mCamera.nearDepth;
@@ -659,6 +659,10 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;
+        // TODO: something else
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
+            brightRPC.cascadeBorders[i] = mCamera.cascadeBorders[i];
+        }
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {

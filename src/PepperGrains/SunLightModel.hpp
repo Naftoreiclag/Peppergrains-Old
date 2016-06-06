@@ -31,7 +31,8 @@ public:
         GLuint mSunDepthHandle[PGG_NUM_SUN_CASCADES];
         GLuint mDirectionHandle;
         GLuint mColorHandle;
-        GLuint mCascadeNearsHandle;
+        GLuint mNearPlaneHandle;
+        GLuint mCascadeFarsHandle;
         
         GLuint mSunViewProjHandle[PGG_NUM_SUN_CASCADES];
         

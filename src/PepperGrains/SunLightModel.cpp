@@ -60,11 +60,18 @@ void SunLightModel::SharedResources::load() {
                 mColorHandle = entry.handle;
             }
         }
+        const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "nearPlane") {
+                mNearPlaneHandle = entry.handle;
+            }
+        }
         const std::vector<ShaderProgramResource::Control>& vec4Controls = mShaderProg->getUniformVec4s();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec4Controls.begin(); iter != vec4Controls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
-            if(entry.name == "cascadeNears") {
-                mCascadeNearsHandle = entry.handle;
+            if(entry.name == "cascadeFars") {
+                mCascadeFarsHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& mat4Controls = mShaderProg->getUniformMat4s();
@@ -136,13 +143,14 @@ void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration
     
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
     
+    glUniform1fv(mNearPlaneHandle, 1, rendPass.cascadeBorders);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
-    glUniform4fv(mCascadeNearsHandle, 1, glm::value_ptr(glm::vec4(
-        rendPass.cascadeBorders[0], 
+    glUniform4fv(mCascadeFarsHandle, 1, glm::value_ptr(glm::vec4(
         rendPass.cascadeBorders[1], 
         rendPass.cascadeBorders[2], 
-        rendPass.cascadeBorders[3])));
+        rendPass.cascadeBorders[3], 
+        rendPass.cascadeBorders[4])));
     
     for(uint32_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
         glUniformMatrix4fv(mSunViewProjHandle[i], 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr[i]));
