@@ -113,7 +113,6 @@ private:
         glm::mat4 sunProjMatrices[PGG_NUM_SUN_CASCADES];
         glm::mat4 sunViewMatrices[PGG_NUM_SUN_CASCADES];
         
-        glm::mat4 sunBasicProjectionMatrix;
         glm::mat4 sunBasicViewMatrix;
         
         SunLightModel* sunModel;

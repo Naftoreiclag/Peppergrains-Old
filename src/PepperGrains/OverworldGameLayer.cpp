@@ -576,7 +576,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     // Calculate shadow map cascades:
     {
         mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-        mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        //mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
         
         glm::mat4 sunMatr = mSky.sunBasicViewMatrix;
         
