@@ -545,12 +545,12 @@ void OverworldGameLayer::loadSun() {
         // What do these do?
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
-    }
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Sun Complete" << std::endl;
-    }
-    else {
-        std::cout << "Sun Incomplete" << std::endl;
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "Sun " << i << " Complete" << std::endl;
+        }
+        else {
+            std::cout << "Sun " << i << " Incomplete" << std::endl;
+        }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
@@ -609,16 +609,39 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     
     // Sunlight shadow pass
     {
-        glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
-        glDepthMask(GL_TRUE);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        glDisable(GL_BLEND);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        // Debugging
+        {
+            mSky.sunViewMatrices[0] = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+            mSky.sunProjMatrices[0] = glm::ortho(-10, 10, -10, 10, -10, 10);
+            
+            glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffers[0]);
+            glDepthMask(GL_TRUE);
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+            glDisable(GL_BLEND);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            
+            Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
+            sunRPC.viewMat = mSky.sunViewMatrices[0];
+            sunRPC.projMat = mSky.sunProjMatrices[0];
+            sunRPC.camPos = mSky.sunDirection * 100000.f;
+            mRootNode->render(sunRPC);
+        }
+        
+        /*
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffers[i]);
+            glDepthMask(GL_TRUE);
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+            glDisable(GL_BLEND);
+            glClear(GL_DEPTH_BUFFER_BIT);
             
             Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
             sunRPC.viewMat = mSky.sunViewMatrices[i];
@@ -626,6 +649,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             sunRPC.camPos = mSky.sunDirection * 100000.f;
             mRootNode->render(sunRPC);
         }
+        */
     }
     
     // Geometry pass
