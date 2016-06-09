@@ -157,7 +157,7 @@ void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration
     
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, rendPass.sunDepthTexture[i]);
-        glUniform1i(mNormalHandle, i);
+        glUniform1i(mSunDepthHandle[i], i);
     }
     
     glActiveTexture(GL_TEXTURE0 + 4);

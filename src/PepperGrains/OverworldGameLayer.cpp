@@ -632,7 +632,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             }
             
             mSky.sunViewMatrices[i] = mSky.sunBasicViewMatrix;
-            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -10.f, 10.f);
+            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -50.f, 50.f);
         }
     }
     
