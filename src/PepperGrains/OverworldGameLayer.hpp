@@ -123,6 +123,8 @@ private:
     
     nres::Entity* mPlayerEntity;
     
+    SceneNode* mTestCubes[24];
+    
     InfiniteCheckerboardModel* mInfCheck;
     
     btRigidBody* mPlaneRigid;

@@ -87,6 +87,13 @@ void OverworldGameLayer::onBegin() {
     cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
     cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-4.5f, 8.f, -4.5f)));
     cube->publish();
+    
+    for(uint8_t i = 0; i < 24; ++ i) {
+        mTestCubes[i] = mRootNode->newChild()->grabModel(resman->findModel("RoseCube.model"));
+        mTestCubes[i]->grab();
+        mTestCubes[i]->setLocalScale(glm::vec3(0.2f));
+        mTestCubes[i]->setLocalTranslation(glm::vec3(-2000.f, -2000.f, -2000.f));
+    }
 
     mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");
     mComputer->grab();
@@ -132,7 +139,7 @@ void OverworldGameLayer::onBegin() {
     
     mCamera.fov = glm::radians(90.f);
     mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
-    mCamera.farDepth = 200.f;
+    mCamera.farDepth = 100.f;
     mCamera.nearDepth = 0.2f;
     // Find cascade borders
     mCamera.cascadeBorders[0] = mCamera.nearDepth;
@@ -172,6 +179,9 @@ void OverworldGameLayer::onEnd() {
     unloadGBuffer();
     unloadSun();
     
+    for(uint8_t i = 0; i < 24; ++ i) {
+        mTestCubes[i]->drop();
+    }
     
     mInfCheck->drop();
     mRootNode->drop();
@@ -520,6 +530,7 @@ void OverworldGameLayer::unloadGBuffer() {
 void OverworldGameLayer::loadSun() {
     mSky.sunTextureSize = 1024;
     mSky.sunDirection = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
+    mSky.sunPosition = glm::vec3(1.f, 1.f, 1.f);
     mSky.sunModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
     mSky.sunModel->grab();
     
@@ -576,7 +587,6 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     // Calculate shadow map cascades:
     {
         mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-        //mSky.sunBasicProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
         
         glm::mat4 sunMatr = mSky.sunBasicViewMatrix;
         
@@ -584,6 +594,10 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             
             glm::mat4 projMatrix = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.cascadeBorders[i], mCamera.cascadeBorders[i + 1]);
             glm::mat4 invVPMatrix = glm::inverse(projMatrix * mCamera.viewMat);
+            
+            glm::vec4 test = invVPMatrix * glm::vec4(0.f, 0.f, 0.f, 1.f);
+            test /= test.w;
+            mTestCubes[16 + i]->setLocalTranslation(glm::vec3(test));
             
             glm::vec3 minBB;
             glm::vec3 maxBB;
@@ -597,6 +611,11 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
                 
                 glm::vec4 cornerWorldSpace = invVPMatrix * corner;
                 cornerWorldSpace /= corner.w; // Perspective divide
+                
+                // DEBUG
+                if(j < 4) {
+                    mTestCubes[(i * 4) + j]->setLocalTranslation(glm::vec3(cornerWorldSpace));
+                }
                 
                 // cornerWorldSpace is a coordinate in world space for this corner of the view fustrum
                 
@@ -616,8 +635,8 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
                 }
             }
             
-            mSky.sunViewMatrices[i] = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
-            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -100.f, 100.f);
+            mSky.sunViewMatrices[i] = mSky.sunBasicViewMatrix;
+            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -10.f, 10.f);
         }
     }
     
@@ -665,6 +684,10 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         }
         */
     }
+    
+    // Debug
+    //mCamera.viewMat = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+    //mCamera.projMat = glm::ortho(-10, 10, 10, -10, -100, 100);
     
     // Geometry pass
     {
@@ -837,7 +860,6 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
     glDisable(GL_BLEND);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
-    /*
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugScreenShader.shaderProg->getHandle());
         
@@ -869,7 +891,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         glUseProgram(0);
         
     } else {
-    */
+    /*
     if(debugShow != glm::vec4(0.f)) {
         glUseProgram(mDebugSunShader.shaderProg->getHandle());
         
@@ -899,6 +921,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         glUseProgram(0);
         
     } else {
+    */
         glUseProgram(mScreenShader.shaderProg->getHandle());
         
         glActiveTexture(GL_TEXTURE0 + 0);
