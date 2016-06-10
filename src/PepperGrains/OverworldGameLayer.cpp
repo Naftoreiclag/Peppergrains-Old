@@ -139,14 +139,14 @@ void OverworldGameLayer::onBegin() {
     
     mCamera.fov = glm::radians(90.f);
     mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
-    mCamera.farDepth = 100.f;
-    mCamera.nearDepth = 0.2f;
+    mCamera.farDepth = 400.f;
+    mCamera.nearDepth = 0.1f;
     // Find cascade borders
     mCamera.cascadeBorders[0] = mCamera.nearDepth;
     mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
     for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        // TODO: replace *3 with something more meaningful
-        float near = mCamera.nearDepth * 3;
+        // TODO: replace + 1.f with something more meaningful
+        float near = mCamera.nearDepth + 1.f;
         float far = mCamera.farDepth;
         
         mCamera.cascadeBorders[i] = near * std::pow(far / near, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
@@ -610,7 +610,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
                 
                 // DEBUG
                 if(j < 4) {
-                    mTestCubes[(i * 4) + j]->setLocalTranslation(glm::vec3(cornerWorldSpace));
+                    //mTestCubes[(i * 4) + j]->setLocalTranslation(glm::vec3(cornerWorldSpace));
                 }
                 
                 // cornerWorldSpace is a coordinate in world space for this corner of the view fustrum

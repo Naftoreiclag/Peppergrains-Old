@@ -29,6 +29,7 @@ private:
     
     // Length of one edge in meters
     uint32_t mSize;
+    float mCellSize;
     
     uint32_t mIndicesSize;
     

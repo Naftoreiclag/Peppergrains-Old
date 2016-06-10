@@ -22,6 +22,7 @@ namespace pgg {
 
 InfiniteCheckerboardModel::InfiniteCheckerboardModel() {
     mSize = 64;
+    mCellSize = 10.f;
 }
 
 void InfiniteCheckerboardModel::load() {
@@ -38,6 +39,8 @@ void InfiniteCheckerboardModel::load() {
             uint32_t iVertex = 0;
             float originX = ((float) mSize) * -0.5f;
             float originZ = ((float) mSize) * -0.5f;
+            originX *= mCellSize;
+            originZ *= mCellSize;
             
             for(uint32_t z = 0; z < mSize; ++ z) {
                 for(uint32_t x = 0; x < mSize; ++ x) {
@@ -50,9 +53,14 @@ void InfiniteCheckerboardModel::load() {
                     }
                     
                     for(uint32_t q = 0; q < 4; ++ q) {
-                        vertices[iVertex ++] = originX + x + (q % 2);
+                        
+                        float lx = x + (q % 2);
+                        float lz = z + (q > 1 ? 1 : 0);
+                        lx *= mCellSize;
+                        lz *= mCellSize;
+                        vertices[iVertex ++] = originX + lx;
                         vertices[iVertex ++] = 0.f;
-                        vertices[iVertex ++] = originZ + z + (q > 1 ? 1 : 0);
+                        vertices[iVertex ++] = originZ + lz;
                         vertices[iVertex ++] = color.x;
                         vertices[iVertex ++] = color.y;
                         vertices[iVertex ++] = color.z;
@@ -148,8 +156,8 @@ void InfiniteCheckerboardModel::render(const Model::RenderPassConfiguration& ren
     
     glUseProgram(mShaderProg->getHandle());
     
-    float offsetX = mFocus.x - fmod(fmod(mFocus.x, 2) + 2, 2);
-    float offsetZ = mFocus.z - fmod(fmod(mFocus.z, 2) + 2, 2);
+    float offsetX = mFocus.x - fmod(fmod(mFocus.x, 2 * mCellSize) + (2 * mCellSize), 2 * mCellSize);
+    float offsetZ = mFocus.z - fmod(fmod(mFocus.z, 2 * mCellSize) + (2 * mCellSize), 2 * mCellSize);
 
     glm::mat4 modelMat = glm::translate(glm::mat4(1.f), glm::vec3(offsetX, 0, offsetZ));
 

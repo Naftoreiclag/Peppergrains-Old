@@ -41,7 +41,7 @@ void DebugFPControllerEListe::onEntityBroadcast(nres::Entity* entity, const ESig
     if(data->getType() == ESignal::Type::INPUT_MOVE) {
         const InputMoveESignal* input = (const InputMoveESignal*) data;
         
-        mAbsoluteLocation += input->mDisplacement - (Vec3(0, 1, 0) * input->mDisplacement.dot(Vec3(0, 1, 0)));
+        mAbsoluteLocation += input->mDisplacement;// - (Vec3(0, 1, 0) * input->mDisplacement.dot(Vec3(0, 1, 0)));
         
         entity->broadcast(new PhysicsLocationUpdateESignal(mAbsoluteLocation));
     }
