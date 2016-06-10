@@ -210,6 +210,8 @@
     </VirtualDirectory>
     <File Name="DesignerGameLayer.cpp"/>
     <File Name="DesignerGameLayer.hpp"/>
+    <File Name="DeferredRenderer.hpp"/>
+    <File Name="DeferredRenderer.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
