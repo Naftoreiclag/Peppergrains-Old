@@ -27,107 +27,89 @@ namespace pgg {
 
 class DeferredRenderer : public ReferenceCounted {
 public:
-    class SharedResources : public ReferenceCounted {
-    public:
-    
-        GLuint mFullscreenVao;
-        GLuint mFullscreenVbo;
-        GLuint mFullscreenIbo;
-    
-        struct GBuffer {
-            GLuint gFramebuffer;
-            
-            GLuint diffuseTexture;
-            GLuint normalTexture;
-            GLuint brightTexture;
-            GLuint depthStencilTexture;
-        };
-        GBuffer mGBuff;
-
-        struct ScreenShader {
-            ShaderProgramResource* shaderProg;
-            
-            GLuint diffuseHandle;
-            GLuint brightHandle;
-        };
-        ScreenShader mScreenShader;
-        
-        struct DebugScreenShader {
-            ShaderProgramResource* shaderProg;
-            
-            GLuint diffuseHandle;
-            GLuint normalHandle;
-            GLuint depthHandle;
-            GLuint brightHandle;
-            
-            GLuint viewHandle;
-        };
-        DebugScreenShader mDebugScreenShader;
-        
-        struct SkyStencilShader {
-            ShaderProgramResource* shaderProg;
-        };
-        SkyStencilShader mSkyStencilShader;
-        
-        struct DebugScreenFillShader {
-            ShaderProgramResource* shaderProg;
-            GLuint colorHandle;
-        };
-        DebugScreenFillShader mFillScreenShader;
-        
-        struct Camera {
-            float fov;
-            float aspect;
-            float nearDepth;
-            float farDepth;
-            
-            float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
-            
-            glm::mat4 viewMat;
-            glm::mat4 projMat;
-            glm::vec3 position;
-        };
-        Camera mCamera;
-        
-        struct Sky {
-            uint32_t sunTextureSize;
-            glm::vec3 sunDirection;
-            glm::vec3 sunPosition;
-            
-            GLuint sunFramebuffers[PGG_NUM_SUN_CASCADES];
-            GLuint sunDepthTextures[PGG_NUM_SUN_CASCADES];
-            
-            glm::mat4 sunProjMatrices[PGG_NUM_SUN_CASCADES];
-            glm::mat4 sunViewMatrices[PGG_NUM_SUN_CASCADES];
-            
-            glm::mat4 sunBasicViewMatrix;
-            
-            SunLightModel* sunModel;
-        };
-        Sky mSky;
-        
-        SharedResources();
-        ~SharedResources();
-    public:
-        static SharedResources* getSingleton();
-        uint32_t mScreenWidth;
-        uint32_t mScreenHeight;
-        
-        void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
-        
-        void load();
-        void unload();
-    };
-public:
-    SharedResources* mSharedRes;
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
 
+    GLuint mFullscreenVao;
+    GLuint mFullscreenVbo;
+    GLuint mFullscreenIbo;
 
+    struct GBuffer {
+        GLuint gFramebuffer;
+        
+        GLuint diffuseTexture;
+        GLuint normalTexture;
+        GLuint brightTexture;
+        GLuint depthStencilTexture;
+    };
+    GBuffer mGBuff;
+
+    struct ScreenShader {
+        ShaderProgramResource* shaderProg;
+        
+        GLuint diffuseHandle;
+        GLuint brightHandle;
+    };
+    ScreenShader mScreenShader;
+    
+    struct DebugScreenShader {
+        ShaderProgramResource* shaderProg;
+        
+        GLuint diffuseHandle;
+        GLuint normalHandle;
+        GLuint depthHandle;
+        GLuint brightHandle;
+        
+        GLuint viewHandle;
+    };
+    DebugScreenShader mDebugScreenShader;
+    
+    struct SkyStencilShader {
+        ShaderProgramResource* shaderProg;
+    };
+    SkyStencilShader mSkyStencilShader;
+    
+    struct DebugScreenFillShader {
+        ShaderProgramResource* shaderProg;
+        GLuint colorHandle;
+    };
+    DebugScreenFillShader mFillScreenShader;
+    
+    struct Camera {
+        float fov;
+        float aspect;
+        float nearDepth;
+        float farDepth;
+        
+        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
+        
+        glm::mat4 viewMat;
+        glm::mat4 projMat;
+        glm::vec3 position;
+    };
+    Camera mCamera;
+    
+    struct Sky {
+        uint32_t sunTextureSize;
+        glm::vec3 sunDirection;
+        glm::vec3 sunPosition;
+        
+        GLuint sunFramebuffers[PGG_NUM_SUN_CASCADES];
+        GLuint sunDepthTextures[PGG_NUM_SUN_CASCADES];
+        
+        glm::mat4 sunProjMatrices[PGG_NUM_SUN_CASCADES];
+        glm::mat4 sunViewMatrices[PGG_NUM_SUN_CASCADES];
+        
+        glm::mat4 sunBasicViewMatrix;
+        
+        SunLightModel* sunModel;
+    };
+    Sky mSky;
+    
+    void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
+public:
     DeferredRenderer(uint32_t width, uint32_t height);
     ~DeferredRenderer();
-    
-    void renderRootNode(SceneNode* rootNode);
     
     void load();
     void unload();

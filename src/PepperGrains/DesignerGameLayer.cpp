@@ -235,7 +235,7 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
-        mRenderer->mSharedRes->mSky.sunDirection = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
+        mRenderer->mSky.sunDirection = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f));
     }
     
     if(keyStates[SDL_GetScancodeFromKey(SDLK_r)]) {
@@ -251,11 +251,11 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
     mRigidBodyESys->onTick();
     mSceneNodeESys->onTick(tpf);
     
-    mRenderer->mSharedRes->mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
-    mCamRollNode->calcWorldTranslation(mRenderer->mSharedRes->mCamera.position);
+    mRenderer->mCamera.viewMat = glm::inverse(mCamRollNode->calcWorldTransform());
+    mCamRollNode->calcWorldTranslation(mRenderer->mCamera.position);
     
     
-    mRenderer->mSharedRes->renderFrame(mRootNode, debugShow, mDebugWireframe);
+    mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);
     
     if(tpf > 0) {
         float fpsNew = 1 / tpf;

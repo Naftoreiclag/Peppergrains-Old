@@ -17,14 +17,7 @@
 
 namespace pgg {
 
-DeferredRenderer::SharedResources::SharedResources() { }
-DeferredRenderer::SharedResources::~SharedResources() { }
-DeferredRenderer::SharedResources* DeferredRenderer::SharedResources::getSingleton() {
-    static SharedResources instance;
-    return &instance;
-}
-
-void DeferredRenderer::SharedResources::load() {
+void DeferredRenderer::load() {
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
@@ -242,7 +235,7 @@ void DeferredRenderer::SharedResources::load() {
     mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
 }
 
-void DeferredRenderer::SharedResources::unload() {
+void DeferredRenderer::unload() {
     glDeleteBuffers(1, &mFullscreenIbo);
     glDeleteBuffers(1, &mFullscreenVbo);
     glDeleteVertexArrays(1, &mFullscreenVao);
@@ -263,7 +256,7 @@ void DeferredRenderer::SharedResources::unload() {
     mSky.sunModel->drop();
 }
 
-void DeferredRenderer::SharedResources::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe) {
+void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe) {
     // Calculate shadow map cascades
     {
         mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
@@ -548,21 +541,9 @@ void DeferredRenderer::SharedResources::renderFrame(SceneNode* mRootNode, glm::v
 DeferredRenderer::DeferredRenderer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
 , mScreenHeight(height) {
-    mSharedRes = SharedResources::getSingleton();
 }
 
 DeferredRenderer::~DeferredRenderer() {
-}
-
-
-void DeferredRenderer::load() {
-    mSharedRes->mScreenWidth = mScreenWidth;
-    mSharedRes->mScreenHeight = mScreenHeight;
-    mSharedRes->grab();
-}
-
-void DeferredRenderer::unload() {
-    mSharedRes->drop();
 }
 
 }
