@@ -93,34 +93,7 @@ void DesignerGameLayer::onBegin() {
     cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-4.5f, 8.f, -4.5f)));
     cube->publish();
     
-    for(uint8_t i = 0; i < 24; ++ i) {
-        mTestCubes[i] = mRootNode->newChild()->grabModel(resman->findModel("RoseCube.model"));
-        mTestCubes[i]->grab();
-        mTestCubes[i]->setLocalScale(glm::vec3(0.2f));
-        mTestCubes[i]->setLocalTranslation(glm::vec3(-2000.f, -2000.f, -2000.f));
-    }
-
-    mComputer = resman->findShaderProgram("ComputeTest.shaderProgram");
-    mComputer->grab();
-    
-    mRoseTexture = resman->findTexture("128Rose.texture");
-    mRoseTexture->grab();
-    
-    /*
-    glUseProgram(mComputer->getHandle());
-    
-    glActiveTexture(GL_TEXTURE0 + 0);
-    //glBindImageTexture(0, mRoseTexture->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-    
-    glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
-    glUseProgram(0);
-    */
-    mComputer->drop();
-    
-    //mRootNode->newChild()->grabModel(resman->findModel("TestPlane.model"));
     mRootNode->newChild()->grabModel(new GrassModel());
-    //mRootNode->newChild()->attachModel(resman->findModel("Door.model"));
-    //mRootNode->newChild()->grabModel(resman->findModel("RoseCube.model"));
     mRootNode->newChild()->move(glm::vec3(1.5f, 1.5f, 1.5f))->grabModel(new PointLightModel(glm::vec3(2.f, 0.f, 2.f), 2.f));
     mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(new TessModel());
     mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(resman->findModel("Door.model"));
@@ -145,14 +118,9 @@ void DesignerGameLayer::onBegin() {
     SceneNodeEComp* plS = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
     plS->mSceneNode->addChild(mCamLocNode);
     
-    //mTerrainModel->grab();
-    
     mInfCheck = new InfiniteCheckerboardModel();
-    mTerrainModel = new TerrainModel();
     mInfCheck->grab();
     mRootNode->newChild()->grabModel(mInfCheck);
-    //mRootNode->newChild()->grabModel(mTerrainModel);
-    
 
     fps = 0.f;
     fpsWeight = 0.85f;
@@ -164,14 +132,8 @@ void DesignerGameLayer::onBegin() {
 void DesignerGameLayer::onEnd() {
     mRenderer->drop();
     
-    for(uint8_t i = 0; i < 24; ++ i) {
-        mTestCubes[i]->drop();
-    }
-    
     mInfCheck->drop();
     mRootNode->drop();
-    
-    //mTerrainModel->drop();
     
     fpsCounter->drop();
     rainstormFont->drop();
@@ -208,7 +170,6 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
         
         mPlayerEntity->broadcast(new InputMoveESignal(movement));
-        //mCamLocNode->move(movement);
     }
 
     SceneNodeEComp* comp = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
@@ -279,7 +240,7 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
     
-    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
+    Model::RenderPass fpsRPC(Model::RenderPassType::SCREEN);
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, glm::mat4());

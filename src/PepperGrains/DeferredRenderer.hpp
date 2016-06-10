@@ -89,22 +89,22 @@ private:
     };
     Camera mCamera;
     
-    struct Sky {
-        uint32_t sunTextureSize;
-        glm::vec3 sunDirection;
-        glm::vec3 sunPosition;
+    struct Sun {
+        uint32_t shadowMapResolution;
         
-        GLuint sunFramebuffers[PGG_NUM_SUN_CASCADES];
-        GLuint sunDepthTextures[PGG_NUM_SUN_CASCADES];
+        glm::vec3 direction;
+        glm::vec3 location;
         
-        glm::mat4 sunProjMatrices[PGG_NUM_SUN_CASCADES];
-        glm::mat4 sunViewMatrices[PGG_NUM_SUN_CASCADES];
+        GLuint framebuffers[PGG_NUM_SUN_CASCADES];
+        GLuint depthTextures[PGG_NUM_SUN_CASCADES];
         
-        glm::mat4 sunBasicViewMatrix;
+        glm::mat4 projectionMatrices[PGG_NUM_SUN_CASCADES];
+        
+        glm::mat4 viewMatrix;
         
         SunLightModel* sunModel;
     };
-    Sky mSky;
+    Sun mSky;
     
 public:
     DeferredRenderer(uint32_t width, uint32_t height);
@@ -116,7 +116,11 @@ public:
     void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
     
     void setSunDirection(const glm::vec3& dirSunAiming);
+    
+    void setCameraProjection(float fov, float nearDepth, float farDepth);
     void setCameraViewMatrix(const glm::mat4& camViewMatrix);
+    
+    // void resizeScreen(uint32_t width, uint32_t height);
     
     const glm::vec3& getCameraLocation() const;
 };

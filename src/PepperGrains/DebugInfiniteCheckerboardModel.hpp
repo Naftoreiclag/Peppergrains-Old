@@ -45,7 +45,7 @@ public:
     
     void setFocus(Vec3 location);
     
-    void render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& unused);
+    void render(const Model::RenderPass& rendPass, const glm::mat4& unused);
 };
 
 }

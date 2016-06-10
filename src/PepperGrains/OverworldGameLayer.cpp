@@ -297,7 +297,7 @@ void OverworldGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glm::mat4 viewMatOverlay;
     glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
     
-    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
+    Model::RenderPass fpsRPC(Model::RenderPassType::SCREEN);
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, glm::mat4());
@@ -673,7 +673,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             glDisable(GL_BLEND);
             glClear(GL_DEPTH_BUFFER_BIT);
             
-            Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
+            Model::RenderPass sunRPC(Model::RenderPassType::SHADOW);
             sunRPC.viewMat = mSky.sunViewMatrices[i];
             sunRPC.projMat = mSky.sunProjMatrices[i];
             sunRPC.camPos = mSky.sunDirection * 100000.f;
@@ -711,7 +711,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         
-        Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
+        Model::RenderPass rootNodeRPC(Model::RenderPassType::GEOMETRY);
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
         rootNodeRPC.camPos = mCamera.position;
@@ -746,7 +746,7 @@ void OverworldGameLayer::renderFrame(glm::vec4 debugShow, bool wireframe) {
         // glm::mat4 sunViewProjMat = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
         
         // Render pass config
-        Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
+        Model::RenderPass brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;

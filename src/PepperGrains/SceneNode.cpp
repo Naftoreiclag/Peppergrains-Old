@@ -243,7 +243,7 @@ SceneNode* SceneNode::dropModel() {
     return this;
 }
 
-void SceneNode::render(const Model::RenderPassConfiguration& rendPass) {
+void SceneNode::render(const Model::RenderPass& rendPass) {
     this->calcWorldTransform();
 
     if(mModelRes) {

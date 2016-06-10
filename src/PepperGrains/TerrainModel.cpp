@@ -171,7 +171,7 @@ void TerrainModel::unload() {
 
     delete this;
 }
-void TerrainModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+void TerrainModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
 
     if(rendPass.type != RenderPassType::GEOMETRY && rendPass.type != RenderPassType::SHADOW) {
         return;

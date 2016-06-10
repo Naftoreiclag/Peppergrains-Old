@@ -70,7 +70,7 @@ void ManualModel::unload() {
 
     delete this;
 }
-void ManualModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+void ManualModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
 
     if(rendPass.type != RenderPassType::GEOMETRY && rendPass.type != RenderPassType::SHADOW) {
         return;

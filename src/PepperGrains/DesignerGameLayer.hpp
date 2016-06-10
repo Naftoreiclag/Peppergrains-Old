@@ -38,14 +38,11 @@ namespace pgg {
 
 class DesignerGameLayer : public GameLayer {
 private:
-
     DeferredRenderer* mRenderer;
     
     nres::World* mEntityWorld;
     
     nres::Entity* mPlayerEntity;
-    
-    SceneNode* mTestCubes[24];
     
     InfiniteCheckerboardModel* mInfCheck;
     
@@ -60,11 +57,6 @@ private:
     
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;
-    
-    ShaderProgramResource* mComputer;
-    TextureResource* mRoseTexture;
-    
-    TerrainModel* mTerrainModel;
     
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
@@ -83,7 +75,6 @@ public:
     
     FontResource* rainstormFont;
     TextModel* fpsCounter;
-    TerrainModel* testTerrain;
 
     float fps;
     float fpsWeight;

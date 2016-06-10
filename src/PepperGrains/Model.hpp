@@ -35,7 +35,7 @@ public:
     };
     
     // Might someday have different configs for different renderables
-    struct RenderPassConfiguration {
+    struct RenderPass {
         glm::mat4 viewMat;
         glm::mat4 projMat;
         
@@ -53,11 +53,11 @@ public:
         
         RenderPassType type;
         
-        RenderPassConfiguration(RenderPassType renderPassType);
-        ~RenderPassConfiguration();
+        RenderPass(RenderPassType renderPassType);
+        ~RenderPass();
     };
 
-    virtual void render(const RenderPassConfiguration& rendPass, const glm::mat4& modelMat) = 0;
+    virtual void render(const RenderPass& rendPass, const glm::mat4& modelMat) = 0;
 };
 
 }

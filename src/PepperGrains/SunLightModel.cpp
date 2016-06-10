@@ -132,7 +132,7 @@ void SunLightModel::SharedResources::unload() {
     glDeleteBuffers(1, &mDLightVbo);
     glDeleteVertexArrays(1, &mDLightVao);
 }
-void SunLightModel::SharedResources::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
+void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
     if(rendPass.type != Model::RenderPassType::GLOBAL_LIGHTS) {
         return;
     }
@@ -192,7 +192,7 @@ void SunLightModel::unload() {
     mSharedRes->drop();
 }
 
-void SunLightModel::render(const Model::RenderPassConfiguration& rendPass, const glm::mat4& modelMat) {
+void SunLightModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
     mSharedRes->render(rendPass, modelMat, mColor);
 }
 

@@ -451,7 +451,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     glDisable(GL_BLEND);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
+    Model::RenderPass sunRPC(Model::RenderPassType::SHADOW);
     sunRPC.viewMat = mSunViewMatr;
     sunRPC.projMat = mSunProjMatr;
     rootNode->render(sunRPC);
@@ -482,7 +482,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         
-        Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
+        Model::RenderPass rootNodeRPC(Model::RenderPassType::GEOMETRY);
         rootNodeRPC.viewMat = viewMat;
         rootNodeRPC.projMat = projMat;
         rootNode->render(rootNodeRPC);
@@ -509,7 +509,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
         glm::mat4 sunViewProjMat = mSunProjMatr * mSunViewMatr;
         
         // Render pass config
-        Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
+        Model::RenderPass brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
         brightRPC.viewMat = viewMat;
         brightRPC.projMat = projMat;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
@@ -706,7 +706,7 @@ void SandboxGameLayer::onTick(float tpf, const Uint8* keyStates) {
     }
     
     
-    Model::RenderPassConfiguration fpsRPC(Model::RenderPassType::SCREEN);
+    Model::RenderPass fpsRPC(Model::RenderPassType::SCREEN);
     fpsRPC.viewMat = viewMatOverlay;
     fpsRPC.projMat = projMatOverlay;
     fpsCounter->render(fpsRPC, testMM);

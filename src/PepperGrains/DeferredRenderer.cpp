@@ -187,18 +187,18 @@ void DeferredRenderer::load() {
         glBindVertexArray(0);
     }
     
-    mSky.sunTextureSize = 1024;
-    mSky.sunDirection = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
-    mSky.sunPosition = glm::vec3(1.f, 1.f, 1.f);
+    mSky.shadowMapResolution = 1024;
+    mSky.direction = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
+    mSky.location = glm::vec3(1.f, 1.f, 1.f);
     mSky.sunModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
     mSky.sunModel->grab();
     
     // Depth mapping
-    glGenTextures(PGG_NUM_SUN_CASCADES, mSky.sunDepthTextures);
+    glGenTextures(PGG_NUM_SUN_CASCADES, mSky.depthTextures);
     
     for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        glBindTexture(GL_TEXTURE_2D, mSky.sunDepthTextures[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSky.sunTextureSize, mSky.sunTextureSize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        glBindTexture(GL_TEXTURE_2D, mSky.depthTextures[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSky.shadowMapResolution, mSky.shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -207,10 +207,10 @@ void DeferredRenderer::load() {
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glGenFramebuffers(PGG_NUM_SUN_CASCADES, mSky.sunFramebuffers);
+    glGenFramebuffers(PGG_NUM_SUN_CASCADES, mSky.framebuffers);
     for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mSky.sunFramebuffers[i]);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSky.sunDepthTextures[i], 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, mSky.framebuffers[i]);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSky.depthTextures[i], 0);
         
         // No color buffers
         glDrawBuffer(GL_NONE);
@@ -218,21 +218,7 @@ void DeferredRenderer::load() {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    mCamera.fov = glm::radians(90.f);
-    mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
-    mCamera.farDepth = 400.f;
-    mCamera.nearDepth = 0.1f;
-    // Find cascade borders
-    mCamera.cascadeBorders[0] = mCamera.nearDepth;
-    mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
-    for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        // TODO: replace + 1.f with something more meaningful
-        float near = mCamera.nearDepth + 1.f;
-        float far = mCamera.farDepth;
-        
-        mCamera.cascadeBorders[i] = near * std::pow(far / near, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
-    }
-    mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
+    this->setCameraProjection(glm::radians(90.f), 0.2f, 400.f);
 }
 
 void DeferredRenderer::unload() {
@@ -251,8 +237,8 @@ void DeferredRenderer::unload() {
     mSkyStencilShader.shaderProg->drop();
     mFillScreenShader.shaderProg->drop();
     
-    glDeleteTextures(4, mSky.sunDepthTextures);
-    glDeleteFramebuffers(4, mSky.sunFramebuffers);
+    glDeleteTextures(4, mSky.depthTextures);
+    glDeleteFramebuffers(4, mSky.framebuffers);
     mSky.sunModel->drop();
     
     delete this;
@@ -261,9 +247,9 @@ void DeferredRenderer::unload() {
 void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe) {
     // Calculate shadow map cascades
     {
-        mSky.sunBasicViewMatrix = glm::lookAt(mSky.sunPosition - mSky.sunDirection, mSky.sunPosition, glm::vec3(0.f, 1.f, 0.f));
+        mSky.viewMatrix = glm::lookAt(mSky.location - mSky.direction, mSky.location, glm::vec3(0.f, 1.f, 0.f));
         
-        glm::mat4 sunMatr = mSky.sunBasicViewMatrix;
+        glm::mat4 sunMatr = mSky.viewMatrix;
         
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
             
@@ -301,16 +287,15 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
                 }
             }
             
-            mSky.sunViewMatrices[i] = mSky.sunBasicViewMatrix;
-            mSky.sunProjMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -50.f, 50.f);
+            mSky.projectionMatrices[i] = glm::ortho(minBB.x, maxBB.x, minBB.y, maxBB.y, -50.f, 50.f);
         }
     }
     
     // Sunlight shadow pass
     {
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-            glViewport(0, 0, mSky.sunTextureSize, mSky.sunTextureSize);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.sunFramebuffers[i]);
+            glViewport(0, 0, mSky.shadowMapResolution, mSky.shadowMapResolution);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSky.framebuffers[i]);
             glDepthMask(GL_TRUE);
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
@@ -319,10 +304,10 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glDisable(GL_BLEND);
             glClear(GL_DEPTH_BUFFER_BIT);
             
-            Model::RenderPassConfiguration sunRPC(Model::RenderPassType::SHADOW);
-            sunRPC.viewMat = mSky.sunViewMatrices[i];
-            sunRPC.projMat = mSky.sunProjMatrices[i];
-            sunRPC.camPos = mSky.sunDirection * 100000.f;
+            Model::RenderPass sunRPC(Model::RenderPassType::SHADOW);
+            sunRPC.viewMat = mSky.viewMatrix;
+            sunRPC.projMat = mSky.projectionMatrices[i];
+            sunRPC.camPos = mSky.direction * 100000.f;
             mRootNode->render(sunRPC);
         }
     }
@@ -353,7 +338,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         
-        Model::RenderPassConfiguration rootNodeRPC(Model::RenderPassType::GEOMETRY);
+        Model::RenderPass rootNodeRPC(Model::RenderPassType::GEOMETRY);
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
         rootNodeRPC.camPos = mCamera.position;
@@ -382,7 +367,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         // glm::mat4 sunViewProjMat = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
         
         // Render pass config
-        Model::RenderPassConfiguration brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
+        Model::RenderPass brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;
@@ -393,8 +378,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-            brightRPC.sunViewProjMatr[i] = mSky.sunProjMatrices[i] * mSky.sunViewMatrices[i];
-            brightRPC.sunDepthTexture[i] = mSky.sunDepthTextures[i];
+            brightRPC.sunViewProjMatr[i] = mSky.projectionMatrices[i] * mSky.viewMatrix;
+            brightRPC.sunDepthTexture[i] = mSky.depthTextures[i];
         }
         
         // Render local lights
@@ -449,7 +434,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             {    
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
-                mSky.sunModel->render(brightRPC, glm::inverse(mSky.sunBasicViewMatrix));
+                mSky.sunModel->render(brightRPC, glm::inverse(mSky.viewMatrix));
             }
         }
     }
@@ -549,7 +534,7 @@ DeferredRenderer::~DeferredRenderer() {
 }
 
 void DeferredRenderer::setSunDirection(const glm::vec3& dirSunAiming) {
-    mSky.sunDirection = dirSunAiming;
+    mSky.direction = dirSunAiming;
 }
 void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
     mCamera.viewMat = camViewMatrix;
@@ -558,6 +543,22 @@ void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
 
 const glm::vec3& DeferredRenderer::getCameraLocation() const {
     return mCamera.position;
+}
+
+void DeferredRenderer::setCameraProjection(float fov, float nearDepth, float farDepth) {
+    mCamera.fov = fov;
+    mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
+    mCamera.nearDepth = nearDepth;
+    mCamera.farDepth = farDepth;
+    mCamera.cascadeBorders[0] = mCamera.nearDepth;
+    mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
+    for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
+        // TODO: replace + 1.f with something more meaningful
+        float near = mCamera.nearDepth + 1.f;
+        float far = mCamera.farDepth;
+        mCamera.cascadeBorders[i] = near * std::pow(far / near, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
+    }
+    mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
 }
 
 }
