@@ -9,6 +9,8 @@ src/PepperGrains/Release/*
 src/PepperGrains/PepperGrains.txt
 src/Makefile
 
+backup/*
+
 built/*
 
 resources/*

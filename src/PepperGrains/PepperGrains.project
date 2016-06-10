@@ -208,6 +208,8 @@
       <File Name="Vec3.cpp"/>
       <File Name="Vec3.hpp"/>
     </VirtualDirectory>
+    <File Name="DesignerGameLayer.cpp"/>
+    <File Name="DesignerGameLayer.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
