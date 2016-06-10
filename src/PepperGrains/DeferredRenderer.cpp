@@ -254,6 +254,8 @@ void DeferredRenderer::unload() {
     glDeleteTextures(4, mSky.sunDepthTextures);
     glDeleteFramebuffers(4, mSky.sunFramebuffers);
     mSky.sunModel->drop();
+    
+    delete this;
 }
 
 void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe) {
@@ -544,6 +546,18 @@ DeferredRenderer::DeferredRenderer(uint32_t width, uint32_t height)
 }
 
 DeferredRenderer::~DeferredRenderer() {
+}
+
+void DeferredRenderer::setSunDirection(const glm::vec3& dirSunAiming) {
+    mSky.sunDirection = dirSunAiming;
+}
+void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
+    mCamera.viewMat = camViewMatrix;
+    mCamera.position = glm::vec3(-mCamera.viewMat[3][0], -mCamera.viewMat[3][1], -mCamera.viewMat[3][2]);
+}
+
+const glm::vec3& DeferredRenderer::getCameraLocation() const {
+    return mCamera.position;
 }
 
 }

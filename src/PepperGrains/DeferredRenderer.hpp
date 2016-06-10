@@ -26,7 +26,7 @@
 namespace pgg {
 
 class DeferredRenderer : public ReferenceCounted {
-public:
+private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
 
@@ -106,13 +106,19 @@ public:
     };
     Sky mSky;
     
-    void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
 public:
     DeferredRenderer(uint32_t width, uint32_t height);
     ~DeferredRenderer();
     
     void load();
     void unload();
+    
+    void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
+    
+    void setSunDirection(const glm::vec3& dirSunAiming);
+    void setCameraViewMatrix(const glm::mat4& camViewMatrix);
+    
+    const glm::vec3& getCameraLocation() const;
 };
 
 }
