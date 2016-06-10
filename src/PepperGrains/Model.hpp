@@ -48,6 +48,7 @@ public:
         GLuint normalTexture;
         GLuint brightTexture;
         GLuint depthStencilTexture;
+        
         GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
         glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];
         
@@ -55,6 +56,12 @@ public:
         
         RenderPass(RenderPassType renderPassType);
         ~RenderPass();
+        
+        bool availableFustrumAABB;
+        glm::vec3 minBB;
+        glm::vec3 maxBB;
+    
+        void calculateFustrumAABB();
     };
 
     virtual void render(const RenderPass& rendPass, const glm::mat4& modelMat) = 0;

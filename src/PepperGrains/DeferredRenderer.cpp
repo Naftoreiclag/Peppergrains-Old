@@ -342,6 +342,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         rootNodeRPC.viewMat = mCamera.viewMat;
         rootNodeRPC.projMat = mCamera.projMat;
         rootNodeRPC.camPos = mCamera.position;
+        rootNodeRPC.calculateFustrumAABB();
         mRootNode->render(rootNodeRPC);
     }
     

@@ -83,8 +83,6 @@
       <File Name="MaterialResource.cpp"/>
       <File Name="GeometryResource.cpp"/>
       <File Name="GeometryResource.hpp"/>
-      <File Name="ModelResource.cpp"/>
-      <File Name="ModelResource.hpp"/>
       <File Name="FontResource.cpp"/>
       <File Name="FontResource.hpp"/>
       <VirtualDirectory Name="Shaders">
@@ -123,6 +121,8 @@
       <File Name="TessModel.cpp"/>
       <File Name="DebugInfiniteCheckerboardModel.hpp"/>
       <File Name="DebugInfiniteCheckerboardModel.cpp"/>
+      <File Name="ModelResource.cpp"/>
+      <File Name="ModelResource.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Stuff">
       <File Name="OpenGLStuff.hpp"/>
@@ -144,8 +144,6 @@
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
-    <File Name="OverworldGameLayer.hpp"/>
-    <File Name="OverworldGameLayer.cpp"/>
     <File Name="TerrainRenderer.hpp"/>
     <File Name="TerrainRenderer.cpp"/>
     <VirtualDirectory Name="Debug">
@@ -155,6 +153,8 @@
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>
+      <File Name="OverworldGameLayer.cpp"/>
+      <File Name="OverworldGameLayer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Entity System">
       <VirtualDirectory Name="nres">

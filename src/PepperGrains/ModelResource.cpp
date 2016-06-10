@@ -181,6 +181,22 @@ void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& m
         return;
     }
     
+    // Debug visibility check
+    /*
+    glm::vec4 ndc = rendPass.projMat * rendPass.viewMat * modelMat * glm::vec4(0.f, 0.f, 0.f, 1.f);
+    ndc /= ndc.w;
+    if(ndc.x < -1 || ndc.x > 1 || ndc.y < -1 || ndc.y > -1 || ndc.z < -1 || ndc.z > -1) {
+        return;
+    }
+    */
+    
+    if(rendPass.availableFustrumAABB) {
+        glm::vec3 center = glm::vec3(modelMat * glm::vec4(0.f, 0.f, 0.f, 1.f));
+        if(center.x > rendPass.maxBB.x || center.y > rendPass.maxBB.y || center.z > rendPass.maxBB.z || center.x < rendPass.minBB.x || center.y < rendPass.minBB.y || center.z < rendPass.minBB.z) {
+            return;
+        }
+    }
+    
     // Get the shader program specified by the material
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
 
