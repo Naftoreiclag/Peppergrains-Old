@@ -60,7 +60,7 @@ struct MouseMoveEvent {
 struct MouseButtonEvent {
     MouseButtonEvent(SDL_MouseButtonEvent e);
     
-    Input::MouseButton button;
+    Input::KeyScancode button;
     bool pressed;
     uint8_t clicks;
     int32_t x;
