@@ -104,54 +104,58 @@ void DesignerGameLayer::onEnd() {
     delete mBroadphase;
 }
 
-void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
+void DesignerGameLayer::onTick(float tpf, const InputState* keyStates) {
     
     glm::vec3 movement;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_w)]) {
+    if(keyStates->isPressed(Input::Scancode::K_W)) {
         movement.z -= 1.0;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_a)]) {
+    if(keyStates->isPressed(Input::Scancode::K_A)) {
         movement.x -= 1.0;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_s)]) {
+    if(keyStates->isPressed(Input::Scancode::K_S)) {
         movement.z += 1.0;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_d)]) {
+    if(keyStates->isPressed(Input::Scancode::K_D)) {
         movement.x += 1.0;
     }
     if(movement != glm::vec3(0.f)) {
         glm::normalize(movement);
-        if(keyStates[SDL_GetScancodeFromKey(SDLK_LSHIFT)]) {
+        if(keyStates->isPressed(Input::Scancode::K_SHIFT_LEFT)) {
             movement *= 10.f;
         }
         
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
         //
     }
+    
+    if(keyStates->isPressed(Input::Scancode::M_LEFT)) {
+        std::cout << "Left" << std::endl;
+    }
 
     // mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
     
     glm::vec4 debugShow;
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
+    if(keyStates->isPressed(Input::Scancode::K_1)) {
         debugShow.x = 1.f;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_2)]) {
+    if(keyStates->isPressed(Input::Scancode::K_2)) {
         debugShow.y = 1.f;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_3)]) {
+    if(keyStates->isPressed(Input::Scancode::K_3)) {
         debugShow.z = 1.f;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_4)]) {
+    if(keyStates->isPressed(Input::Scancode::K_4)) {
         debugShow.w = 1.f;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_5)]) {
+    if(keyStates->isPressed(Input::Scancode::K_5)) {
         mDebugWireframe = true;
     }
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_6)]) {
+    if(keyStates->isPressed(Input::Scancode::K_6)) {
         mDebugWireframe = false;
     }
     
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_q)]) {
+    if(keyStates->isPressed(Input::Scancode::K_Q)) {
         mRenderer->setSunDirection(glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f)));
     }
     

@@ -27,14 +27,14 @@ void GameLayer::onBegin() {}
 void GameLayer::onEnd() {}
 
 // Ticks
-void GameLayer::onTick(float tps, const Uint8* keyStates) {}
+void GameLayer::onTick(float tpf, const InputState* keyStates) {}
 
 /* Key filtering:
  *  Set whatever keystates to be false before passing them on to the next layers
  *  Return true to set all keys to false
  *  Not guaranteed to be called each tick
  */
-bool GameLayer::filterKeys(Uint8* keyStates) { return false; }
+bool GameLayer::filterKeys(InputState* keyStates) { return false; }
 
 // Layering
 void GameLayer::onAddedAbove(const GameLayer* layer) {}

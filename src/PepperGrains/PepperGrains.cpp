@@ -127,6 +127,8 @@ int PepperGrains::run(int argc, char* argv[]) {
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
+    InputState inputState;
+    
     while(mMainLoopRunning) {
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
@@ -183,7 +185,10 @@ int PepperGrains::run(int argc, char* argv[]) {
             tpf /= 1000.f;
             prev = now;
             
-            mGameLayerMachine->onTick(tpf, SDL_GetKeyboardState(NULL));
+            inputState.updateKeysFromSDL();
+            inputState.updateMouseFromSDL();
+            
+            mGameLayerMachine->onTick(tpf, &inputState);
 
             // Swap buffers (draw everything onto the screen)
             SDL_GL_SwapWindow(sdlWindow);

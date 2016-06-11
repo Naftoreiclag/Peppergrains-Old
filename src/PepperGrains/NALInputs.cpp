@@ -35,16 +35,16 @@ Scancode scancodeFromSDLMouse(uint8_t button) {
     
 Scancode scancodeFromSDLKeyScancode(SDL_Scancode key) {
     switch(key) {
-        case SDL_SCANCODE_0                      : return Scancode::K_NUM_0;
-        case SDL_SCANCODE_1                      : return Scancode::K_NUM_1;
-        case SDL_SCANCODE_2                      : return Scancode::K_NUM_2;
-        case SDL_SCANCODE_3                      : return Scancode::K_NUM_3;
-        case SDL_SCANCODE_4                      : return Scancode::K_NUM_4;
-        case SDL_SCANCODE_5                      : return Scancode::K_NUM_5;
-        case SDL_SCANCODE_6                      : return Scancode::K_NUM_6;
-        case SDL_SCANCODE_7                      : return Scancode::K_NUM_7;
-        case SDL_SCANCODE_8                      : return Scancode::K_NUM_8;
-        case SDL_SCANCODE_9                      : return Scancode::K_NUM_9;
+        case SDL_SCANCODE_0                      : return Scancode::K_0;
+        case SDL_SCANCODE_1                      : return Scancode::K_1;
+        case SDL_SCANCODE_2                      : return Scancode::K_2;
+        case SDL_SCANCODE_3                      : return Scancode::K_3;
+        case SDL_SCANCODE_4                      : return Scancode::K_4;
+        case SDL_SCANCODE_5                      : return Scancode::K_5;
+        case SDL_SCANCODE_6                      : return Scancode::K_6;
+        case SDL_SCANCODE_7                      : return Scancode::K_7;
+        case SDL_SCANCODE_8                      : return Scancode::K_8;
+        case SDL_SCANCODE_9                      : return Scancode::K_9;
         case SDL_SCANCODE_A                      : return Scancode::K_A;
         case SDL_SCANCODE_B                      : return Scancode::K_B;
         case SDL_SCANCODE_C                      : return Scancode::K_C;

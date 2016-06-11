@@ -98,7 +98,7 @@ public:
     void onEnd();
     
     // Ticks
-    void onTick(float tps, const Uint8* keyStates);
+    void onTick(float tpf, const InputState* keyStates);
     bool onMouseMove(const MouseMoveEvent& event);
     
     bool onWindowSizeUpdate(const WindowResizeEvent& event);

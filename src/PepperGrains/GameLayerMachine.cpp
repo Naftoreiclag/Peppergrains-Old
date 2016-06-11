@@ -23,23 +23,10 @@
 #include "GameLayer.hpp"
 
 namespace pgg {
+    
+InputState GameLayerMachine::sEmptyInputState;
 
-Uint8* GameLayerMachine::sRelaxedKeyStates = nullptr;
-int GameLayerMachine::sNumKeyStates = 0;
-    
-GameLayerMachine::GameLayerMachine() {
-    if(!sRelaxedKeyStates) {
-        SDL_GetKeyboardState(&sNumKeyStates);
-        
-        sRelaxedKeyStates = new Uint8[sNumKeyStates];
-        
-        for(int i = 0; i < sNumKeyStates; ++ i) {
-            sRelaxedKeyStates[i] = SDL_FALSE;
-        }
-    }
-    
-    mFilteredKeyStates = new Uint8[sNumKeyStates];
-}
+GameLayerMachine::GameLayerMachine() { }
 
 GameLayerMachine::~GameLayerMachine() {}
 
@@ -47,6 +34,7 @@ void GameLayerMachine::addBottom(GameLayer* addMe) {
     mLayers.insert(mLayers.begin(), addMe);
     addMe->onBegin();
 }
+
 void GameLayerMachine::addAbove(GameLayer* addMe, GameLayer* caller) {
     // Find where the caller is located
     std::vector<GameLayer*>::iterator location = mLayers.end();
@@ -117,26 +105,25 @@ void GameLayerMachine::removeAll() {
 }
 
 // Ticks
-void GameLayerMachine::onTick(float tps, const Uint8* keys) {
+void GameLayerMachine::onTick(float tpf, const InputState* keys) {
     bool allKeysFiltered = false;
-    for(int i = 0; i < sNumKeyStates; ++ i) {
-        mFilteredKeyStates[i] = keys[i];
-    }
+    InputState filteredInputState = *keys;
+    
     std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin();
     while(iter != mLayers.rend()) {
         GameLayer* layer = *iter;
         
         if(allKeysFiltered) {
-            layer->onTick(tps, sRelaxedKeyStates);
+            layer->onTick(tpf, &sEmptyInputState);
             
             ++ iter;
         }
         else {
-            layer->onTick(tps, mFilteredKeyStates);
+            layer->onTick(tpf, &filteredInputState);
             
             // Only filter keys if there are layers below this one
             if(++ iter != mLayers.rend()) {
-                if(layer->filterKeys(mFilteredKeyStates)) {
+                if(layer->filterKeys(&filteredInputState)) {
                     allKeysFiltered = true;
                 }
             }
@@ -216,11 +203,6 @@ void GameLayerMachine::onQuit(const QuitEvent& event) {
             break;
         }
     }
-}
-
-
-const Uint8* GameLayerMachine::getRelaxedKeyStates() {
-    return sRelaxedKeyStates;
 }
 
 }

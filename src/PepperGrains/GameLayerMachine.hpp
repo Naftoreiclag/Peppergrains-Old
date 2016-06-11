@@ -33,10 +33,8 @@ public:
 private:
     std::vector<GameLayer*> mLayers;
     
-    static Uint8* sRelaxedKeyStates;
-    static int sNumKeyStates;
+    static InputState sEmptyInputState;
     
-    Uint8* mFilteredKeyStates;
 public:
     void addAbove(GameLayer* addMe, GameLayer* aboveMe);
     void addBottom(GameLayer* addMe);
@@ -44,7 +42,7 @@ public:
     void removeAll();
     
     // Ticks
-    void onTick(float tps, const Uint8* keyStates);
+    void onTick(float tpf, const InputState* inputState);
     
     // Key handling
     void onKeyboardEvent(const KeyboardEvent& event);
@@ -58,8 +56,6 @@ public:
     void onWindowSizeUpdate(const WindowResizeEvent& event);
     
     void onQuit(const QuitEvent& event);
-    
-    const Uint8* getRelaxedKeyStates();
 };
 
 }

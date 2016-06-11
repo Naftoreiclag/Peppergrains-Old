@@ -34,14 +34,14 @@ public:
     virtual void onEnd();
     
     // Ticks
-    virtual void onTick(float tps, const Uint8* keyStates);
+    virtual void onTick(float tpf, const InputState* keyStates);
     
     /* Key filtering:
      *  Set whatever keystates to be false before passing them on to the next layers
      *  Return true to set all keys to false
      *  Not guaranteed to be called each tick
      */
-    virtual bool filterKeys(Uint8* keyStates);
+    virtual bool filterKeys(InputState* keyStates);
     
     // Layering
     virtual void onAddedAbove(const GameLayer* layer);
