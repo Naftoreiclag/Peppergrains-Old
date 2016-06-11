@@ -280,15 +280,15 @@ Scancode scancodeFromSDLKeyScancode(SDL_Scancode key) {
 
 }
 
-ScancodeState::ScancodeState() {
+InputState::InputState() {
     for(uint32_t i = 0; i < Input::Scancode::ENUM_SIZE; ++ i) {
         mPressed[i] = false;
     }
 }
 
-ScancodeState::~ScancodeState() { }
+InputState::~InputState() { }
 
-bool ScancodeState::isPressed(Input::Scancode button) const {
+bool InputState::isPressed(Input::Scancode button) const {
     assert(button < Input::Scancode::ENUM_SIZE && "Button scancode out of array bounds in ScancodeState::isPressed()");
     if(button == Input::Scancode::UNKNOWN) {
         return false;
@@ -296,7 +296,14 @@ bool ScancodeState::isPressed(Input::Scancode button) const {
     return mPressed[button];
 }
 
-void ScancodeState::updateKeysFromSDL() {
+int32_t InputState::getMouseX() const {
+    return mMouseX;
+}
+int32_t InputState::getMouseY() const {
+    return mMouseY;
+}
+
+void InputState::updateKeysFromSDL() {
     int sdlKeystateSize;
     const Uint8* keystates = SDL_GetKeyboardState(&sdlKeystateSize);
     for(int i = 0; i < sdlKeystateSize; ++ i) {
@@ -304,7 +311,22 @@ void ScancodeState::updateKeysFromSDL() {
     }
 }
 
-void ScancodeState::setState(Input::Scancode button, bool pressed) {
+void InputState::updateMouseFromSDL() {
+    int x;
+    int y;
+    Uint32 buttonBitmask = SDL_GetMouseState(&x, &y);
+    
+    mMouseX = x;
+    mMouseY = y;
+
+    mPressed[Input::Scancode::M_LEFT] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_LEFT)) > 0 ? true : false;
+    mPressed[Input::Scancode::M_RIGHT] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_RIGHT)) > 0 ? true : false;
+    mPressed[Input::Scancode::M_MIDDLE] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) > 0 ? true : false;
+    mPressed[Input::Scancode::M_SPECIAL_0] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_X1)) > 0 ? true : false;
+    mPressed[Input::Scancode::M_SPECIAL_1] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_X2)) > 0 ? true : false;
+}
+
+void InputState::setState(Input::Scancode button, bool pressed) {
     assert(button < Input::Scancode::ENUM_SIZE && "Button scancode out of array bounds in ScancodeState::setState()");
     if(button != Input::Scancode::UNKNOWN) {
         mPressed[button] = pressed;

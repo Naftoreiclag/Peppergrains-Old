@@ -277,16 +277,22 @@ Scancode scancodeFromSDLMouse(uint8_t button);
 
 }
 
-class ScancodeState {
+class InputState {
 private:
     bool mPressed[Input::Scancode::ENUM_SIZE];
+    
+    int32_t mMouseX;
+    int32_t mMouseY;
 public:
-    ScancodeState();
-    ~ScancodeState();
+    InputState();
+    ~InputState();
 
     bool isPressed(Input::Scancode button) const;
+    int32_t getMouseX() const;
+    int32_t getMouseY() const;
     
     void updateKeysFromSDL();
+    void updateMouseFromSDL();
     
     void setState(Input::Scancode button, bool pressed);
 };
