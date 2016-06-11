@@ -45,7 +45,7 @@ struct KeyboardEvent {
     // true = pressed, false = released
     bool pressed;
     uint8_t repeat;
-    Input::KeyScancode key;
+    Input::Scancode key;
 };
 
 struct MouseMoveEvent {
@@ -60,7 +60,7 @@ struct MouseMoveEvent {
 struct MouseButtonEvent {
     MouseButtonEvent(SDL_MouseButtonEvent e);
     
-    Input::KeyScancode button;
+    Input::Scancode button;
     bool pressed;
     uint8_t clicks;
     int32_t x;

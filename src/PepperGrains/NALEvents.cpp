@@ -27,7 +27,7 @@ TextInputEvent::TextInputEvent(SDL_TextInputEvent e)
 KeyboardEvent::KeyboardEvent(SDL_KeyboardEvent e)
 : pressed(e.state == SDL_PRESSED)
 , repeat(e.repeat)
-, key(Input::keyScancodeFromSDL(e.keysym.scancode)) { }
+, key(Input::scancodeFromSDLKeyScancode(e.keysym.scancode)) { }
 
 MouseMoveEvent::MouseMoveEvent(SDL_MouseMotionEvent e)
 : x(e.x)
@@ -36,7 +36,7 @@ MouseMoveEvent::MouseMoveEvent(SDL_MouseMotionEvent e)
 , dy(e.yrel) { }
 
 MouseButtonEvent::MouseButtonEvent(SDL_MouseButtonEvent e)
-: button(Input::mouseButtonFromSDL(e.button))
+: button(Input::scancodeFromSDLMouse(e.button))
 , pressed(e.state == SDL_PRESSED)
 , clicks(e.clicks)
 , x(e.x)

@@ -24,7 +24,7 @@ namespace pgg {
 
 namespace Input {
 
-enum KeyScancode {
+enum Scancode {
     UNKNOWN,
     
     M_LEFT,
@@ -268,13 +268,28 @@ enum KeyScancode {
     K_SND_VOLUME_DOWN,
     K_SND_VOLUME_UP,
     K_WORLD_WIDE_WEB,
-    ENUM_SIZE
+    
+    ENUM_SIZE // Hold size of this enum; do not place enums after this point!
 };
 
-KeyScancode keyScancodeFromSDL(SDL_Scancode key);
-KeyScancode mouseButtonFromSDL(uint8_t button);
+Scancode scancodeFromSDLKeyScancode(SDL_Scancode key);
+Scancode scancodeFromSDLMouse(uint8_t button);
 
 }
+
+class ScancodeState {
+private:
+    bool mPressed[Input::Scancode::ENUM_SIZE];
+public:
+    ScancodeState();
+    ~ScancodeState();
+
+    bool isPressed(Input::Scancode button) const;
+    
+    void updateKeysFromSDL();
+    
+    void setState(Input::Scancode button, bool pressed);
+};
 
 }
 
