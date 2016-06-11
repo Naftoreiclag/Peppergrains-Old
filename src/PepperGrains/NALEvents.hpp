@@ -45,7 +45,7 @@ struct KeyboardEvent {
     // true = pressed, false = released
     bool pressed;
     uint8_t repeat;
-    SDL_Keysym symbol;
+    Input::KeyScancode key;
 };
 
 struct MouseMoveEvent {

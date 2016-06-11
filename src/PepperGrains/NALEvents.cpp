@@ -15,7 +15,7 @@
 
 */
 
-#include "NALInputs.hpp"
+#include "NALEvents.hpp"
 
 namespace pgg {
 
@@ -27,7 +27,7 @@ TextInputEvent::TextInputEvent(SDL_TextInputEvent e)
 KeyboardEvent::KeyboardEvent(SDL_KeyboardEvent e)
 : pressed(e.state == SDL_PRESSED)
 , repeat(e.repeat)
-, symbol(e.keysym) { }
+, key(Input::keyScancodeFromSDL(e.keysym.scancode)) { }
 
 MouseMoveEvent::MouseMoveEvent(SDL_MouseMotionEvent e)
 : x(e.x)
@@ -36,7 +36,7 @@ MouseMoveEvent::MouseMoveEvent(SDL_MouseMotionEvent e)
 , dy(e.yrel) { }
 
 MouseButtonEvent::MouseButtonEvent(SDL_MouseButtonEvent e)
-: button(e.button)
+: button(Input::mouseButtonFromSDL(e.button))
 , pressed(e.state == SDL_PRESSED)
 , clicks(e.clicks)
 , x(e.x)
