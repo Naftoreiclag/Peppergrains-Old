@@ -146,15 +146,10 @@
     <File Name="PepperGrains.cpp"/>
     <File Name="TerrainRenderer.hpp"/>
     <File Name="TerrainRenderer.cpp"/>
-    <VirtualDirectory Name="Debug">
-      <File Name="SandboxGameLayer.cpp"/>
-      <File Name="SandboxGameLayer.hpp"/>
-    </VirtualDirectory>
+    <VirtualDirectory Name="Debug"/>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>
-      <File Name="OverworldGameLayer.cpp"/>
-      <File Name="OverworldGameLayer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Entity System">
       <VirtualDirectory Name="nres">
@@ -200,18 +195,28 @@
         <File Name="SceneNodeESys.hpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="Math Abstraction">
-      <File Name="Quate.cpp"/>
-      <File Name="Quate.hpp"/>
-      <File Name="Vec2.cpp"/>
-      <File Name="Vec2.hpp"/>
-      <File Name="Vec3.cpp"/>
-      <File Name="Vec3.hpp"/>
-    </VirtualDirectory>
     <File Name="DesignerGameLayer.cpp"/>
     <File Name="DesignerGameLayer.hpp"/>
     <File Name="DeferredRenderer.hpp"/>
     <File Name="DeferredRenderer.cpp"/>
+    <VirtualDirectory Name="Robotics">
+      <File Name="MechBody.hpp"/>
+      <File Name="MechBody.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Abstraction">
+      <VirtualDirectory Name="Math">
+        <File Name="Quate.cpp"/>
+        <File Name="Quate.hpp"/>
+        <File Name="Vec2.cpp"/>
+        <File Name="Vec2.hpp"/>
+        <File Name="Vec3.cpp"/>
+        <File Name="Vec3.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Events">
+        <File Name="NALEvents.hpp"/>
+        <File Name="NALEvents.cpp"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

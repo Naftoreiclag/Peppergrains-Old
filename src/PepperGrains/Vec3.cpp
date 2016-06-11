@@ -60,6 +60,11 @@ Vec3::Vec3(const glm::vec3& v)
 , y(v.y)
 , z(v.z) {
 }
+Vec3::Vec3(const glm::vec4& v)
+: x(v.x)
+, y(v.y)
+, z(v.z) {
+}
 
 // Equals
 bool Vec3::operator==(const Vec3& v1) const {

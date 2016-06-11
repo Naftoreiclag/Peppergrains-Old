@@ -41,18 +41,18 @@ void GameLayer::onAddedAbove(const GameLayer* layer) {}
 void GameLayer::onRemovedAbove(const GameLayer* layer) {}
 
 // Key handling
-bool GameLayer::onKeyPress(const SDL_KeyboardEvent& event, bool repeat) { return false; }
-bool GameLayer::onKeyRelease(const SDL_KeyboardEvent& event) { return false; }
-bool GameLayer::onTextInput(const SDL_TextInputEvent& event) { return false; }
+bool GameLayer::onKeyboardEvent(const KeyboardEvent& event) { return false; }
+bool GameLayer::onTextInput(const TextInputEvent& event) { return false; }
 
 // Mouse handling
-bool GameLayer::onMouseMove(const SDL_MouseMotionEvent& event) { return false; }
-bool GameLayer::onMousePress(const SDL_MouseButtonEvent& event) { return false; }
-bool GameLayer::onMouseRelease(const SDL_MouseButtonEvent& event) { return false; }
-bool GameLayer::onMouseWheel(const SDL_MouseWheelEvent& event) { return false; }
+bool GameLayer::onMouseMove(const MouseMoveEvent& event) { return false; }
+bool GameLayer::onMouseButton(const MouseButtonEvent& event) { return false; }
+bool GameLayer::onMouseWheel(const MouseWheelMoveEvent& event) { return false; }
 
 // Windowing
-bool GameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) { return false; }
+bool GameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) { return false; }
+
+bool GameLayer::onQuit(const QuitEvent& event) { return false; }
 
 }
 

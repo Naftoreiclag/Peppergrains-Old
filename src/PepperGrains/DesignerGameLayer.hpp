@@ -33,16 +33,24 @@
 #include "TextureResource.hpp"
 #include "DebugInfiniteCheckerboardModel.hpp"
 #include "DeferredRenderer.hpp"
+#include "Vec2.hpp"
 
 namespace pgg {
 
 class DesignerGameLayer : public GameLayer {
+public:
+    class Plate {
+        Plate();
+        ~Plate();
+        
+        uint32_t x;
+        uint32_t y;
+        uint32_t z;
+        
+        Vec3 transitionLocation;
+    };
 private:
     DeferredRenderer* mRenderer;
-    
-    nres::World* mEntityWorld;
-    
-    nres::Entity* mPlayerEntity;
     
     InfiniteCheckerboardModel* mInfCheck;
     
@@ -58,13 +66,14 @@ private:
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;
     
+    SceneNode* mDebugCube;
+    
+    uint32_t mCube;
+    
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
-    void renderFrame(glm::vec4 debugShow, bool wireframe);
-public:
-    DesignerGameLayer(uint32_t width, uint32_t height);
-    ~DesignerGameLayer();
+    Vec2 mMouseLoc;
     
     SceneNode* mRootNode;
     
@@ -72,16 +81,17 @@ public:
     SceneNode* mCamYawNode;
     SceneNode* mCamPitchNode;
     SceneNode* mCamRollNode;
-    
-    FontResource* rainstormFont;
-    TextModel* fpsCounter;
 
     float fps;
     float fpsWeight;
-
     float oneSecondTimer;
     
     bool mDebugWireframe;
+    
+    void renderFrame(glm::vec4 debugShow, bool wireframe);
+public:
+    DesignerGameLayer(uint32_t width, uint32_t height);
+    ~DesignerGameLayer();
     
     // Lifecycle
     void onBegin();
@@ -89,9 +99,9 @@ public:
     
     // Ticks
     void onTick(float tps, const Uint8* keyStates);
-    bool onMouseMove(const SDL_MouseMotionEvent& event);
+    bool onMouseMove(const MouseMoveEvent& event);
     
-    bool onWindowSizeUpdate(const SDL_WindowEvent& event);
+    bool onWindowSizeUpdate(const WindowResizeEvent& event);
     
 };
 

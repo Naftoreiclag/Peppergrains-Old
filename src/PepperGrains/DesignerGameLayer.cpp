@@ -45,14 +45,12 @@ DesignerGameLayer::~DesignerGameLayer() {
 
 // Lifecycle
 void DesignerGameLayer::onBegin() {
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
     
     ResourceManager* resman = ResourceManager::getSingleton();
     
     mRenderer = new DeferredRenderer(mScreenWidth, mScreenHeight);
     mRenderer->grab();
-
-    mEntityWorld = new nres::World();
 
     mBroadphase = new btDbvtBroadphase();
     mCollisionConfiguration = new btDefaultCollisionConfiguration();
@@ -60,50 +58,15 @@ void DesignerGameLayer::onBegin() {
     mSolver = new btSequentialImpulseConstraintSolver();
     mDynamicsWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfiguration);
     mDynamicsWorld->setGravity(btVector3(0, -9.8, 0));
-    mRigidBodyESys = new RigidBodyESys(mDynamicsWorld);
-    mEntityWorld->attachSystem(mRigidBodyESys);
-    
-    btStaticPlaneShape* planeShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-    mPlaneRigid = new btRigidBody(0, 0, planeShape);
-    mDynamicsWorld->addRigidBody(mPlaneRigid);
     
     mRootNode = new SceneNode();
     mRootNode->grab();
-    mSceneNodeESys = new SceneNodeESys(mRootNode);
-    mEntityWorld->attachSystem(mSceneNodeESys);
     
-    mPlayerEntity = mEntityWorld->newEntity();
-    mPlayerEntity->add(new SceneNodeEComp());
-    mPlayerEntity->addListener(new DebugFPControllerEListe());
-    mPlayerEntity->publish();
-    
-    nres::Entity* cube;
-    cube = mEntityWorld->newEntity();
-    cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-3.f, 3.f, -3.f)));
-    cube->publish();
-    
-    cube = mEntityWorld->newEntity();
-    cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-4.5f, 8.f, -4.5f)));
-    cube->publish();
-    
-    cube = mEntityWorld->newEntity();
-    cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-    cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(-4.5f, 8.f, -4.5f)));
-    cube->publish();
-    
-    mRootNode->newChild()->grabModel(new GrassModel());
-    mRootNode->newChild()->move(glm::vec3(1.5f, 1.5f, 1.5f))->grabModel(new PointLightModel(glm::vec3(2.f, 0.f, 2.f), 2.f));
-    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(new TessModel());
-    mRootNode->newChild()->move(glm::vec3(-3.f, 3.f, -3.f))->grabModel(resman->findModel("Door.model"));
-    
-    
-    rainstormFont = resman->findFont("Rainstorm.font");
-    rainstormFont->grab();
-
-    fpsCounter = new TextModel(rainstormFont, "FPS: Calculating...");
-    fpsCounter->grab();
+    mDebugCube = mRootNode->newChild();
+    mDebugCube->grabModel(resman->findModel("RoseCube.model"));
+    mDebugCube->setLocalScale(Vec3(0.2, 0.2, 0.2));
+    mDebugCube->grab();
+    mDebugCube->setLocalTranslation(Vec3(999, 999, 999));
     
     mCamLocNode = new SceneNode();
     mCamLocNode->move(Vec3(0.f, 1.5f, 0.f));
@@ -114,9 +77,6 @@ void DesignerGameLayer::onBegin() {
     mCamLocNode->addChild(mCamYawNode);
     mCamYawNode->addChild(mCamPitchNode);
     mCamPitchNode->addChild(mCamRollNode);
-    
-    SceneNodeEComp* plS = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
-    plS->mSceneNode->addChild(mCamLocNode);
     
     mInfCheck = new InfiniteCheckerboardModel();
     mInfCheck->grab();
@@ -135,10 +95,8 @@ void DesignerGameLayer::onEnd() {
     mInfCheck->drop();
     mRootNode->drop();
     
-    fpsCounter->drop();
-    rainstormFont->drop();
-    delete mSceneNodeESys;
-    delete mRigidBodyESys;
+    mDebugCube->drop();
+    
     delete mDynamicsWorld;
     delete mSolver;
     delete mDispatcher;
@@ -168,12 +126,10 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
         }
         
         movement = glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(movement, 0.f) * tpf);
-        
-        mPlayerEntity->broadcast(new InputMoveESignal(movement));
+        //
     }
 
-    SceneNodeEComp* comp = (SceneNodeEComp*) mPlayerEntity->getComponent(SceneNodeEComp::sComponentID);
-    mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
+    // mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
     
     glm::vec4 debugShow;
     if(keyStates[SDL_GetScancodeFromKey(SDLK_1)]) {
@@ -199,20 +155,54 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
         mRenderer->setSunDirection(glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f)));
     }
     
-    if(keyStates[SDL_GetScancodeFromKey(SDLK_r)]) {
-        ResourceManager* resman = ResourceManager::getSingleton();
-        
-        nres::Entity* cube;
-        cube = mEntityWorld->newEntity();
-        cube->add(new SceneNodeEComp(resman->findModel("RoseCube.model")));
-        cube->add(new RigidBodyEComp(new btBoxShape(Vec3(1.f, 1.f, 1.f)), Vec3(0.f, 3.f, 0.f) + mCamLocNode->calcWorldTranslation()));
-        cube->publish();
-    }
-    mDynamicsWorld->stepSimulation(tpf, 5);
-    mRigidBodyESys->onTick();
-    mSceneNodeESys->onTick(tpf);
-    
     mRenderer->setCameraViewMatrix(glm::inverse(mCamRollNode->calcWorldTransform()));
+    
+    // Although technically incorrect, it is visually better to do mouse-picking after the camera is updated
+    
+    // Make one of those selection rays
+    Vec2 ndcMouse = mMouseLoc * 2.f - 1.f;
+    ndcMouse.y = -ndcMouse.y;
+    glm::vec4 rayStart = glm::vec4(ndcMouse.x, ndcMouse.y, 0.f, 1.f);
+    glm::vec4 rayEnd = glm::vec4(ndcMouse.x, ndcMouse.y, 1.f, 1.f);
+    glm::mat4 invCameraMatrix = glm::inverse(mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix());
+    rayStart = invCameraMatrix * rayStart;
+    rayEnd = invCameraMatrix * rayEnd;
+    rayStart /= rayStart.w;
+    rayEnd /= rayEnd.w;
+    
+    Vec3 absStart = Vec3(rayStart);
+    Vec3 absEnd = Vec3(rayEnd);
+    
+     // Perform ray test to determine what the legs are "standing on"
+    btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
+    mDynamicsWorld->rayTest(absStart, absEnd, rayCallback);
+
+    //
+    Vec3 hit;
+    bool hitAnything = false;
+    const btRigidBody* groundBody = nullptr;
+    if(rayCallback.hasHit()) {
+        // We cannot rely on the order of rayCallback.m_collisionObjects, so we have to compare the distances manually
+        btScalar closestHitFraction(1337); // All fractions are <= 1 so this is effectively infinite
+        for(int i = rayCallback.m_collisionObjects.size() - 1; i >= 0; -- i) {
+
+            // If this result is closer than the closest valid result
+            if(rayCallback.m_hitFractions.at(i) <= closestHitFraction) {
+                // Get the object colliding with
+                const btCollisionObject* other = rayCallback.m_collisionObjects.at(i);
+
+                closestHitFraction = rayCallback.m_hitFractions.at(i);
+                hit = rayCallback.m_hitPointWorld.at(i);
+                groundBody = static_cast<const btRigidBody*>(other);
+                
+                hitAnything = true;
+            }
+        }
+    }
+    
+    if(hitAnything) {
+        mDebugCube->setLocalTranslation(hit);
+    }
     
     mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);
     
@@ -220,47 +210,30 @@ void DesignerGameLayer::onTick(float tpf, const Uint8* keyStates) {
         float fpsNew = 1 / tpf;
         fps = (fps * fpsWeight) + (fpsNew * (1.f - fpsWeight));
     }
-
     oneSecondTimer += tpf;
     if(oneSecondTimer > 1.f) {
         oneSecondTimer -= 1.f;
-
-        fpsCounter->drop();
-
-        std::stringstream ss;
-        ss << "FPS: ";
-        ss << (uint32_t) fps;
-
-        fpsCounter = new TextModel(rainstormFont, ss.str());
-        fpsCounter->grab();
-        
-        std::cout << "Cam location: " << glm::to_string(mCamLocNode->calcWorldTransform()[3]) << std::endl;
+        std::cout << "FPS: " << (uint32_t) fps << std::endl;
     }
-    
-    glm::mat4 viewMatOverlay;
-    glm::mat4 projMatOverlay = glm::ortho(0.f, (float) mScreenWidth, 0.f, (float) mScreenHeight);
-    
-    Model::RenderPass fpsRPC(Model::RenderPassType::SCREEN);
-    fpsRPC.viewMat = viewMatOverlay;
-    fpsRPC.projMat = projMatOverlay;
-    fpsCounter->render(fpsRPC, glm::mat4());
 }
 
-bool DesignerGameLayer::onMouseMove(const SDL_MouseMotionEvent& event) {
-    // float x = event.x;
-    // float y = event.y;
-    float dx = event.xrel;
-    float dy = event.yrel;
+bool DesignerGameLayer::onMouseMove(const MouseMoveEvent& event) {
+    float x = event.x;
+    float y = event.y;
+    float dx = event.dx;
+    float dy = event.dx;
     
+    /*
     mCamYawNode->rotateYaw(-dx * 0.003f);
     mCamPitchNode->rotatePitch(-dy * 0.003f);
+    */
+    
+    mMouseLoc = Vec2(x / ((float) mScreenWidth), y / ((float) mScreenHeight));
     
     return true;
 }
 
-bool DesignerGameLayer::onWindowSizeUpdate(const SDL_WindowEvent& event) {
-    std::cout << event.data1 << ", " << event.data2 << std::endl;
-    
+bool DesignerGameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) {
     return true;
 }
 }

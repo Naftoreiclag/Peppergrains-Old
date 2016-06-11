@@ -18,7 +18,7 @@
 #ifndef VSE_GAMELAYER_HPP
 #define VSE_GAMELAYER_HPP
 
-#include "SDL2/SDL_events.h"
+#include "NALEvents.hpp"
 
 #include "GameLayerMachine.hpp"
 
@@ -48,18 +48,18 @@ public:
     virtual void onRemovedAbove(const GameLayer* layer);
     
     // Key handling
-    virtual bool onKeyPress(const SDL_KeyboardEvent& event, bool repeat);
-    virtual bool onKeyRelease(const SDL_KeyboardEvent& event);
-    virtual bool onTextInput(const SDL_TextInputEvent& event);
+    virtual bool onKeyboardEvent(const KeyboardEvent& event);
+    virtual bool onTextInput(const TextInputEvent& event);
     
     // Mouse handling
-    virtual bool onMouseMove(const SDL_MouseMotionEvent& event);
-    virtual bool onMousePress(const SDL_MouseButtonEvent& event);
-    virtual bool onMouseRelease(const SDL_MouseButtonEvent& event);
-    virtual bool onMouseWheel(const SDL_MouseWheelEvent& event);
+    virtual bool onMouseMove(const MouseMoveEvent& event);
+    virtual bool onMouseButton(const MouseButtonEvent& event);
+    virtual bool onMouseWheel(const MouseWheelMoveEvent& event);
     
     // Windowing
-    virtual bool onWindowSizeUpdate(const SDL_WindowEvent& event);
+    virtual bool onWindowSizeUpdate(const WindowResizeEvent& event);
+    
+    virtual bool onQuit(const QuitEvent& event);
 };
 
 }

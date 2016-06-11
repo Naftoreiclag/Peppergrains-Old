@@ -25,10 +25,10 @@ namespace pgg {
 class Vec2 {
 public:
     float x;
-    float z;
+    float y;
 
     Vec2();
-    Vec2(float x, float z);
+    Vec2(float x, float y);
     Vec2(const Vec2 &v); // Copy cstr
     ~Vec2();
     
@@ -47,10 +47,14 @@ public:
     // Addition
     Vec2 operator+(const Vec2& v);
     Vec2& operator+=(const Vec2& v);
+    Vec2 operator+(float s);
+    Vec2& operator+=(float s);
     
     // Subtraction
     Vec2 operator-(const Vec2& v);
     Vec2& operator-=(const Vec2& v);
+    Vec2 operator-(float s);
+    Vec2& operator-=(float s);
     
     // Distance to other vector
     float dist(const Vec2& v);

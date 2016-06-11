@@ -18,9 +18,9 @@
 #ifndef VSE_GAMELAYERMACHINE_HPP
 #define VSE_GAMELAYERMACHINE_HPP
 
-#include "SDL2/SDL_events.h"
-
 #include <vector>
+
+#include "NALEvents.hpp"
 
 namespace pgg {
 
@@ -47,17 +47,17 @@ public:
     void onTick(float tps, const Uint8* keyStates);
     
     // Key handling
-    void onKeyPress(const SDL_KeyboardEvent& event, bool repeat);
-    void onKeyRelease(const SDL_KeyboardEvent& event);
-    void onTextInput(const SDL_TextInputEvent& event);
+    void onKeyboardEvent(const KeyboardEvent& event);
+    void onTextInput(const TextInputEvent& event);
     
     // Mouse handling
-    void onMouseMove(const SDL_MouseMotionEvent& event);
-    void onMousePress(const SDL_MouseButtonEvent& event);
-    void onMouseRelease(const SDL_MouseButtonEvent& event);
-    void onMouseWheel(const SDL_MouseWheelEvent& event);
+    void onMouseMove(const MouseMoveEvent& event);
+    void onMouseButton(const MouseButtonEvent& event);
+    void onMouseWheel(const MouseWheelMoveEvent& event);
     
-    void onWindowSizeUpdate(const SDL_WindowEvent& event);
+    void onWindowSizeUpdate(const WindowResizeEvent& event);
+    
+    void onQuit(const QuitEvent& event);
     
     const Uint8* getRelaxedKeyStates();
 };

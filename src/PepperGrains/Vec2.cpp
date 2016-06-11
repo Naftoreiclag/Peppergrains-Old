@@ -23,17 +23,17 @@ namespace pgg {
 
 Vec2::Vec2()
 : x(0.f)
-, z(0.f) {
+, y(0.f) {
 }
 
-Vec2::Vec2(float x, float z)
+Vec2::Vec2(float x, float y)
 : x(x)
-, z(z) {
+, y(y) {
 }
 
 Vec2::Vec2(const Vec2 &v)
 : x(v.x)
-, z(v.z) {
+, y(v.y) {
 }
 
 Vec2::~Vec2() {
@@ -41,7 +41,7 @@ Vec2::~Vec2() {
 
 // Equals
 bool Vec2::operator==(const Vec2& v1) {
-    return v1.x == x && v1.z == z;
+    return v1.x == x && v1.y == y;
 }
 bool Vec2::operator!=(const Vec2& v1) {
     return !operator==(v1);
@@ -49,48 +49,64 @@ bool Vec2::operator!=(const Vec2& v1) {
 
 // Scaling
 Vec2 Vec2::operator*(float s) {
-    return Vec2(x * s, z * s);
+    return Vec2(x * s, y * s);
 }
 Vec2& Vec2::operator*=(float s) {
     x *= s;
-    z *= s;
+    y *= s;
     return *this;
 }
 
 // Inverse scaling
 Vec2 Vec2::operator/(float s) {
-    return Vec2(x / s, z / s);
+    return Vec2(x / s, y / s);
 }
 Vec2& Vec2::operator/=(float s) {
     x /= s;
-    z /= s;
+    y /= s;
     return *this;
 }
 
 // Addition
 Vec2 Vec2::operator+(const Vec2& v) {
-    return Vec2(x + v.x, z + v.z);
+    return Vec2(x + v.x, y + v.y);
 }
 Vec2& Vec2::operator+=(const Vec2& v) {
     x += v.x;
-    z += v.z;
+    y += v.y;
+    return *this;
+}
+Vec2 Vec2::operator+(float s) {
+    return Vec2(x + s, y + s);
+}
+Vec2& Vec2::operator+=(float s) {
+    x += s;
+    y += s;
     return *this;
 }
 
 // Subtraction
 Vec2 Vec2::operator-(const Vec2& v) {
-    return Vec2(x - v.x, z - v.z);
+    return Vec2(x - v.x, y - v.y);
 }
 Vec2& Vec2::operator-=(const Vec2& v) {
     x -= v.x;
-    z -= v.z;
+    y -= v.y;
+    return *this;
+}
+Vec2 Vec2::operator-(float s) {
+    return Vec2(x - s, y - s);
+}
+Vec2& Vec2::operator-=(float s) {
+    x -= s;
+    y -= s;
     return *this;
 }
 
 // Distance to other vector
 float Vec2::distSq(const Vec2& v) {
     float dx = v.x - x;
-    float dz = v.z - z;
+    float dz = v.y - y;
     return (dx * dx) + (dz * dz);
 }
 float Vec2::dist(const Vec2& v) {
@@ -99,7 +115,7 @@ float Vec2::dist(const Vec2& v) {
 
 // Length of vector
 float Vec2::magSq() {
-    return (x * x) + (z * z);
+    return (x * x) + (y * y);
 }
 float Vec2::mag() {
     return std::sqrt(magSq());
@@ -107,16 +123,16 @@ float Vec2::mag() {
 
 void Vec2::zero() {
     x = 0.f;
-    z = 0.f;
+    y = 0.f;
 }
 
 bool Vec2::isZero() {
-    return x == 0.f && z == 0.f;
+    return x == 0.f && y == 0.f;
 }
 
 }
     
 // For debugging
 std::ostream& operator<<(std::ostream& os, const pgg::Vec2& v) {
-    return os << "Vec2[" << v.x << ", " << v.z << "]";
+    return os << "Vec2[" << v.x << ", " << v.y << "]";
 }

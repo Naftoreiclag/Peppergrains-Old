@@ -561,6 +561,12 @@ void DeferredRenderer::setCameraProjection(float fov, float nearDepth, float far
     }
     mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
 }
+const glm::mat4& DeferredRenderer::getCameraProjectionMatrix() const {
+    return mCamera.projMat;
+}
+const glm::mat4& DeferredRenderer::getCameraViewMatrix() const {
+    return mCamera.viewMat;
+}
 
 }
 

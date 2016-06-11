@@ -120,6 +120,9 @@ public:
     void setCameraProjection(float fov, float nearDepth, float farDepth);
     void setCameraViewMatrix(const glm::mat4& camViewMatrix);
     
+    const glm::mat4& getCameraProjectionMatrix() const;
+    const glm::mat4& getCameraViewMatrix() const;
+    
     // void resizeScreen(uint32_t width, uint32_t height);
     
     const glm::vec3& getCameraLocation() const;

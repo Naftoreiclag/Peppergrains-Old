@@ -145,27 +145,17 @@ void GameLayerMachine::onTick(float tps, const Uint8* keys) {
 }
 
 // Key handling
-void GameLayerMachine::onKeyPress(const SDL_KeyboardEvent& event, bool repeat) {
+void GameLayerMachine::onKeyboardEvent(const KeyboardEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
         // Blocking
-        if(layer->onKeyPress(event, repeat)) {
+        if(layer->onKeyboardEvent(event)) {
             break;
         }
     }
 }
-void GameLayerMachine::onKeyRelease(const SDL_KeyboardEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onKeyRelease(event)) {
-            break;
-        }
-    }
-}
-void GameLayerMachine::onTextInput(const SDL_TextInputEvent& event) {
+void GameLayerMachine::onTextInput(const TextInputEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
@@ -177,7 +167,7 @@ void GameLayerMachine::onTextInput(const SDL_TextInputEvent& event) {
 }
 
 // Mouse handling
-void GameLayerMachine::onMouseMove(const SDL_MouseMotionEvent& event) {
+void GameLayerMachine::onMouseMove(const MouseMoveEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
@@ -187,27 +177,17 @@ void GameLayerMachine::onMouseMove(const SDL_MouseMotionEvent& event) {
         }
     }
 }
-void GameLayerMachine::onMousePress(const SDL_MouseButtonEvent& event) {
+void GameLayerMachine::onMouseButton(const MouseButtonEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
         // Blocking
-        if(layer->onMousePress(event)) {
+        if(layer->onMouseButton(event)) {
             break;
         }
     }
 }
-void GameLayerMachine::onMouseRelease(const SDL_MouseButtonEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onMouseRelease(event)) {
-            break;
-        }
-    }
-}
-void GameLayerMachine::onMouseWheel(const SDL_MouseWheelEvent& event) {
+void GameLayerMachine::onMouseWheel(const MouseWheelMoveEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
@@ -217,12 +197,22 @@ void GameLayerMachine::onMouseWheel(const SDL_MouseWheelEvent& event) {
         }
     }
 }
-void GameLayerMachine::onWindowSizeUpdate(const SDL_WindowEvent& event) {
+void GameLayerMachine::onWindowSizeUpdate(const WindowResizeEvent& event) {
     for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         GameLayer* layer = *iter;
         
         // Blocking
         if(layer->onWindowSizeUpdate(event)) {
+            break;
+        }
+    }
+}
+void GameLayerMachine::onQuit(const QuitEvent& event) {
+    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        GameLayer* layer = *iter;
+        
+        // Blocking
+        if(layer->onQuit(event)) {
             break;
         }
     }

@@ -23,7 +23,6 @@
 
 #include "DesignerGameLayer.hpp"
 #include "OverworldGameLayer.hpp"
-#include "SandboxGameLayer.hpp"
 #include "OpenGLContextData.hpp"
 #include "SDLRendererData.hpp"
 
@@ -133,43 +132,38 @@ int PepperGrains::run(int argc, char* argv[]) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT: {
+                    mGameLayerMachine->onQuit(QuitEvent(event.quit));
                     mGameLayerMachine->removeAll();
                     mMainLoopRunning = false;
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    mGameLayerMachine->onTextInput(event.text);
+                    mGameLayerMachine->onTextInput(TextInputEvent(event.text));
                     break;
                 }
+                case SDL_KEYUP:
                 case SDL_KEYDOWN: {
-                    mGameLayerMachine->onKeyPress(event.key, event.key.repeat);
-                    break;
-                }
-                case SDL_KEYUP: {
-                    mGameLayerMachine->onKeyRelease(event.key);
+                    mGameLayerMachine->onKeyboardEvent(KeyboardEvent(event.key));
                     break;
                 }
                 case SDL_MOUSEMOTION: {
-                    mGameLayerMachine->onMouseMove(event.motion);
+                    mGameLayerMachine->onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }
+                case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN: {
-                    mGameLayerMachine->onMousePress(event.button);
-                    break;
-                }
-                case SDL_MOUSEBUTTONUP: {
-                    mGameLayerMachine->onMouseRelease(event.button);
+                    mGameLayerMachine->onMouseButton(MouseButtonEvent(event.button));
                     break;
                 }
                 case SDL_MOUSEWHEEL: {
-                    mGameLayerMachine->onMouseWheel(event.wheel);
+                    mGameLayerMachine->onMouseWheel(MouseWheelMoveEvent(event.wheel));
                     break;
                 }
                 case SDL_WINDOWEVENT: {
                     switch(event.window.event) {
                         // This also catches resizing due to API calls
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                            mGameLayerMachine->onWindowSizeUpdate(event.window);
+                            mGameLayerMachine->onWindowSizeUpdate(WindowResizeEvent(event.window));
                         }
                     }
                 }
