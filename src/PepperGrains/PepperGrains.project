@@ -204,18 +204,16 @@
       <File Name="MechBody.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Abstraction">
-      <VirtualDirectory Name="Math">
-        <File Name="Quate.cpp"/>
-        <File Name="Quate.hpp"/>
-        <File Name="Vec2.cpp"/>
-        <File Name="Vec2.hpp"/>
-        <File Name="Vec3.cpp"/>
-        <File Name="Vec3.hpp"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Events">
-        <File Name="NALEvents.hpp"/>
-        <File Name="NALEvents.cpp"/>
-      </VirtualDirectory>
+      <File Name="NALInputs.hpp"/>
+      <File Name="NALEvents.cpp"/>
+      <File Name="NALEvents.hpp"/>
+      <File Name="Quate.cpp"/>
+      <File Name="Quate.hpp"/>
+      <File Name="Vec2.cpp"/>
+      <File Name="Vec2.hpp"/>
+      <File Name="Vec3.cpp"/>
+      <File Name="Vec3.hpp"/>
+      <File Name="NALInputs.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

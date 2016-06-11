@@ -24,7 +24,8 @@
 #include <string>
 
 #include "SDL2/SDL.h"
-#include "SDL2/SDL_events.h"
+
+#include "NALInputs.hpp"
 
 namespace pgg {
 
@@ -59,7 +60,7 @@ struct MouseMoveEvent {
 struct MouseButtonEvent {
     MouseButtonEvent(SDL_MouseButtonEvent e);
     
-    uint8_t button;
+    Input::MouseButton button;
     bool pressed;
     uint8_t clicks;
     int32_t x;
