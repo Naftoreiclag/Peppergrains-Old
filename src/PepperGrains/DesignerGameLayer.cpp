@@ -284,7 +284,8 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     ndcMouse.y = -ndcMouse.y;
     glm::vec4 rayStart = glm::vec4(ndcMouse.x, ndcMouse.y, -1.f, 1.f);
     glm::vec4 rayEnd = glm::vec4(ndcMouse.x, ndcMouse.y, 1.f, 1.f);
-    glm::mat4 invCameraMatrix = glm::inverse(mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix());
+    glm::mat4 cameraMatrix = mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix();
+    glm::mat4 invCameraMatrix = glm::inverse(cameraMatrix);
     rayStart = invCameraMatrix * rayStart;
     rayEnd = invCameraMatrix * rayEnd;
     rayStart /= rayStart.w;
@@ -320,7 +321,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             
             const float& near = mRenderer->getCameraNearDepth();
             const float& far = mRenderer->getCameraFarDepth();
-            float correctedZ = ((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
+            float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
             
             glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
             worldSpaceDragSpot = invCameraMatrix * worldSpaceDragSpot;
@@ -340,7 +341,12 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             if(plateUnderCursor) {
                 mPlateHighlighted = plateUnderCursor;
                 mPlateDragPoint = plateTouchPoint - plateUnderCursor->getLocation();
-                mDragPlaneDistance = plateTouchPoint.dist(mCamLocNode->calcWorldTranslation());
+                
+                glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(plateTouchPoint), 1.f);
+                asdf /= asdf.w;
+                
+                
+                mDragPlaneDistance = asdf.z; //plateTouchPoint.dist(mCamLocNode->calcWorldTranslation());
                 std::cout << "Selected" << std::endl;
                 std::cout << mPlateDragPoint << std::endl;
             }
