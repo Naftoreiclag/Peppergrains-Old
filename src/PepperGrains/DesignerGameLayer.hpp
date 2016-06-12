@@ -53,8 +53,9 @@ public:
         Vec3 renderLocation;
         
         SceneNode* sceneNode;
-        btCollisionObject* rigidBody;
+        btCollisionObject* collisionObject;
         btCollisionShape* collisionShape;
+        btCollisionWorld* collisionWorld;
         btMotionState* motionState;
         
         Vec3 getLocation() const;
@@ -75,7 +76,7 @@ private:
     btDefaultCollisionConfiguration* mCollisionConfiguration;
     btCollisionDispatcher* mDispatcher;
     
-    btCollisionWorld* mDynamicsWorld;
+    btCollisionWorld* mCollisionWorld;
     
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;

@@ -72,7 +72,10 @@ void DesignerGameLayer::Plate::tick(float tpf) {
     
     renderLocation = target;
     
-    rigidBody->getWorldTransform().setOrigin(renderLocation);
+    collisionObject->getWorldTransform().setOrigin(renderLocation);
+    collisionWorld->removeCollisionObject(collisionObject);
+    collisionWorld->addCollisionObject(collisionObject);
+    
     sceneNode->setLocalTranslation(renderLocation);
 }
 
@@ -95,12 +98,13 @@ void DesignerGameLayer::newPlate() {
     
     plate->collisionShape = new btBoxShape(Vec3(0.5f, 1.f / 60.f, 0.5f));
     plate->motionState = new btDefaultMotionState();
-    plate->rigidBody = new btCollisionObject();
-    plate->rigidBody->setCollisionShape(plate->collisionShape);
-    plate->rigidBody->setUserPointer(plate);
-    plate->rigidBody->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    plate->collisionObject = new btCollisionObject();
+    plate->collisionObject->setCollisionShape(plate->collisionShape);
+    plate->collisionObject->setUserPointer(plate);
+    plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
     
-    mDynamicsWorld->addCollisionObject(plate->rigidBody);
+    mCollisionWorld->addCollisionObject(plate->collisionObject);
+    plate->collisionWorld = mCollisionWorld;
     
     mPlates.push_back(plate);
 }
@@ -110,7 +114,7 @@ void DesignerGameLayer::deletePlate(Plate* plate) {
     
     plate->sceneNode->drop();
     
-    delete plate->rigidBody;
+    delete plate->collisionObject;
     delete plate->motionState;
     delete plate->collisionShape;
     
@@ -151,7 +155,7 @@ void DesignerGameLayer::onBegin() {
     mBroadphase = new btDbvtBroadphase();
     mCollisionConfiguration = new btDefaultCollisionConfiguration();
     mDispatcher = new btCollisionDispatcher(mCollisionConfiguration);
-    mDynamicsWorld = new btCollisionWorld(mDispatcher, mBroadphase, mCollisionConfiguration);
+    mCollisionWorld = new btCollisionWorld(mDispatcher, mBroadphase, mCollisionConfiguration);
     
     
     mDebugCube = mRootNode->newChild();
@@ -186,7 +190,7 @@ void DesignerGameLayer::onEnd() {
     
     mDebugCube->drop();
     
-    delete mDynamicsWorld;
+    delete mCollisionWorld;
     delete mDispatcher;
     delete mCollisionConfiguration;
     delete mBroadphase;
@@ -290,7 +294,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     Vec3 absEnd = Vec3(rayEnd);
     
     btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
-    mDynamicsWorld->rayTest(absStart, absEnd, rayCallback);
+    mCollisionWorld->rayTest(absStart, absEnd, rayCallback);
 
     //
     Plate* plateUnderCursor = nullptr;
