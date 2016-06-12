@@ -546,6 +546,13 @@ const glm::vec3& DeferredRenderer::getCameraLocation() const {
     return mCamera.position;
 }
 
+const float& DeferredRenderer::getCameraFarDepth() const {
+    return mCamera.farDepth;
+}
+const float& DeferredRenderer::getCameraNearDepth() const {
+    return mCamera.nearDepth;
+}
+
 void DeferredRenderer::setCameraProjection(float fov, float nearDepth, float farDepth) {
     mCamera.fov = fov;
     mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);

@@ -22,7 +22,7 @@ namespace pgg {
 
 InfiniteCheckerboardModel::InfiniteCheckerboardModel() {
     mSize = 64;
-    mCellSize = 10.f;
+    mCellSize = 1.f;
 }
 
 void InfiniteCheckerboardModel::load() {

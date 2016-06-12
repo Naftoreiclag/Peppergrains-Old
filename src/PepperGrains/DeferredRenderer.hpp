@@ -122,6 +122,8 @@ public:
     
     const glm::mat4& getCameraProjectionMatrix() const;
     const glm::mat4& getCameraViewMatrix() const;
+    const float& getCameraFarDepth() const;
+    const float& getCameraNearDepth() const;
     
     // void resizeScreen(uint32_t width, uint32_t height);
     

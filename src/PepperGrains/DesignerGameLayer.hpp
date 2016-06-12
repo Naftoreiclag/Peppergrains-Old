@@ -16,6 +16,8 @@
 
 #include "GameLayer.hpp" // Base class: pgg::GameLayer
 
+#include <vector>
+
 #include "btBulletDynamicsCommon.h"
 #include "SDL2/SDL.h"
 
@@ -40,17 +42,30 @@ namespace pgg {
 class DesignerGameLayer : public GameLayer {
 public:
     class Plate {
+    public:
         Plate();
         ~Plate();
         
-        uint32_t x;
-        uint32_t y;
-        uint32_t z;
+        int32_t integralX;
+        int32_t integralY;
+        int32_t integralZ;
         
-        Vec3 transitionLocation;
+        Vec3 renderLocation;
+        
+        SceneNode* sceneNode;
+        btCollisionObject* rigidBody;
+        btCollisionShape* collisionShape;
+        btMotionState* motionState;
+        
+        Vec3 getLocation() const;
+        void setLocation(Vec3 location);
+        
+        void tick(float tpf);
     };
 private:
     DeferredRenderer* mRenderer;
+    
+    std::vector<Plate*> mPlates;
     
     InfiniteCheckerboardModel* mInfCheck;
     
@@ -59,12 +74,22 @@ private:
     btBroadphaseInterface* mBroadphase;
     btDefaultCollisionConfiguration* mCollisionConfiguration;
     btCollisionDispatcher* mDispatcher;
-    btSequentialImpulseConstraintSolver* mSolver;
     
-    btDiscreteDynamicsWorld* mDynamicsWorld;
+    btCollisionWorld* mDynamicsWorld;
     
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;
+    
+    float mCameraSpeed;
+    float mCameraSpeedMin;
+    float mCameraAcceleration;
+    float mCameraSpeedMax;
+    
+    int32_t mGridSize;
+    
+    Plate* mPlateHighlighted;
+    Vec3 mPlateDragPoint;
+    float mDragPlaneDistance;
     
     SceneNode* mDebugCube;
     
@@ -87,6 +112,9 @@ private:
     float oneSecondTimer;
     
     bool mDebugWireframe;
+    
+    void newPlate();
+    void deletePlate(Plate* plate);
     
     void renderFrame(glm::vec4 debugShow, bool wireframe);
 public:

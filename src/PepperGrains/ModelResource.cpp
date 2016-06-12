@@ -188,7 +188,6 @@ void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& m
     if(ndc.x < -1 || ndc.x > 1 || ndc.y < -1 || ndc.y > -1 || ndc.z < -1 || ndc.z > -1) {
         return;
     }
-    */
     
     if(rendPass.availableFustrumAABB) {
         glm::vec3 center = glm::vec3(modelMat * glm::vec4(0.f, 0.f, 0.f, 1.f));
@@ -196,6 +195,7 @@ void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& m
             return;
         }
     }
+    */
     
     // Get the shader program specified by the material
     const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
