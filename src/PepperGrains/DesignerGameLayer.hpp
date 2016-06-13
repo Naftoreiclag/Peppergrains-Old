@@ -106,7 +106,8 @@ private:
         Vec3 location;
         float scale;
         
-        int8_t draggedHandle;
+        int8_t highlightedHandle;
+        int8_t selectedHandle;
         
         btCollisionObject* collisionObjects[6];
         btCollisionShape* collisionShapes[6];
@@ -147,6 +148,7 @@ private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
+    bool mMouseLeftDownLastFrame;
     Vec2 mMouseLoc;
     
     SceneNode* mRootNode;
@@ -181,7 +183,6 @@ public:
     
     // Ticks
     void onTick(float tpf, const InputState* keyStates);
-    bool onMouseMove(const MouseMoveEvent& event);
     
     bool onWindowSizeUpdate(const WindowResizeEvent& event);
     

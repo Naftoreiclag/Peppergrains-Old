@@ -46,7 +46,9 @@ float cotangent(const float& a) {
     return std::cos(a) / std::sin(a);
 }
 
-DesignerGameLayer::Manipulator::Manipulator(){
+DesignerGameLayer::Manipulator::Manipulator()
+: selectedHandle(-1)
+, highlightedHandle(-1) {
 }
 DesignerGameLayer::Manipulator::~Manipulator() {
     
@@ -235,7 +237,7 @@ void DesignerGameLayer::onBegin() {
 }
 
 void DesignerGameLayer::updateManipulatorTransform() {
-    if(!mPlateSelected) {
+    if(!mPlateSelected || mPlateDragged) {
         return;
     }
     
@@ -252,12 +254,16 @@ void DesignerGameLayer::updateManipulatorTransform() {
     float clipRad = cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
     
     mManipulator.scale = 0.5f / clipRad;
+    
+    if(mManipulator.scale < 0.5f) {
+        mManipulator.scale = 0.5f;
+    }
     mManipulator.location = mPlateSelected->getRenderLocation();
 }
 
 void DesignerGameLayer::updateManipulatorPhysics() {
     updateManipulatorTransform();
-    if(!mPlateSelected) {
+    if(!mPlateSelected || mPlateDragged) {
         return;
     }
     
@@ -268,22 +274,22 @@ void DesignerGameLayer::updateManipulatorPhysics() {
         
         if(i == 0) {
             mManipulator.collisionShapes[i] = new btCylinderShapeX(Vec3(0.625f, 0.05f, 0.05f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.775f, 0.f, 0.f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.775f, 0.f, 0.f) * mManipulator.scale + mManipulator.location);
         } else if(i == 1) {
             mManipulator.collisionShapes[i] = new btCylinderShape(Vec3(0.05f, 0.625f, 0.05f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.775f, 0.f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.775f, 0.f) * mManipulator.scale + mManipulator.location);
         } else if(i == 2) {
             mManipulator.collisionShapes[i] = new btCylinderShapeZ(Vec3(0.05f, 0.05f, 0.625f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.775f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.775f) * mManipulator.scale + mManipulator.location);
         } else if(i == 3) {
             mManipulator.collisionShapes[i] = new btCylinderShapeX(Vec3(0.05f, 0.3f, 0.3f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(1.65f, 0.f, 0.f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(1.65f, 0.f, 0.f) * mManipulator.scale + mManipulator.location);
         } else if(i == 4) {
             mManipulator.collisionShapes[i] = new btCylinderShape(Vec3(0.3f, 0.05f, 0.3f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 1.65f, 0.f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 1.65f, 0.f) * mManipulator.scale + mManipulator.location);
         } else if(i == 5) {
             mManipulator.collisionShapes[i] = new btCylinderShapeZ(Vec3(0.3f, 0.3f, 0.05f) * mManipulator.scale);
-            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 1.65f) + mManipulator.location);
+            mManipulator.collisionObjects[i]->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 1.65f) * mManipulator.scale + mManipulator.location);
         }
         
         mManipulator.collisionObjects[i]->setCollisionShape(mManipulator.collisionShapes[i]);
@@ -366,6 +372,8 @@ void DesignerGameLayer::onEnd() {
 }
 
 void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
+    
+    mMouseLoc = Vec2(((float) inputStates->getMouseX()) / ((float) mScreenWidth), ((float) inputStates->getMouseY()) / ((float) mScreenHeight));
     
     Vec3 movement;
     if(inputStates->isPressed(Input::Scancode::K_D)) {
@@ -487,51 +495,42 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             }
         }
         
-        mManipulator.draggedHandle = -1;
+        mManipulator.highlightedHandle = -1;
         if(touched) {
             for(int8_t i = 0; i < 6; ++ i) {
                 if(mManipulator.collisionObjects[i] == touched) {
-                    mManipulator.draggedHandle = i;
+                    mManipulator.highlightedHandle = i;
+                    break;
                 }
             }
         }
     }
     
-    btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
-    mCollisionWorld->rayTest(absStart, absEnd, rayCallback);
+    // Only if the manipulator is not "in the way"
+    if(mManipulator.highlightedHandle == -1) {
+        
+        btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
+        mCollisionWorld->rayTest(absStart, absEnd, rayCallback);
 
-    //
-    if(rayCallback.hasHit()) {
-        // Cannot rely on the order of rayCallback.m_collisionObjects, so we have to compare the distances manually
-        btScalar closestHitFraction(1337); // All fractions are <= 1 so this is effectively infinite
-        for(int i = rayCallback.m_collisionObjects.size() - 1; i >= 0; -- i) {
-            if(rayCallback.m_hitFractions.at(i) <= closestHitFraction) {
-                const btCollisionObject* other = rayCallback.m_collisionObjects.at(i);
-                closestHitFraction = rayCallback.m_hitFractions.at(i);
-                hitPoint = rayCallback.m_hitPointWorld.at(i);
-                plateUnderCursor = static_cast<Plate*>(other->getUserPointer());
+        //
+        if(rayCallback.hasHit()) {
+            // Cannot rely on the order of rayCallback.m_collisionObjects, so we have to compare the distances manually
+            btScalar closestHitFraction(1337); // All fractions are <= 1 so this is effectively infinite
+            for(int i = rayCallback.m_collisionObjects.size() - 1; i >= 0; -- i) {
+                if(rayCallback.m_hitFractions.at(i) <= closestHitFraction) {
+                    const btCollisionObject* other = rayCallback.m_collisionObjects.at(i);
+                    closestHitFraction = rayCallback.m_hitFractions.at(i);
+                    hitPoint = rayCallback.m_hitPointWorld.at(i);
+                    plateUnderCursor = static_cast<Plate*>(other->getUserPointer());
+                }
             }
         }
     }
     
     if(inputStates->isPressed(Input::Scancode::M_LEFT)) {
-        if(mPlateDragged) {
-            
-            float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
-            
-            glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
-            worldSpaceDragSpot = invCameraMatrix * worldSpaceDragSpot;
-            worldSpaceDragSpot /= worldSpaceDragSpot.w;
-            
-            Vec3 potato(worldSpaceDragSpot);
-            
-            potato -= mPlateDragPoint;
-            
-            
-            mPlateDragged->setLocation(potato, 1.f / ((float) mGridSize));
-            
-        }
-        else {
+        // First click...
+        if(!mMouseLeftDownLastFrame) {
+            // ...on a plate
             if(plateUnderCursor) {
                 selectPlate(plateUnderCursor);
                 mPlateDragged = plateUnderCursor;
@@ -540,42 +539,48 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(hitPoint), 1.f);
                 asdf /= asdf.w;
                 
-                
                 mDragPlaneDistance = asdf.z; //plateTouchPoint.dist(mCamLocNode->calcWorldTranslation());
             }
+            // ...on a manipulator handle
+            else if(mManipulator.highlightedHandle != -1) {
+                // Select that handle for the next frame
+                mManipulator.selectedHandle = mManipulator.highlightedHandle;
+            }
+            // ...on nothing
             else {
                 deselectPlate();
+                mManipulator.selectedHandle = -1;
             }
         }
+        // Being held down...
+        else {
+            // If a plate is currently being dragged around freely
+            if(mPlateDragged) {
+                float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
+                
+                glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
+                worldSpaceDragSpot = invCameraMatrix * worldSpaceDragSpot;
+                worldSpaceDragSpot /= worldSpaceDragSpot.w;
+                
+                Vec3 potato(worldSpaceDragSpot);
+                
+                potato -= mPlateDragPoint;
+                
+                
+                mPlateDragged->setLocation(potato, 1.f / ((float) mGridSize));
+            }
+            // Plate is being dragged or rotated via manipulator handle
+            else if(mManipulator.selectedHandle != -1) {
+                
+            }
+        }
+        mMouseLeftDownLastFrame = true;
     }
     else {
         mPlateDragged = nullptr;
+        mMouseLeftDownLastFrame = false;
+        mManipulator.selectedHandle = -1;
     }
-    if(plateUnderCursor) {
-        //mDebugCube->setLocalTranslation(plateTouchPoint);
-    }
-    
-    
-    
-    /*
-    if(mPlateSelected) {
-        glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(mPlateSelected->getLocation()), 1.f);
-        asdf /= asdf.w;
-        
-        float z = asdf.z * 2.f - 1.f;
-        const float& near = mRenderer->getCameraNearDepth();
-        const float& far = mRenderer->getCameraFarDepth();
-        float linDepth = (2.f * near * far) / (far + near - z * (far - near));
-        
-        float clipRad = cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
-        
-        mDebugCube->setLocalTranslation(mPlateSelected->getLocation());
-        mDebugCube->setLocalScale(Vec3(1.f / clipRad));
-    }
-    else {
-        mDebugCube->setLocalScale(Vec3(0.f));
-    }
-    */
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
         Plate* potato = *iter;
@@ -613,11 +618,11 @@ void DesignerGameLayer::renderManipulator() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    if(!mPlateSelected) {
+    updateManipulatorTransform();
+    
+    if(!mPlateSelected || mPlateDragged) {
         return;
     }
-    
-    updateManipulatorTransform();
 
     mUtilityNode->resetLocalTransform();
     mUtilityNode->setLocalTranslation(mManipulator.location);
@@ -644,38 +649,22 @@ void DesignerGameLayer::renderManipulator() {
         
         mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
         glBindVertexArray(mManipulator.arrowVAO);
-        if(mManipulator.draggedHandle == i) {
+        if(mManipulator.selectedHandle == i) {
             glDisable(GL_BLEND);
         }
         mManipulator.arrow->drawElements();
         glEnable(GL_BLEND);
-        if(mManipulator.draggedHandle == i + 3) {
+        glBindVertexArray(mManipulator.wheelVAO);
+        if(mManipulator.selectedHandle == i + 3) {
             glDisable(GL_BLEND);
         }
-        glBindVertexArray(mManipulator.wheelVAO);
-        glEnable(GL_BLEND);
         mManipulator.wheel->drawElements();
+        glEnable(GL_BLEND);
     }
     
     
     glBindVertexArray(0);
     glUseProgram(0);
-}
-
-bool DesignerGameLayer::onMouseMove(const MouseMoveEvent& event) {
-    float x = event.x;
-    float y = event.y;
-    float dx = event.dx;
-    float dy = event.dx;
-    
-    /*
-    mCamYawNode->rotateYaw(-dx * 0.003f);
-    mCamPitchNode->rotatePitch(-dy * 0.003f);
-    */
-    
-    mMouseLoc = Vec2(x / ((float) mScreenWidth), y / ((float) mScreenHeight));
-    
-    return true;
 }
 
 bool DesignerGameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) {
