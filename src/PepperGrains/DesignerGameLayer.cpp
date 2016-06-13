@@ -231,6 +231,9 @@ void DesignerGameLayer::onBegin() {
     
     mGridSize = 2;
     
+    cyclicSawtooth = 0.f;
+    cyclicSinusodal = 0.f;
+    
     newPlate();
     newPlate();
     newPlate();
@@ -372,6 +375,9 @@ void DesignerGameLayer::onEnd() {
 }
 
 void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
+    
+    cyclicSawtooth = fmod(cyclicSawtooth + tpf, 1.f);
+    cyclicSinusodal = (std::sin(cyclicSawtooth * 6.2831f) + 1.f) * 0.5f;
     
     mMouseLoc = Vec2(((float) inputStates->getMouseX()) / ((float) mScreenWidth), ((float) inputStates->getMouseY()) / ((float) mScreenHeight));
     
@@ -613,7 +619,6 @@ void DesignerGameLayer::renderManipulator() {
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
-    glBlendColor(0.5f, 0.5f, 0.5f, 1.0f);
     glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -633,6 +638,8 @@ void DesignerGameLayer::renderManipulator() {
     
     glUniform3fv(mManipulator.sunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
     
+    float alphaDefault = 0.3f;
+    float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
     for(int8_t i = 0; i < 3; ++ i) {
         if(i == 0) {
             glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
@@ -647,19 +654,33 @@ void DesignerGameLayer::renderManipulator() {
             mUtilityNode->rotatePitch(glm::radians(90.f));
         }
         
-        mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+        mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());\
+        
         glBindVertexArray(mManipulator.arrowVAO);
+        if(mManipulator.handleHovered == i) {
+            glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+        } else {
+            glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+        }
         if(mManipulator.handleDragged == i) {
             glDisable(GL_BLEND);
+        } else {
+            glEnable(GL_BLEND);
         }
         mManipulator.arrow->drawElements();
-        glEnable(GL_BLEND);
+        
         glBindVertexArray(mManipulator.wheelVAO);
+        if(mManipulator.handleHovered == i + 3) {
+            glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+        } else {
+            glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+        }
         if(mManipulator.handleDragged == i + 3) {
             glDisable(GL_BLEND);
+        } else {
+            glEnable(GL_BLEND);
         }
         mManipulator.wheel->drawElements();
-        glEnable(GL_BLEND);
     }
     
     

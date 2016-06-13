@@ -160,6 +160,9 @@ private:
     SceneNode* mCamPitchNode;
     SceneNode* mCamRollNode;
 
+    float cyclicSawtooth;
+    float cyclicSinusodal;
+
     float fps;
     float fpsWeight;
     float oneSecondTimer;
