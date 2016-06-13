@@ -489,7 +489,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         
         mManipulator.draggedHandle = -1;
         if(touched) {
-            for(uint8_t i = 0; i < 8; ++ i) {
+            for(int8_t i = 0; i < 6; ++ i) {
                 if(mManipulator.collisionObjects[i] == touched) {
                     mManipulator.draggedHandle = i;
                 }
@@ -622,6 +622,7 @@ void DesignerGameLayer::renderManipulator() {
     mUtilityNode->resetLocalTransform();
     mUtilityNode->setLocalTranslation(mManipulator.location);
     mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
+    mUtilityNode->rotateYaw(glm::radians(90.f));
 
     glUseProgram(mManipulator.shaderProg->getHandle());
     
@@ -629,15 +630,16 @@ void DesignerGameLayer::renderManipulator() {
     
     for(int8_t i = 0; i < 3; ++ i) {
         if(i == 0) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
         }
         else if(i == 1) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
-            mUtilityNode->rotateYaw(glm::radians(90.f));
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
+            mUtilityNode->rotateYaw(glm::radians(-90.f));
+            mUtilityNode->rotatePitch(glm::radians(-90.f));
         }
         else if(i == 2) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
-            mUtilityNode->rotatePitch(glm::radians(-90.f));
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+            mUtilityNode->rotatePitch(glm::radians(90.f));
         }
         
         mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
