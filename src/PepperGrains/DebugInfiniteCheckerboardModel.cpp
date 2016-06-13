@@ -132,8 +132,6 @@ void InfiniteCheckerboardModel::load() {
     glEnableVertexAttribArray(mShaderProg->getNormalAttrib());
     glVertexAttribPointer(mShaderProg->getNormalAttrib(), 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (void*) (6 * sizeof(GLfloat)));
 
-    std::cout << mShaderProg->isFallback() << std::endl;
-
     glBindVertexArray(0);
 }
 

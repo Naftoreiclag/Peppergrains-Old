@@ -59,7 +59,7 @@ public:
         btMotionState* motionState;
         
         Vec3 getLocation() const;
-        void setLocation(Vec3 location);
+        void setLocation(Vec3 location, float snapSize);
         
         void tick(float tpf);
     };
@@ -81,6 +81,34 @@ private:
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;
     
+    struct Manipulator {
+        Manipulator();
+        ~Manipulator();
+        
+        GeometryResource* arrow;
+        GeometryResource* wheel;
+        
+        ShaderProgramResource* shaderProg;
+        
+        GLuint arrowVAO;
+        GLuint wheelVAO;
+        
+        Vec3 xArrowLoc;
+        Vec3 yArrowLoc;
+        Vec3 zArrowLoc;
+        Vec3 xWheelLoc;
+        Vec3 yWheelLoc;
+        Vec3 zWheelLoc;
+        
+        bool active;
+    };
+    
+    Manipulator mManipulator;
+    
+    void loadManipulator();
+    void unloadManipulator();
+    void renderManipulator();
+    
     float mCameraSpeed;
     float mCameraSpeedMin;
     float mCameraAcceleration;
@@ -88,7 +116,8 @@ private:
     
     int32_t mGridSize;
     
-    Plate* mPlateHighlighted;
+    Plate* mPlateSelected;
+    Plate* mPlateDragged;
     Vec3 mPlateDragPoint;
     float mDragPlaneDistance;
     
@@ -116,6 +145,10 @@ private:
     
     void newPlate();
     void deletePlate(Plate* plate);
+    
+    
+    void selectPlate(Plate* plate);
+    void deselectPlate();
     
     void renderFrame(glm::vec4 debugShow, bool wireframe);
 public:

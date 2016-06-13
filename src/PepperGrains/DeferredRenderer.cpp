@@ -535,7 +535,7 @@ DeferredRenderer::~DeferredRenderer() {
 }
 
 void DeferredRenderer::setSunDirection(const glm::vec3& dirSunAiming) {
-    mSky.direction = dirSunAiming;
+    mSky.direction = glm::normalize(dirSunAiming);
 }
 void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
     mCamera.viewMat = camViewMatrix;
@@ -552,6 +552,10 @@ const float& DeferredRenderer::getCameraFarDepth() const {
 const float& DeferredRenderer::getCameraNearDepth() const {
     return mCamera.nearDepth;
 }
+const float& DeferredRenderer::getCameraFOV() const {
+    return mCamera.fov;
+}
+
 
 void DeferredRenderer::setCameraProjection(float fov, float nearDepth, float farDepth) {
     mCamera.fov = fov;

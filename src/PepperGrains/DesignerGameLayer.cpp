@@ -16,12 +16,14 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <math.h>
 #include <iostream>
 #include <sstream>
 
 #include "glm/gtx/string_cast.hpp"
 #include "SDL2/SDL.h"
 
+#include "AxesModel.hpp"
 #include "InputMoveESignal.hpp"
 #include "DebugFPControllerEListe.hpp"
 #include "SceneNodeEComp.hpp"
@@ -35,12 +37,37 @@
 #include "Vec3.hpp"
 
 namespace pgg {
+    
+float toNearestMultiple(const float& a, const float& b) {
+    return std::floor((a / b) + 0.5) * b;
+}
 
+float cotangent(const float& a) {
+    return std::cos(a) / std::sin(a);
+}
+
+DesignerGameLayer::Manipulator::Manipulator()
+: active(false) {
+}
+DesignerGameLayer::Manipulator::~Manipulator() {
+    
+}
+    
 DesignerGameLayer::Plate::Plate()
 : integralX(0)
 , integralY(0)
 , integralZ(0) { }
 DesignerGameLayer::Plate::~Plate() { }
+
+void DesignerGameLayer::selectPlate(Plate* plate) {
+    mPlateSelected = plate;
+    mManipulator.active = true;
+}
+
+void DesignerGameLayer::deselectPlate() {
+    mPlateSelected = nullptr;
+    mManipulator.active = false;
+}
 
 Vec3 DesignerGameLayer::Plate::getLocation() const {
     return Vec3(
@@ -50,27 +77,23 @@ Vec3 DesignerGameLayer::Plate::getLocation() const {
     );
 }
 
-void DesignerGameLayer::Plate::setLocation(Vec3 location) {
-    integralX = (uint32_t) std::floor(location.x * 60.f + 0.5);
-    integralY = (uint32_t) std::floor(location.y * 60.f + 0.5);
-    integralZ = (uint32_t) std::floor(location.z * 60.f + 0.5);
+void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
+    integralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 60.f + 0.5);
+    integralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 60.f + 0.5);
+    integralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 60.f + 0.5);
 }
 
 void DesignerGameLayer::Plate::tick(float tpf) {
     Vec3 target((float) integralX, (float) integralY, (float) integralZ);
     target /= 60.f;
     
-    /*
     // Exponential decay
-    if((target - renderLocation).magSq() < 0.001f) {
+    if((target - renderLocation).mag() < tpf) {
         renderLocation = target;
     }
     else {
-        renderLocation += (target - renderLocation) * std::pow(0.5f, 1.f / tpf);
+        renderLocation += (target - renderLocation) * tpf * 25.f;
     }
-    */
-    
-    renderLocation = target;
     
     collisionObject->getWorldTransform().setOrigin(renderLocation);
     collisionWorld->removeCollisionObject(collisionObject);
@@ -151,6 +174,8 @@ void DesignerGameLayer::onBegin() {
     mCamPitchNode->rotatePitch(glm::radians(-45.f));
     
     mRenderer->setCameraProjection(glm::radians(50.f), 0.2f, 200.f);
+    
+    mRenderer->setSunDirection(glm::vec3(-3.f, -5.f, -2.f));
 
     mBroadphase = new btDbvtBroadphase();
     mCollisionConfiguration = new btDefaultCollisionConfiguration();
@@ -158,12 +183,15 @@ void DesignerGameLayer::onBegin() {
     mCollisionWorld = new btCollisionWorld(mDispatcher, mBroadphase, mCollisionConfiguration);
     
     
+    //mManipulator = resman->findModel("ManipulatorArrow.model");
+    
     mDebugCube = mRootNode->newChild();
     mDebugCube->grabModel(resman->findModel("RoseCube.model"));
     mDebugCube->setLocalScale(Vec3(0.2, 0.2, 0.2));
     mDebugCube->grab();
     mDebugCube->setLocalTranslation(Vec3(999, 999, 999));
     
+    loadManipulator();
     
     mInfCheck = new InfiniteCheckerboardModel();
     mInfCheck->grab();
@@ -176,13 +204,61 @@ void DesignerGameLayer::onBegin() {
 
     oneSecondTimer = 0.f;
     
-    mPlateHighlighted = nullptr;
+    mPlateDragged = nullptr;
+    mPlateSelected = nullptr;
     
-    mGridSize = 60;
+    mGridSize = 2;
     
     newPlate();
+    newPlate();
+    newPlate();
 }
+
+void DesignerGameLayer::loadManipulator() {
+    
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    mManipulator.arrow = resman->findGeometry("ManipulatorArrow.geometry");
+    mManipulator.arrow->grab();
+    mManipulator.wheel = resman->findGeometry("ManipulatorWheel.geometry");
+    mManipulator.wheel->grab();
+    mManipulator.shaderProg = resman->findShaderProgram("MinimalWhite.shaderProgram");
+    mManipulator.shaderProg->grab();
+    
+    glGenVertexArrays(1, &mManipulator.arrowVAO);
+    glBindVertexArray(mManipulator.arrowVAO);
+    mManipulator.arrow->bindBuffers();
+    if(mManipulator.shaderProg->needsPosAttrib()) {
+        mManipulator.arrow->enablePositionAttrib(mManipulator.shaderProg->getPosAttrib());
+    }
+    if(mManipulator.shaderProg->needsNormalAttrib()) {
+        mManipulator.arrow->enableNormalAttrib(mManipulator.shaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+    
+    glGenVertexArrays(1, &mManipulator.wheelVAO);
+    glBindVertexArray(mManipulator.wheelVAO);
+    mManipulator.wheel->bindBuffers();
+    if(mManipulator.shaderProg->needsPosAttrib()) {
+        mManipulator.wheel->enablePositionAttrib(mManipulator.shaderProg->getPosAttrib());
+    }
+    if(mManipulator.shaderProg->needsNormalAttrib()) {
+        mManipulator.wheel->enableNormalAttrib(mManipulator.shaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+}
+
+void DesignerGameLayer::unloadManipulator() {
+    glDeleteVertexArrays(1, &mManipulator.arrowVAO);
+    glDeleteVertexArrays(1, &mManipulator.wheelVAO);
+    mManipulator.arrow->drop();
+    mManipulator.wheel->drop();
+    mManipulator.shaderProg->drop();
+}
+
 void DesignerGameLayer::onEnd() {
+    unloadManipulator();
+    
     mRenderer->drop();
     
     mInfCheck->drop();
@@ -317,10 +393,8 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     
     if(inputStates->isPressed(Input::Scancode::M_LEFT)) {
-        if(mPlateHighlighted) {
+        if(mPlateDragged) {
             
-            const float& near = mRenderer->getCameraNearDepth();
-            const float& far = mRenderer->getCameraFarDepth();
             float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
             
             glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
@@ -329,17 +403,16 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             
             Vec3 potato(worldSpaceDragSpot);
             
-            std::cout << potato << std::endl;
-            
             potato -= mPlateDragPoint;
             
             
-            mPlateHighlighted->setLocation(potato);
+            mPlateDragged->setLocation(potato, 1.f / ((float) mGridSize));
             
         }
         else {
             if(plateUnderCursor) {
-                mPlateHighlighted = plateUnderCursor;
+                selectPlate(plateUnderCursor);
+                mPlateDragged = plateUnderCursor;
                 mPlateDragPoint = plateTouchPoint - plateUnderCursor->getLocation();
                 
                 glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(plateTouchPoint), 1.f);
@@ -347,17 +420,40 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 
                 
                 mDragPlaneDistance = asdf.z; //plateTouchPoint.dist(mCamLocNode->calcWorldTranslation());
-                std::cout << "Selected" << std::endl;
-                std::cout << mPlateDragPoint << std::endl;
+            }
+            else {
+                deselectPlate();
             }
         }
     }
     else {
-        mPlateHighlighted = nullptr;
+        mPlateDragged = nullptr;
     }
     if(plateUnderCursor) {
-        mDebugCube->setLocalTranslation(plateTouchPoint);
+        //mDebugCube->setLocalTranslation(plateTouchPoint);
     }
+    
+    
+    
+    /*
+    if(mPlateSelected) {
+        glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(mPlateSelected->getLocation()), 1.f);
+        asdf /= asdf.w;
+        
+        float z = asdf.z * 2.f - 1.f;
+        const float& near = mRenderer->getCameraNearDepth();
+        const float& far = mRenderer->getCameraFarDepth();
+        float linDepth = (2.f * near * far) / (far + near - z * (far - near));
+        
+        float clipRad = cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
+        
+        mDebugCube->setLocalTranslation(mPlateSelected->getLocation());
+        mDebugCube->setLocalScale(Vec3(1.f / clipRad));
+    }
+    else {
+        mDebugCube->setLocalScale(Vec3(0.f));
+    }
+    */
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
         Plate* potato = *iter;
@@ -366,6 +462,8 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     
     mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);
+    
+    renderManipulator();
     
     if(tpf > 0) {
         float fpsNew = 1 / tpf;
@@ -376,6 +474,35 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         oneSecondTimer -= 1.f;
         std::cout << "FPS: " << (uint32_t) fps << std::endl;
     }
+}
+
+void DesignerGameLayer::renderManipulator() {
+    
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDepthFunc(GL_EQUAL);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    if(!mManipulator.active) {
+        return;
+    }
+
+    glm::mat4 modelMat;
+
+    glUseProgram(mManipulator.shaderProg->getHandle());
+    mManipulator.shaderProg->bindModelViewProjMatrices(modelMat, mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    glBindVertexArray(mManipulator.arrowVAO);
+    mManipulator.arrow->drawElements();
+    glBindVertexArray(mManipulator.wheelVAO);
+    mManipulator.wheel->drawElements();
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 bool DesignerGameLayer::onMouseMove(const MouseMoveEvent& event) {
