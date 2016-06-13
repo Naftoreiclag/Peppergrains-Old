@@ -171,6 +171,13 @@ SceneNode* SceneNode::setLocalTranslation(const glm::vec3& translation) {
     this->markBothTransformsDirty();
     return this;
 }
+
+SceneNode* SceneNode::resetLocalTransform() {
+    this->setLocalScale(glm::vec3(1.f));
+    this->setLocalOrientation(glm::quat());
+    return this->setLocalTranslation(glm::vec3(0.f));
+}
+
 SceneNode* SceneNode::scale(const glm::vec3& scale) {
     mLocalScale *= scale;
     this->markBothTransformsDirty();

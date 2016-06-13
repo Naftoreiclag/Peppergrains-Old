@@ -116,6 +116,7 @@ public:
     void renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bool wireframe);
     
     void setSunDirection(const glm::vec3& dirSunAiming);
+    const glm::vec3& getSunDirection() const;
     
     void setCameraProjection(float fov, float nearDepth, float farDepth);
     void setCameraViewMatrix(const glm::mat4& camViewMatrix);

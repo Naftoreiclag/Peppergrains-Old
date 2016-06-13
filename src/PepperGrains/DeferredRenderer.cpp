@@ -537,6 +537,9 @@ DeferredRenderer::~DeferredRenderer() {
 void DeferredRenderer::setSunDirection(const glm::vec3& dirSunAiming) {
     mSky.direction = glm::normalize(dirSunAiming);
 }
+const glm::vec3& DeferredRenderer::getSunDirection() const {
+    return mSky.direction;
+}
 void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
     mCamera.viewMat = camViewMatrix;
     mCamera.position = glm::vec3(-mCamera.viewMat[3][0], -mCamera.viewMat[3][1], -mCamera.viewMat[3][2]);

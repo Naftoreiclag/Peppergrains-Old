@@ -81,6 +81,9 @@ public:
     SceneNode* setLocalScale(const glm::vec3& scale);
     SceneNode* setLocalOrientation(const glm::quat& orientation);
     SceneNode* setLocalTranslation(const glm::vec3& translation);
+    
+    // Resets all local transforms to default state, just calls the three above methods with default values
+    SceneNode* resetLocalTransform();
 
     // Same as above, but is relative to previous transform
     SceneNode* scale(const glm::vec3& scale);

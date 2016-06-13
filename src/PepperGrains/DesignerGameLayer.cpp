@@ -46,8 +46,7 @@ float cotangent(const float& a) {
     return std::cos(a) / std::sin(a);
 }
 
-DesignerGameLayer::Manipulator::Manipulator()
-: active(false) {
+DesignerGameLayer::Manipulator::Manipulator(){
 }
 DesignerGameLayer::Manipulator::~Manipulator() {
     
@@ -61,12 +60,10 @@ DesignerGameLayer::Plate::~Plate() { }
 
 void DesignerGameLayer::selectPlate(Plate* plate) {
     mPlateSelected = plate;
-    mManipulator.active = true;
 }
 
 void DesignerGameLayer::deselectPlate() {
     mPlateSelected = nullptr;
-    mManipulator.active = false;
 }
 
 Vec3 DesignerGameLayer::Plate::getLocation() const {
@@ -75,6 +72,10 @@ Vec3 DesignerGameLayer::Plate::getLocation() const {
         ((float) integralY) * (1.f / 60.f),
         ((float) integralZ) * (1.f / 60.f)
     );
+}
+
+Vec3 DesignerGameLayer::Plate::getRenderLocation() const {
+    return renderLocation;
 }
 
 void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
@@ -150,6 +151,9 @@ void DesignerGameLayer::onBegin() {
     
     ResourceManager* resman = ResourceManager::getSingleton();
     
+    mUtilityNode = new SceneNode();
+    mUtilityNode->grab();
+    
     mRootNode = new SceneNode();
     mRootNode->grab();
     
@@ -222,8 +226,18 @@ void DesignerGameLayer::loadManipulator() {
     mManipulator.arrow->grab();
     mManipulator.wheel = resman->findGeometry("ManipulatorWheel.geometry");
     mManipulator.wheel->grab();
-    mManipulator.shaderProg = resman->findShaderProgram("MinimalWhite.shaderProgram");
+    mManipulator.shaderProg = resman->findShaderProgram("Manipulator.shaderProgram");
     mManipulator.shaderProg->grab();
+    
+    const std::vector<ShaderProgramResource::Control>& uniformFloats = mManipulator.shaderProg->getUniformVec3s();
+    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformFloats.begin(); iter != uniformFloats.end(); ++ iter) {
+        const ShaderProgramResource::Control& entry = *iter;
+        if(entry.name == "color") {
+            mManipulator.colorHandle = entry.handle;
+        } else if(entry.name == "sunDirection") {
+            mManipulator.sunHandle = entry.handle;
+        }
+    }
     
     glGenVertexArrays(1, &mManipulator.arrowVAO);
     glBindVertexArray(mManipulator.arrowVAO);
@@ -263,6 +277,7 @@ void DesignerGameLayer::onEnd() {
     
     mInfCheck->drop();
     mRootNode->drop();
+    mUtilityNode->drop();
     
     mDebugCube->drop();
     
@@ -480,27 +495,60 @@ void DesignerGameLayer::renderManipulator() {
     
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
-    glDepthFunc(GL_EQUAL);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClear(GL_DEPTH_BUFFER_BIT);
     
-    if(!mManipulator.active) {
+    
+    if(!mPlateSelected) {
         return;
     }
+    
+    glm::mat4 cameraMatrix = mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix();
+    
+    glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(mPlateSelected->getRenderLocation()), 1.f);
+    asdf /= asdf.w;
 
-    glm::mat4 modelMat;
+    float z = asdf.z * 2.f - 1.f;
+    const float& near = mRenderer->getCameraNearDepth();
+    const float& far = mRenderer->getCameraFarDepth();
+    float linDepth = (2.f * near * far) / (far + near - z * (far - near));
+
+    float clipRad = cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
+
+    mUtilityNode->resetLocalTransform();
+    mUtilityNode->setLocalTranslation(mPlateSelected->getRenderLocation());
+    mUtilityNode->setLocalScale(Vec3(0.8f / clipRad));
 
     glUseProgram(mManipulator.shaderProg->getHandle());
-    mManipulator.shaderProg->bindModelViewProjMatrices(modelMat, mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
-    glBindVertexArray(mManipulator.arrowVAO);
-    mManipulator.arrow->drawElements();
-    glBindVertexArray(mManipulator.wheelVAO);
-    mManipulator.wheel->drawElements();
+    
+    glUniform3fv(mManipulator.sunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    
+    for(uint8_t i = 0; i < 3; ++ i) {
+        if(i == 0) {
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+        }
+        else if(i == 1) {
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
+            mUtilityNode->rotateYaw(glm::radians(90.f));
+        }
+        else if(i == 2) {
+            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
+            mUtilityNode->rotatePitch(glm::radians(-90.f));
+        }
+        
+        mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+        glBindVertexArray(mManipulator.arrowVAO);
+        mManipulator.arrow->drawElements();
+        glBindVertexArray(mManipulator.wheelVAO);
+        mManipulator.wheel->drawElements();
+    }
+    
+    
     glBindVertexArray(0);
     glUseProgram(0);
 }

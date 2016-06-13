@@ -59,6 +59,7 @@ public:
         btMotionState* motionState;
         
         Vec3 getLocation() const;
+        Vec3 getRenderLocation() const;
         void setLocation(Vec3 location, float snapSize);
         
         void tick(float tpf);
@@ -89,9 +90,12 @@ private:
         GeometryResource* wheel;
         
         ShaderProgramResource* shaderProg;
+        GLuint colorHandle;
+        GLuint sunHandle;
         
         GLuint arrowVAO;
         GLuint wheelVAO;
+        
         
         Vec3 xArrowLoc;
         Vec3 yArrowLoc;
@@ -99,8 +103,6 @@ private:
         Vec3 xWheelLoc;
         Vec3 yWheelLoc;
         Vec3 zWheelLoc;
-        
-        bool active;
     };
     
     Manipulator mManipulator;
@@ -131,6 +133,7 @@ private:
     Vec2 mMouseLoc;
     
     SceneNode* mRootNode;
+    SceneNode* mUtilityNode;
     
     SceneNode* mCamLocNode;
     SceneNode* mCamYawNode;
