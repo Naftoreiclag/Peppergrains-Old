@@ -107,6 +107,9 @@ Vec2& Vec2::operator-=(float s) {
 float Vec2::dot(const Vec2& v2) const {
     return (x * v2.x) + (y * v2.y);
 }
+float Vec2::determinant(const Vec2& v2) const {
+    return (x * v2.y) - (y * v2.x);
+}
 
 // Distance to other vector
 float Vec2::distSq(const Vec2& v) const {

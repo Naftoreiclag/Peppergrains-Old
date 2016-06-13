@@ -58,6 +58,7 @@ public:
     
     // Dot product
     float dot(const Vec2& v2) const;
+    float determinant(const Vec2& v2) const;
     
     // Distance to other vector
     float dist(const Vec2& v) const;

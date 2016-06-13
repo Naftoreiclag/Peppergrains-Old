@@ -106,12 +106,16 @@ private:
         Vec3 location;
         float scale;
         
+        float initialAxisDragFrac;
+        Vec2 previousWheelDragVector;
+        
         int8_t handleHovered;
         int8_t handleDragged;
         
         btCollisionObject* collisionObjects[6];
         btCollisionShape* collisionShapes[6];
         btMotionState* motionStates[6];
+        
         
         Vec3 xArrowLoc;
         Vec3 yArrowLoc;
@@ -127,7 +131,7 @@ private:
     void updateManipulatorPhysics();
     void loadManipulator();
     void unloadManipulator();
-    void renderManipulator();
+    void renderSecondLayer();
     
     float mCameraSpeed;
     float mCameraSpeedMin;

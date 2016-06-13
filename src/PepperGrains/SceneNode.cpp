@@ -194,7 +194,7 @@ SceneNode* SceneNode::rotate(const glm::quat& rotation) {
     return this;
 }
 SceneNode* SceneNode::rotate(const glm::vec3& axis, const float& radians) {
-    mLocalOrientation = glm::rotate(mLocalOrientation, radians, axis);
+    mLocalOrientation = glm::angleAxis(radians, axis) * mLocalOrientation;
     this->markBothTransformsDirty();
     return this;
 }

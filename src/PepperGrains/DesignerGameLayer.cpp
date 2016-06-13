@@ -487,28 +487,27 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     // Although technically incorrect, it is visually better to do mouse-picking after the camera is updated
     
     // Make one of those selection rays
-    Vec2 ndcMouse = mMouseLoc * 2.f - 1.f;
-    ndcMouse.y = -ndcMouse.y;
-    glm::vec4 rayStart = glm::vec4(ndcMouse.x, ndcMouse.y, -1.f, 1.f);
-    glm::vec4 rayEnd = glm::vec4(ndcMouse.x, ndcMouse.y, 1.f, 1.f);
+    Vec2 mouseNDCLoc = mMouseLoc * 2.f - 1.f;
+    mouseNDCLoc.y = -mouseNDCLoc.y;
     glm::mat4 cameraMatrix = mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix();
     glm::mat4 invCameraMatrix = glm::inverse(cameraMatrix);
-    rayStart = invCameraMatrix * rayStart;
-    rayEnd = invCameraMatrix * rayEnd;
-    rayStart /= rayStart.w;
-    rayEnd /= rayEnd.w;
-    
-    Vec3 absStart = Vec3(rayStart);
-    Vec3 absEnd = Vec3(rayEnd);
+    Vec3 mouseRayStart, mouseRayEnd;
+    {
+        glm::vec4 rayStart = glm::vec4(mouseNDCLoc.x, mouseNDCLoc.y, -1.f, 1.f);
+        glm::vec4 rayEnd = glm::vec4(mouseNDCLoc.x, mouseNDCLoc.y, 1.f, 1.f);
+        rayStart = invCameraMatrix * rayStart;
+        rayEnd = invCameraMatrix * rayEnd;
+        mouseRayStart = rayStart / rayStart.w;
+        mouseRayEnd = rayEnd / rayEnd.w;
+    }
     
     mPlateHovered = nullptr;
     Vec3 hitPoint;
     
-    // Search in the manipulator layer first
-    if(!mPlateFreeDragged && mPlateSelected)
+    if(!mPlateFreeDragged && mManipulator.handleDragged == -1 && mPlateSelected)
     {
-        btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
-        mManipulatorCollisionWorld->rayTest(absStart, absEnd, rayCallback);
+        btCollisionWorld::AllHitsRayResultCallback rayCallback(mouseRayStart, mouseRayEnd);
+        mManipulatorCollisionWorld->rayTest(mouseRayStart, mouseRayEnd, rayCallback);
         
         const btCollisionObject* touched = nullptr;
         if(rayCallback.hasHit()) {
@@ -534,11 +533,10 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         }
     }
     
-    // Only if the manipulator is not "in the way"
-    if(mManipulator.handleHovered == -1) {
+    if(!mPlateFreeDragged && mManipulator.handleDragged == -1 && mManipulator.handleHovered == -1) {
         
-        btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
-        mCollisionWorld->rayTest(absStart, absEnd, rayCallback);
+        btCollisionWorld::AllHitsRayResultCallback rayCallback(mouseRayStart, mouseRayEnd);
+        mCollisionWorld->rayTest(mouseRayStart, mouseRayEnd, rayCallback);
 
         //
         if(rayCallback.hasHit()) {
@@ -573,6 +571,58 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             else if(mManipulator.handleHovered != -1) {
                 // Select that handle for the next frame
                 mManipulator.handleDragged = mManipulator.handleHovered;
+                
+                // Axis
+                if(mManipulator.handleDragged < 3) {
+                    Vec3 worldA = mPlateSelected->getLocation();
+                    Vec3 worldB = worldA;
+                    
+                    if(mManipulator.handleDragged == 0) {
+                        worldB.x += 1.f;
+                    } else if(mManipulator.handleDragged == 1) {
+                        worldB.y += 1.f;
+                    } else {
+                        worldB.z += 1.f;
+                    }
+                    
+                    float frac = nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    if(frac < -100.f) {
+                        frac = -100.f;
+                    } else if(frac > 100.f) {
+                        frac = 100.f;
+                    }
+                    
+                    mManipulator.initialAxisDragFrac = frac;
+                }
+                
+                // Wheel
+                else {
+                    
+                    Vec3 origin = mPlateSelected->getRenderLocation();
+                    
+                    if(mManipulator.handleDragged == 3) {
+                        float divisor = mouseRayEnd.x - mouseRayStart.x;
+                        if(divisor == 0.f) { mManipulator.handleDragged = -1; }
+                        float fixedX = 1.65f * mManipulator.scale + origin.x;
+                        float frac = (fixedX - mouseRayStart.x) / divisor;
+                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.y, origin.z);
+                    } else if(mManipulator.handleDragged == 4) {
+                        float divisor = mouseRayEnd.y - mouseRayStart.y;
+                        if(divisor == 0.f) { mManipulator.handleDragged = -1; }
+                        float fixedX = 1.65f * mManipulator.scale + origin.y;
+                        float frac = (fixedX - mouseRayStart.y) / divisor;
+                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.x, origin.z);
+                    } else {
+                        float divisor = mouseRayEnd.z - mouseRayStart.z;
+                        if(divisor == 0.f) { mManipulator.handleDragged = -1; }
+                        float fixedX = 1.65f * mManipulator.scale + origin.z;
+                        float frac = (fixedX - mouseRayStart.z) / divisor;
+                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac);
+                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.x, origin.y);
+                    }
+                }
             }
             // ...on nothing
             else {
@@ -586,16 +636,15 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             if(mPlateFreeDragged) {
                 float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
                 
-                glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
+                glm::vec4 worldSpaceDragSpot = glm::vec4(mouseNDCLoc.x, mouseNDCLoc.y, correctedZ, 1.f);
                 worldSpaceDragSpot = invCameraMatrix * worldSpaceDragSpot;
                 worldSpaceDragSpot /= worldSpaceDragSpot.w;
                 
-                Vec3 potato(worldSpaceDragSpot);
+                Vec3 targetLoc(worldSpaceDragSpot);
                 
-                potato -= mPlateDragPoint;
+                targetLoc -= mPlateDragPoint;
                 
-                
-                mPlateFreeDragged->setLocation(potato, 1.f / ((float) mGridSize));
+                mPlateFreeDragged->setLocation(targetLoc, 1.f / ((float) mGridSize));
             }
             // ... with a handle being dragged
             else if(mManipulator.handleDragged != -1) {
@@ -613,21 +662,73 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         worldB.z += 1.f;
                     }
                     
-                    float closest = nearestPointOn3DLine(worldA, worldB, absStart, absEnd);
-                    if(closest < -100.f) {
-                        closest = -100.f;
-                    } else if(closest > 100.f) {
-                        closest = 100.f;
+                    float frac = nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    if(frac < -100.f) {
+                        frac = -100.f;
+                    } else if(frac > 100.f) {
+                        frac = 100.f;
                     }
                     
-                    Vec3 nearest = (worldB - worldA) * closest + worldA;
+                    frac -= mManipulator.initialAxisDragFrac;
                     
-                    mDebugCube->setLocalTranslation(nearest);
+                    Vec3 targetLoc = (worldB - worldA) * frac + worldA;
+                    
+                    mPlateSelected->setLocation(targetLoc, 1.f / ((float) mGridSize));
                 }
                 
                 // wheel
                 else {
+                    Vec2 dragSpot;
+                    bool isError = false;
                     
+                    Vec3 origin = mPlateSelected->getRenderLocation();
+                    
+                    if(mManipulator.handleDragged == 3) {
+                        float divisor = mouseRayEnd.x - mouseRayStart.x;
+                        if(divisor == 0.f) { isError = true; } else {
+                            float fixedX = 1.65f * mManipulator.scale + origin.x;
+                            float frac = (fixedX - mouseRayStart.x) / divisor;
+                            dragSpot = Vec2(mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                            dragSpot = dragSpot - Vec2(origin.y, origin.z);
+                        }
+                    } else if(mManipulator.handleDragged == 4) {
+                        float divisor = mouseRayEnd.y - mouseRayStart.y;
+                        if(divisor == 0.f) { isError = true; } else {
+                            float fixedX = 1.65f * mManipulator.scale + origin.y;
+                            float frac = (fixedX - mouseRayStart.y) / divisor;
+                            dragSpot = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                            dragSpot = dragSpot - Vec2(origin.x, origin.z);
+                        }
+                    } else {
+                        float divisor = mouseRayEnd.z - mouseRayStart.z;
+                        if(divisor == 0.f) { isError = true; } else {
+                            float fixedX = 1.65f * mManipulator.scale + origin.z;
+                            float frac = (fixedX - mouseRayStart.z) / divisor;
+                            dragSpot = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac);
+                            dragSpot = dragSpot - Vec2(origin.x, origin.y);
+                        }
+                    }
+                    
+                    if(!isError) {
+                        float angle = std::atan2( 
+                        dragSpot.determinant(mManipulator.previousWheelDragVector),
+                        dragSpot.dot(mManipulator.previousWheelDragVector));
+                        
+                        
+                        mManipulator.previousWheelDragVector = dragSpot;
+                        
+                        if(mManipulator.handleDragged == 3) {
+                            angle = -angle;
+                            mPlateSelected->sceneNode->rotatePitch(angle);
+                        } else if(mManipulator.handleDragged == 4) {
+                            mPlateSelected->sceneNode->rotateYaw(angle);
+                        } else {
+                            angle = -angle;
+                            mPlateSelected->sceneNode->rotateRoll(angle);
+                        }
+                        
+                        std::cout << glm::degrees(angle) << std::endl;
+                    }
                 }
             }
         }
@@ -640,14 +741,14 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
-        Plate* potato = *iter;
+        Plate* targetLoc = *iter;
         
-        potato->tick(tpf);
+        targetLoc->tick(tpf);
     }
     
     mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);
     
-    renderManipulator();
+    renderSecondLayer();
     
     if(tpf > 0) {
         float fpsNew = 1 / tpf;
@@ -660,7 +761,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
 }
 
-void DesignerGameLayer::renderManipulator() {
+void DesignerGameLayer::renderSecondLayer() {
     
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -675,68 +776,67 @@ void DesignerGameLayer::renderManipulator() {
     glClear(GL_DEPTH_BUFFER_BIT);
     
     updateManipulatorTransform();
-    
-    if(!mPlateSelected || mPlateFreeDragged) {
-        return;
-    }
 
-    mUtilityNode->resetLocalTransform();
-    mUtilityNode->setLocalTranslation(mManipulator.location);
-    mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
-    mUtilityNode->rotateYaw(glm::radians(90.f));
-
-    glUseProgram(mManipulator.shaderProg->getHandle());
-    
-    glUniform3fv(mManipulator.sunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    
     float alphaDefault = 0.3f;
     float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
-    for(int8_t i = 0; i < 3; ++ i) {
-        if(i == 0) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
-        }
-        else if(i == 1) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
-            mUtilityNode->rotateYaw(glm::radians(-90.f));
-            mUtilityNode->rotatePitch(glm::radians(-90.f));
-        }
-        else if(i == 2) {
-            glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
-            mUtilityNode->rotatePitch(glm::radians(90.f));
+    
+    if(mPlateSelected && !mPlateFreeDragged) {
+        mUtilityNode->resetLocalTransform();
+        mUtilityNode->setLocalTranslation(mManipulator.location);
+        mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
+        mUtilityNode->rotateYaw(glm::radians(90.f));
+
+        glUseProgram(mManipulator.shaderProg->getHandle());
+        
+        glUniform3fv(mManipulator.sunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+        
+        for(int8_t i = 0; i < 3; ++ i) {
+            if(i == 0) {
+                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
+            }
+            else if(i == 1) {
+                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
+                mUtilityNode->rotateYaw(glm::radians(-90.f));
+                mUtilityNode->rotatePitch(glm::radians(-90.f));
+            }
+            else if(i == 2) {
+                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+                mUtilityNode->rotatePitch(glm::radians(90.f));
+            }
+            
+            mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());\
+            
+            glBindVertexArray(mManipulator.arrowVAO);
+            if(mManipulator.handleHovered == i) {
+                glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+            } else {
+                glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+            }
+            if(mManipulator.handleDragged == i) {
+                glDisable(GL_BLEND);
+            } else {
+                glEnable(GL_BLEND);
+            }
+            mManipulator.arrow->drawElements();
+            
+            glBindVertexArray(mManipulator.wheelVAO);
+            if(mManipulator.handleHovered == i + 3) {
+                glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+            } else {
+                glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+            }
+            if(mManipulator.handleDragged == i + 3) {
+                glDisable(GL_BLEND);
+            } else {
+                glEnable(GL_BLEND);
+            }
+            mManipulator.wheel->drawElements();
         }
         
-        mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());\
         
-        glBindVertexArray(mManipulator.arrowVAO);
-        if(mManipulator.handleHovered == i) {
-            glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
-        } else {
-            glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
-        }
-        if(mManipulator.handleDragged == i) {
-            glDisable(GL_BLEND);
-        } else {
-            glEnable(GL_BLEND);
-        }
-        mManipulator.arrow->drawElements();
-        
-        glBindVertexArray(mManipulator.wheelVAO);
-        if(mManipulator.handleHovered == i + 3) {
-            glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
-        } else {
-            glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
-        }
-        if(mManipulator.handleDragged == i + 3) {
-            glDisable(GL_BLEND);
-        } else {
-            glEnable(GL_BLEND);
-        }
-        mManipulator.wheel->drawElements();
+        glBindVertexArray(0);
+        glUseProgram(0);
     }
-    
-    
-    glBindVertexArray(0);
-    glUseProgram(0);
 }
 
 bool DesignerGameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) {
