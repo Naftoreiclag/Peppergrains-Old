@@ -13,6 +13,7 @@
 
 #include "DesignerGameLayer.hpp"
 
+#include <limits>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -37,6 +38,26 @@
 #include "Vec3.hpp"
 
 namespace pgg {
+    
+float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2) {
+    Vec3 mouse = m2 - m1;
+    Vec3 street = s2 - s1;
+    float mouseMagSq = mouse.magSq();
+    float streetMagSq = street.magSq();
+    
+    Vec3 originDisp = s1 - m1;
+    
+    float originDotMouse = originDisp.dot(mouse);
+    float originDotStreet = originDisp.dot(street);
+    float mouseDotStreet = mouse.dot(street);
+    
+    float divisor = mouseMagSq * streetMagSq - mouseDotStreet * mouseDotStreet;
+    if(divisor == 0.f) {
+        return std::numeric_limits<float>::infinity();
+    } else {
+        return (originDotMouse * mouseDotStreet - originDotStreet * mouseMagSq) / divisor;
+    }
+}
     
 float toNearestMultiple(const float& a, const float& b) {
     return std::floor((a / b) + 0.5) * b;
@@ -581,37 +602,27 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 
                 // arrow
                 if(mManipulator.handleDragged < 3) {
-                    glm::vec4 worldA = glm::vec4(glm::vec3(mPlateSelected->getLocation()), 1.0);
-                    glm::vec4 worldB = worldA;
+                    Vec3 worldA = mPlateSelected->getLocation();
+                    Vec3 worldB = worldA;
                     
                     if(mManipulator.handleDragged == 0) {
-                        worldB.x += 10.f;
+                        worldB.x += 1.f;
                     } else if(mManipulator.handleDragged == 1) {
-                        worldB.y += 10.f;
+                        worldB.y += 1.f;
                     } else {
-                        worldB.z += 10.f;
+                        worldB.z += 1.f;
                     }
                     
-                    glm::vec4 screenspaceA = invCameraMatrix * worldA;
-                    glm::vec4 screenspaceB = invCameraMatrix * worldB;
-                    screenspaceA /= screenspaceA.w;
-                    screenspaceB /= screenspaceB.w;
+                    float closest = nearestPointOn3DLine(worldA, worldB, absStart, absEnd);
+                    if(closest < -100.f) {
+                        closest = -100.f;
+                    } else if(closest > 100.f) {
+                        closest = 100.f;
+                    }
                     
-                    Vec2 pointA = Vec2(screenspaceA.x, screenspaceA.y);
-                    Vec2 pointB = Vec2(screenspaceB.x, screenspaceB.y);
-                    Vec2 pointC = Vec2(ndcMouse.x, ndcMouse.y);
+                    Vec3 nearest = (worldB - worldA) * closest + worldA;
                     
-                    Vec2 path = pointB - pointA;
-                    Vec2 station = pointC - pointA;
-                    
-                    // This value is the fraction of the way between point A and point B that the user is making a selection on
-                    float magic = station.dot(path.normalized()) / path.mag();
-                    
-                    
-                    // Actual position on this axis
-                    Vec3 finalPos = Vec3(worldB) + ((Vec3(worldB) - Vec3(worldA)) * magic);
-                    
-                    mDebugCube->setLocalTranslation(finalPos);
+                    mDebugCube->setLocalTranslation(nearest);
                 }
                 
                 // wheel
