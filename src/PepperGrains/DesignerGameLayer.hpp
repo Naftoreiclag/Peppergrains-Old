@@ -73,11 +73,18 @@ private:
     
     btRigidBody* mPlaneRigid;
     
-    btBroadphaseInterface* mBroadphase;
-    btDefaultCollisionConfiguration* mCollisionConfiguration;
-    btCollisionDispatcher* mDispatcher;
-    
+    struct CollisionWorldPackage {
+        CollisionWorldPackage();
+        ~CollisionWorldPackage();
+        
+        btBroadphaseInterface* mBroadphase;
+        btDefaultCollisionConfiguration* mCollisionConfiguration;
+        btCollisionDispatcher* mDispatcher;
+        btCollisionWorld* mCollisionWorld;
+    };
+    CollisionWorldPackage mCollisionPackage[2];
     btCollisionWorld* mCollisionWorld;
+    btCollisionWorld* mManipulatorCollisionWorld;
     
     SceneNodeESys* mSceneNodeESys;
     RigidBodyESys* mRigidBodyESys;
@@ -96,6 +103,14 @@ private:
         GLuint arrowVAO;
         GLuint wheelVAO;
         
+        Vec3 location;
+        float scale;
+        
+        int8_t draggedHandle;
+        
+        btCollisionObject* collisionObjects[6];
+        btCollisionShape* collisionShapes[6];
+        btMotionState* motionStates[6];
         
         Vec3 xArrowLoc;
         Vec3 yArrowLoc;
@@ -107,6 +122,8 @@ private:
     
     Manipulator mManipulator;
     
+    void updateManipulatorTransform();
+    void updateManipulatorPhysics();
     void loadManipulator();
     void unloadManipulator();
     void renderManipulator();
