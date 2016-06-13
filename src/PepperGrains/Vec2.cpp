@@ -103,22 +103,39 @@ Vec2& Vec2::operator-=(float s) {
     return *this;
 }
 
+// Dot product
+float Vec2::dot(const Vec2& v2) const {
+    return (x * v2.x) + (y * v2.y);
+}
+
 // Distance to other vector
-float Vec2::distSq(const Vec2& v) {
+float Vec2::distSq(const Vec2& v) const {
     float dx = v.x - x;
     float dz = v.y - y;
     return (dx * dx) + (dz * dz);
 }
-float Vec2::dist(const Vec2& v) {
+float Vec2::dist(const Vec2& v) const {
     return std::sqrt(distSq(v));
 }
 
 // Length of vector
-float Vec2::magSq() {
+float Vec2::magSq() const {
     return (x * x) + (y * y);
 }
-float Vec2::mag() {
+float Vec2::mag() const {
     return std::sqrt(magSq());
+}
+
+// Normalize this vector
+void Vec2::normalize() {
+    float magnitude = mag();
+    x /= magnitude;
+    y /= magnitude;
+}
+// Normalized vector
+Vec2 Vec2::normalized() const {
+    float magnitude = mag();
+    return Vec2(x / magnitude, y / magnitude);
 }
 
 void Vec2::zero() {

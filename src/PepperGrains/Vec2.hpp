@@ -56,13 +56,21 @@ public:
     Vec2 operator-(float s);
     Vec2& operator-=(float s);
     
+    // Dot product
+    float dot(const Vec2& v2) const;
+    
     // Distance to other vector
-    float dist(const Vec2& v);
-    float distSq(const Vec2& v);
+    float dist(const Vec2& v) const;
+    float distSq(const Vec2& v) const;
     
     // Length of vector
-    float mag();
-    float magSq();
+    float mag() const;
+    float magSq() const;
+    
+    // Normalize this vector
+    void normalize();
+    // Normalized vector
+    Vec2 normalized() const;
     
     // Make zero
     void zero();

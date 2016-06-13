@@ -226,7 +226,7 @@ void DesignerGameLayer::onBegin() {
 
     oneSecondTimer = 0.f;
     
-    mPlateDragged = nullptr;
+    mPlateFreeDragged = nullptr;
     mPlateSelected = nullptr;
     
     mGridSize = 2;
@@ -240,7 +240,7 @@ void DesignerGameLayer::onBegin() {
 }
 
 void DesignerGameLayer::updateManipulatorTransform() {
-    if(!mPlateSelected || mPlateDragged) {
+    if(!mPlateSelected || mPlateFreeDragged) {
         return;
     }
     
@@ -266,7 +266,7 @@ void DesignerGameLayer::updateManipulatorTransform() {
 
 void DesignerGameLayer::updateManipulatorPhysics() {
     updateManipulatorTransform();
-    if(!mPlateSelected || mPlateDragged) {
+    if(!mPlateSelected || mPlateFreeDragged) {
         return;
     }
     
@@ -480,10 +480,11 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     Vec3 absStart = Vec3(rayStart);
     Vec3 absEnd = Vec3(rayEnd);
     
-    Plate* mPlateHovered = nullptr;
+    mPlateHovered = nullptr;
     Vec3 hitPoint;
     
     // Search in the manipulator layer first
+    if(!mPlateFreeDragged && mPlateSelected)
     {
         btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
         mManipulatorCollisionWorld->rayTest(absStart, absEnd, rayCallback);
@@ -539,7 +540,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             // ...on a plate
             if(mPlateHovered) {
                 selectPlate(mPlateHovered);
-                mPlateDragged = mPlateHovered;
+                mPlateFreeDragged = mPlateHovered;
                 mPlateDragPoint = hitPoint - mPlateHovered->getLocation();
                 
                 glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(hitPoint), 1.f);
@@ -560,8 +561,8 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         }
         // Being held down...
         else {
-            // If a plate is currently being dragged around freely
-            if(mPlateDragged) {
+            // ... with a plate in free drag mode
+            if(mPlateFreeDragged) {
                 float correctedZ = mDragPlaneDistance; //((1.f / mDragPlaneDistance) - (1.f / near)) / ((1.f / far) - (1.f / near)) * 2.f - 1.f;
                 
                 glm::vec4 worldSpaceDragSpot = glm::vec4(ndcMouse.x, ndcMouse.y, correctedZ, 1.f);
@@ -573,17 +574,56 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 potato -= mPlateDragPoint;
                 
                 
-                mPlateDragged->setLocation(potato, 1.f / ((float) mGridSize));
+                mPlateFreeDragged->setLocation(potato, 1.f / ((float) mGridSize));
             }
-            // Plate is being dragged or rotated via manipulator handle
+            // ... with a handle being dragged
             else if(mManipulator.handleDragged != -1) {
                 
+                // arrow
+                if(mManipulator.handleDragged < 3) {
+                    glm::vec4 worldA = glm::vec4(glm::vec3(mPlateSelected->getLocation()), 1.0);
+                    glm::vec4 worldB = worldA;
+                    
+                    if(mManipulator.handleDragged == 0) {
+                        worldB.x += 10.f;
+                    } else if(mManipulator.handleDragged == 1) {
+                        worldB.y += 10.f;
+                    } else {
+                        worldB.z += 10.f;
+                    }
+                    
+                    glm::vec4 screenspaceA = invCameraMatrix * worldA;
+                    glm::vec4 screenspaceB = invCameraMatrix * worldB;
+                    screenspaceA /= screenspaceA.w;
+                    screenspaceB /= screenspaceB.w;
+                    
+                    Vec2 pointA = Vec2(screenspaceA.x, screenspaceA.y);
+                    Vec2 pointB = Vec2(screenspaceB.x, screenspaceB.y);
+                    Vec2 pointC = Vec2(ndcMouse.x, ndcMouse.y);
+                    
+                    Vec2 path = pointB - pointA;
+                    Vec2 station = pointC - pointA;
+                    
+                    // This value is the fraction of the way between point A and point B that the user is making a selection on
+                    float magic = station.dot(path.normalized()) / path.mag();
+                    
+                    
+                    // Actual position on this axis
+                    Vec3 finalPos = Vec3(worldB) + ((Vec3(worldB) - Vec3(worldA)) * magic);
+                    
+                    mDebugCube->setLocalTranslation(finalPos);
+                }
+                
+                // wheel
+                else {
+                    
+                }
             }
         }
         mMouseLeftDownLastFrame = true;
     }
     else {
-        mPlateDragged = nullptr;
+        mPlateFreeDragged = nullptr;
         mMouseLeftDownLastFrame = false;
         mManipulator.handleDragged = -1;
     }
@@ -625,7 +665,7 @@ void DesignerGameLayer::renderManipulator() {
     
     updateManipulatorTransform();
     
-    if(!mPlateSelected || mPlateDragged) {
+    if(!mPlateSelected || mPlateFreeDragged) {
         return;
     }
 

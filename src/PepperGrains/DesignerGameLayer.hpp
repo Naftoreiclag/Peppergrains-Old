@@ -138,7 +138,7 @@ private:
     
     Plate* mPlateHovered;
     Plate* mPlateSelected;
-    Plate* mPlateDragged;
+    Plate* mPlateFreeDragged;
     Vec3 mPlateDragPoint;
     float mDragPlaneDistance;
     
