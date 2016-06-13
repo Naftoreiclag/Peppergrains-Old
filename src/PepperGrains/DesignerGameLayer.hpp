@@ -106,8 +106,8 @@ private:
         Vec3 location;
         float scale;
         
-        int8_t highlightedHandle;
-        int8_t selectedHandle;
+        int8_t handleHovered;
+        int8_t handleDragged;
         
         btCollisionObject* collisionObjects[6];
         btCollisionShape* collisionShapes[6];
@@ -136,6 +136,7 @@ private:
     
     int32_t mGridSize;
     
+    Plate* mPlateHovered;
     Plate* mPlateSelected;
     Plate* mPlateDragged;
     Vec3 mPlateDragPoint;
@@ -167,7 +168,6 @@ private:
     
     void newPlate();
     void deletePlate(Plate* plate);
-    
     
     void selectPlate(Plate* plate);
     void deselectPlate();

@@ -47,8 +47,8 @@ float cotangent(const float& a) {
 }
 
 DesignerGameLayer::Manipulator::Manipulator()
-: selectedHandle(-1)
-, highlightedHandle(-1) {
+: handleDragged(-1)
+, handleHovered(-1) {
 }
 DesignerGameLayer::Manipulator::~Manipulator() {
     
@@ -474,7 +474,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     Vec3 absStart = Vec3(rayStart);
     Vec3 absEnd = Vec3(rayEnd);
     
-    Plate* plateUnderCursor = nullptr;
+    Plate* mPlateHovered = nullptr;
     Vec3 hitPoint;
     
     // Search in the manipulator layer first
@@ -495,11 +495,11 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             }
         }
         
-        mManipulator.highlightedHandle = -1;
+        mManipulator.handleHovered = -1;
         if(touched) {
             for(int8_t i = 0; i < 6; ++ i) {
                 if(mManipulator.collisionObjects[i] == touched) {
-                    mManipulator.highlightedHandle = i;
+                    mManipulator.handleHovered = i;
                     break;
                 }
             }
@@ -507,7 +507,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     
     // Only if the manipulator is not "in the way"
-    if(mManipulator.highlightedHandle == -1) {
+    if(mManipulator.handleHovered == -1) {
         
         btCollisionWorld::AllHitsRayResultCallback rayCallback(absStart, absEnd);
         mCollisionWorld->rayTest(absStart, absEnd, rayCallback);
@@ -521,7 +521,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                     const btCollisionObject* other = rayCallback.m_collisionObjects.at(i);
                     closestHitFraction = rayCallback.m_hitFractions.at(i);
                     hitPoint = rayCallback.m_hitPointWorld.at(i);
-                    plateUnderCursor = static_cast<Plate*>(other->getUserPointer());
+                    mPlateHovered = static_cast<Plate*>(other->getUserPointer());
                 }
             }
         }
@@ -531,10 +531,10 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         // First click...
         if(!mMouseLeftDownLastFrame) {
             // ...on a plate
-            if(plateUnderCursor) {
-                selectPlate(plateUnderCursor);
-                mPlateDragged = plateUnderCursor;
-                mPlateDragPoint = hitPoint - plateUnderCursor->getLocation();
+            if(mPlateHovered) {
+                selectPlate(mPlateHovered);
+                mPlateDragged = mPlateHovered;
+                mPlateDragPoint = hitPoint - mPlateHovered->getLocation();
                 
                 glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(hitPoint), 1.f);
                 asdf /= asdf.w;
@@ -542,14 +542,14 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 mDragPlaneDistance = asdf.z; //plateTouchPoint.dist(mCamLocNode->calcWorldTranslation());
             }
             // ...on a manipulator handle
-            else if(mManipulator.highlightedHandle != -1) {
+            else if(mManipulator.handleHovered != -1) {
                 // Select that handle for the next frame
-                mManipulator.selectedHandle = mManipulator.highlightedHandle;
+                mManipulator.handleDragged = mManipulator.handleHovered;
             }
             // ...on nothing
             else {
                 deselectPlate();
-                mManipulator.selectedHandle = -1;
+                mManipulator.handleDragged = -1;
             }
         }
         // Being held down...
@@ -570,7 +570,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 mPlateDragged->setLocation(potato, 1.f / ((float) mGridSize));
             }
             // Plate is being dragged or rotated via manipulator handle
-            else if(mManipulator.selectedHandle != -1) {
+            else if(mManipulator.handleDragged != -1) {
                 
             }
         }
@@ -579,7 +579,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     else {
         mPlateDragged = nullptr;
         mMouseLeftDownLastFrame = false;
-        mManipulator.selectedHandle = -1;
+        mManipulator.handleDragged = -1;
     }
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
@@ -649,13 +649,13 @@ void DesignerGameLayer::renderManipulator() {
         
         mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
         glBindVertexArray(mManipulator.arrowVAO);
-        if(mManipulator.selectedHandle == i) {
+        if(mManipulator.handleDragged == i) {
             glDisable(GL_BLEND);
         }
         mManipulator.arrow->drawElements();
         glEnable(GL_BLEND);
         glBindVertexArray(mManipulator.wheelVAO);
-        if(mManipulator.selectedHandle == i + 3) {
+        if(mManipulator.handleDragged == i + 3) {
             glDisable(GL_BLEND);
         }
         mManipulator.wheel->drawElements();
