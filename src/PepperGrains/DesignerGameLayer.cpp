@@ -89,8 +89,17 @@ float cotangent(const float& a) {
     return std::cos(a) / std::sin(a);
 }
 
-// TODO: this
 glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
+    float dotProd = initialDirection.dot(targetDirection);
+    // Already facing direction
+    if(std::abs(1.f - dotProd) < 0.000001f) {
+        return glm::quat();
+    }
+    // Facing 180 degrees in the wrong direction
+    else if(std::abs(-1.f - dotProd) < 0.000001f) {
+        return glm::angleAxis(3.1416f, glm::vec3(upDirection));
+    }
+    return glm::angleAxis(std::acos(dotProd), glm::vec3(initialDirection.cross(targetDirection).normalized()));
 }
 
 DesignerGameLayer::Edge::Edge(Plate* plate)
