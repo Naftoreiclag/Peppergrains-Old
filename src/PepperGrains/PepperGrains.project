@@ -150,6 +150,8 @@
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>
+      <File Name="CubeRotationsSolver.hpp"/>
+      <File Name="CubeRotationsSolver.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Entity System">
       <VirtualDirectory Name="nres">

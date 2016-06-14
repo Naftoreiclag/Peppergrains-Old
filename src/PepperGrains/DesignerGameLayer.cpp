@@ -89,6 +89,27 @@ float cotangent(const float& a) {
     return std::cos(a) / std::sin(a);
 }
 
+DesignerGameLayer::Edge::Edge() {
+    
+}
+
+DesignerGameLayer::Edge::~Edge() {
+    
+}
+
+DesignerGameLayer::StraightEdge::StraightEdge(const Vec3& start, const Vec3& end)
+: mStartLoc(start)
+, mEndLoc(end) {
+}
+
+DesignerGameLayer::StraightEdge::~StraightEdge() {
+    
+}
+
+bool DesignerGameLayer::StraightEdge::canBindTo(Edge* other) const {
+    return false;
+}
+
 DesignerGameLayer::Manipulator::Manipulator()
 : handleDragged(-1)
 , handleHovered(-1) {
@@ -102,7 +123,7 @@ DesignerGameLayer::Plate::Plate()
 , mIntegralY(0)
 , mIntegralZ(0) { }
 DesignerGameLayer::Plate::~Plate() { }
-        
+
 void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
     intermediateYaw = 0;
     intermediateRoll = 0;
@@ -135,6 +156,8 @@ void DesignerGameLayer::Plate::finalizeRotation() {
     if(intermediateRoll != 0.f) {
         mTargetOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mTargetOrientation;
     }
+    
+    // std::cout << mTargetOrientation.x << "\t" << mTargetOrientation.y << "\t" << mTargetOrientation.z << "\t" << mTargetOrientation.w << std::endl;
     
     intermediatePitch = 0;
     intermediateYaw = 0;
@@ -169,9 +192,9 @@ DesignerGameLayer::CollisionWorldPackage::~CollisionWorldPackage() {
 
 Vec3 DesignerGameLayer::Plate::getLocation() const {
     return Vec3(
-        ((float) mIntegralX) * (1.f / 60.f),
-        ((float) mIntegralY) * (1.f / 60.f),
-        ((float) mIntegralZ) * (1.f / 60.f)
+        ((float) mIntegralX) * (1.f / 12.f),
+        ((float) mIntegralY) * (1.f / 12.f),
+        ((float) mIntegralZ) * (1.f / 12.f)
     );
 }
 
@@ -180,14 +203,14 @@ Vec3 DesignerGameLayer::Plate::getRenderLocation() const {
 }
 
 void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
-    mIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 60.f + 0.5);
-    mIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 60.f + 0.5);
-    mIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 60.f + 0.5);
+    mIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 12.f + 0.5);
+    mIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 12.f + 0.5);
+    mIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 12.f + 0.5);
 }
 
 void DesignerGameLayer::Plate::tick(float tpf) {
     Vec3 target((float) mIntegralX, (float) mIntegralY, (float) mIntegralZ);
-    target /= 60.f;
+    target /= 12.f;
     
     // Exponential decay
     if((target - mRenderLocation).mag() < tpf) {
@@ -249,6 +272,14 @@ void DesignerGameLayer::newPlate() {
     
     mCollisionWorld->addCollisionObject(plate->collisionObject);
     plate->collisionWorld = mCollisionWorld;
+    
+    // Set up edges
+    {
+        plate->mEdges.push_back(new StraightEdge(Vec3(0.5f, 0.f, 0.5f), Vec3(0.5f, 0.f, -0.5f)));
+        plate->mEdges.push_back(new StraightEdge(Vec3(0.5f, 0.f, -0.5f), Vec3(-0.5f, 0.f, 0.5f)));
+        plate->mEdges.push_back(new StraightEdge(Vec3(-0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, -0.5f)));
+        plate->mEdges.push_back(new StraightEdge(Vec3(-0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, 0.5f)));
+    }
     
     mPlates.push_back(plate);
 }
@@ -313,6 +344,7 @@ void DesignerGameLayer::onBegin() {
     mDebugCube->grab();
     mDebugCube->setLocalTranslation(Vec3(999, 999, 999));
     
+    loadSlimeShader();
     loadManipulator();
     
     mInfCheck = new InfiniteCheckerboardModel();
@@ -329,11 +361,17 @@ void DesignerGameLayer::onBegin() {
     mPlateFreeDragged = nullptr;
     mPlateSelected = nullptr;
     
-    mGridSize = 2;
+    mGridSize = 6;
     
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
+    newPlate();
+    newPlate();
+    newPlate();
+    newPlate();
+    newPlate();
+    newPlate();
     newPlate();
     newPlate();
     newPlate();
@@ -401,6 +439,51 @@ void DesignerGameLayer::updateManipulatorPhysics() {
     }
 }
 
+void DesignerGameLayer::loadSlimeShader() {
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    mSlimeShader.mShaderProg = resman->findShaderProgram("Manipulator.shaderProgram");
+    mSlimeShader.mShaderProg->grab();
+    
+    const std::vector<ShaderProgramResource::Control>& uniformFloats = mSlimeShader.mShaderProg->getUniformVec3s();
+    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformFloats.begin(); iter != uniformFloats.end(); ++ iter) {
+        const ShaderProgramResource::Control& entry = *iter;
+        if(entry.name == "color") {
+            mSlimeShader.mColorHandle = entry.handle;
+        } else if(entry.name == "sunDirection") {
+            mSlimeShader.mSunHandle = entry.handle;
+        }
+    }
+    
+    mSlimeShader.mVertexBall = resman->findGeometry("VertexBall.geometry");
+    mSlimeShader.mVertexBall->grab();
+    mSlimeShader.mStraightEdge = resman->findGeometry("StraightEdge.geometry");
+    mSlimeShader.mStraightEdge->grab();
+    
+    glGenVertexArrays(1, &mSlimeShader.mVertexBallVAO);
+    glBindVertexArray(mSlimeShader.mVertexBallVAO);
+    mSlimeShader.mVertexBall->bindBuffers();
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mSlimeShader.mVertexBall->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    }
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mSlimeShader.mVertexBall->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+    
+    glGenVertexArrays(1, &mSlimeShader.mStraightEdgeVAO);
+    glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
+    mSlimeShader.mStraightEdge->bindBuffers();
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mSlimeShader.mStraightEdge->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    }
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mSlimeShader.mStraightEdge->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+    
+}
+
 void DesignerGameLayer::loadManipulator() {
     
     for(uint8_t i = 0; i < 6; ++ i) {
@@ -418,38 +501,26 @@ void DesignerGameLayer::loadManipulator() {
     mManipulator.arrow->grab();
     mManipulator.wheel = resman->findGeometry("ManipulatorWheel.geometry");
     mManipulator.wheel->grab();
-    mManipulator.shaderProg = resman->findShaderProgram("Manipulator.shaderProgram");
-    mManipulator.shaderProg->grab();
-    
-    const std::vector<ShaderProgramResource::Control>& uniformFloats = mManipulator.shaderProg->getUniformVec3s();
-    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformFloats.begin(); iter != uniformFloats.end(); ++ iter) {
-        const ShaderProgramResource::Control& entry = *iter;
-        if(entry.name == "color") {
-            mManipulator.colorHandle = entry.handle;
-        } else if(entry.name == "sunDirection") {
-            mManipulator.sunHandle = entry.handle;
-        }
-    }
     
     glGenVertexArrays(1, &mManipulator.arrowVAO);
     glBindVertexArray(mManipulator.arrowVAO);
     mManipulator.arrow->bindBuffers();
-    if(mManipulator.shaderProg->needsPosAttrib()) {
-        mManipulator.arrow->enablePositionAttrib(mManipulator.shaderProg->getPosAttrib());
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mManipulator.arrow->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
     }
-    if(mManipulator.shaderProg->needsNormalAttrib()) {
-        mManipulator.arrow->enableNormalAttrib(mManipulator.shaderProg->getNormalAttrib());
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mManipulator.arrow->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
     glGenVertexArrays(1, &mManipulator.wheelVAO);
     glBindVertexArray(mManipulator.wheelVAO);
     mManipulator.wheel->bindBuffers();
-    if(mManipulator.shaderProg->needsPosAttrib()) {
-        mManipulator.wheel->enablePositionAttrib(mManipulator.shaderProg->getPosAttrib());
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mManipulator.wheel->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
     }
-    if(mManipulator.shaderProg->needsNormalAttrib()) {
-        mManipulator.wheel->enableNormalAttrib(mManipulator.shaderProg->getNormalAttrib());
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mManipulator.wheel->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
     }
     glBindVertexArray(0);
 }
@@ -459,11 +530,15 @@ void DesignerGameLayer::unloadManipulator() {
     glDeleteVertexArrays(1, &mManipulator.wheelVAO);
     mManipulator.arrow->drop();
     mManipulator.wheel->drop();
-    mManipulator.shaderProg->drop();
+}
+
+void DesignerGameLayer::unloadSlimeShader() {
+    mSlimeShader.mShaderProg->drop();
 }
 
 void DesignerGameLayer::onEnd() {
     unloadManipulator();
+    unloadSlimeShader();
     
     mRenderer->drop();
     
@@ -864,25 +939,25 @@ void DesignerGameLayer::renderSecondLayer() {
         mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
         mUtilityNode->rotateYaw(glm::radians(90.f));
 
-        glUseProgram(mManipulator.shaderProg->getHandle());
+        glUseProgram(mSlimeShader.mShaderProg->getHandle());
         
-        glUniform3fv(mManipulator.sunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+        glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
         
         for(int8_t i = 0; i < 3; ++ i) {
             if(i == 0) {
-                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
+                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
             }
             else if(i == 1) {
-                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
+                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
                 mUtilityNode->rotateYaw(glm::radians(-90.f));
                 mUtilityNode->rotatePitch(glm::radians(-90.f));
             }
             else if(i == 2) {
-                glUniform3fv(mManipulator.colorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
                 mUtilityNode->rotatePitch(glm::radians(90.f));
             }
             
-            mManipulator.shaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());\
+            mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
             
             glBindVertexArray(mManipulator.arrowVAO);
             if(mManipulator.handleHovered == i) {
@@ -915,6 +990,17 @@ void DesignerGameLayer::renderSecondLayer() {
         glBindVertexArray(0);
         glUseProgram(0);
     }
+}
+
+void DesignerGameLayer::Plate::renderEdges(const glm::mat4& viewMatr, const glm::mat4& projMatr) const {
+    for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
+        const Edge* edge = *iter;
+        edge->render(viewMatr, projMatr);
+    }
+}
+
+void DesignerGameLayer::Edge::render(const glm::mat4& viewMatr, const glm::mat4& projMatr) const {
+    
 }
 
 bool DesignerGameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) {

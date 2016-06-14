@@ -41,14 +41,60 @@ namespace pgg {
 
 class DesignerGameLayer : public GameLayer {
 public:
+    struct SlimeShader {
+        ShaderProgramResource* mShaderProg;
+        GLuint mColorHandle;
+        GLuint mSunHandle;
+        
+        GeometryResource* mVertexBall;
+        GeometryResource* mStraightEdge;
+        
+        GLuint mVertexBallVAO;
+        GLuint mStraightEdgeVAO;
+    };
+    
+    SlimeShader mSlimeShader;
+    
+    class Plate;
+    class Edge {
+    public:
+        Edge();
+        virtual ~Edge();
+        
+        Plate* mPlate;
+        
+        Vec3 mLocation;
+        
+        virtual bool canBindTo(Edge* other) const = 0;
+        virtual void render(const glm::mat4& viewMatr, const glm::mat4& projMatr) const;
+    };
+    
+    class StraightEdge : public Edge {
+    public:
+        StraightEdge(const Vec3& start, const Vec3& end);
+        virtual ~StraightEdge();
+        
+        Vec3 mStartLoc;
+        Vec3 mEndLoc;
+        
+        bool canBindTo(Edge* other) const;
+        void render(glm::mat4 viewMatr, glm::mat4 projMatr) const;
+    };
+    
     class Plate {
     public:
         Plate();
-        ~Plate();
+        virtual ~Plate();
+        
+        std::vector<Edge*> mEdges;
         
         int32_t mIntegralX;
         int32_t mIntegralY;
         int32_t mIntegralZ;
+        
+        int32_t mIntegralScaleX;
+        int32_t mIntegralScaleY;
+        int32_t mIntegralScaleZ;
         
         glm::quat mTargetOrientation;
         
@@ -74,8 +120,11 @@ public:
         void setIntermediateRoll(float radians);
         void finalizeRotation();
         
+        void renderEdges(const glm::mat4& viewMatr, const glm::mat4& projMatr) const;
+        
         void tick(float tpf);
     };
+    
 private:
     DeferredRenderer* mRenderer;
     
@@ -108,10 +157,6 @@ private:
         GeometryResource* arrow;
         GeometryResource* wheel;
         
-        ShaderProgramResource* shaderProg;
-        GLuint colorHandle;
-        GLuint sunHandle;
-        
         GLuint arrowVAO;
         GLuint wheelVAO;
         
@@ -139,6 +184,8 @@ private:
     
     Manipulator mManipulator;
     
+    void loadSlimeShader();
+    void unloadSlimeShader();
     void updateManipulatorTransform();
     void updateManipulatorPhysics();
     void loadManipulator();
