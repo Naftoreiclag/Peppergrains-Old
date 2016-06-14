@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -159,7 +160,7 @@ void resolve() {
         
         std::cout << potato->inputQuaternions.size() << std::endl;
         std::vector<glm::quat> uniqueQuats;
-        float ep = 0.0001f;
+        float ep = 0.00001f;
         
         for(std::vector<glm::quat>::iterator quiter = potato->inputQuaternions.begin(); quiter != potato->inputQuaternions.end(); ++ quiter) {
             glm::quat inputQuat = *quiter;
@@ -167,7 +168,7 @@ void resolve() {
             for(std::vector<glm::quat>::iterator quiter2 = uniqueQuats.begin(); quiter2 != uniqueQuats.end(); ++ quiter2) {
                 glm::quat uniqueQuat = *quiter2;
                 
-                if(abs(inputQuat.x - uniqueQuat.x) < ep && abs(inputQuat.y - uniqueQuat.y) < ep && abs(inputQuat.z - uniqueQuat.z) < ep && abs(inputQuat.w - uniqueQuat.w) < ep) {
+                if(std::abs(inputQuat.x - uniqueQuat.x) < ep && std::abs(inputQuat.y - uniqueQuat.y) < ep && std::abs(inputQuat.z - uniqueQuat.z) < ep && std::abs(inputQuat.w - uniqueQuat.w) < ep) {
                     unique = false;
                     break;
                 }
@@ -180,8 +181,26 @@ void resolve() {
         
         for(std::vector<glm::quat>::iterator quiter2 = uniqueQuats.begin(); quiter2 != uniqueQuats.end(); ++ quiter2) {
             glm::quat egg = *quiter2;
+
+            float x = egg.x;
+            float y = egg.y;
+            float z = egg.z;
+            float w = egg.w;
             
-            std::cout << "x:" << egg.x << "\ty:" << egg.y << "\tz:" << egg.z << "\tw:" << egg.w << std::endl;
+            if(std::abs(x) < ep) {
+                x = 0.f;
+            }
+            if(std::abs(y) < ep) {
+                y = 0.f;
+            }
+            if(std::abs(z) < ep) {
+                z = 0.f;
+            }
+            if(std::abs(w) < ep) {
+                w = 0.f;
+            }
+            
+            std::cout << "x:" << x << "\ty:" << y << "\tz:" << z << "\tw:" << w << std::endl;
         }
         
         
