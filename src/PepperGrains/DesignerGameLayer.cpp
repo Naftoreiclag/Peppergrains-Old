@@ -89,6 +89,12 @@ float cotangent(const float& a) {
     return std::cos(a) / std::sin(a);
 }
 
+// TODO: this
+glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
+    
+    return glm::quat();
+}
+
 DesignerGameLayer::Edge::Edge() {
     
 }
@@ -304,9 +310,6 @@ void DesignerGameLayer::onBegin() {
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
     
     ResourceManager* resman = ResourceManager::getSingleton();
-    
-    mUtilityNode = new SceneNode();
-    mUtilityNode->grab();
     
     mRootNode = new SceneNode();
     mRootNode->grab();
@@ -544,7 +547,6 @@ void DesignerGameLayer::onEnd() {
     
     mInfCheck->drop();
     mRootNode->drop();
-    mUtilityNode->drop();
     
     mDebugCube->drop();
 }
@@ -933,8 +935,13 @@ void DesignerGameLayer::renderSecondLayer() {
     float alphaDefault = 0.3f;
     float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
     
+    SceneNode* mUtilityNode = new SceneNode();
+    mUtilityNode->grab();
+    if(mPlateSelected) {
+        mPlateSelected->renderEdges(mRenderer, mSlimeShader);
+    }
+    
     if(mPlateSelected && !mPlateFreeDragged) {
-        mUtilityNode->resetLocalTransform();
         mUtilityNode->setLocalTranslation(mManipulator.location);
         mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
         mUtilityNode->rotateYaw(glm::radians(90.f));
@@ -990,16 +997,42 @@ void DesignerGameLayer::renderSecondLayer() {
         glBindVertexArray(0);
         glUseProgram(0);
     }
+    
+    mUtilityNode->drop();
 }
 
-void DesignerGameLayer::Plate::renderEdges(const glm::mat4& viewMatr, const glm::mat4& projMatr) const {
+void DesignerGameLayer::Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
         const Edge* edge = *iter;
-        edge->render(viewMatr, projMatr);
+        edge->render(mRenderer, mSlimeShader);
+        break;
     }
 }
 
-void DesignerGameLayer::Edge::render(const glm::mat4& viewMatr, const glm::mat4& projMatr) const {
+void DesignerGameLayer::StraightEdge::render(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+    
+    Vec3 disp = mEndLoc - mStartLoc;
+    Vec3 dir = disp.normalized();
+    
+    
+    
+    SceneNode* mUtilityNode = new SceneNode();
+    mUtilityNode->grab();
+    mUtilityNode->setLocalOrientation(quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
+    
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
+    mSlimeShader.mStraightEdge->drawElements();
+    
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mUtilityNode->drop();
     
 }
 

@@ -66,7 +66,7 @@ public:
         Vec3 mLocation;
         
         virtual bool canBindTo(Edge* other) const = 0;
-        virtual void render(const glm::mat4& viewMatr, const glm::mat4& projMatr) const;
+        virtual void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
     };
     
     class StraightEdge : public Edge {
@@ -78,7 +78,7 @@ public:
         Vec3 mEndLoc;
         
         bool canBindTo(Edge* other) const;
-        void render(glm::mat4 viewMatr, glm::mat4 projMatr) const;
+        void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
     };
     
     class Plate {
@@ -120,7 +120,7 @@ public:
         void setIntermediateRoll(float radians);
         void finalizeRotation();
         
-        void renderEdges(const glm::mat4& viewMatr, const glm::mat4& projMatr) const;
+        void renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const;
         
         void tick(float tpf);
     };
@@ -216,7 +216,6 @@ private:
     Vec2 mMouseLoc;
     
     SceneNode* mRootNode;
-    SceneNode* mUtilityNode;
     
     SceneNode* mCamLocNode;
     SceneNode* mCamYawNode;
