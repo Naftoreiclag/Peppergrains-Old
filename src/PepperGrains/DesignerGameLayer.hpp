@@ -58,7 +58,7 @@ public:
     class Plate;
     class Edge {
     public:
-        Edge();
+        Edge(Plate* plate);
         virtual ~Edge();
         
         Plate* mPlate;
@@ -71,7 +71,7 @@ public:
     
     class StraightEdge : public Edge {
     public:
-        StraightEdge(const Vec3& start, const Vec3& end);
+        StraightEdge(Plate* plate, const Vec3& start, const Vec3& end);
         virtual ~StraightEdge();
         
         Vec3 mStartLoc;

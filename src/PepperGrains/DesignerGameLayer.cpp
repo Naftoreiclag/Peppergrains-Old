@@ -91,11 +91,10 @@ float cotangent(const float& a) {
 
 // TODO: this
 glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
-    
-    return glm::quat();
 }
 
-DesignerGameLayer::Edge::Edge() {
+DesignerGameLayer::Edge::Edge(Plate* plate)
+: mPlate(plate) {
     
 }
 
@@ -103,8 +102,9 @@ DesignerGameLayer::Edge::~Edge() {
     
 }
 
-DesignerGameLayer::StraightEdge::StraightEdge(const Vec3& start, const Vec3& end)
-: mStartLoc(start)
+DesignerGameLayer::StraightEdge::StraightEdge(Plate* plate, const Vec3& start, const Vec3& end)
+: Edge(plate)
+, mStartLoc(start)
 , mEndLoc(end) {
 }
 
@@ -281,10 +281,18 @@ void DesignerGameLayer::newPlate() {
     
     // Set up edges
     {
-        plate->mEdges.push_back(new StraightEdge(Vec3(0.5f, 0.f, 0.5f), Vec3(0.5f, 0.f, -0.5f)));
-        plate->mEdges.push_back(new StraightEdge(Vec3(0.5f, 0.f, -0.5f), Vec3(-0.5f, 0.f, 0.5f)));
-        plate->mEdges.push_back(new StraightEdge(Vec3(-0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, -0.5f)));
-        plate->mEdges.push_back(new StraightEdge(Vec3(-0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, 0.5f)));
+        /* o
+         *  1     2
+         * 
+         * 
+         *  4     3
+         * 
+         */
+        
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, -0.5f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, 0.5f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, 0.5f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, -0.5f)));
     }
     
     mPlates.push_back(plate);
@@ -934,12 +942,14 @@ void DesignerGameLayer::renderSecondLayer() {
 
     float alphaDefault = 0.3f;
     float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
+    glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
     
     SceneNode* mUtilityNode = new SceneNode();
     mUtilityNode->grab();
     if(mPlateSelected) {
         mPlateSelected->renderEdges(mRenderer, mSlimeShader);
     }
+    glClear(GL_DEPTH_BUFFER_BIT);
     
     if(mPlateSelected && !mPlateFreeDragged) {
         mUtilityNode->setLocalTranslation(mManipulator.location);
@@ -964,7 +974,7 @@ void DesignerGameLayer::renderSecondLayer() {
                 mUtilityNode->rotatePitch(glm::radians(90.f));
             }
             
-            mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcLocalTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+            mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
             
             glBindVertexArray(mManipulator.arrowVAO);
             if(mManipulator.handleHovered == i) {
@@ -1005,19 +1015,24 @@ void DesignerGameLayer::Plate::renderEdges(const DeferredRenderer* mRenderer, co
     for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
         const Edge* edge = *iter;
         edge->render(mRenderer, mSlimeShader);
-        break;
     }
 }
 
 void DesignerGameLayer::StraightEdge::render(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     
     Vec3 disp = mEndLoc - mStartLoc;
-    Vec3 dir = disp.normalized();
+    float length = disp.mag();
+    Vec3 dir = disp / length;
     
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->getRenderLocation());
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
     
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
     
-    SceneNode* mUtilityNode = new SceneNode();
-    mUtilityNode->grab();
+    mUtilityNode->setLocalTranslation(mStartLoc);
+    mUtilityNode->setLocalScale(glm::vec3(1.f, 1.f, length));
     mUtilityNode->setLocalOrientation(quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
     
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
@@ -1032,7 +1047,7 @@ void DesignerGameLayer::StraightEdge::render(const DeferredRenderer* mRenderer, 
     glBindVertexArray(0);
     glUseProgram(0);
     
-    mUtilityNode->drop();
+    mDummyPlate->drop();
     
 }
 
