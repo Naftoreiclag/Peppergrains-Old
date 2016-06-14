@@ -147,52 +147,41 @@ DesignerGameLayer::Plate::Plate()
 DesignerGameLayer::Plate::~Plate() { }
 
 void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
+    intermediateYaw = 0;
+    intermediateRoll = 0;
     float newRot = nearestRightAngle(radians);
     if(intermediatePitch != newRot) {
         intermediatePitch = newRot;
         mOrientation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mFinalizedOrienation;
         onTransformChanged();
     }
-    intermediateYaw = 0;
-    intermediateRoll = 0;
 }
 void DesignerGameLayer::Plate::setIntermediateYaw(float radians) {
+    intermediatePitch = 0;
+    intermediateRoll = 0;
     float newRot = nearestRightAngle(radians);
     if(intermediateYaw != newRot) {
         intermediateYaw = newRot;
         mOrientation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mFinalizedOrienation;
         onTransformChanged();
     }
-    intermediatePitch = 0;
-    intermediateRoll = 0;
 }
 void DesignerGameLayer::Plate::setIntermediateRoll(float radians) {
+    intermediatePitch = 0;
+    intermediateYaw = 0;
     float newRot = nearestRightAngle(radians);
     if(intermediateRoll != newRot) {
         intermediateRoll = newRot;
         mOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mFinalizedOrienation;
         onTransformChanged();
     }
-    intermediatePitch = 0;
-    intermediateYaw = 0;
 }
 void DesignerGameLayer::Plate::finalizeRotation() {
+    mFinalizedOrienation = mOrientation;
     
-    if(intermediatePitch != 0.f || intermediateYaw != 0.f || intermediateRoll == 0.f) {
-        if(intermediatePitch != 0.f) {
-            mFinalizedOrienation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mFinalizedOrienation;
-        } else if(intermediateYaw != 0.f) {
-            mFinalizedOrienation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mFinalizedOrienation;
-        } else if(intermediateRoll != 0.f) {
-            mFinalizedOrienation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mFinalizedOrienation;
-        }
-    }
-    
-    intermediatePitch = 0;
-    intermediateYaw = 0;
-    intermediateRoll = 0;
-    
-    onTransformChanged();
+    intermediatePitch = 0.f;
+    intermediateYaw = 0.f;
+    intermediateRoll = 0.f;
 }
 
 void DesignerGameLayer::selectPlate(Plate* plate) {
