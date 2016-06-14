@@ -36,6 +36,7 @@
 #include "GrassModel.hpp"
 #include "TessModel.hpp"
 #include "Vec3.hpp"
+#include "Quate.hpp"
 
 namespace pgg {
     
@@ -136,47 +137,62 @@ DesignerGameLayer::Manipulator::~Manipulator() {
 DesignerGameLayer::Plate::Plate()
 : mIntegralX(0)
 , mIntegralY(0)
-, mIntegralZ(0) { }
+, mIntegralZ(0)
+, mIntegralScaleX(1)
+, mIntegralScaleY(1)
+, mIntegralScaleZ(1)
+, intermediatePitch(0.f)
+, intermediateYaw(0.f)
+, intermediateRoll(0.f) { }
 DesignerGameLayer::Plate::~Plate() { }
 
 void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
+    float newRot = nearestRightAngle(radians);
+    if(intermediatePitch != newRot) {
+        intermediatePitch = newRot;
+        mOrientation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mFinalizedOrienation;
+        onTransformChanged();
+    }
     intermediateYaw = 0;
     intermediateRoll = 0;
-    
-    intermediatePitch = radians;
 }
 void DesignerGameLayer::Plate::setIntermediateYaw(float radians) {
+    float newRot = nearestRightAngle(radians);
+    if(intermediateYaw != newRot) {
+        intermediateYaw = newRot;
+        mOrientation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mFinalizedOrienation;
+        onTransformChanged();
+    }
     intermediatePitch = 0;
     intermediateRoll = 0;
-    
-    intermediateYaw = radians;
 }
 void DesignerGameLayer::Plate::setIntermediateRoll(float radians) {
+    float newRot = nearestRightAngle(radians);
+    if(intermediateRoll != newRot) {
+        intermediateRoll = newRot;
+        mOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mFinalizedOrienation;
+        onTransformChanged();
+    }
     intermediatePitch = 0;
     intermediateYaw = 0;
-    
-    intermediateRoll = radians;
 }
 void DesignerGameLayer::Plate::finalizeRotation() {
-    intermediatePitch = nearestRightAngle(intermediatePitch);
-    intermediateYaw = nearestRightAngle(intermediateYaw);
-    intermediateRoll = nearestRightAngle(intermediateRoll);
     
-    if(intermediatePitch != 0.f) {
-        mTargetOrientation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mTargetOrientation;
+    if(intermediatePitch != 0.f || intermediateYaw != 0.f || intermediateRoll == 0.f) {
+        if(intermediatePitch != 0.f) {
+            mFinalizedOrienation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mFinalizedOrienation;
+        } else if(intermediateYaw != 0.f) {
+            mFinalizedOrienation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mFinalizedOrienation;
+        } else if(intermediateRoll != 0.f) {
+            mFinalizedOrienation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mFinalizedOrienation;
+        }
     }
-    if(intermediateYaw != 0.f) {
-        mTargetOrientation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mTargetOrientation;
-    }
-    if(intermediateRoll != 0.f) {
-        mTargetOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mTargetOrientation;
-    }
-    
-    // std::cout << mTargetOrientation.x << "\t" << mTargetOrientation.y << "\t" << mTargetOrientation.z << "\t" << mTargetOrientation.w << std::endl;
     
     intermediatePitch = 0;
     intermediateYaw = 0;
     intermediateRoll = 0;
+    
+    onTransformChanged();
 }
 
 void DesignerGameLayer::selectPlate(Plate* plate) {
@@ -213,52 +229,43 @@ Vec3 DesignerGameLayer::Plate::getLocation() const {
     );
 }
 
-Vec3 DesignerGameLayer::Plate::getRenderLocation() const {
-    return mRenderLocation;
+void DesignerGameLayer::Plate::onTransformChanged() {
+    
+    std::cout << "Transform changed" << std::endl;
 }
 
 void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
-    mIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 12.f + 0.5);
-    mIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 12.f + 0.5);
-    mIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 12.f + 0.5);
+    
+    if(mIntegralX != newIntegralX || mIntegralY != newIntegralY || mIntegralZ != newIntegralZ) {
+        mIntegralX = newIntegralX;
+        mIntegralY = newIntegralY;
+        mIntegralZ = newIntegralZ;
+        mLocation = Vec3((float) mIntegralX, (float) mIntegralY, (float) mIntegralZ);
+        mLocation /= 12.f;
+        onTransformChanged();
+    }
 }
 
 void DesignerGameLayer::Plate::tick(float tpf) {
-    Vec3 target((float) mIntegralX, (float) mIntegralY, (float) mIntegralZ);
-    target /= 12.f;
     
-    // Exponential decay
-    if((target - mRenderLocation).mag() < tpf) {
-        mRenderLocation = target;
-    }
-    else {
-        mRenderLocation += (target - mRenderLocation) * tpf * 15.f;
+    if((mLocation - mRenderLocation).mag() < tpf) {
+        mRenderLocation = mLocation;
+    } else {
+        mRenderLocation += (mLocation - mRenderLocation) * tpf * 15.f;
     }
     
-    collisionObject->getWorldTransform().setOrigin(mRenderLocation);
-    collisionWorld->removeCollisionObject(collisionObject);
-    collisionWorld->addCollisionObject(collisionObject);
-    
-    float tempPitch = nearestRightAngle(intermediatePitch);
-    float tempYaw = nearestRightAngle(intermediateYaw);
-    float tempRoll = nearestRightAngle(intermediateRoll);
-    
-    glm::quat finalRenderOrientation = mTargetOrientation;
-    
-    if(tempPitch != 0.f) {
-        finalRenderOrientation = glm::angleAxis(tempPitch, glm::vec3(1.f, 0.f, 0.f)) * finalRenderOrientation;
-    }
-    if(tempYaw != 0.f) {
-        finalRenderOrientation = glm::angleAxis(tempYaw, glm::vec3(0.f, 1.f, 0.f)) * finalRenderOrientation;
-    }
-    if(tempRoll != 0.f) {
-        finalRenderOrientation = glm::angleAxis(tempRoll, glm::vec3(0.f, 0.f, 1.f)) * finalRenderOrientation;
-    }
-    
-    mRenderOrientation = glm::slerp(mRenderOrientation, finalRenderOrientation, tpf * 15.f);
+    mRenderOrientation = glm::slerp(mRenderOrientation, mOrientation, tpf * 15.f);
     
     mSceneNode->setLocalTranslation(mRenderLocation);
     mSceneNode->setLocalOrientation(mRenderOrientation);
+    
+    collisionObject->getWorldTransform().setOrigin(mRenderLocation);
+    collisionObject->getWorldTransform().setRotation(Quate(mRenderOrientation));
+    collisionWorld->removeCollisionObject(collisionObject);
+    collisionWorld->addCollisionObject(collisionObject);
 }
 
 DesignerGameLayer::DesignerGameLayer(uint32_t width, uint32_t height)
@@ -290,14 +297,6 @@ void DesignerGameLayer::newPlate() {
     
     // Set up edges
     {
-        /* o
-         *  1     2
-         * 
-         * 
-         *  4     3
-         * 
-         */
-        
         plate->mEdges.push_back(new StraightEdge(plate, Vec3(-0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, -0.5f)));
         plate->mEdges.push_back(new StraightEdge(plate, Vec3(0.5f, 0.f, -0.5f), Vec3(0.5f, 0.f, 0.5f)));
         plate->mEdges.push_back(new StraightEdge(plate, Vec3(0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, 0.5f)));
@@ -404,7 +403,7 @@ void DesignerGameLayer::updateManipulatorTransform() {
     
     glm::mat4 cameraMatrix = mRenderer->getCameraProjectionMatrix() * mRenderer->getCameraViewMatrix();
     
-    glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(mPlateSelected->getRenderLocation()), 1.f);
+    glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(mPlateSelected->mRenderLocation), 1.f);
     asdf /= asdf.w;
 
     float z = asdf.z * 2.f - 1.f;
@@ -419,7 +418,7 @@ void DesignerGameLayer::updateManipulatorTransform() {
     if(mManipulator.scale < 0.5f) {
         mManipulator.scale = 0.5f;
     }
-    mManipulator.location = mPlateSelected->getRenderLocation();
+    mManipulator.location = mPlateSelected->mRenderLocation;
 }
 
 void DesignerGameLayer::updateManipulatorPhysics() {
@@ -733,7 +732,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
             if(mPlateHovered) {
                 selectPlate(mPlateHovered);
                 mPlateFreeDragged = mPlateHovered;
-                mPlateDragPoint = hitPoint - mPlateHovered->getLocation();
+                mPlateDragPoint = hitPoint - mPlateHovered->mLocation;
                 
                 glm::vec4 asdf = cameraMatrix * glm::vec4(glm::vec3(hitPoint), 1.f);
                 asdf /= asdf.w;
@@ -747,7 +746,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 
                 // Axis
                 if(mManipulator.handleDragged < 3) {
-                    Vec3 worldA = mPlateSelected->getLocation();
+                    Vec3 worldA = mPlateSelected->mLocation;
                     Vec3 worldB = worldA;
                     
                     if(mManipulator.handleDragged == 0) {
@@ -771,7 +770,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 // Wheel
                 else {
                     
-                    Vec3 origin = mPlateSelected->getRenderLocation();
+                    Vec3 origin = mPlateSelected->mRenderLocation;
                     
                     if(mManipulator.handleDragged == 3) {
                         float divisor = mouseRayEnd.x - mouseRayStart.x;
@@ -824,7 +823,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 
                 // arrow
                 if(mManipulator.handleDragged < 3) {
-                    Vec3 worldA = mPlateSelected->getLocation();
+                    Vec3 worldA = mPlateSelected->mLocation;
                     Vec3 worldB = worldA;
                     
                     if(mManipulator.handleDragged == 0) {
@@ -854,7 +853,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                     Vec2 dragSpot;
                     bool isError = false;
                     
-                    Vec3 origin = mPlateSelected->getRenderLocation();
+                    Vec3 origin = mPlateSelected->mRenderLocation;
                     
                     if(mManipulator.handleDragged == 3) {
                         float divisor = mouseRayEnd.x - mouseRayStart.x;
@@ -906,10 +905,10 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     else {
         mPlateFreeDragged = nullptr;
         mMouseLeftDownLastFrame = false;
-        mManipulator.handleDragged = -1;
-        if(mPlateSelected) {
+        if(mManipulator.handleDragged >= 3) {
             mPlateSelected->finalizeRotation();
         }
+        mManipulator.handleDragged = -1;
     }
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
@@ -937,15 +936,15 @@ void DesignerGameLayer::renderSecondLayer() {
     
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    // glClear(GL_DEPTH_BUFFER_BIT);
     
     updateManipulatorTransform();
 
@@ -953,14 +952,38 @@ void DesignerGameLayer::renderSecondLayer() {
     float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
     glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
     
-    SceneNode* mUtilityNode = new SceneNode();
-    mUtilityNode->grab();
-    if(mPlateSelected) {
-        mPlateSelected->renderEdges(mRenderer, mSlimeShader);
+    /*
+    if(mPlates.size() > 0) {
+        
+        glDepthMask(GL_FALSE);
+        glDisable(GL_DEPTH_TEST);
+        
+        for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
+            Plate* thisPlate = *iter;
+            
+            thisPlate->renderEdges(mRenderer, mSlimeShader);
+            
+        }
+        
+        
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
     }
-    glClear(GL_DEPTH_BUFFER_BIT);
+    */
+    
+    if(mPlateSelected) {
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        mPlateSelected->renderEdges(mRenderer, mSlimeShader);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_DEPTH_TEST);
+    }
     
     if(mPlateSelected && !mPlateFreeDragged) {
+        SceneNode* mUtilityNode = new SceneNode();
+        mUtilityNode->grab();
         mUtilityNode->setLocalTranslation(mManipulator.location);
         mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
         mUtilityNode->rotateYaw(glm::radians(90.f));
@@ -1012,22 +1035,53 @@ void DesignerGameLayer::renderSecondLayer() {
             mManipulator.wheel->drawElements();
         }
         
-        
         glBindVertexArray(0);
         glUseProgram(0);
+        mUtilityNode->drop();
+        // glClear(GL_DEPTH_BUFFER_BIT);
     }
     
-    mUtilityNode->drop();
 }
 
 void DesignerGameLayer::Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
         const Edge* edge = *iter;
-        edge->render(mRenderer, mSlimeShader);
+        edge->renderVertices(mRenderer, mSlimeShader);
+    }
+    for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
+        const Edge* edge = *iter;
+        edge->renderLines(mRenderer, mSlimeShader);
     }
 }
 
-void DesignerGameLayer::StraightEdge::render(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+void DesignerGameLayer::StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+    
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
+    
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
+    
+    mUtilityNode->setLocalTranslation(mStartLoc);
+    
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mVertexBallVAO);
+    mSlimeShader.mVertexBall->drawElements();
+    
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mDummyPlate->drop();
+    
+}
+
+void DesignerGameLayer::StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     
     Vec3 disp = mEndLoc - mStartLoc;
     float length = disp.mag();
@@ -1035,7 +1089,7 @@ void DesignerGameLayer::StraightEdge::render(const DeferredRenderer* mRenderer, 
     
     SceneNode* mDummyPlate = new SceneNode();
     mDummyPlate->grab();
-    mDummyPlate->setLocalTranslation(mPlate->getRenderLocation());
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
     mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
     
     SceneNode* mUtilityNode = mDummyPlate->newChild();

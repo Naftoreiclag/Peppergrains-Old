@@ -65,8 +65,18 @@ public:
         
         Vec3 mLocation;
         
+        std::vector<Edge*> mUnions();
+        
         virtual bool canBindTo(Edge* other) const = 0;
-        virtual void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
+        virtual void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
+        virtual void renderVertices(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
+    };
+    
+    class EdgeUnion {
+        EdgeUnion();
+        virtual ~EdgeUnion();
+        
+        std::vector<Edge*> mConnectedEdges;
     };
     
     class StraightEdge : public Edge {
@@ -78,7 +88,8 @@ public:
         Vec3 mEndLoc;
         
         bool canBindTo(Edge* other) const;
-        void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
+        void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
+        void renderVertices(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
     };
     
     class Plate {
@@ -88,16 +99,24 @@ public:
         
         std::vector<Edge*> mEdges;
         
+        // Precise storage of location
         int32_t mIntegralX;
         int32_t mIntegralY;
         int32_t mIntegralZ;
         
+        // Precise storage of scale
         int32_t mIntegralScaleX;
         int32_t mIntegralScaleY;
         int32_t mIntegralScaleZ;
         
-        glm::quat mTargetOrientation;
+        // Imprecise storage of orienation
+        Vec3 mLocation;
+        glm::quat mOrientation;
         
+        
+        glm::quat mFinalizedOrienation;
+        
+        // Location and orientation as rendered
         Vec3 mRenderLocation;
         glm::quat mRenderOrientation;
         
@@ -108,8 +127,9 @@ public:
         btMotionState* motionState;
         
         Vec3 getLocation() const;
-        Vec3 getRenderLocation() const;
         void setLocation(Vec3 location, float snapSize);
+        
+        void onTransformChanged();
         
         float intermediatePitch;
         float intermediateYaw;
@@ -124,6 +144,8 @@ public:
         
         void tick(float tpf);
     };
+    
+    
     
 private:
     DeferredRenderer* mRenderer;
