@@ -98,6 +98,7 @@ void resolve() {
          * 1: yaw 
          * 2: roll 
          */
+         
         uint32_t rAxis = std::rand() % 3;
         glm::vec3 axis = glm::vec3(0.f, 0.f, 0.f);
         if(rAxis == 0) {
@@ -145,6 +146,8 @@ void resolve() {
     std::cout << possibleOrientations.size() << std::endl;
     
     for(std::vector<Orientation*>::iterator iter = possibleOrientations.begin(); iter != possibleOrientations.end(); ++ iter) {
+        float ep = 0.00001f;
+        
         Orientation* potato = *iter;
         
         for(uint8_t i = 0; i < 8; ++ i) {
@@ -155,12 +158,37 @@ void resolve() {
             << "\t"
             << (potato->x[i] ? "1" : "0")
             << (potato->y[i] ? "1" : "0")
-            << (potato->z[i] ? "1" : "0") << std::endl;
+            << (potato->z[i] ? "1" : "0");
+            
+            if(i % 2 == 1) {
+                std::cout << std::endl;
+            } else {
+                std::cout << "\t\t";
+            }
+        }
+        
+        {
+            glm::vec4 front(0.f, 0.f, 1.f, 1.f);
+            glm::mat4 rotMatr = glm::mat4_cast(*potato->inputQuaternions.begin());
+            
+            front = rotMatr * front;
+            
+            if(std::abs(front.x) < ep) {
+                front.x = 0.f;
+            }
+            if(std::abs(front.y) < ep) {
+                front.y = 0.f;
+            }
+            if(std::abs(front.z) < ep) {
+                front.z = 0.f;
+            }
+            
+            std::cout << front.x << "\t" << front.y << "\t" << front.z << std::endl;
+            
         }
         
         std::cout << potato->inputQuaternions.size() << std::endl;
         std::vector<glm::quat> uniqueQuats;
-        float ep = 0.00001f;
         
         for(std::vector<glm::quat>::iterator quiter = potato->inputQuaternions.begin(); quiter != potato->inputQuaternions.end(); ++ quiter) {
             glm::quat inputQuat = *quiter;
