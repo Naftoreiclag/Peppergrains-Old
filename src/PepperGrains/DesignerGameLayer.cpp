@@ -39,6 +39,28 @@
 
 namespace pgg {
     
+float nearestRightAngle(const float& radians) {
+    if(radians == 0.f) {
+        return 0.f;
+    }
+    
+    const float full = 6.2831f;
+    
+    float wrap = fmod(fmod(radians, full) + full, full);
+    
+    if(wrap < 0.7854f) {
+        return 0.0000f;
+    } else if(wrap < 2.3562f) {
+        return 1.5708f;
+    } else if(wrap < 3.9270f) {
+        return 3.1416f;
+    } else if(wrap < 5.4978f) {
+        return 4.7124f;
+    } else {
+        return 0.0000f;
+    }
+}
+    
 float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2) {
     Vec3 mouse = m2 - m1;
     Vec3 street = s2 - s1;
@@ -76,10 +98,48 @@ DesignerGameLayer::Manipulator::~Manipulator() {
 }
     
 DesignerGameLayer::Plate::Plate()
-: integralX(0)
-, integralY(0)
-, integralZ(0) { }
+: mIntegralX(0)
+, mIntegralY(0)
+, mIntegralZ(0) { }
 DesignerGameLayer::Plate::~Plate() { }
+        
+void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
+    intermediateYaw = 0;
+    intermediateRoll = 0;
+    
+    intermediatePitch = radians;
+}
+void DesignerGameLayer::Plate::setIntermediateYaw(float radians) {
+    intermediatePitch = 0;
+    intermediateRoll = 0;
+    
+    intermediateYaw = radians;
+}
+void DesignerGameLayer::Plate::setIntermediateRoll(float radians) {
+    intermediatePitch = 0;
+    intermediateYaw = 0;
+    
+    intermediateRoll = radians;
+}
+void DesignerGameLayer::Plate::finalizeRotation() {
+    intermediatePitch = nearestRightAngle(intermediatePitch);
+    intermediateYaw = nearestRightAngle(intermediateYaw);
+    intermediateRoll = nearestRightAngle(intermediateRoll);
+    
+    if(intermediatePitch != 0.f) {
+        mTargetOrientation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mTargetOrientation;
+    }
+    if(intermediateYaw != 0.f) {
+        mTargetOrientation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mTargetOrientation;
+    }
+    if(intermediateRoll != 0.f) {
+        mTargetOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mTargetOrientation;
+    }
+    
+    intermediatePitch = 0;
+    intermediateYaw = 0;
+    intermediateRoll = 0;
+}
 
 void DesignerGameLayer::selectPlate(Plate* plate) {
     mPlateSelected = plate;
@@ -109,39 +169,58 @@ DesignerGameLayer::CollisionWorldPackage::~CollisionWorldPackage() {
 
 Vec3 DesignerGameLayer::Plate::getLocation() const {
     return Vec3(
-        ((float) integralX) * (1.f / 60.f),
-        ((float) integralY) * (1.f / 60.f),
-        ((float) integralZ) * (1.f / 60.f)
+        ((float) mIntegralX) * (1.f / 60.f),
+        ((float) mIntegralY) * (1.f / 60.f),
+        ((float) mIntegralZ) * (1.f / 60.f)
     );
 }
 
 Vec3 DesignerGameLayer::Plate::getRenderLocation() const {
-    return renderLocation;
+    return mRenderLocation;
 }
 
 void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
-    integralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 60.f + 0.5);
-    integralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 60.f + 0.5);
-    integralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 60.f + 0.5);
+    mIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 60.f + 0.5);
+    mIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 60.f + 0.5);
+    mIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 60.f + 0.5);
 }
 
 void DesignerGameLayer::Plate::tick(float tpf) {
-    Vec3 target((float) integralX, (float) integralY, (float) integralZ);
+    Vec3 target((float) mIntegralX, (float) mIntegralY, (float) mIntegralZ);
     target /= 60.f;
     
     // Exponential decay
-    if((target - renderLocation).mag() < tpf) {
-        renderLocation = target;
+    if((target - mRenderLocation).mag() < tpf) {
+        mRenderLocation = target;
     }
     else {
-        renderLocation += (target - renderLocation) * tpf * 25.f;
+        mRenderLocation += (target - mRenderLocation) * tpf * 15.f;
     }
     
-    collisionObject->getWorldTransform().setOrigin(renderLocation);
+    collisionObject->getWorldTransform().setOrigin(mRenderLocation);
     collisionWorld->removeCollisionObject(collisionObject);
     collisionWorld->addCollisionObject(collisionObject);
     
-    sceneNode->setLocalTranslation(renderLocation);
+    float tempPitch = nearestRightAngle(intermediatePitch);
+    float tempYaw = nearestRightAngle(intermediateYaw);
+    float tempRoll = nearestRightAngle(intermediateRoll);
+    
+    glm::quat finalRenderOrientation = mTargetOrientation;
+    
+    if(tempPitch != 0.f) {
+        finalRenderOrientation = glm::angleAxis(tempPitch, glm::vec3(1.f, 0.f, 0.f)) * finalRenderOrientation;
+    }
+    if(tempYaw != 0.f) {
+        finalRenderOrientation = glm::angleAxis(tempYaw, glm::vec3(0.f, 1.f, 0.f)) * finalRenderOrientation;
+    }
+    if(tempRoll != 0.f) {
+        finalRenderOrientation = glm::angleAxis(tempRoll, glm::vec3(0.f, 0.f, 1.f)) * finalRenderOrientation;
+    }
+    
+    mRenderOrientation = glm::slerp(mRenderOrientation, finalRenderOrientation, tpf * 15.f);
+    
+    mSceneNode->setLocalTranslation(mRenderLocation);
+    mSceneNode->setLocalOrientation(mRenderOrientation);
 }
 
 DesignerGameLayer::DesignerGameLayer(uint32_t width, uint32_t height)
@@ -157,9 +236,9 @@ void DesignerGameLayer::newPlate() {
     
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    plate->sceneNode = mRootNode->newChild();
-    plate->sceneNode->grab();
-    plate->sceneNode->grabModel(resman->findModel("SquarePlate.model"));
+    plate->mSceneNode = mRootNode->newChild();
+    plate->mSceneNode->grab();
+    plate->mSceneNode->grabModel(resman->findModel("SquarePlate.model"));
     
     plate->collisionShape = new btBoxShape(Vec3(0.5f, 1.f / 60.f, 0.5f));
     plate->motionState = new btDefaultMotionState();
@@ -177,7 +256,7 @@ void DesignerGameLayer::newPlate() {
 void DesignerGameLayer::deletePlate(Plate* plate) {
     mPlates.erase(std::remove(mPlates.begin(), mPlates.end(), plate), mPlates.end());
     
-    plate->sceneNode->drop();
+    plate->mSceneNode->drop();
     
     delete plate->collisionObject;
     delete plate->motionState;
@@ -605,22 +684,22 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         if(divisor == 0.f) { mManipulator.handleDragged = -1; }
                         float fixedX = 1.65f * mManipulator.scale + origin.x;
                         float frac = (fixedX - mouseRayStart.x) / divisor;
-                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
-                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.y, origin.z);
+                        mManipulator.initialWheelDragVector = Vec2(mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                        mManipulator.initialWheelDragVector = mManipulator.initialWheelDragVector - Vec2(origin.y, origin.z);
                     } else if(mManipulator.handleDragged == 4) {
                         float divisor = mouseRayEnd.y - mouseRayStart.y;
                         if(divisor == 0.f) { mManipulator.handleDragged = -1; }
                         float fixedX = 1.65f * mManipulator.scale + origin.y;
                         float frac = (fixedX - mouseRayStart.y) / divisor;
-                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
-                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.x, origin.z);
+                        mManipulator.initialWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.z + (mouseRayEnd.z - mouseRayStart.z) * frac);
+                        mManipulator.initialWheelDragVector = mManipulator.initialWheelDragVector - Vec2(origin.x, origin.z);
                     } else {
                         float divisor = mouseRayEnd.z - mouseRayStart.z;
                         if(divisor == 0.f) { mManipulator.handleDragged = -1; }
                         float fixedX = 1.65f * mManipulator.scale + origin.z;
                         float frac = (fixedX - mouseRayStart.z) / divisor;
-                        mManipulator.previousWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac);
-                        mManipulator.previousWheelDragVector = mManipulator.previousWheelDragVector - Vec2(origin.x, origin.y);
+                        mManipulator.initialWheelDragVector = Vec2(mouseRayStart.x + (mouseRayEnd.x - mouseRayStart.x) * frac, mouseRayStart.y + (mouseRayEnd.y - mouseRayStart.y) * frac);
+                        mManipulator.initialWheelDragVector = mManipulator.initialWheelDragVector - Vec2(origin.x, origin.y);
                     }
                 }
             }
@@ -711,23 +790,19 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                     
                     if(!isError) {
                         float angle = std::atan2( 
-                        dragSpot.determinant(mManipulator.previousWheelDragVector),
-                        dragSpot.dot(mManipulator.previousWheelDragVector));
+                        dragSpot.determinant(mManipulator.initialWheelDragVector),
+                        dragSpot.dot(mManipulator.initialWheelDragVector));
                         
-                        
-                        mManipulator.previousWheelDragVector = dragSpot;
                         
                         if(mManipulator.handleDragged == 3) {
                             angle = -angle;
-                            mPlateSelected->sceneNode->rotatePitch(angle);
+                            mPlateSelected->setIntermediatePitch(angle);
                         } else if(mManipulator.handleDragged == 4) {
-                            mPlateSelected->sceneNode->rotateYaw(angle);
+                            mPlateSelected->setIntermediateYaw(angle);
                         } else {
                             angle = -angle;
-                            mPlateSelected->sceneNode->rotateRoll(angle);
+                            mPlateSelected->setIntermediateRoll(angle);
                         }
-                        
-                        std::cout << glm::degrees(angle) << std::endl;
                     }
                 }
             }
@@ -738,6 +813,9 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         mPlateFreeDragged = nullptr;
         mMouseLeftDownLastFrame = false;
         mManipulator.handleDragged = -1;
+        if(mPlateSelected) {
+            mPlateSelected->finalizeRotation();
+        }
     }
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {

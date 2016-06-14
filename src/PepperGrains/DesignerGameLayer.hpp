@@ -46,13 +46,16 @@ public:
         Plate();
         ~Plate();
         
-        int32_t integralX;
-        int32_t integralY;
-        int32_t integralZ;
+        int32_t mIntegralX;
+        int32_t mIntegralY;
+        int32_t mIntegralZ;
         
-        Vec3 renderLocation;
+        glm::quat mTargetOrientation;
         
-        SceneNode* sceneNode;
+        Vec3 mRenderLocation;
+        glm::quat mRenderOrientation;
+        
+        SceneNode* mSceneNode;
         btCollisionObject* collisionObject;
         btCollisionShape* collisionShape;
         btCollisionWorld* collisionWorld;
@@ -61,6 +64,15 @@ public:
         Vec3 getLocation() const;
         Vec3 getRenderLocation() const;
         void setLocation(Vec3 location, float snapSize);
+        
+        float intermediatePitch;
+        float intermediateYaw;
+        float intermediateRoll;
+        
+        void setIntermediatePitch(float radians);
+        void setIntermediateYaw(float radians);
+        void setIntermediateRoll(float radians);
+        void finalizeRotation();
         
         void tick(float tpf);
     };
@@ -107,7 +119,7 @@ private:
         float scale;
         
         float initialAxisDragFrac;
-        Vec2 previousWheelDragVector;
+        Vec2 initialWheelDragVector;
         
         int8_t handleHovered;
         int8_t handleDragged;
