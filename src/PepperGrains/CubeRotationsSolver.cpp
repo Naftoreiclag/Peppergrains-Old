@@ -55,9 +55,84 @@ void resolve() {
     std::vector<Orientation*> possibleOrientations;
 
 
-    glm::quat rotation = glm::quat();
     
-    for(uint32_t i = 0; i < 99999; ++ i) {
+    glm::quat rotation = glm::quat();
+    for(uint32_t i = 0; i < 9999; ++ i) {
+        
+        // Perform the "logical" rotations first
+        if(i < 24) {
+            rotation = glm::quat();
+            
+            uint32_t rollType = i % 4;
+            uint32_t secondaryType = (i - rollType) / 4;
+            
+            if(rollType == 0) {
+                rotation = glm::angleAxis(glm::radians(0.f), glm::vec3(0.f, 0.f, 1.f)) * rotation;
+            } else if(rollType == 1) {
+                rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.f, 0.f, 1.f)) * rotation;
+            } else if(rollType == 2) {
+                rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f)) * rotation;
+            } else {
+                rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.f, 0.f, 1.f)) * rotation;
+            }
+            
+            if(secondaryType == 0) {
+                // No other motion
+            } else if(secondaryType == 1) {
+                // Pitch
+                rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f)) * rotation;
+            } else if(secondaryType == 2) {
+                // Pitch
+                rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(1.f, 0.f, 0.f)) * rotation;
+            } else if(secondaryType == 3) {
+                rotation = glm::angleAxis(glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f)) * rotation;
+            } else if(secondaryType == 4) {
+                rotation = glm::angleAxis(glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f)) * rotation;
+            } else if(secondaryType == 5) {
+                rotation = glm::angleAxis(glm::radians(270.f), glm::vec3(0.f, 1.f, 0.f)) * rotation;
+            }
+        }
+        else {
+            uint32_t rAxis = std::rand() % 3;
+            glm::vec3 axis = glm::vec3(0.f, 0.f, 0.f);
+            if(rAxis == 0) {
+                axis.x = 1.f;
+            } else if(rAxis == 1) {
+                axis.y = 1.f;
+            } else {
+                axis.z = 1.f;
+            }
+
+            uint32_t rAngle = std::rand() % 9;
+
+            float angle;
+            if(rAngle == 0) {
+                angle = -360.f;
+            } else if(rAngle == 1) {
+                angle = -270.f;
+            } else if(rAngle == 2) {
+                angle = -180.f;
+            } else if(rAngle == 3) {
+                angle = -90.f;
+            } else if(rAngle == 4) {
+                angle = 0.f;
+            } else if(rAngle == 5) {
+                angle = 90.f;
+            } else if(rAngle == 6) {
+                angle = 180.f;
+            } else if(rAngle == 7) {
+                angle = 270.f;
+            } else {
+                angle = 360.f;
+            }
+            
+            rotation = glm::angleAxis(glm::radians(angle), axis) * rotation;
+            
+            uint32_t reset = std::rand() % 100;
+            if(reset == 0) {
+                rotation = glm::quat();
+            }
+        }
         
         glm::mat4 rotMatr = glm::mat4_cast(rotation);
         
@@ -92,54 +167,6 @@ void resolve() {
         }
         
         current->inputQuaternions.push_back(rotation);
-        
-        /*
-         * 0: pitch 
-         * 1: yaw 
-         * 2: roll 
-         */
-         
-        uint32_t rAxis = std::rand() % 3;
-        glm::vec3 axis = glm::vec3(0.f, 0.f, 0.f);
-        if(rAxis == 0) {
-            axis.x = 1.f;
-        } else if(rAxis == 1) {
-            axis.y = 1.f;
-        } else {
-            axis.z = 1.f;
-        }
-
-        uint32_t rAngle = std::rand() % 9;
-
-        float angle;
-        if(rAngle == 0) {
-            angle = -360.f;
-        } else if(rAngle == 1) {
-            angle = -270.f;
-        } else if(rAngle == 2) {
-            angle = -180.f;
-        } else if(rAngle == 3) {
-            angle = -90.f;
-        } else if(rAngle == 4) {
-            angle = 0.f;
-        } else if(rAngle == 5) {
-            angle = 90.f;
-        } else if(rAngle == 6) {
-            angle = 180.f;
-        } else if(rAngle == 7) {
-            angle = 270.f;
-        } else {
-            angle = 360.f;
-        }
-        
-        rotation = glm::angleAxis(glm::radians(angle), axis) * rotation;
-        
-        uint32_t reset = std::rand() % 100;
-        if(reset == 0) {
-            rotation = glm::quat();
-        }
-        
-        
         
     }
     
