@@ -283,6 +283,8 @@ private:
     
     int32_t mMouseX;
     int32_t mMouseY;
+    int32_t mMouseDX;
+    int32_t mMouseDY;
 public:
     InputState();
     ~InputState();
@@ -290,11 +292,14 @@ public:
     bool isPressed(Input::Scancode button) const;
     int32_t getMouseX() const;
     int32_t getMouseY() const;
+    int32_t getMouseDX() const;
+    int32_t getMouseDY() const;
     
     void updateKeysFromSDL();
     void updateMouseFromSDL();
     
     void setState(Input::Scancode button, bool pressed);
+    void setMouseDelta(int32_t dx, int32_t dy);
 };
 
 }

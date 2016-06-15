@@ -261,7 +261,7 @@ private:
     
     bool mDebugWireframe;
     
-    void newPlate();
+    void newPlate(Vec3 location);
     void deletePlate(Plate* plate);
     
     void selectPlate(Plate* plate);

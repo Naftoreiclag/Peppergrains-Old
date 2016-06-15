@@ -302,6 +302,16 @@ int32_t InputState::getMouseX() const {
 int32_t InputState::getMouseY() const {
     return mMouseY;
 }
+int32_t InputState::getMouseDX() const {
+    return mMouseDX;
+}
+int32_t InputState::getMouseDY() const {
+    return mMouseDY;
+}
+void InputState::setMouseDelta(int32_t dx, int32_t dy) {
+    mMouseDX = dx;
+    mMouseDY = dy;
+}
 
 void InputState::updateKeysFromSDL() {
     int sdlKeystateSize;

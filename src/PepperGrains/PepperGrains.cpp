@@ -130,6 +130,8 @@ int PepperGrains::run(int argc, char* argv[]) {
     InputState inputState;
     
     while(mMainLoopRunning) {
+        inputState.setMouseDelta(0, 0);
+        
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -149,6 +151,8 @@ int PepperGrains::run(int argc, char* argv[]) {
                     break;
                 }
                 case SDL_MOUSEMOTION: {
+                    MouseMoveEvent mme(event.motion);
+                    inputState.setMouseDelta(mme.dx, mme.dy);
                     mGameLayerMachine->onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }

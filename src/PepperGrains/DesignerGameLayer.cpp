@@ -152,6 +152,7 @@ bool linesIntersect(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
     
     // Check if the magnitude of the cross product between these two edges is close to zero
     {
+        // This point a point on the other line which is not too close from the start point
         Vec3 otherPoint;
         
         // Make sure this other point is far away enough to get meaningful data from the cross product
@@ -223,88 +224,6 @@ bool DesignerGameLayer::StraightEdge::canBindTo(Edge* otherEdge) const {
     StraightEdge* other = (StraightEdge*) otherEdge;
     
     return linesIntersect(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
-    
-    /*
-    
-    Vec3 myDisplacement = mEndLoc - mStartLoc;
-    float myMagnitude = myDisplacement.mag();
-    Vec3 myDirection = myDisplacement / myMagnitude;
-    Vec3 otherDirection = other->mEndLoc - other->mStartLoc;
-    otherDirection.normalize();
-    
-    // Cosine of the angle between the directions of both edges
-    float angleCos = myDirection.dot(otherDirection);
-    
-    // Check if lines could be parallel enough (both directions are either both nearly the same or are 180 degrees apart)
-    if(std::abs(1.f - angleCos) < 0.0001f || std::abs(-1.f - angleCos) < 0.0001f) {
-    }
-    else {
-        // Not at all parallellish
-        return false;
-    }
-    
-    // Check if the magnitude of the cross product between these two edges is close to zero
-    {
-        Vec3 otherPoint;
-        
-        // Make sure this other point is far away enough to get meaningful data from the cross product
-        if((other->mWorldStartLoc - mWorldStartLoc).magSq() < 0.0001f) { // Using magSq to avoid division by zero
-            otherPoint = mWorldEndLoc;
-        } else {
-            otherPoint = mWorldStartLoc;
-        }
-        
-        float crossProdMagSq = ((otherPoint - mWorldStartLoc).cross(myDisplacement)).magSq();
-        
-        if(crossProdMagSq > 0.0001f) {
-            return false;
-        }
-    }
-    
-    float fracS = (other->mStartLoc - mStartLoc).dot(myDirection) / myMagnitude;
-    float fracE = (other->mEndLoc - mStartLoc).dot(myDirection) / myMagnitude;
-    
-    /* Valid cases:
-     * 
-     * Caught by the first check:
-     *       A---------A
-     *    B-----B
-     *       A---------A
-     *       B----B
-     *       A---------A
-     *          B---B
-     *       A---------A
-     *             B---B
-     *       A---------A
-     *               B-----B
-     * Caught by the second check:
-     *       A---------A
-     *       B---------B
-     * 
-     * Caught by the third check:
-     *       A---------A
-     *    B---------------B
-     *
-     
-    bool onEdgeS = abs(fracS) < 0.0001f || abs(1 - fracS) < 0.0001f;
-    bool insideS = fracS > 0.f && fracS < 1.f && !onEdgeS;
-    bool outsideS = !insideS && !onEdgeS;
-    
-    bool onEdgeE = abs(fracE) < 0.0001f || abs(1 - fracE) < 0.0001f;
-    bool insideE = fracE > 0.f && fracE < 1.f && !onEdgeE;
-    bool outsideE = !insideE && !onEdgeE;
-    
-    // If one of the points are within this edge, then the two connect
-    if(insideE || insideS) { return true; }
-    
-    // If both points line up with this edge exactly, then the two connect
-    if(onEdgeS && onEdgeE) { return true; }
-    
-    // If both points are outside, then two connect only if the points are on opposite sides
-    if(outsideS && outsideE && ((fracS < 0.f && fracE > 1.f) || (fracE < 0.f && fracS > 1.f))) { return true; }
-    
-    return false;
-     */
 }
 
 DesignerGameLayer::Manipulator::Manipulator()
@@ -414,33 +333,32 @@ void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
     if(!needRebuildUnionGraph) {
         return;
     }
-    
-    std::cout << "aaa" << std::endl;
 
-    for(std::vector<Plate*>::iterator iter = plates.begin(); iter != plates.end(); ++ iter) {
-        Plate* other = *iter;
+    
+    for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
+        Plate* other = *otherPlateIterator;
         
+        // Skip self
         if(other == this) {
             continue;
         }
         
-        std::vector<Edge*>& otherEdges = other->mEdges;
-        
-        for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
-            Edge* myEdge = *iter2;
+        for(std::vector<Edge*>::iterator myEdgesIterator = mEdges.begin(); myEdgesIterator != mEdges.end(); ++ myEdgesIterator) {
+            Edge* myEdge = *myEdgesIterator;
 
             // Disconnect from all edges
-            for(std::vector<Edge*>::iterator iter3 = myEdge->mUnions.begin(); iter3 != myEdge->mUnions.end(); ++ iter3) {
-                Edge* otherEdge = *iter3;
+            for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
+                Edge* otherEdge = *myEdgesUnionsIterator;
                 
                 otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
             }
             myEdge->mUnions.clear();
 
             // Connect (or reconnect) to edges that are valid
-            for(std::vector<Edge*>::iterator iter3 = otherEdges.begin(); iter3 != otherEdges.end(); ++ iter3) {
-                Edge* otherEdge = *iter3;
+            for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
+                Edge* otherEdge = *otherPlateEdgesIterator;
                 
+                // Skip self
                 if(myEdge == otherEdge) {
                     continue;
                 }
@@ -499,7 +417,7 @@ DesignerGameLayer::DesignerGameLayer(uint32_t width, uint32_t height)
 DesignerGameLayer::~DesignerGameLayer() {
 }
 
-void DesignerGameLayer::newPlate() {
+void DesignerGameLayer::newPlate(Vec3 location) {
     Plate* plate = new Plate();
     
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -527,6 +445,8 @@ void DesignerGameLayer::newPlate() {
     }
     
     mPlates.push_back(plate);
+    
+    plate->setLocation(location, 1.f / 12.f);
 }
 
 void DesignerGameLayer::deletePlate(Plate* plate) {
@@ -608,15 +528,15 @@ void DesignerGameLayer::onBegin() {
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
-    newPlate();
+    newPlate(Vec3(1.f, 1.f, 1.f));
+    newPlate(Vec3(1.f, 2.f, 1.f));
+    newPlate(Vec3(1.f, 3.f, 1.f));
+    newPlate(Vec3(1.f, 4.f, 1.f));
+    newPlate(Vec3(1.f, 5.f, 1.f));
+    newPlate(Vec3(1.f, 6.f, 1.f));
+    newPlate(Vec3(1.f, 7.f, 1.f));
+    newPlate(Vec3(1.f, 8.f, 1.f));
+    newPlate(Vec3(1.f, 9.f, 1.f));
 }
 
 void DesignerGameLayer::updateManipulatorTransform() {
@@ -833,18 +753,18 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         mCameraSpeed = mCameraSpeedMin;
     }
     
-    float sensitivity = 1.0;
+    float arrowKeyPanSpeed = 1.0;
     if(inputStates->isPressed(Input::Scancode::K_ARROW_UP)) {
-        mCamPitchNode->rotatePitch(tpf * sensitivity);
+        mCamPitchNode->rotatePitch(tpf * arrowKeyPanSpeed);
     }
     if(inputStates->isPressed(Input::Scancode::K_ARROW_DOWN)) {
-        mCamPitchNode->rotatePitch(-tpf * sensitivity);
+        mCamPitchNode->rotatePitch(-tpf * arrowKeyPanSpeed);
     }
     if(inputStates->isPressed(Input::Scancode::K_ARROW_LEFT)) {
-        mCamYawNode->rotateYaw(tpf * sensitivity);
+        mCamYawNode->rotateYaw(tpf * arrowKeyPanSpeed);
     }
     if(inputStates->isPressed(Input::Scancode::K_ARROW_RIGHT)) {
-        mCamYawNode->rotateYaw(-tpf * sensitivity);
+        mCamYawNode->rotateYaw(-tpf * arrowKeyPanSpeed);
     }
     
 
@@ -946,6 +866,12 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                 }
             }
         }
+    }
+    
+    float mouseLookSensitivity = 0.002;
+    if(inputStates->isPressed(Input::Scancode::M_RIGHT)) {
+        mCamPitchNode->rotatePitch(((float) inputStates->getMouseDY()) * mouseLookSensitivity);
+        mCamYawNode->rotateYaw(((float) inputStates->getMouseDX()) * mouseLookSensitivity);
     }
     
     if(inputStates->isPressed(Input::Scancode::M_LEFT)) {
@@ -1178,7 +1104,6 @@ void DesignerGameLayer::renderSecondLayer() {
     float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
     glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
     
-    /*
     if(mPlates.size() > 0) {
         
         glDepthMask(GL_FALSE);
@@ -1190,13 +1115,12 @@ void DesignerGameLayer::renderSecondLayer() {
             thisPlate->renderEdges(mRenderer, mSlimeShader);
             
         }
-        
-        
-        glDepthMask(GL_TRUE);
-        glEnable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_DEPTH_TEST);
     }
-    */
     
+    /*
     if(mPlateSelected) {
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
@@ -1206,6 +1130,7 @@ void DesignerGameLayer::renderSecondLayer() {
         glDepthMask(GL_TRUE);
         glDisable(GL_DEPTH_TEST);
     }
+    */
     
     if(mPlateSelected && !mPlateFreeDragged) {
         SceneNode* mUtilityNode = new SceneNode();
@@ -1327,7 +1252,13 @@ void DesignerGameLayer::StraightEdge::renderLines(const DeferredRenderer* mRende
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+    
+    if(mUnions.size() > 0) {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
+    } else {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+    }
+    
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
     mSlimeShader.mStraightEdge->drawElements();
