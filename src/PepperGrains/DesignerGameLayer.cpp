@@ -335,24 +335,23 @@ void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
     }
 
     
-    for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
-        Plate* other = *otherPlateIterator;
-        
-        // Skip self
-        if(other == this) {
-            continue;
-        }
-        
-        for(std::vector<Edge*>::iterator myEdgesIterator = mEdges.begin(); myEdgesIterator != mEdges.end(); ++ myEdgesIterator) {
-            Edge* myEdge = *myEdgesIterator;
+    for(std::vector<Edge*>::iterator myEdgesIterator = mEdges.begin(); myEdgesIterator != mEdges.end(); ++ myEdgesIterator) {
+        Edge* myEdge = *myEdgesIterator;
 
-            // Disconnect from all edges
-            for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
-                Edge* otherEdge = *myEdgesUnionsIterator;
-                
-                otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
+        // Disconnect from all edges
+        for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
+            Edge* otherEdge = *myEdgesUnionsIterator;
+            
+            otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
+        }
+        myEdge->mUnions.clear();
+        
+        for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
+            Plate* other = *otherPlateIterator;
+            // Skip self
+            if(other == this) {
+                continue;
             }
-            myEdge->mUnions.clear();
 
             // Connect (or reconnect) to edges that are valid
             for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
@@ -366,7 +365,6 @@ void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
                 if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
                     myEdge->mUnions.push_back(otherEdge);
                     otherEdge->mUnions.push_back(myEdge);
-                    std::cout << "Connected" << std::endl;
                 }
             }
         }
