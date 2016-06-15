@@ -103,6 +103,8 @@ private:
         glm::mat4 viewMatrix;
         
         SunLightModel* sunModel;
+        
+        glm::vec3 color;
     };
     Sun mSky;
     
@@ -120,6 +122,8 @@ public:
     
     void setCameraProjection(float fov, float nearDepth, float farDepth);
     void setCameraViewMatrix(const glm::mat4& camViewMatrix);
+    
+    void setSkyColor(const glm::vec3& skyColor);
     
     const glm::mat4& getCameraProjectionMatrix() const;
     const glm::mat4& getCameraViewMatrix() const;

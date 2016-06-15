@@ -341,27 +341,17 @@ void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
         // Disconnect from all edges
         for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
             Edge* otherEdge = *myEdgesUnionsIterator;
-            
             otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
         }
         myEdge->mUnions.clear();
         
+        // Connect (or reconnect) to edges that are valid
         for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
             Plate* other = *otherPlateIterator;
-            // Skip self
-            if(other == this) {
-                continue;
-            }
-
-            // Connect (or reconnect) to edges that are valid
+            if(other == this) { continue; } // Skip self
             for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
                 Edge* otherEdge = *otherPlateEdgesIterator;
-                
-                // Skip self
-                if(myEdge == otherEdge) {
-                    continue;
-                }
-                
+                assert(myEdge != otherEdge && "Two plates share the same edge!");
                 if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
                     myEdge->mUnions.push_back(otherEdge);
                     otherEdge->mUnions.push_back(myEdge);
@@ -787,6 +777,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     if(inputStates->isPressed(Input::Scancode::K_6)) {
         mDebugWireframe = false;
     }
+    mShowAllEdges = inputStates->isPressed(Input::Scancode::K_H);
     
     if(inputStates->isPressed(Input::Scancode::K_Q)) {
         mRenderer->setSunDirection(glm::vec3(mCamRollNode->calcWorldTransform() * glm::vec4(0.f, 0.f, -1.f, 0.f)));
@@ -1094,31 +1085,24 @@ void DesignerGameLayer::renderSecondLayer() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    // glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
     
     updateManipulatorTransform();
 
-    float alphaDefault = 0.3f;
-    float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
-    glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
     
-    if(mPlates.size() > 0) {
-        
+    if(mPlates.size() > 0 && mShowAllEdges) {
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
-        
         for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
             Plate* thisPlate = *iter;
-            
+            if(thisPlate == mPlateSelected) { continue; }
             thisPlate->renderEdges(mRenderer, mSlimeShader);
-            
         }
         glClear(GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
     }
     
-    /*
     if(mPlateSelected) {
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
@@ -1128,9 +1112,12 @@ void DesignerGameLayer::renderSecondLayer() {
         glDepthMask(GL_TRUE);
         glDisable(GL_DEPTH_TEST);
     }
-    */
     
     if(mPlateSelected && !mPlateFreeDragged) {
+        float alphaDefault = 0.3f;
+        float alphaHover = cyclicSinusodal * 0.5f + 0.3f;
+        glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+        
         SceneNode* mUtilityNode = new SceneNode();
         mUtilityNode->grab();
         mUtilityNode->setLocalTranslation(mManipulator.location);
@@ -1187,7 +1174,7 @@ void DesignerGameLayer::renderSecondLayer() {
         glBindVertexArray(0);
         glUseProgram(0);
         mUtilityNode->drop();
-        // glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
     }
     
 }
@@ -1253,8 +1240,10 @@ void DesignerGameLayer::StraightEdge::renderLines(const DeferredRenderer* mRende
     
     if(mUnions.size() > 0) {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
+        glBlendColor(0.4f, 0.4f, 0.4f, 1.0f);
     } else {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+        glBlendColor(0.2f, 0.2f, 0.2f, 1.0f);
     }
     
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());

@@ -13,6 +13,8 @@
 
 #include "DeferredRenderer.hpp"
 
+#include <iostream>
+
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -457,7 +459,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         glUseProgram(mFillScreenShader.shaderProg->getHandle());
         
-        glUniform3fv(mFillScreenShader.colorHandle, 1, glm::value_ptr(glm::vec3(0.0, 2.0, 2.0)));
+        glUniform3fv(mFillScreenShader.colorHandle, 1, glm::value_ptr(mSky.color));
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -542,7 +544,13 @@ const glm::vec3& DeferredRenderer::getSunDirection() const {
 }
 void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
     mCamera.viewMat = camViewMatrix;
-    mCamera.position = glm::vec3(-mCamera.viewMat[3][0], -mCamera.viewMat[3][1], -mCamera.viewMat[3][2]);
+    glm::vec4 asdf(0.f, 0.f, 0.f, 1.f);
+    asdf = glm::inverse(camViewMatrix) * asdf;
+    mCamera.position = glm::vec3(asdf);
+}
+
+void DeferredRenderer::setSkyColor(const glm::vec3& skyColor) {
+    mSky.color = skyColor;
 }
 
 const glm::vec3& DeferredRenderer::getCameraLocation() const {

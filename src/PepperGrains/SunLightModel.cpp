@@ -58,6 +58,8 @@ void SunLightModel::SharedResources::load() {
                 mDirectionHandle = entry.handle;
             } else if(entry.name == "color") {
                 mColorHandle = entry.handle;
+            } else if(entry.name == "cameraLocation") {
+                mCameraLocHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
@@ -146,6 +148,7 @@ void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, c
     glUniform1fv(mNearPlaneHandle, 1, rendPass.cascadeBorders);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
+    glUniform3fv(mCameraLocHandle, 1, glm::value_ptr(rendPass.camPos));
     glUniform4fv(mCascadeFarsHandle, 1, glm::value_ptr(glm::vec4(
         rendPass.cascadeBorders[1], 
         rendPass.cascadeBorders[2], 

@@ -30,6 +30,7 @@ public:
         GLuint mDepthHandle;
         GLuint mSunDepthHandle[PGG_NUM_SUN_CASCADES];
         GLuint mDirectionHandle;
+        GLuint mCameraLocHandle;
         GLuint mColorHandle;
         GLuint mNearPlaneHandle;
         GLuint mCascadeFarsHandle;

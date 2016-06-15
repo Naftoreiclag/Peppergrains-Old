@@ -260,6 +260,7 @@ private:
     float oneSecondTimer;
     
     bool mDebugWireframe;
+    bool mShowAllEdges;
     
     void newPlate(Vec3 location);
     void deletePlate(Plate* plate);
