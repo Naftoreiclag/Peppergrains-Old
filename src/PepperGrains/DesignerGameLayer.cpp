@@ -86,8 +86,8 @@ float toNearestMultiple(const float& a, const float& b) {
     return std::floor((a / b) + 0.5) * b;
 }
 
-float cotangent(const float& a) {
-    return std::cos(a) / std::sin(a);
+float cotangent(const float& radians) {
+    return std::cos(radians) / std::sin(radians);
 }
 
 glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
@@ -103,8 +103,9 @@ glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upD
     return glm::angleAxis(std::acos(dotProd), glm::vec3(initialDirection.cross(targetDirection).normalized()));
 }
 
-DesignerGameLayer::Edge::Edge(Plate* plate)
-: mPlate(plate) {
+DesignerGameLayer::Edge::Edge(Type type, Plate* plate)
+: mType(type)
+, mPlate(plate) {
     
 }
 
@@ -113,7 +114,7 @@ DesignerGameLayer::Edge::~Edge() {
 }
 
 DesignerGameLayer::StraightEdge::StraightEdge(Plate* plate, const Vec3& start, const Vec3& end)
-: Edge(plate)
+: Edge(Edge::Type::STRAIGHT, plate)
 , mStartLoc(start)
 , mEndLoc(end) {
 }
@@ -121,9 +122,189 @@ DesignerGameLayer::StraightEdge::StraightEdge(Plate* plate, const Vec3& start, c
 DesignerGameLayer::StraightEdge::~StraightEdge() {
     
 }
+void DesignerGameLayer::StraightEdge::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
+    mWorldStartLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mStartLoc), 1.0));
+    mWorldEndLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mEndLoc), 1.0));
+    
+    mWorldStartLoc += location;
+    mWorldEndLoc += location;
+}
 
-bool DesignerGameLayer::StraightEdge::canBindTo(Edge* other) const {
+bool linesIntersect(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
+    
+    Vec3 myDisplacement = B - A;
+    float myMagnitude = myDisplacement.mag();
+    Vec3 myDirection = myDisplacement / myMagnitude;
+    
+    Vec3 otherDirection = D - C;
+    otherDirection.normalize();
+    
+    // Cosine of the angle between the directions of both edges
+    float angleCos = myDirection.dot(otherDirection);
+    
+    // Check if lines could be parallel enough (both directions are either both nearly the same or are 180 degrees apart)
+    if(std::abs(1.f - angleCos) < 0.0001f || std::abs(-1.f - angleCos) < 0.0001f) {
+    }
+    else {
+        // Not at all parallellish
+        return false;
+    }
+    
+    // Check if the magnitude of the cross product between these two edges is close to zero
+    {
+        Vec3 otherPoint;
+        
+        // Make sure this other point is far away enough to get meaningful data from the cross product
+        if((C - A).magSq() < 0.0001f) { // Using magSq to avoid division by zero
+            otherPoint = D;
+        } else {
+            otherPoint = C;
+        }
+        
+        float crossProdMagSq = ((otherPoint - A).cross(myDisplacement)).magSq();
+        
+        if(crossProdMagSq > 0.0001f) {
+            return false;
+        }
+    }
+    
+    float fracS = (C - A).dot(myDirection) / myMagnitude;
+    float fracE = (D - A).dot(myDirection) / myMagnitude;
+    
+    /* Valid cases:
+     * 
+     * Caught by the first check:
+     *       A---------A
+     *    B-----B
+     *       A---------A
+     *       B----B
+     *       A---------A
+     *          B---B
+     *       A---------A
+     *             B---B
+     *       A---------A
+     *               B-----B
+     * Caught by the second check:
+     *       A---------A
+     *       B---------B
+     * 
+     * Caught by the third check:
+     *       A---------A
+     *    B---------------B
+     */
+     
+    bool onEdgeS = abs(fracS) < 0.0001f || abs(1 - fracS) < 0.0001f;
+    bool insideS = fracS > 0.f && fracS < 1.f && !onEdgeS;
+    bool outsideS = !insideS && !onEdgeS;
+    
+    bool onEdgeE = abs(fracE) < 0.0001f || abs(1 - fracE) < 0.0001f;
+    bool insideE = fracE > 0.f && fracE < 1.f && !onEdgeE;
+    bool outsideE = !insideE && !onEdgeE;
+    
+    // If one of the points are within this edge, then the two connect
+    if(insideE || insideS) { return true; }
+    
+    // If both points line up with this edge exactly, then the two connect
+    if(onEdgeS && onEdgeE) { return true; }
+    
+    // If both points are outside, then two connect only if the points are on opposite sides
+    if(outsideS && outsideE && ((fracS < 0.f && fracE > 1.f) || (fracE < 0.f && fracS > 1.f))) { return true; }
+    
     return false;
+    
+}
+
+bool DesignerGameLayer::StraightEdge::canBindTo(Edge* otherEdge) const {
+    
+    if(otherEdge->mType != Edge::Type::STRAIGHT) {
+        return false;
+    }
+    
+    StraightEdge* other = (StraightEdge*) otherEdge;
+    
+    return linesIntersect(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
+    
+    /*
+    
+    Vec3 myDisplacement = mEndLoc - mStartLoc;
+    float myMagnitude = myDisplacement.mag();
+    Vec3 myDirection = myDisplacement / myMagnitude;
+    Vec3 otherDirection = other->mEndLoc - other->mStartLoc;
+    otherDirection.normalize();
+    
+    // Cosine of the angle between the directions of both edges
+    float angleCos = myDirection.dot(otherDirection);
+    
+    // Check if lines could be parallel enough (both directions are either both nearly the same or are 180 degrees apart)
+    if(std::abs(1.f - angleCos) < 0.0001f || std::abs(-1.f - angleCos) < 0.0001f) {
+    }
+    else {
+        // Not at all parallellish
+        return false;
+    }
+    
+    // Check if the magnitude of the cross product between these two edges is close to zero
+    {
+        Vec3 otherPoint;
+        
+        // Make sure this other point is far away enough to get meaningful data from the cross product
+        if((other->mWorldStartLoc - mWorldStartLoc).magSq() < 0.0001f) { // Using magSq to avoid division by zero
+            otherPoint = mWorldEndLoc;
+        } else {
+            otherPoint = mWorldStartLoc;
+        }
+        
+        float crossProdMagSq = ((otherPoint - mWorldStartLoc).cross(myDisplacement)).magSq();
+        
+        if(crossProdMagSq > 0.0001f) {
+            return false;
+        }
+    }
+    
+    float fracS = (other->mStartLoc - mStartLoc).dot(myDirection) / myMagnitude;
+    float fracE = (other->mEndLoc - mStartLoc).dot(myDirection) / myMagnitude;
+    
+    /* Valid cases:
+     * 
+     * Caught by the first check:
+     *       A---------A
+     *    B-----B
+     *       A---------A
+     *       B----B
+     *       A---------A
+     *          B---B
+     *       A---------A
+     *             B---B
+     *       A---------A
+     *               B-----B
+     * Caught by the second check:
+     *       A---------A
+     *       B---------B
+     * 
+     * Caught by the third check:
+     *       A---------A
+     *    B---------------B
+     *
+     
+    bool onEdgeS = abs(fracS) < 0.0001f || abs(1 - fracS) < 0.0001f;
+    bool insideS = fracS > 0.f && fracS < 1.f && !onEdgeS;
+    bool outsideS = !insideS && !onEdgeS;
+    
+    bool onEdgeE = abs(fracE) < 0.0001f || abs(1 - fracE) < 0.0001f;
+    bool insideE = fracE > 0.f && fracE < 1.f && !onEdgeE;
+    bool outsideE = !insideE && !onEdgeE;
+    
+    // If one of the points are within this edge, then the two connect
+    if(insideE || insideS) { return true; }
+    
+    // If both points line up with this edge exactly, then the two connect
+    if(onEdgeS && onEdgeE) { return true; }
+    
+    // If both points are outside, then two connect only if the points are on opposite sides
+    if(outsideS && outsideE && ((fracS < 0.f && fracE > 1.f) || (fracE < 0.f && fracS > 1.f))) { return true; }
+    
+    return false;
+     */
 }
 
 DesignerGameLayer::Manipulator::Manipulator()
@@ -143,7 +324,8 @@ DesignerGameLayer::Plate::Plate()
 , mIntegralScaleZ(1)
 , intermediatePitch(0.f)
 , intermediateYaw(0.f)
-, intermediateRoll(0.f) { }
+, intermediateRoll(0.f)
+, needRebuildUnionGraph(false) { }
 DesignerGameLayer::Plate::~Plate() { }
 
 void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
@@ -219,8 +401,60 @@ Vec3 DesignerGameLayer::Plate::getLocation() const {
 }
 
 void DesignerGameLayer::Plate::onTransformChanged() {
+    needRebuildUnionGraph = true;
     
-    std::cout << "Transform changed" << std::endl;
+    for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
+        Edge* myEdge = *iter2;
+        
+        myEdge->onPlateChangeTransform(mLocation, mOrientation);
+    }
+}
+
+void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
+    if(!needRebuildUnionGraph) {
+        return;
+    }
+    
+    std::cout << "aaa" << std::endl;
+
+    for(std::vector<Plate*>::iterator iter = plates.begin(); iter != plates.end(); ++ iter) {
+        Plate* other = *iter;
+        
+        if(other == this) {
+            continue;
+        }
+        
+        std::vector<Edge*>& otherEdges = other->mEdges;
+        
+        for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
+            Edge* myEdge = *iter2;
+
+            // Disconnect from all edges
+            for(std::vector<Edge*>::iterator iter3 = myEdge->mUnions.begin(); iter3 != myEdge->mUnions.end(); ++ iter3) {
+                Edge* otherEdge = *iter3;
+                
+                otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
+            }
+            myEdge->mUnions.clear();
+
+            // Connect (or reconnect) to edges that are valid
+            for(std::vector<Edge*>::iterator iter3 = otherEdges.begin(); iter3 != otherEdges.end(); ++ iter3) {
+                Edge* otherEdge = *iter3;
+                
+                if(myEdge == otherEdge) {
+                    continue;
+                }
+                
+                if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
+                    myEdge->mUnions.push_back(otherEdge);
+                    otherEdge->mUnions.push_back(myEdge);
+                    std::cout << "Connected" << std::endl;
+                }
+            }
+        }
+    }
+    
+    needRebuildUnionGraph = false;
 }
 
 void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
@@ -902,8 +1136,11 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
         Plate* targetLoc = *iter;
-        
         targetLoc->tick(tpf);
+    }
+    for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
+        Plate* targetLoc = *iter;
+        targetLoc->rebuildUnionGraph(mPlates);
     }
     
     mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);

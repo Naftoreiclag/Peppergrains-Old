@@ -58,25 +58,26 @@ public:
     class Plate;
     class Edge {
     public:
-        Edge(Plate* plate);
+        enum Type {
+            STRAIGHT
+        };
+        
+        Edge(Type type, Plate* plate);
         virtual ~Edge();
+        
+        const Type mType;
         
         Plate* mPlate;
         
         Vec3 mLocation;
         
-        std::vector<Edge*> mUnions();
+        std::vector<Edge*> mUnions;
         
         virtual bool canBindTo(Edge* other) const = 0;
         virtual void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
         virtual void renderVertices(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
-    };
-    
-    class EdgeUnion {
-        EdgeUnion();
-        virtual ~EdgeUnion();
         
-        std::vector<Edge*> mConnectedEdges;
+        virtual void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) = 0;
     };
     
     class StraightEdge : public Edge {
@@ -87,9 +88,14 @@ public:
         Vec3 mStartLoc;
         Vec3 mEndLoc;
         
+        Vec3 mWorldStartLoc;
+        Vec3 mWorldEndLoc;
+        
         bool canBindTo(Edge* other) const;
         void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
         void renderVertices(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
+        
+        void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation);
     };
     
     class Plate {
@@ -130,6 +136,8 @@ public:
         void setLocation(Vec3 location, float snapSize);
         
         void onTransformChanged();
+        bool needRebuildUnionGraph;
+        void rebuildUnionGraph(std::vector<Plate*>& plates);
         
         float intermediatePitch;
         float intermediateYaw;
