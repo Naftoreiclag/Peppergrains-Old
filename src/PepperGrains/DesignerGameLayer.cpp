@@ -464,6 +464,8 @@ void DesignerGameLayer::onBegin() {
     mRenderer = new DeferredRenderer(mScreenWidth, mScreenHeight);
     mRenderer->grab();
     
+    mRenderer->setSkyColor(glm::vec3(0.f, 0.f, 0.f));
+    
     mCameraSpeedMin = 2.0f;
     mCameraSpeedMax = 10.f;
     mCameraAcceleration = 1.0f;

@@ -13,13 +13,54 @@
 
 #include "DeferredRenderer.hpp"
 
-#include <iostream>
+#include <cstdlib>
 
 #include "ResourceManager.hpp"
 
 namespace pgg {
 
+float lerp(float min, float max, float value) {
+    return value * (max - min) + min;
+}
+    
+float randFloat(float min, float max) {
+    return min + (static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (max - min)));
+}
+    
 void DeferredRenderer::load() {
+    // Generate kernels
+    {
+        for(uint8_t i = 0; i < 64; ++ i) {
+            glm::vec3 sample(
+                randFloat(-1.f, 1.f),
+                randFloat(-1.f, 1.f),
+                randFloat(0.f, 1.f)
+            );
+            sample = glm::normalize(sample) * lerp(0.1f, 1.f, ((float) i) / 64.f);
+            mKernels.ssao[i * 3 + 0] = sample.x;
+            mKernels.ssao[i * 3 + 1] = sample.y;
+            mKernels.ssao[i * 3 + 2] = sample.z;
+        }
+        
+        for(uint8_t i = 0; i < 64; ++ i) {
+            glm::vec2 noise(
+                randFloat(-1.f, 1.f),
+                randFloat(-1.f, 1.f)
+            );
+            noise = glm::normalize(noise);
+            mKernels.normalized2DNoise[i] = noise;
+        }
+        
+        glGenTextures(1, &mKernels.normalized2DNoiseTexture);
+        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 8, 8, 0, GL_RG, GL_FLOAT, mKernels.normalized2DNoise);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    
     // Create renderbuffer/textures for deferred shading
     {
         // Diffuse mapping
@@ -30,7 +71,6 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
         
         // Normal mapping
         glGenTextures(1, &mGBuff.normalTexture);
@@ -40,7 +80,6 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
         
         // Bright mapping
         glGenTextures(1, &mGBuff.brightTexture);
@@ -50,7 +89,6 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
         
         // DepthStencil mapping
         glGenTextures(1, &mGBuff.depthStencilTexture);
@@ -60,6 +98,7 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     
@@ -93,8 +132,35 @@ void DeferredRenderer::load() {
             if(entry.name == "diffuse") {
                 mScreenShader.diffuseHandle = entry.handle;
             }
+            else if(entry.name == "normal") {
+                mScreenShader.normalHandle = entry.handle;
+            }
+            else if(entry.name == "depth") {
+                mScreenShader.depthHandle = entry.handle;
+            }
             else if(entry.name == "bright") {
                 mScreenShader.brightHandle = entry.handle;
+            }
+            else if(entry.name == "normalized2DNoise") {
+                mScreenShader.normalized2DNoiseHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& vec3Controls = mScreenShader.shaderProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec3Controls.begin(); iter != vec3Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "ssaoKernel") {
+                mScreenShader.ssaoKernelHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& floatControls = mScreenShader.shaderProg->getUniformFloats();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = floatControls.begin(); iter != floatControls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            
+            if(entry.name == "nearPlane") {
+                mScreenShader.nearHandle = entry.handle;
+            } else if(entry.name == "farPlane") {
+                mScreenShader.farHandle = entry.handle;
             }
         }
     }
@@ -487,7 +553,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform4fv(mDebugScreenShader.viewHandle, 1, glm::value_ptr(debugShow));
         
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
+        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
         glUniform1i(mDebugScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
@@ -512,13 +578,37 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     } else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
         
+        /*
+        glm::mat4 invViewProjMat = glm::inverse(mCamera.projMat * mCamera.viewMat);
+        glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
+        glUniformMatrix4fv(mScreenShader.shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(mCamera.projMat));
+        */
+        mScreenShader.shaderProg->bindModelViewProjMatrices(glm::mat4(), mCamera.viewMat, mCamera.projMat);
+        
+        glUniform3fv(mScreenShader.ssaoKernelHandle, 64, mKernels.ssao);
+        
+        glUniform1fv(mScreenShader.nearHandle, 1, &mCamera.nearDepth);
+        glUniform1fv(mScreenShader.farHandle, 1, &mCamera.farDepth);
+    
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glUniform1i(mScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
+        glUniform1i(mScreenShader.normalHandle, 1);
+        
+        glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
-        glUniform1i(mScreenShader.brightHandle, 1);
+        glUniform1i(mScreenShader.brightHandle, 2);
+        
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
+        glUniform1i(mScreenShader.depthHandle, 3);
+        
+        glActiveTexture(GL_TEXTURE0 + 4);
+        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+        glUniform1i(mScreenShader.normalized2DNoiseHandle, 4);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

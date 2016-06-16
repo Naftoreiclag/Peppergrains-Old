@@ -43,12 +43,29 @@ private:
         GLuint depthStencilTexture;
     };
     GBuffer mGBuff;
+    
+    struct Kernels {
+        float ssao[64 * 3];
+        
+        glm::vec2 normalized2DNoise[64];
+        GLuint normalized2DNoiseTexture;
+    };
+    Kernels mKernels;
 
     struct ScreenShader {
         ShaderProgramResource* shaderProg;
         
         GLuint diffuseHandle;
+        GLuint normalHandle;
+        GLuint depthHandle;
         GLuint brightHandle;
+        
+        GLuint normalized2DNoiseHandle;
+        GLuint ssaoKernelHandle;
+        
+        GLuint nearHandle;
+        GLuint farHandle;
+        
     };
     ScreenShader mScreenShader;
     
