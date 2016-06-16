@@ -49,15 +49,7 @@ private:
         ShaderProgramResource* shaderProg;
         
         GLuint diffuseHandle;
-        GLuint normalHandle;
-        GLuint depthHandle;
         GLuint brightHandle;
-        
-        GLuint normalized2DNoiseHandle;
-        GLuint ssaoKernelHandle;
-        
-        GLuint nearHandle;
-        GLuint farHandle;
         
     };
     ScreenShader mScreenShader;
