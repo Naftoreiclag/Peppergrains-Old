@@ -29,9 +29,7 @@ DirectionalLightModel::SharedResources* DirectionalLightModel::SharedResources::
 void DirectionalLightModel::SharedResources::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("DirectionalLightVolume.shaderProgram");
-    mMinimalShader = resman->findShaderProgram("SkyStencil.shaderProgram");
     mShaderProg->grab();
-    mMinimalShader->grab();
     
     {
         const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
@@ -85,14 +83,11 @@ void DirectionalLightModel::SharedResources::load() {
 
     glEnableVertexAttribArray(mShaderProg->getPosAttrib());
     glVertexAttribPointer(mShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(mMinimalShader->getPosAttrib());
-    glVertexAttribPointer(mMinimalShader->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
     glBindVertexArray(0);
 }
 void DirectionalLightModel::SharedResources::unload() {
     mShaderProg->drop();
-    mMinimalShader->drop();
     
     glDeleteBuffers(1, &mDLightIbo);
     glDeleteBuffers(1, &mDLightVbo);

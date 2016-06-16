@@ -116,6 +116,8 @@
         <File Name="DirectionalLightModel.cpp"/>
         <File Name="SunLightModel.hpp"/>
         <File Name="SunLightModel.cpp"/>
+        <File Name="SSAOModel.cpp"/>
+        <File Name="SSAOModel.hpp"/>
       </VirtualDirectory>
       <File Name="TessModel.hpp"/>
       <File Name="TessModel.cpp"/>

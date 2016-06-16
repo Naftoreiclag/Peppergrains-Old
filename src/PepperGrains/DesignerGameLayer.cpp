@@ -487,7 +487,7 @@ void DesignerGameLayer::onBegin() {
     
     mRenderer->setSunDirection(glm::vec3(-3.f, -5.f, -2.f));
     
-    
+    mRenderer->setAmbientLight(glm::vec3(0.2, 0.2f, 0.2f));
     //mManipulator = resman->findModel("ManipulatorArrow.model");
     
     mDebugCube = mRootNode->newChild();

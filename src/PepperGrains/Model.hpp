@@ -41,6 +41,9 @@ public:
         
         glm::vec3 camPos;
         
+        float nearPlane;
+        float farPlane;
+        
         float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
         
         GLuint framebuffer;
@@ -48,6 +51,11 @@ public:
         GLuint normalTexture;
         GLuint brightTexture;
         GLuint depthStencilTexture;
+        /*
+        GLuint normalized2DNoiseTexture;
+        
+        float ssao[64];
+         */
         
         GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
         glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];

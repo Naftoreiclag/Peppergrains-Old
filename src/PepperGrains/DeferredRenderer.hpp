@@ -22,6 +22,7 @@
 #include "SceneNode.hpp"
 #include "ShaderProgramResource.hpp"
 #include "SunLightModel.hpp"
+#include "SSAOModel.hpp"
 
 namespace pgg {
 
@@ -43,14 +44,6 @@ private:
         GLuint depthStencilTexture;
     };
     GBuffer mGBuff;
-    
-    struct Kernels {
-        float ssao[64 * 3];
-        
-        glm::vec2 normalized2DNoise[64];
-        GLuint normalized2DNoiseTexture;
-    };
-    Kernels mKernels;
 
     struct ScreenShader {
         ShaderProgramResource* shaderProg;
@@ -125,6 +118,14 @@ private:
     };
     Sun mSky;
     
+    glm::vec3 mAmbientLight;
+    
+    struct SSAO {
+        bool enabled;
+        SSAOModel* ssaoModel;
+    };
+    SSAO mSSAO;
+    
 public:
     DeferredRenderer(uint32_t width, uint32_t height);
     ~DeferredRenderer();
@@ -141,6 +142,10 @@ public:
     void setCameraViewMatrix(const glm::mat4& camViewMatrix);
     
     void setSkyColor(const glm::vec3& skyColor);
+    
+    void setSSAOEnabled(const bool& enabled);
+    
+    void setAmbientLight(const glm::vec3& ambientLight);
     
     const glm::mat4& getCameraProjectionMatrix() const;
     const glm::mat4& getCameraViewMatrix() const;

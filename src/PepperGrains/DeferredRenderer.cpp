@@ -13,53 +13,12 @@
 
 #include "DeferredRenderer.hpp"
 
-#include <cstdlib>
-
 #include "ResourceManager.hpp"
 
 namespace pgg {
-
-float lerp(float min, float max, float value) {
-    return value * (max - min) + min;
-}
-    
-float randFloat(float min, float max) {
-    return min + (static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (max - min)));
-}
     
 void DeferredRenderer::load() {
-    // Generate kernels
-    {
-        for(uint8_t i = 0; i < 64; ++ i) {
-            glm::vec3 sample(
-                randFloat(-1.f, 1.f),
-                randFloat(-1.f, 1.f),
-                randFloat(0.f, 1.f)
-            );
-            sample = glm::normalize(sample) * lerp(0.1f, 1.f, ((float) i) / 64.f);
-            mKernels.ssao[i * 3 + 0] = sample.x;
-            mKernels.ssao[i * 3 + 1] = sample.y;
-            mKernels.ssao[i * 3 + 2] = sample.z;
-        }
-        
-        for(uint8_t i = 0; i < 64; ++ i) {
-            glm::vec2 noise(
-                randFloat(-1.f, 1.f),
-                randFloat(-1.f, 1.f)
-            );
-            noise = glm::normalize(noise);
-            mKernels.normalized2DNoise[i] = noise;
-        }
-        
-        glGenTextures(1, &mKernels.normalized2DNoiseTexture);
-        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 8, 8, 0, GL_RG, GL_FLOAT, mKernels.normalized2DNoise);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    mSSAO.enabled = true;
     
     // Create renderbuffer/textures for deferred shading
     {
@@ -261,6 +220,9 @@ void DeferredRenderer::load() {
     mSky.sunModel = new SunLightModel(glm::vec3(1.0f, 1.0f, 1.0f));
     mSky.sunModel->grab();
     
+    mSSAO.ssaoModel = new SSAOModel();
+    mSSAO.ssaoModel->grab();
+    
     // Depth mapping
     glGenTextures(PGG_NUM_SUN_CASCADES, mSky.depthTextures);
     
@@ -308,6 +270,7 @@ void DeferredRenderer::unload() {
     glDeleteTextures(4, mSky.depthTextures);
     glDeleteFramebuffers(4, mSky.framebuffers);
     mSky.sunModel->drop();
+    mSSAO.ssaoModel->drop();
     
     delete this;
 }
@@ -423,7 +386,11 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             };
             glDrawBuffers(1, colorAttachment);
             // Ambient light
-            glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+            if(mSSAO.enabled) {
+                glClearColor(0.f, 0.f, 0.f, 1.f);
+            } else {
+                glClearColor(mAmbientLight.x, mAmbientLight.y, mAmbientLight.x, 1.f);
+            }
             glClear(GL_COLOR_BUFFER_BIT);
         }
         
@@ -444,6 +411,14 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
             brightRPC.cascadeBorders[i] = mCamera.cascadeBorders[i];
         }
+        /*
+        for(uint8_t i = 0; i < 64; ++ i) {
+            brightRPC.ssao[i] = mKernels.ssao[i];
+        }
+        brightRPC.normalized2DNoiseTexture = mKernels.normalized2DNoiseTexture;
+        */
+        brightRPC.nearPlane = mCamera.nearDepth;
+        brightRPC.farPlane = mCamera.farDepth;
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
@@ -451,7 +426,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             brightRPC.sunDepthTexture[i] = mSky.depthTextures[i];
         }
         
-        // Render local lights
+        // Render local lights (This must come before global lights because the stencil buffer is not preserved)
         mRootNode->render(brightRPC);
         
         // Render global lights
@@ -504,6 +479,11 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
                 brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
                 mSky.sunModel->render(brightRPC, glm::inverse(mSky.viewMatrix));
+                
+                // Render ambient light (SSAO only)
+                if(mSSAO.enabled) {
+                    mSSAO.ssaoModel->render(brightRPC, glm::mat4());
+                }
             }
         }
     }
@@ -553,7 +533,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform4fv(mDebugScreenShader.viewHandle, 1, glm::value_ptr(debugShow));
         
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+        // glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
         glUniform1i(mDebugScreenShader.diffuseHandle, 0);
         
         glActiveTexture(GL_TEXTURE0 + 1);
@@ -578,14 +558,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     } else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
         
-        /*
-        glm::mat4 invViewProjMat = glm::inverse(mCamera.projMat * mCamera.viewMat);
-        glUniformMatrix4fv(mScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
-        glUniformMatrix4fv(mScreenShader.shaderProg->getProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(mCamera.projMat));
-        */
         mScreenShader.shaderProg->bindModelViewProjMatrices(glm::mat4(), mCamera.viewMat, mCamera.projMat);
         
-        glUniform3fv(mScreenShader.ssaoKernelHandle, 64, mKernels.ssao);
+        // glUniform3fv(mScreenShader.ssaoKernelHandle, 64, mKernels.ssao);
         
         glUniform1fv(mScreenShader.nearHandle, 1, &mCamera.nearDepth);
         glUniform1fv(mScreenShader.farHandle, 1, &mCamera.farDepth);
@@ -607,7 +582,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mScreenShader.depthHandle, 3);
         
         glActiveTexture(GL_TEXTURE0 + 4);
-        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+        // glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
         glUniform1i(mScreenShader.normalized2DNoiseHandle, 4);
         
         glBindVertexArray(mFullscreenVao);
@@ -641,6 +616,13 @@ void DeferredRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
 
 void DeferredRenderer::setSkyColor(const glm::vec3& skyColor) {
     mSky.color = skyColor;
+}
+void DeferredRenderer::setAmbientLight(const glm::vec3& ambientLight) {
+    mAmbientLight = ambientLight;
+    mSSAO.ssaoModel->setColor(ambientLight);
+}
+void DeferredRenderer::setSSAOEnabled(const bool& enabled) {
+    mSSAO.enabled = enabled;
 }
 
 const glm::vec3& DeferredRenderer::getCameraLocation() const {
