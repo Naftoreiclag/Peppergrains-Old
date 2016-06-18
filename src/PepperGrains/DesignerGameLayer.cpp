@@ -37,194 +37,10 @@
 #include "TessModel.hpp"
 #include "Vec3.hpp"
 #include "Quate.hpp"
+#include "MathUtil.hpp"
 
 namespace pgg {
-    
-float nearestRightAngle(const float& radians) {
-    if(radians == 0.f) {
-        return 0.f;
-    }
-    
-    const float full = 6.2831f;
-    
-    float wrap = fmod(fmod(radians, full) + full, full);
-    
-    if(wrap < 0.7854f) {
-        return 0.0000f;
-    } else if(wrap < 2.3562f) {
-        return 1.5708f;
-    } else if(wrap < 3.9270f) {
-        return 3.1416f;
-    } else if(wrap < 5.4978f) {
-        return 4.7124f;
-    } else {
-        return 0.0000f;
-    }
-}
-    
-float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2) {
-    Vec3 mouse = m2 - m1;
-    Vec3 street = s2 - s1;
-    float mouseMagSq = mouse.magSq();
-    float streetMagSq = street.magSq();
-    
-    Vec3 originDisp = s1 - m1;
-    
-    float originDotMouse = originDisp.dot(mouse);
-    float originDotStreet = originDisp.dot(street);
-    float mouseDotStreet = mouse.dot(street);
-    
-    float divisor = mouseMagSq * streetMagSq - mouseDotStreet * mouseDotStreet;
-    if(divisor == 0.f) {
-        return std::numeric_limits<float>::infinity();
-    } else {
-        return (originDotMouse * mouseDotStreet - originDotStreet * mouseMagSq) / divisor;
-    }
-}
-    
-float toNearestMultiple(const float& a, const float& b) {
-    return std::floor((a / b) + 0.5) * b;
-}
 
-float cotangent(const float& radians) {
-    return std::cos(radians) / std::sin(radians);
-}
-
-glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
-    float dotProd = initialDirection.dot(targetDirection);
-    // Already facing direction
-    if(std::abs(1.f - dotProd) < 0.000001f) {
-        return glm::quat();
-    }
-    // Facing 180 degrees in the wrong direction
-    else if(std::abs(-1.f - dotProd) < 0.000001f) {
-        return glm::angleAxis(3.1416f, glm::vec3(upDirection));
-    }
-    return glm::angleAxis(std::acos(dotProd), glm::vec3(initialDirection.cross(targetDirection).normalized()));
-}
-
-DesignerGameLayer::Edge::Edge(Type type, Plate* plate)
-: mType(type)
-, mPlate(plate) {
-    
-}
-
-DesignerGameLayer::Edge::~Edge() {
-    
-}
-
-DesignerGameLayer::StraightEdge::StraightEdge(Plate* plate, const Vec3& start, const Vec3& end)
-: Edge(Edge::Type::STRAIGHT, plate)
-, mStartLoc(start)
-, mEndLoc(end) {
-}
-
-DesignerGameLayer::StraightEdge::~StraightEdge() {
-    
-}
-void DesignerGameLayer::StraightEdge::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
-    mWorldStartLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mStartLoc), 1.0));
-    mWorldEndLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mEndLoc), 1.0));
-    
-    mWorldStartLoc += location;
-    mWorldEndLoc += location;
-}
-
-bool linesIntersect(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
-    
-    Vec3 myDisplacement = B - A;
-    float myMagnitude = myDisplacement.mag();
-    Vec3 myDirection = myDisplacement / myMagnitude;
-    
-    Vec3 otherDirection = D - C;
-    otherDirection.normalize();
-    
-    // Cosine of the angle between the directions of both edges
-    float angleCos = myDirection.dot(otherDirection);
-    
-    // Check if lines could be parallel enough (both directions are either both nearly the same or are 180 degrees apart)
-    if(std::abs(1.f - angleCos) < 0.0001f || std::abs(-1.f - angleCos) < 0.0001f) {
-    }
-    else {
-        // Not at all parallellish
-        return false;
-    }
-    
-    // Check if the magnitude of the cross product between these two edges is close to zero
-    {
-        // This point a point on the other line which is not too close from the start point
-        Vec3 otherPoint;
-        
-        // Make sure this other point is far away enough to get meaningful data from the cross product
-        if((C - A).magSq() < 0.0001f) { // Using magSq to avoid division by zero
-            otherPoint = D;
-        } else {
-            otherPoint = C;
-        }
-        
-        float crossProdMagSq = ((otherPoint - A).cross(myDisplacement)).magSq();
-        
-        if(crossProdMagSq > 0.0001f) {
-            return false;
-        }
-    }
-    
-    float fracS = (C - A).dot(myDirection) / myMagnitude;
-    float fracE = (D - A).dot(myDirection) / myMagnitude;
-    
-    /* Valid cases:
-     * 
-     * Caught by the first check:
-     *       A---------A
-     *    B-----B
-     *       A---------A
-     *       B----B
-     *       A---------A
-     *          B---B
-     *       A---------A
-     *             B---B
-     *       A---------A
-     *               B-----B
-     * Caught by the second check:
-     *       A---------A
-     *       B---------B
-     * 
-     * Caught by the third check:
-     *       A---------A
-     *    B---------------B
-     */
-     
-    bool onEdgeS = abs(fracS) < 0.0001f || abs(1 - fracS) < 0.0001f;
-    bool insideS = fracS > 0.f && fracS < 1.f && !onEdgeS;
-    bool outsideS = !insideS && !onEdgeS;
-    
-    bool onEdgeE = abs(fracE) < 0.0001f || abs(1 - fracE) < 0.0001f;
-    bool insideE = fracE > 0.f && fracE < 1.f && !onEdgeE;
-    bool outsideE = !insideE && !onEdgeE;
-    
-    // If one of the points are within this edge, then the two connect
-    if(insideE || insideS) { return true; }
-    
-    // If both points line up with this edge exactly, then the two connect
-    if(onEdgeS && onEdgeE) { return true; }
-    
-    // If both points are outside, then two connect only if the points are on opposite sides
-    if(outsideS && outsideE && ((fracS < 0.f && fracE > 1.f) || (fracE < 0.f && fracS > 1.f))) { return true; }
-    
-    return false;
-    
-}
-
-bool DesignerGameLayer::StraightEdge::canBindTo(Edge* otherEdge) const {
-    
-    if(otherEdge->mType != Edge::Type::STRAIGHT) {
-        return false;
-    }
-    
-    StraightEdge* other = (StraightEdge*) otherEdge;
-    
-    return linesIntersect(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
-}
 
 DesignerGameLayer::Manipulator::Manipulator()
 : handleDragged(-1)
@@ -232,57 +48,6 @@ DesignerGameLayer::Manipulator::Manipulator()
 }
 DesignerGameLayer::Manipulator::~Manipulator() {
     
-}
-    
-DesignerGameLayer::Plate::Plate()
-: mIntegralX(0)
-, mIntegralY(0)
-, mIntegralZ(0)
-, mIntegralScaleX(1)
-, mIntegralScaleY(1)
-, mIntegralScaleZ(1)
-, intermediatePitch(0.f)
-, intermediateYaw(0.f)
-, intermediateRoll(0.f)
-, needRebuildUnionGraph(false) { }
-DesignerGameLayer::Plate::~Plate() { }
-
-void DesignerGameLayer::Plate::setIntermediatePitch(float radians) {
-    intermediateYaw = 0;
-    intermediateRoll = 0;
-    float newRot = nearestRightAngle(radians);
-    if(intermediatePitch != newRot) {
-        intermediatePitch = newRot;
-        mOrientation = glm::angleAxis(intermediatePitch, glm::vec3(1.f, 0.f, 0.f)) * mFinalizedOrienation;
-        onTransformChanged();
-    }
-}
-void DesignerGameLayer::Plate::setIntermediateYaw(float radians) {
-    intermediatePitch = 0;
-    intermediateRoll = 0;
-    float newRot = nearestRightAngle(radians);
-    if(intermediateYaw != newRot) {
-        intermediateYaw = newRot;
-        mOrientation = glm::angleAxis(intermediateYaw, glm::vec3(0.f, 1.f, 0.f)) * mFinalizedOrienation;
-        onTransformChanged();
-    }
-}
-void DesignerGameLayer::Plate::setIntermediateRoll(float radians) {
-    intermediatePitch = 0;
-    intermediateYaw = 0;
-    float newRot = nearestRightAngle(radians);
-    if(intermediateRoll != newRot) {
-        intermediateRoll = newRot;
-        mOrientation = glm::angleAxis(intermediateRoll, glm::vec3(0.f, 0.f, 1.f)) * mFinalizedOrienation;
-        onTransformChanged();
-    }
-}
-void DesignerGameLayer::Plate::finalizeRotation() {
-    mFinalizedOrienation = mOrientation;
-    
-    intermediatePitch = 0.f;
-    intermediateYaw = 0.f;
-    intermediateRoll = 0.f;
 }
 
 void DesignerGameLayer::selectPlate(Plate* plate) {
@@ -309,92 +74,6 @@ DesignerGameLayer::CollisionWorldPackage::~CollisionWorldPackage() {
     delete mCollisionConfiguration;
     delete mBroadphase;
     
-}
-
-Vec3 DesignerGameLayer::Plate::getLocation() const {
-    return Vec3(
-        ((float) mIntegralX) * (1.f / 12.f),
-        ((float) mIntegralY) * (1.f / 12.f),
-        ((float) mIntegralZ) * (1.f / 12.f)
-    );
-}
-
-void DesignerGameLayer::Plate::onTransformChanged() {
-    needRebuildUnionGraph = true;
-    
-    for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
-        Edge* myEdge = *iter2;
-        
-        myEdge->onPlateChangeTransform(mLocation, mOrientation);
-    }
-}
-
-void DesignerGameLayer::Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
-    if(!needRebuildUnionGraph) {
-        return;
-    }
-
-    
-    for(std::vector<Edge*>::iterator myEdgesIterator = mEdges.begin(); myEdgesIterator != mEdges.end(); ++ myEdgesIterator) {
-        Edge* myEdge = *myEdgesIterator;
-
-        // Disconnect from all edges
-        for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
-            Edge* otherEdge = *myEdgesUnionsIterator;
-            otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
-        }
-        myEdge->mUnions.clear();
-        
-        // Connect (or reconnect) to edges that are valid
-        for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
-            Plate* other = *otherPlateIterator;
-            if(other == this) { continue; } // Skip self
-            for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
-                Edge* otherEdge = *otherPlateEdgesIterator;
-                assert(myEdge != otherEdge && "Two plates share the same edge!");
-                if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
-                    myEdge->mUnions.push_back(otherEdge);
-                    otherEdge->mUnions.push_back(myEdge);
-                }
-            }
-        }
-    }
-    
-    needRebuildUnionGraph = false;
-}
-
-void DesignerGameLayer::Plate::setLocation(Vec3 location, float snapSize) {
-    uint32_t newIntegralX = (uint32_t) std::floor(toNearestMultiple(location.x, snapSize) * 12.f + 0.5);
-    uint32_t newIntegralY = (uint32_t) std::floor(toNearestMultiple(location.y, snapSize) * 12.f + 0.5);
-    uint32_t newIntegralZ = (uint32_t) std::floor(toNearestMultiple(location.z, snapSize) * 12.f + 0.5);
-    
-    if(mIntegralX != newIntegralX || mIntegralY != newIntegralY || mIntegralZ != newIntegralZ) {
-        mIntegralX = newIntegralX;
-        mIntegralY = newIntegralY;
-        mIntegralZ = newIntegralZ;
-        mLocation = Vec3((float) mIntegralX, (float) mIntegralY, (float) mIntegralZ);
-        mLocation /= 12.f;
-        onTransformChanged();
-    }
-}
-
-void DesignerGameLayer::Plate::tick(float tpf) {
-    
-    if((mLocation - mRenderLocation).mag() < tpf) {
-        mRenderLocation = mLocation;
-    } else {
-        mRenderLocation += (mLocation - mRenderLocation) * tpf * 15.f;
-    }
-    
-    mRenderOrientation = glm::slerp(mRenderOrientation, mOrientation, tpf * 15.f);
-    
-    mSceneNode->setLocalTranslation(mRenderLocation);
-    mSceneNode->setLocalOrientation(mRenderOrientation);
-    
-    collisionObject->getWorldTransform().setOrigin(mRenderLocation);
-    collisionObject->getWorldTransform().setRotation(Quate(mRenderOrientation));
-    collisionWorld->removeCollisionObject(collisionObject);
-    collisionWorld->addCollisionObject(collisionObject);
 }
 
 DesignerGameLayer::DesignerGameLayer(uint32_t width, uint32_t height)
@@ -551,7 +230,7 @@ void DesignerGameLayer::updateManipulatorTransform() {
     const float& far = mRenderer->getCameraFarDepth();
     float linDepth = (2.f * near * far) / (far + near - z * (far - near));
 
-    float clipRad = cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
+    float clipRad = Math::cotangent(mRenderer->getCameraFOV() / 2.f) / linDepth;
     
     mManipulator.scale = 0.5f / clipRad;
     
@@ -916,7 +595,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         worldB.z += 1.f;
                     }
                     
-                    float frac = nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    float frac = Math::nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
                     if(frac < -100.f) {
                         frac = -100.f;
                     } else if(frac > 100.f) {
@@ -993,7 +672,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         worldB.z += 1.f;
                     }
                     
-                    float frac = nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    float frac = Math::nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
                     if(frac < -100.f) {
                         frac = -100.f;
                     } else if(frac > 100.f) {
@@ -1197,85 +876,6 @@ void DesignerGameLayer::renderSecondLayer() {
         mUtilityNode->drop();
         glClear(GL_DEPTH_BUFFER_BIT);
     }
-    
-}
-
-void DesignerGameLayer::Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
-    for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
-        const Edge* edge = *iter;
-        edge->renderVertices(mRenderer, mSlimeShader);
-    }
-    for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
-        const Edge* edge = *iter;
-        edge->renderLines(mRenderer, mSlimeShader);
-    }
-}
-
-void DesignerGameLayer::StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
-    
-    SceneNode* mDummyPlate = new SceneNode();
-    mDummyPlate->grab();
-    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
-    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
-    
-    SceneNode* mUtilityNode = mDummyPlate->newChild();
-    
-    mUtilityNode->setLocalTranslation(mStartLoc);
-    
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
-    
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
-    glBindVertexArray(mSlimeShader.mVertexBallVAO);
-    mSlimeShader.mVertexBall->drawElements();
-    
-    
-    glBindVertexArray(0);
-    glUseProgram(0);
-    
-    mDummyPlate->drop();
-    
-}
-
-void DesignerGameLayer::StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
-    
-    Vec3 disp = mEndLoc - mStartLoc;
-    float length = disp.mag();
-    Vec3 dir = disp / length;
-    
-    SceneNode* mDummyPlate = new SceneNode();
-    mDummyPlate->grab();
-    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
-    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
-    
-    SceneNode* mUtilityNode = mDummyPlate->newChild();
-    
-    mUtilityNode->setLocalTranslation(mStartLoc);
-    mUtilityNode->setLocalScale(glm::vec3(1.f, 1.f, length));
-    mUtilityNode->setLocalOrientation(quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
-    
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
-    
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    
-    if(mUnions.size() > 0) {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
-        glBlendColor(0.4f, 0.4f, 0.4f, 1.0f);
-    } else {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
-        glBlendColor(0.2f, 0.2f, 0.2f, 1.0f);
-    }
-    
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
-    glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
-    mSlimeShader.mStraightEdge->drawElements();
-    
-    
-    glBindVertexArray(0);
-    glUseProgram(0);
-    
-    mDummyPlate->drop();
     
 }
 

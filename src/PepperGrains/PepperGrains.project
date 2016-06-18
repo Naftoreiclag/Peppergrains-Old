@@ -143,6 +143,8 @@
       <File Name="OpenGLContextData.hpp"/>
       <File Name="SDLRendererData.cpp"/>
       <File Name="SDLRendererData.hpp"/>
+      <File Name="MathUtil.hpp"/>
+      <File Name="MathUtil.cpp"/>
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
@@ -219,6 +221,8 @@
       <File Name="Vec3.hpp"/>
       <File Name="NALInputs.cpp"/>
     </VirtualDirectory>
+    <File Name="DesignerParts.hpp"/>
+    <File Name="DesignerParts.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
