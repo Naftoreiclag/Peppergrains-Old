@@ -58,15 +58,12 @@ void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeSha
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    
     if(mLinks.size() > 0) {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
-        glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     } else {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
-        glBlendColor(0.2f, 0.2f, 0.2f, 1.f);
     }
-    
+    glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
     mSlimeShader.mStraightEdge->drawElements();
@@ -145,7 +142,11 @@ void OmniSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSl
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    if(mLinks.size() > 0) {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
+    } else {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    }
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mOmniSocketVAO);
@@ -195,7 +196,11 @@ void FlatSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSl
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    if(mLinks.size() > 0) {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
+    } else {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    }
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mFlatSocketVAO);
@@ -223,7 +228,9 @@ Plate::Plate()
 , intermediatePitch(0.f)
 , intermediateYaw(0.f)
 , intermediateRoll(0.f)
-, needRebuildLinks(false) { }
+, needRebuildLinks(false)
+, allowManualLocation(true)
+, allowManualRotation(true) { }
 Plate::~Plate() { }
 
 void Plate::setIntermediatePitch(float radians) {
@@ -275,8 +282,11 @@ void Plate::onTransformChanged() {
     
     for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
         Edge* myEdge = *iter2;
-        
         myEdge->onPlateChangeTransform(mLocation, mOrientation);
+    }
+    for(std::vector<Socket*>::iterator iter2 = mSockets.begin(); iter2 != mSockets.end(); ++ iter2) {
+        Socket* mySocket = *iter2;
+        mySocket->onPlateChangeTransform(mLocation, mOrientation);
     }
 }
 void Plate::rebuildLinks(std::vector<Plate*>& plates) {
@@ -297,7 +307,22 @@ void Plate::rebuildLinks(std::vector<Plate*>& plates) {
         // Connect (or reconnect) to edges that are valid
         for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
             Plate* other = *otherPlateIterator;
-            if(other == this) { continue; } // Skip self
+            
+            // Skip self
+            if(this == other) { continue; }
+            
+            // Skip multiplate structure partners
+            bool isPartner = false;
+            for(std::vector<Plate*>::iterator linkedPlatesIterator = mMultiplatePartners.begin(); linkedPlatesIterator != mMultiplatePartners.end(); ++ linkedPlatesIterator) {
+                Plate* partner = *linkedPlatesIterator;
+                
+                if(partner == other) {
+                    isPartner = true;
+                    break;
+                }
+            }
+            if(isPartner) { continue; }
+        
             for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
                 Edge* otherEdge = *otherPlateEdgesIterator;
                 assert(myEdge != otherEdge && "Two plates share the same edge instance!");
@@ -322,7 +347,22 @@ void Plate::rebuildLinks(std::vector<Plate*>& plates) {
         // Connect (or reconnect) to sockets that are valid
         for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
             Plate* other = *otherPlateIterator;
-            if(other == this) { continue; } // Skip self
+            
+            // Skip self
+            if(this == other) { continue; }
+            
+            // Skip multiplate structure partners
+            bool isPartner = false;
+            for(std::vector<Plate*>::iterator linkedPlatesIterator = mMultiplatePartners.begin(); linkedPlatesIterator != mMultiplatePartners.end(); ++ linkedPlatesIterator) {
+                Plate* partner = *linkedPlatesIterator;
+                
+                if(partner == other) {
+                    isPartner = true;
+                    break;
+                }
+            }
+            if(isPartner) { continue; }
+        
             for(std::vector<Socket*>::iterator otherPlateSocketsIterator = other->mSockets.begin(); otherPlateSocketsIterator != other->mSockets.end(); ++ otherPlateSocketsIterator) {
                 Socket* otherSocket = *otherPlateSocketsIterator;
                 assert(mySocket != otherSocket && "Two plates share the same socket instance!");

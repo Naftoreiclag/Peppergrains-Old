@@ -148,6 +148,12 @@ public:
     std::vector<Edge*> mEdges;
     std::vector<Socket*> mSockets;
     
+    // For plates with multiple adjustment points
+    std::vector<Plate*> mMultiplatePartners;
+    
+    bool allowManualLocation;
+    bool allowManualRotation;
+    
     // Precise storage of location
     int32_t mIntegralX;
     int32_t mIntegralY;

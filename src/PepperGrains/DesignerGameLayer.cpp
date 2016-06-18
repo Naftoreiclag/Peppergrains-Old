@@ -161,6 +161,47 @@ void DesignerGameLayer::newMotor(Vec3 location) {
     plate->setLocation(location, 1.f / 12.f);
 }
 
+void DesignerGameLayer::newConnector(Vec3 location) {
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    Plate* plates[2];
+    
+    for(uint8_t i = 0; i < 2; ++ i) {
+        Plate* plate = new Plate();
+        
+        plate->mSceneNode = mRootNode->newChild();
+        plate->mSceneNode->grab();
+        plate->mSceneNode->grabModel(resman->findModel("ConnectorBase.model"));
+        
+        plate->collisionShape = new btSphereShape(1.f / 12.f);
+        plate->motionState = new btDefaultMotionState();
+        plate->collisionObject = new btCollisionObject();
+        plate->collisionObject->setCollisionShape(plate->collisionShape);
+        plate->collisionObject->setUserPointer(plate);
+        plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+        
+        mCollisionWorld->addCollisionObject(plate->collisionObject);
+        plate->collisionWorld = mCollisionWorld;
+        
+        plate->allowManualRotation = false;
+        
+        plate->mSockets.push_back(new OmniSocket(plate, Vec3(0.f)));
+        
+        mPlates.push_back(plate);
+        
+        if(i == 0) {
+            plate->setLocation(location, 1.f / 12.f);
+        } else {
+            plate->setLocation(location + Vec3(0.f, 1.f, 0.f), 1.f / 12.f);
+        }
+        
+        plates[i] = plate;
+    }
+    
+    plates[0]->mMultiplatePartners.push_back(plates[1]);
+    plates[1]->mMultiplatePartners.push_back(plates[0]);
+}
+
 void DesignerGameLayer::deletePlate(Plate* plate) {
     mPlates.erase(std::remove(mPlates.begin(), mPlates.end(), plate), mPlates.end());
     
@@ -262,6 +303,7 @@ void DesignerGameLayer::onBegin() {
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
+    newConnector(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
@@ -613,25 +655,32 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         btCollisionWorld::AllHitsRayResultCallback rayCallback(mouseRayStart, mouseRayEnd);
         mManipulatorCollisionWorld->rayTest(mouseRayStart, mouseRayEnd, rayCallback);
         
-        const btCollisionObject* touched = nullptr;
+        mManipulator.handleHovered = -1;
         if(rayCallback.hasHit()) {
             // Cannot rely on the order of rayCallback.m_collisionObjects, so we have to compare the distances manually
             btScalar closestHitFraction(1337); // All fractions are <= 1 so this is effectively infinite
             for(int i = rayCallback.m_collisionObjects.size() - 1; i >= 0; -- i) {
                 if(rayCallback.m_hitFractions.at(i) <= closestHitFraction) {
-                    touched = rayCallback.m_collisionObjects.at(i);
-                    closestHitFraction = rayCallback.m_hitFractions.at(i);
-                    hitPoint = rayCallback.m_hitPointWorld.at(i);
-                }
-            }
-        }
-        
-        mManipulator.handleHovered = -1;
-        if(touched) {
-            for(int8_t i = 0; i < 6; ++ i) {
-                if(mManipulator.collisionObjects[i] == touched) {
-                    mManipulator.handleHovered = i;
-                    break;
+                    const btCollisionObject* touched = rayCallback.m_collisionObjects.at(i);
+                    
+                    bool valid = false;
+                    for(int8_t i = 0; i < 6; ++ i) {
+                        if(mManipulator.collisionObjects[i] == touched) {
+                            if(i <= 3 && mPlateSelected->allowManualLocation) {
+                                mManipulator.handleHovered = i;
+                                valid = true;
+                            }
+                            if(i > 3 && mPlateSelected->allowManualRotation) {
+                                mManipulator.handleHovered = i;
+                                valid = true;
+                            }
+                            break;
+                        }
+                    }
+                    if(valid) {
+                        closestHitFraction = rayCallback.m_hitFractions.at(i);
+                        hitPoint = rayCallback.m_hitPointWorld.at(i);
+                    }
                 }
             }
         }
@@ -944,31 +993,35 @@ void DesignerGameLayer::renderSecondLayer() {
             
             mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
             
-            glBindVertexArray(mManipulator.arrowVAO);
-            if(mManipulator.handleHovered == i) {
-                glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
-            } else {
-                glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+            if(mPlateSelected->allowManualLocation) {
+                glBindVertexArray(mManipulator.arrowVAO);
+                if(mManipulator.handleHovered == i) {
+                    glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+                } else {
+                    glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+                }
+                if(mManipulator.handleDragged == i) {
+                    glDisable(GL_BLEND);
+                } else {
+                    glEnable(GL_BLEND);
+                }
+                mManipulator.arrow->drawElements();
             }
-            if(mManipulator.handleDragged == i) {
-                glDisable(GL_BLEND);
-            } else {
-                glEnable(GL_BLEND);
-            }
-            mManipulator.arrow->drawElements();
             
-            glBindVertexArray(mManipulator.wheelVAO);
-            if(mManipulator.handleHovered == i + 3) {
-                glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
-            } else {
-                glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+            if(mPlateSelected->allowManualRotation) {
+                glBindVertexArray(mManipulator.wheelVAO);
+                if(mManipulator.handleHovered == i + 3) {
+                    glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
+                } else {
+                    glBlendColor(alphaDefault, alphaDefault, alphaDefault, 1.0f);
+                }
+                if(mManipulator.handleDragged == i + 3) {
+                    glDisable(GL_BLEND);
+                } else {
+                    glEnable(GL_BLEND);
+                }
+                mManipulator.wheel->drawElements();
             }
-            if(mManipulator.handleDragged == i + 3) {
-                glDisable(GL_BLEND);
-            } else {
-                glEnable(GL_BLEND);
-            }
-            mManipulator.wheel->drawElements();
         }
         
         glBindVertexArray(0);
