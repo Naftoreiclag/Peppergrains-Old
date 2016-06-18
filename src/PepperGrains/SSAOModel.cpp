@@ -13,20 +13,10 @@
 
 #include "SSAOModel.hpp"
 
-#include <iostream>
-#include <cstdlib>
-
+#include "MathUtil.hpp"
 #include "ResourceManager.hpp"
 
 namespace pgg {
-
-float lerp(float min, float max, float value) {
-    return value * (max - min) + min;
-}
-    
-float randFloat(float min, float max) {
-    return min + (static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (max - min)));
-}
 
 SSAOModel::SharedResources::SharedResources() { }
 SSAOModel::SharedResources::~SharedResources() { }
@@ -44,11 +34,11 @@ void SSAOModel::SharedResources::load() {
     {
         for(uint8_t i = 0; i < 64; ++ i) {
             glm::vec3 sample(
-                randFloat(-1.f, 1.f),
-                randFloat(-1.f, 1.f),
-                randFloat(0.f, 1.f)
+                Math::randFloat(-1.f, 1.f),
+                Math::randFloat(-1.f, 1.f),
+                Math::randFloat(0.f, 1.f)
             );
-            sample = glm::normalize(sample) * lerp(0.1f, 1.f, ((float) i) / 64.f);
+            sample = glm::normalize(sample) * Math::lerp(0.1f, 1.f, ((float) i) / 64.f);
             mKernels.ssao[i * 3 + 0] = sample.x;
             mKernels.ssao[i * 3 + 1] = sample.y;
             mKernels.ssao[i * 3 + 2] = sample.z;
@@ -56,8 +46,8 @@ void SSAOModel::SharedResources::load() {
         
         for(uint8_t i = 0; i < 64; ++ i) {
             glm::vec2 noise(
-                randFloat(-1.f, 1.f),
-                randFloat(-1.f, 1.f)
+                Math::randFloat(-1.f, 1.f),
+                Math::randFloat(-1.f, 1.f)
             );
             noise = glm::normalize(noise);
             mKernels.normalized2DNoise[i] = noise;

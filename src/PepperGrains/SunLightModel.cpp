@@ -13,8 +13,7 @@
 
 #include "SunLightModel.hpp"
 
-#include <iostream>
-
+#include "MathUtil.hpp"
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -27,6 +26,37 @@ SunLightModel::SharedResources* SunLightModel::SharedResources::getSharedInstanc
 }
 
 void SunLightModel::SharedResources::load() {
+        
+    {
+        for(uint8_t i = 0; i < 64; ++ i) {
+            glm::vec2 sample(
+                Math::randFloat(-1.f, 1.f),
+                Math::randFloat(-1.f, 1.f)
+            );
+            sample = glm::normalize(sample) * Math::lerp(0.1f, 1.f, ((float) i) / 64.f);
+            mKernels.disk[i * 2 + 0] = sample.x;
+            mKernels.disk[i * 2 + 1] = sample.y;
+        }
+        
+        for(uint8_t i = 0; i < 64; ++ i) {
+            glm::vec2 noise(
+                Math::randFloat(-1.f, 1.f),
+                Math::randFloat(-1.f, 1.f)
+            );
+            noise = glm::normalize(noise);
+            mKernels.normalized2DNoise[i] = noise;
+        }
+        
+        glGenTextures(1, &mKernels.normalized2DNoiseTexture);
+        glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 8, 8, 0, GL_RG, GL_FLOAT, mKernels.normalized2DNoise);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    
     ResourceManager* resman = ResourceManager::getSingleton();
     mShaderProg = resman->findShaderProgram("SunLightVolume.shaderProgram");
     mMinimalShader = resman->findShaderProgram("SkyStencil.shaderProgram");
@@ -49,6 +79,8 @@ void SunLightModel::SharedResources::load() {
                 mSunDepthHandle[2] = entry.handle;
             } else if(entry.name == "sunDepth3") {
                 mSunDepthHandle[3] = entry.handle;
+            } else if(entry.name == "normalized2DNoise") {
+                mNoiseTextureHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& vec3Controls = mShaderProg->getUniformVec3s();
@@ -60,6 +92,15 @@ void SunLightModel::SharedResources::load() {
                 mColorHandle = entry.handle;
             } else if(entry.name == "cameraLocation") {
                 mCameraLocHandle = entry.handle;
+            }
+        }
+        const std::vector<ShaderProgramResource::Control>& vec2Controls = mShaderProg->getUniformVec2s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = vec2Controls.begin(); iter != vec2Controls.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "normalized2DNoiseRatio") {
+                mNoiseScaleHandle = entry.handle;
+            } else if(entry.name == "diskKernel") {
+                mDiskHandle = entry.handle;
             }
         }
         const std::vector<ShaderProgramResource::Control>& floatControls = mShaderProg->getUniformFloats();
@@ -145,6 +186,7 @@ void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, c
     
     mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
     
+    glUniform2fv(mDiskHandle, 64, mKernels.disk);
     glUniform1fv(mNearPlaneHandle, 1, rendPass.cascadeBorders);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
@@ -154,6 +196,7 @@ void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, c
         rendPass.cascadeBorders[2], 
         rendPass.cascadeBorders[3], 
         rendPass.cascadeBorders[4])));
+    glUniform2fv(mNoiseScaleHandle, 1, glm::value_ptr(glm::vec2(1280.f / 8.f, 720.f / 8.f)));
     
     for(uint32_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
         glUniformMatrix4fv(mSunViewProjHandle[i], 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr[i]));
@@ -170,6 +213,10 @@ void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, c
     glActiveTexture(GL_TEXTURE0 + 5);
     glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
     glUniform1i(mDepthHandle, 5);
+    
+    glActiveTexture(GL_TEXTURE0 + 6);
+    glBindTexture(GL_TEXTURE_2D, mKernels.normalized2DNoiseTexture);
+    glUniform1i(mNoiseTextureHandle, 6);
 
     glBindVertexArray(mDLightVao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

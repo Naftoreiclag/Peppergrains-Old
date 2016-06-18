@@ -113,7 +113,16 @@ void DesignerGameLayer::newPlate(Vec3 location) {
     
     // Set up sockets
     {
-        //plate->mSockets.push_back(new Socket());
+        for(uint8_t x = 1; x < 6; ++ x) {
+            for(uint8_t z = 1; z < 6; ++ z) {
+                
+                float xf = (float) x;
+                float zf = (float) z;
+                
+                plate->mSockets.push_back(new FlatSocket(plate, Vec3(xf * (1.f / 6.f) - 0.5f, 0.f, zf * (1.f / 6.f) - 0.5f), Vec3(0.f, 1.f, 0.f)));
+                plate->mSockets.push_back(new FlatSocket(plate, Vec3(xf * (1.f / 6.f) - 0.5f, 0.f, zf * (1.f / 6.f) - 0.5f), Vec3(0.f, -1.f, 0.f)));
+            }
+        }
     }
     
     mPlates.push_back(plate);
@@ -297,6 +306,10 @@ void DesignerGameLayer::loadSlimeShader() {
     mSlimeShader.mVertexBall->grab();
     mSlimeShader.mStraightEdge = resman->findGeometry("StraightEdge.geometry");
     mSlimeShader.mStraightEdge->grab();
+    mSlimeShader.mFlatSocket = resman->findGeometry("FlatSocket.geometry");
+    mSlimeShader.mFlatSocket->grab();
+    mSlimeShader.mOmniSocket = resman->findGeometry("OmniSocket.geometry");
+    mSlimeShader.mOmniSocket->grab();
     
     glGenVertexArrays(1, &mSlimeShader.mVertexBallVAO);
     glBindVertexArray(mSlimeShader.mVertexBallVAO);
@@ -317,6 +330,28 @@ void DesignerGameLayer::loadSlimeShader() {
     }
     if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
         mSlimeShader.mStraightEdge->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+    
+    glGenVertexArrays(1, &mSlimeShader.mFlatSocketVAO);
+    glBindVertexArray(mSlimeShader.mFlatSocketVAO);
+    mSlimeShader.mFlatSocket->bindBuffers();
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mSlimeShader.mFlatSocket->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    }
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mSlimeShader.mFlatSocket->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    }
+    glBindVertexArray(0);
+    
+    glGenVertexArrays(1, &mSlimeShader.mOmniSocketVAO);
+    glBindVertexArray(mSlimeShader.mOmniSocketVAO);
+    mSlimeShader.mOmniSocket->bindBuffers();
+    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
+        mSlimeShader.mOmniSocket->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    }
+    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
+        mSlimeShader.mOmniSocket->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
@@ -372,6 +407,11 @@ void DesignerGameLayer::unloadManipulator() {
 
 void DesignerGameLayer::unloadSlimeShader() {
     mSlimeShader.mShaderProg->drop();
+    
+    mSlimeShader.mVertexBall->drop();
+    mSlimeShader.mStraightEdge->drop();
+    mSlimeShader.mFlatSocket->drop();
+    mSlimeShader.mOmniSocket->drop();
 }
 
 void DesignerGameLayer::onEnd() {
@@ -777,6 +817,8 @@ void DesignerGameLayer::renderSecondLayer() {
     
     glViewport(0, 0, mScreenWidth, mScreenHeight);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDepthMask(GL_TRUE);
+    glClear(GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
@@ -785,20 +827,19 @@ void DesignerGameLayer::renderSecondLayer() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_CONSTANT_COLOR, GL_ONE_MINUS_CONSTANT_COLOR);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClear(GL_DEPTH_BUFFER_BIT);
     
     updateManipulatorTransform();
 
     
     if(mPlates.size() > 0 && mShowAllEdges) {
-        glDepthMask(GL_FALSE);
-        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
         for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
             Plate* thisPlate = *iter;
             if(thisPlate == mPlateSelected) { continue; }
             thisPlate->renderEdges(mRenderer, mSlimeShader);
+            thisPlate->renderSockets(mRenderer, mSlimeShader);
         }
-        glClear(GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
     }
@@ -806,9 +847,8 @@ void DesignerGameLayer::renderSecondLayer() {
     if(mPlateSelected) {
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
-        glClear(GL_DEPTH_BUFFER_BIT);
         mPlateSelected->renderEdges(mRenderer, mSlimeShader);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        mPlateSelected->renderSockets(mRenderer, mSlimeShader);
         glDepthMask(GL_TRUE);
         glDisable(GL_DEPTH_TEST);
     }
@@ -874,7 +914,6 @@ void DesignerGameLayer::renderSecondLayer() {
         glBindVertexArray(0);
         glUseProgram(0);
         mUtilityNode->drop();
-        glClear(GL_DEPTH_BUFFER_BIT);
     }
     
 }

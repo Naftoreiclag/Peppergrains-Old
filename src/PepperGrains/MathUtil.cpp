@@ -68,20 +68,20 @@ float cotangent(const float& radians) {
     return std::cos(radians) / std::sin(radians);
 }
 
-glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection) {
+glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection, float epsilon) {
     float dotProd = initialDirection.dot(targetDirection);
     // Already facing direction
-    if(std::abs(1.f - dotProd) < 0.000001f) {
+    if(std::abs(1.f - dotProd) < epsilon) {
         return glm::quat();
     }
     // Facing 180 degrees in the wrong direction
-    else if(std::abs(-1.f - dotProd) < 0.000001f) {
+    else if(std::abs(-1.f - dotProd) < epsilon) {
         return glm::angleAxis(3.1416f, glm::vec3(upDirection));
     }
     return glm::angleAxis(std::acos(dotProd), glm::vec3(initialDirection.cross(targetDirection).normalized()));
 }
 
-bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
+bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D, float epsilon) {
     
     Vec3 myDisplacement = B - A;
     float myMagnitude = myDisplacement.mag();
@@ -94,7 +94,7 @@ bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
     float angleCos = myDirection.dot(otherDirection);
     
     // Check if lines could be parallel enough (both directions are either both nearly the same or are 180 degrees apart)
-    if(std::abs(1.f - angleCos) < 0.0001f || std::abs(-1.f - angleCos) < 0.0001f) {
+    if(std::abs(1.f - angleCos) < epsilon || std::abs(-1.f - angleCos) < epsilon) {
     }
     else {
         // Not at all parallellish
@@ -107,7 +107,7 @@ bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
         Vec3 otherPoint;
         
         // Make sure this other point is far away enough to get meaningful data from the cross product
-        if((C - A).magSq() < 0.0001f) { // Using magSq to avoid division by zero
+        if((C - A).magSq() < epsilon) { // Using magSq to avoid division by zero
             otherPoint = D;
         } else {
             otherPoint = C;
@@ -115,7 +115,7 @@ bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
         
         float crossProdMagSq = ((otherPoint - A).cross(myDisplacement)).magSq();
         
-        if(crossProdMagSq > 0.0001f) {
+        if(crossProdMagSq > epsilon) {
             return false;
         }
     }
@@ -145,11 +145,11 @@ bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
      *    B---------------B
      */
      
-    bool onEdgeS = abs(fracS) < 0.0001f || abs(1 - fracS) < 0.0001f;
+    bool onEdgeS = abs(fracS) < epsilon || abs(1 - fracS) < epsilon;
     bool insideS = fracS > 0.f && fracS < 1.f && !onEdgeS;
     bool outsideS = !insideS && !onEdgeS;
     
-    bool onEdgeE = abs(fracE) < 0.0001f || abs(1 - fracE) < 0.0001f;
+    bool onEdgeE = abs(fracE) < epsilon || abs(1 - fracE) < epsilon;
     bool insideE = fracE > 0.f && fracE < 1.f && !onEdgeE;
     bool outsideE = !insideE && !onEdgeE;
     
@@ -164,6 +164,26 @@ bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
     
     return false;
     
+}
+
+
+bool equalish(const Vec3& A, const Vec3& B, float epsilon) {
+    return std::abs(A.x - B.x) < epsilon && std::abs(A.y - B.y) < epsilon && std::abs(A.z - B.z) < epsilon;
+}
+
+bool sameDirection(const Vec3& normalA, const Vec3& normalB, float epsilon) {
+    return std::abs(1.f - normalA.dot(normalB)) < epsilon;
+}
+bool oppositeDirection(const Vec3& normalA, const Vec3& normalB, float epsilon) {
+    return std::abs(-1.f - normalA.dot(normalB)) < epsilon;
+}
+
+float lerp(float min, float max, float value) {
+    return value * (max - min) + min;
+}
+    
+float randFloat(float min, float max) {
+    return min + (static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX) / (max - min)));
 }
 
 }

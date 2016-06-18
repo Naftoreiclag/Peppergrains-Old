@@ -33,7 +33,7 @@ bool StraightEdge::canBindTo(Edge* otherEdge) const {
         return false;
     }
     
-    StraightEdge* other = (StraightEdge*) otherEdge;
+    StraightEdge* other = static_cast<StraightEdge*>(otherEdge);
     
     return Math::lineSegmentsColinear(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
 }
@@ -60,10 +60,10 @@ void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeSha
     
     if(mUnions.size() > 0) {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
-        glBlendColor(0.4f, 0.4f, 0.4f, 1.0f);
+        glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     } else {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
-        glBlendColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glBlendColor(0.2f, 0.2f, 0.2f, 1.f);
     }
     
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
@@ -91,7 +91,8 @@ void StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const Slime
     glUseProgram(mSlimeShader.mShaderProg->getHandle());
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 1.f)));
+    glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mVertexBallVAO);
     mSlimeShader.mVertexBall->drawElements();
@@ -104,8 +105,8 @@ void StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const Slime
     
 }
 void StraightEdge::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
-    mWorldStartLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mStartLoc), 1.0));
-    mWorldEndLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mEndLoc), 1.0));
+    mWorldStartLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mStartLoc), 1.f));
+    mWorldEndLoc = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mEndLoc), 1.f));
     
     mWorldStartLoc += location;
     mWorldEndLoc += location;
@@ -116,6 +117,48 @@ Socket::Socket(Type type, Plate* plate)
 , mPlate(plate) { }
 Socket::~Socket() { }
 
+OmniSocket::OmniSocket(Plate* plate, const Vec3& location)
+: Socket(Socket::Type::OMNI, plate)
+, mLocation(location){ }
+OmniSocket::~OmniSocket() { }
+
+bool OmniSocket::canBindTo(Socket* otherSocket) const {
+    if(otherSocket->mType == Socket::Type::OMNI) {
+        OmniSocket* other = static_cast<OmniSocket*>(otherSocket);
+        return Math::equalish(other->mWorldLocation, mWorldLocation);
+    } else if(otherSocket->mType == Socket::Type::FLAT) {
+        FlatSocket* other = static_cast<FlatSocket*>(otherSocket);
+        return Math::equalish(other->mWorldLocation, mWorldLocation);
+    }
+}
+void OmniSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const {
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
+    mUtilityNode->setLocalTranslation(mLocation);
+    
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mOmniSocketVAO);
+    mSlimeShader.mOmniSocket->drawElements();
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mDummyPlate->drop();
+}
+void OmniSocket::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
+    mWorldLocation = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mLocation), 1.f));
+    
+    mWorldLocation += location;
+}
+
 FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal)
 : Socket(Socket::Type::FLAT, plate)
 , mLocation(location)
@@ -123,14 +166,48 @@ FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal)
 FlatSocket::~FlatSocket() { }
 
 bool FlatSocket::canBindTo(Socket* otherSocket) const {
-    //if(otherSocket->)
+    if(otherSocket->mType == Socket::Type::OMNI) {
+        OmniSocket* other = static_cast<OmniSocket*>(otherSocket);
+        return Math::equalish(other->mWorldLocation, mWorldLocation);
+    } else if(otherSocket->mType == Socket::Type::FLAT) {
+        FlatSocket* other = static_cast<FlatSocket*>(otherSocket);
+        
+        if(!Math::equalish(other->mWorldLocation, mWorldLocation)) {
+            return false;
+        }
+        
+        return Math::oppositeDirection(other->mWorldNormal, mWorldNormal);
+    }
     
 }
-void FlatSocket::render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const {
+void FlatSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const {
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
+    mUtilityNode->setLocalTranslation(mLocation);
+    mUtilityNode->setLocalOrientation(Math::quaternionLookAt(Vec3(mNormal), Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
     
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mFlatSocketVAO);
+    mSlimeShader.mFlatSocket->drawElements();
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mDummyPlate->drop();
 }
-void FlatSocket::onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) {
+void FlatSocket::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
+    mWorldLocation = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mLocation), 1.f));
+    mWorldNormal = Vec3(glm::mat4_cast(orientation) * glm::vec4(glm::vec3(mNormal), 0.f));
     
+    mWorldLocation += location;
 }
 
 Plate::Plate()
@@ -221,7 +298,7 @@ void Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
             if(other == this) { continue; } // Skip self
             for(std::vector<Edge*>::iterator otherPlateEdgesIterator = other->mEdges.begin(); otherPlateEdgesIterator != other->mEdges.end(); ++ otherPlateEdgesIterator) {
                 Edge* otherEdge = *otherPlateEdgesIterator;
-                assert(myEdge != otherEdge && "Two plates share the same edge!");
+                assert(myEdge != otherEdge && "Two plates share the same edge instance!");
                 if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
                     myEdge->mUnions.push_back(otherEdge);
                     otherEdge->mUnions.push_back(myEdge);
@@ -274,6 +351,13 @@ void Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mS
         edge->renderLines(mRenderer, mSlimeShader);
     }
 }
+void Plate::renderSockets(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+    for(std::vector<Socket*>::const_iterator iter = mSockets.cbegin(); iter != mSockets.cend(); ++ iter) {
+        const Socket* socket = *iter;
+        socket->render(mRenderer, mSlimeShader);
+    }
+}
+
 
 }
 

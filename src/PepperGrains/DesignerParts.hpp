@@ -35,9 +35,13 @@ struct SlimeShader {
     
     GeometryResource* mVertexBall;
     GeometryResource* mStraightEdge;
+    GeometryResource* mFlatSocket;
+    GeometryResource* mOmniSocket;
     
     GLuint mVertexBallVAO;
     GLuint mStraightEdgeVAO;
+    GLuint mFlatSocketVAO;
+    GLuint mOmniSocketVAO;
 };
 
 class Plate;
@@ -80,13 +84,13 @@ public:
     void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
     void renderVertices(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
     
-    void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation);
+    void onPlateChangeTransform(const Vec3& location, const glm::quat& orientation);
 };
 
 class Socket {
 public:
     enum Type {
-        OMNIDIRECTIONAL,
+        OMNI,
         FLAT,
         CURVED
     };
@@ -101,8 +105,22 @@ public:
     std::vector<Socket*> mUnions;
     
     virtual bool canBindTo(Socket* other) const = 0;
-    virtual void render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const = 0;
-    virtual void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) = 0;
+    virtual void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
+    virtual void onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) = 0;
+};
+
+class OmniSocket : public Socket {
+public:
+    OmniSocket(Plate* plate, const Vec3& location);
+    virtual ~OmniSocket();
+    
+    Vec3 mLocation;
+    
+    Vec3 mWorldLocation;
+    
+    bool canBindTo(Socket* other) const;
+    void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const;
+    void onPlateChangeTransform(const Vec3& location, const glm::quat& orientation);
 };
 
 class FlatSocket : public Socket {
@@ -112,6 +130,9 @@ public:
     
     Vec3 mLocation;
     Vec3 mNormal;
+    
+    Vec3 mWorldLocation;
+    Vec3 mWorldNormal;
     
     bool canBindTo(Socket* other) const;
     void render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const;
@@ -170,6 +191,7 @@ public:
     void finalizeRotation();
     
     void renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const;
+    void renderSockets(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const;
     
     void tick(float tpf);
 };

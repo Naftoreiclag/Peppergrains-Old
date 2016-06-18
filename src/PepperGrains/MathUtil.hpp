@@ -18,6 +18,8 @@
 #include "Vec3.hpp"
 #include "Quate.hpp"
 
+#define BAD_IDEA_EPSILON 0.0001f
+
 namespace pgg {
 namespace Math {
 
@@ -34,10 +36,21 @@ float nearestMultiple(const float& A, const float& B);
 float cotangent(const float& radians);
 
 // Similar to traditional lookAt functions but in the form of a quaternion transform
-glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection);
+glm::quat quaternionLookAt(Vec3 normalTarget, Vec3 normalInitial, Vec3 normalUp, float epsilon = 0.0001f);
 
 // True iff line segments A and B are parallel and have points in common
-bool lineSegmentsColinear(Vec3 A1, Vec3 A2, Vec3 B1, Vec3 B2);
+bool lineSegmentsColinear(Vec3 A1, Vec3 A2, Vec3 B1, Vec3 B2, float epsilon = 0.0001f);
+
+//
+bool equalish(const Vec3& A, const Vec3& B, float epsilon = 0.0001f);
+
+//
+bool sameDirection(const Vec3& normalA, const Vec3& normalB, float epsilon = 0.0001f);
+bool oppositeDirection(const Vec3& normalA, const Vec3& normalB, float epsilon = 0.0001f);
+
+float lerp(float min, float max, float value);
+    
+float randFloat(float min, float max);
 
 }
 }

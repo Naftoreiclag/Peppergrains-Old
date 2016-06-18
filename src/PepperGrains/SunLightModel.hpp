@@ -35,6 +35,11 @@ public:
         GLuint mNearPlaneHandle;
         GLuint mCascadeFarsHandle;
         
+        GLuint mDiskHandle;
+        
+        GLuint mNoiseTextureHandle;
+        GLuint mNoiseScaleHandle;
+        
         GLuint mSunViewProjHandle[PGG_NUM_SUN_CASCADES];
         
         GLuint mDLightVao;
@@ -43,6 +48,14 @@ public:
         
         SharedResources();
         ~SharedResources();
+    
+        struct Kernels {
+            float disk[64 * 2];
+            
+            glm::vec2 normalized2DNoise[64];
+            GLuint normalized2DNoiseTexture;
+        };
+        Kernels mKernels;
         
     public:
         static SharedResources* getSharedInstance();
