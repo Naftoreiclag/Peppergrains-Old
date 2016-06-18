@@ -125,12 +125,8 @@
       <File Name="DebugInfiniteCheckerboardModel.cpp"/>
       <File Name="ModelResource.cpp"/>
       <File Name="ModelResource.hpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="Stuff">
-      <File Name="OpenGLStuff.hpp"/>
-      <File Name="StreamStuff.hpp"/>
-      <File Name="StreamStuff.cpp"/>
-      <File Name="HardValueStuff.hpp"/>
+      <File Name="DeferredRenderer.cpp"/>
+      <File Name="DeferredRenderer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
@@ -143,8 +139,6 @@
       <File Name="OpenGLContextData.hpp"/>
       <File Name="SDLRendererData.cpp"/>
       <File Name="SDLRendererData.hpp"/>
-      <File Name="MathUtil.hpp"/>
-      <File Name="MathUtil.cpp"/>
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
@@ -203,8 +197,6 @@
     </VirtualDirectory>
     <File Name="DesignerGameLayer.cpp"/>
     <File Name="DesignerGameLayer.hpp"/>
-    <File Name="DeferredRenderer.hpp"/>
-    <File Name="DeferredRenderer.cpp"/>
     <VirtualDirectory Name="Robotics">
       <File Name="MechBody.hpp"/>
       <File Name="MechBody.cpp"/>
@@ -223,6 +215,14 @@
     </VirtualDirectory>
     <File Name="DesignerParts.hpp"/>
     <File Name="DesignerParts.cpp"/>
+    <VirtualDirectory Name="util">
+      <File Name="MathUtil.cpp"/>
+      <File Name="MathUtil.hpp"/>
+      <File Name="HardValueStuff.hpp"/>
+      <File Name="OpenGLStuff.hpp"/>
+      <File Name="StreamStuff.cpp"/>
+      <File Name="StreamStuff.hpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

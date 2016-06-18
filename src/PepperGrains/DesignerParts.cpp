@@ -19,21 +19,88 @@ namespace pgg
 
 Edge::Edge(Type type, Plate* plate)
 : mType(type)
-, mPlate(plate) {
-    
-}
-
-Edge::~Edge() {
-    
-}
+, mPlate(plate) { }
+Edge::~Edge() { }
 
 StraightEdge::StraightEdge(Plate* plate, const Vec3& start, const Vec3& end)
 : Edge(Edge::Type::STRAIGHT, plate)
 , mStartLoc(start)
-, mEndLoc(end) {
-}
+, mEndLoc(end) { }
+StraightEdge::~StraightEdge() { }
 
-StraightEdge::~StraightEdge() {
+bool StraightEdge::canBindTo(Edge* otherEdge) const {
+    if(otherEdge->mType != Edge::Type::STRAIGHT) {
+        return false;
+    }
+    
+    StraightEdge* other = (StraightEdge*) otherEdge;
+    
+    return Math::lineSegmentsColinear(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
+}
+void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+    
+    Vec3 disp = mEndLoc - mStartLoc;
+    float length = disp.mag();
+    Vec3 dir = disp / length;
+    
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
+    
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
+    
+    mUtilityNode->setLocalTranslation(mStartLoc);
+    mUtilityNode->setLocalScale(glm::vec3(1.f, 1.f, length));
+    mUtilityNode->setLocalOrientation(Math::quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
+    
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    
+    if(mUnions.size() > 0) {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
+        glBlendColor(0.4f, 0.4f, 0.4f, 1.0f);
+    } else {
+        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+        glBlendColor(0.2f, 0.2f, 0.2f, 1.0f);
+    }
+    
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
+    mSlimeShader.mStraightEdge->drawElements();
+    
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mDummyPlate->drop();
+    
+}
+void StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
+    
+    SceneNode* mDummyPlate = new SceneNode();
+    mDummyPlate->grab();
+    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
+    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
+    
+    SceneNode* mUtilityNode = mDummyPlate->newChild();
+    
+    mUtilityNode->setLocalTranslation(mStartLoc);
+    
+    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    
+    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    glBindVertexArray(mSlimeShader.mVertexBallVAO);
+    mSlimeShader.mVertexBall->drawElements();
+    
+    
+    glBindVertexArray(0);
+    glUseProgram(0);
+    
+    mDummyPlate->drop();
     
 }
 void StraightEdge::onPlateChangeTransform(const Vec3& location, const glm::quat& orientation) {
@@ -43,17 +110,29 @@ void StraightEdge::onPlateChangeTransform(const Vec3& location, const glm::quat&
     mWorldStartLoc += location;
     mWorldEndLoc += location;
 }
-bool StraightEdge::canBindTo(Edge* otherEdge) const {
+
+Socket::Socket(Type type, Plate* plate)
+: mType(type)
+, mPlate(plate) { }
+Socket::~Socket() { }
+
+FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal)
+: Socket(Socket::Type::FLAT, plate)
+, mLocation(location)
+, mNormal(normal) { }
+FlatSocket::~FlatSocket() { }
+
+bool FlatSocket::canBindTo(Socket* otherSocket) const {
+    //if(otherSocket->)
     
-    if(otherEdge->mType != Edge::Type::STRAIGHT) {
-        return false;
-    }
-    
-    StraightEdge* other = (StraightEdge*) otherEdge;
-    
-    return Math::linesIntersect(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
 }
+void FlatSocket::render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const {
     
+}
+void FlatSocket::onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) {
+    
+}
+
 Plate::Plate()
 : mIntegralX(0)
 , mIntegralY(0)
@@ -104,7 +183,6 @@ void Plate::finalizeRotation() {
     intermediateYaw = 0.f;
     intermediateRoll = 0.f;
 }
-
 Vec3 Plate::getLocation() const {
     return Vec3(
         ((float) mIntegralX) * (1.f / 12.f),
@@ -112,7 +190,6 @@ Vec3 Plate::getLocation() const {
         ((float) mIntegralZ) * (1.f / 12.f)
     );
 }
-
 void Plate::onTransformChanged() {
     needRebuildUnionGraph = true;
     
@@ -122,7 +199,6 @@ void Plate::onTransformChanged() {
         myEdge->onPlateChangeTransform(mLocation, mOrientation);
     }
 }
-
 void Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
     if(!needRebuildUnionGraph) {
         return;
@@ -156,11 +232,10 @@ void Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
     
     needRebuildUnionGraph = false;
 }
-
 void Plate::setLocation(Vec3 location, float snapSize) {
-    uint32_t newIntegralX = (uint32_t) std::floor(Math::toNearestMultiple(location.x, snapSize) * 12.f + 0.5);
-    uint32_t newIntegralY = (uint32_t) std::floor(Math::toNearestMultiple(location.y, snapSize) * 12.f + 0.5);
-    uint32_t newIntegralZ = (uint32_t) std::floor(Math::toNearestMultiple(location.z, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralX = (uint32_t) std::floor(Math::nearestMultiple(location.x, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralY = (uint32_t) std::floor(Math::nearestMultiple(location.y, snapSize) * 12.f + 0.5);
+    uint32_t newIntegralZ = (uint32_t) std::floor(Math::nearestMultiple(location.z, snapSize) * 12.f + 0.5);
     
     if(mIntegralX != newIntegralX || mIntegralY != newIntegralY || mIntegralZ != newIntegralZ) {
         mIntegralX = newIntegralX;
@@ -171,7 +246,6 @@ void Plate::setLocation(Vec3 location, float snapSize) {
         onTransformChanged();
     }
 }
-
 void Plate::tick(float tpf) {
     
     if((mLocation - mRenderLocation).mag() < tpf) {
@@ -190,7 +264,6 @@ void Plate::tick(float tpf) {
     collisionWorld->removeCollisionObject(collisionObject);
     collisionWorld->addCollisionObject(collisionObject);
 }
-
 void Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
         const Edge* edge = *iter;
@@ -200,74 +273,6 @@ void Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mS
         const Edge* edge = *iter;
         edge->renderLines(mRenderer, mSlimeShader);
     }
-}
-
-void StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
-    
-    SceneNode* mDummyPlate = new SceneNode();
-    mDummyPlate->grab();
-    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
-    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
-    
-    SceneNode* mUtilityNode = mDummyPlate->newChild();
-    
-    mUtilityNode->setLocalTranslation(mStartLoc);
-    
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
-    
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
-    glBindVertexArray(mSlimeShader.mVertexBallVAO);
-    mSlimeShader.mVertexBall->drawElements();
-    
-    
-    glBindVertexArray(0);
-    glUseProgram(0);
-    
-    mDummyPlate->drop();
-    
-}
-
-void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
-    
-    Vec3 disp = mEndLoc - mStartLoc;
-    float length = disp.mag();
-    Vec3 dir = disp / length;
-    
-    SceneNode* mDummyPlate = new SceneNode();
-    mDummyPlate->grab();
-    mDummyPlate->setLocalTranslation(mPlate->mRenderLocation);
-    mDummyPlate->setLocalOrientation(mPlate->mRenderOrientation);
-    
-    SceneNode* mUtilityNode = mDummyPlate->newChild();
-    
-    mUtilityNode->setLocalTranslation(mStartLoc);
-    mUtilityNode->setLocalScale(glm::vec3(1.f, 1.f, length));
-    mUtilityNode->setLocalOrientation(Math::quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
-    
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
-    
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    
-    if(mUnions.size() > 0) {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
-        glBlendColor(0.4f, 0.4f, 0.4f, 1.0f);
-    } else {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
-        glBlendColor(0.2f, 0.2f, 0.2f, 1.0f);
-    }
-    
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
-    glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
-    mSlimeShader.mStraightEdge->drawElements();
-    
-    
-    glBindVertexArray(0);
-    glUseProgram(0);
-    
-    mDummyPlate->drop();
-    
 }
 
 }

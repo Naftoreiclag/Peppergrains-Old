@@ -101,20 +101,20 @@ public:
     std::vector<Socket*> mUnions;
     
     virtual bool canBindTo(Socket* other) const = 0;
-    virtual bool render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const = 0;
+    virtual void render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const = 0;
     virtual void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) = 0;
 };
 
 class FlatSocket : public Socket {
 public:
-    FlatSocket(const Vec3& location, const Vec3& normal);
+    FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal);
     virtual ~FlatSocket();
     
     Vec3 mLocation;
     Vec3 mNormal;
     
     bool canBindTo(Socket* other) const;
-    bool render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const;
+    void render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const;
     void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation);
 };
 

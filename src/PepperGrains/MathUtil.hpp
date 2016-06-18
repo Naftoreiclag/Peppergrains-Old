@@ -18,25 +18,28 @@
 #include "Vec3.hpp"
 #include "Quate.hpp"
 
-namespace pgg
-{
-
+namespace pgg {
 namespace Math {
-    
-float nearestRightAngle(const float& radians);
-    
-float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2);
-    
-float toNearestMultiple(const float& a, const float& b);
 
+// Closest right angle (in radians) to a given angle (in radians)
+float nearestRightAngle(const float& radians);
+
+// Closest point on line A to line B as a kind of approximation of a true intersection (returned as a fraction between A1 and A2)
+float nearest3DLineIntersection(const Vec3& A1, const Vec3& A2, const Vec3& B1, const Vec3& B2);
+
+// Rounds A to the nearest whole multiple of B
+float nearestMultiple(const float& A, const float& B);
+
+// Cotangent
 float cotangent(const float& radians);
 
+// Similar to traditional lookAt functions but in the form of a quaternion transform
 glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upDirection);
 
-bool linesIntersect(Vec3 A, Vec3 B, Vec3 C, Vec3 D);
+// True iff line segments A and B are parallel and have points in common
+bool lineSegmentsColinear(Vec3 A1, Vec3 A2, Vec3 B1, Vec3 B2);
 
 }
-
 }
 
 

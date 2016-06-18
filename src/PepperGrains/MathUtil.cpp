@@ -40,7 +40,7 @@ float nearestRightAngle(const float& radians) {
     }
 }
     
-float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2) {
+float nearest3DLineIntersection(const Vec3& s1, const Vec3& s2, const Vec3& m1, const Vec3& m2) {
     Vec3 mouse = m2 - m1;
     Vec3 street = s2 - s1;
     float mouseMagSq = mouse.magSq();
@@ -60,7 +60,7 @@ float nearestPointOn3DLine(const Vec3& s1, const Vec3& s2, const Vec3& m1, const
     }
 }
     
-float toNearestMultiple(const float& a, const float& b) {
+float nearestMultiple(const float& a, const float& b) {
     return std::floor((a / b) + 0.5) * b;
 }
 
@@ -81,7 +81,7 @@ glm::quat quaternionLookAt(Vec3 targetDirection, Vec3 initialDirection, Vec3 upD
     return glm::angleAxis(std::acos(dotProd), glm::vec3(initialDirection.cross(targetDirection).normalized()));
 }
 
-bool linesIntersect(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
+bool lineSegmentsColinear(Vec3 A, Vec3 B, Vec3 C, Vec3 D) {
     
     Vec3 myDisplacement = B - A;
     float myMagnitude = myDisplacement.mag();

@@ -595,7 +595,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         worldB.z += 1.f;
                     }
                     
-                    float frac = Math::nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    float frac = Math::nearest3DLineIntersection(worldA, worldB, mouseRayStart, mouseRayEnd);
                     if(frac < -100.f) {
                         frac = -100.f;
                     } else if(frac > 100.f) {
@@ -672,7 +672,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                         worldB.z += 1.f;
                     }
                     
-                    float frac = Math::nearestPointOn3DLine(worldA, worldB, mouseRayStart, mouseRayEnd);
+                    float frac = Math::nearest3DLineIntersection(worldA, worldB, mouseRayStart, mouseRayEnd);
                     if(frac < -100.f) {
                         frac = -100.f;
                     } else if(frac > 100.f) {
