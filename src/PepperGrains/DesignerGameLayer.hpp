@@ -56,10 +56,12 @@ public:
     SlimeShader mSlimeShader;
     
     class Plate;
+    
     class Edge {
     public:
         enum Type {
-            STRAIGHT
+            STRAIGHT,
+            QUARTER
         };
         
         Edge(Type type, Plate* plate);
@@ -68,8 +70,6 @@ public:
         const Type mType;
         
         Plate* mPlate;
-        
-        Vec3 mLocation;
         
         std::vector<Edge*> mUnions;
         
@@ -98,12 +98,49 @@ public:
         void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation);
     };
     
+    class Socket {
+    public:
+        enum Type {
+            OMNIDIRECTIONAL,
+            FLAT,
+            CURVED
+        };
+        
+        Socket(Type type, Plate* plate);
+        virtual ~Socket();
+        
+        const Type mType;
+        
+        Plate* mPlate;
+        
+        std::vector<Socket*> mUnions;
+        
+        virtual bool canBindTo(Socket* other) const = 0;
+        virtual bool render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const = 0;
+        virtual void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation) = 0;
+    };
+    
+    class FlatSocket : public Socket {
+    public:
+        FlatSocket(const Vec3& location, const Vec3& normal);
+        virtual ~FlatSocket();
+        
+        Vec3 mLocation;
+        Vec3 mNormal;
+        
+        bool canBindTo(Socket* other) const;
+        bool render(const DeferredRenderer* render, const SlimeShader& mSlimeShader) const;
+        void onPlateChangeTransform(const Vec3& location, const glm::quat& orienation);
+    };
+    
     class Plate {
     public:
         Plate();
         virtual ~Plate();
         
+        // Binding features
         std::vector<Edge*> mEdges;
+        std::vector<Socket*> mSockets;
         
         // Precise storage of location
         int32_t mIntegralX;
@@ -118,7 +155,6 @@ public:
         // Imprecise storage of orienation
         Vec3 mLocation;
         glm::quat mOrientation;
-        
         
         glm::quat mFinalizedOrienation;
         
@@ -152,8 +188,6 @@ public:
         
         void tick(float tpf);
     };
-    
-    
     
 private:
     DeferredRenderer* mRenderer;

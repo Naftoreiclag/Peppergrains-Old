@@ -21,6 +21,7 @@
 #include "ReferenceCounted.hpp"
 #include "SceneNode.hpp"
 #include "ShaderProgramResource.hpp"
+#include "DirectionalLightModel.hpp"
 #include "SunLightModel.hpp"
 #include "SSAOModel.hpp"
 
@@ -105,10 +106,13 @@ private:
         glm::mat4 viewMatrix;
         
         SunLightModel* sunModel;
+        DirectionalLightModel* directionalModel;
         
         glm::vec3 color;
+        
+        bool shadowsEnabled;
     };
-    Sun mSky;
+    Sun mSun;
     
     glm::vec3 mAmbientLight;
     
@@ -136,6 +140,7 @@ public:
     void setSkyColor(const glm::vec3& skyColor);
     
     void setSSAOEnabled(const bool& enabled);
+    void setShadowsEnabled(const bool& enabled);
     
     void setAmbientLight(const glm::vec3& ambientLight);
     

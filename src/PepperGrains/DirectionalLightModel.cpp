@@ -13,8 +13,6 @@
 
 #include "DirectionalLightModel.hpp"
 
-#include <iostream>
-
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -44,11 +42,9 @@ void DirectionalLightModel::SharedResources::load() {
             const ShaderProgramResource::Control& entry = *iter;
             if(entry.name == "direction") {
                 mDirectionHandle = entry.handle;
-                std::cout << "aaa" << mDirectionHandle << std::endl;
             }
             else if(entry.name == "color") {
                 mColorHandle = entry.handle;
-                std::cout << "bbb" << mColorHandle << std::endl;
             }
         }
     }

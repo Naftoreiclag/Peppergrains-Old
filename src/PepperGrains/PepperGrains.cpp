@@ -43,8 +43,8 @@ int PepperGrains::run(int argc, char* argv[]) {
         return -1;
     }
     
-    uint32_t windowWidth = 1280;
-    uint32_t windowHeight = 720;
+    uint32_t windowWidth = 1920;
+    uint32_t windowHeight = 1080;
     
     /*
     int glMajorVersion;

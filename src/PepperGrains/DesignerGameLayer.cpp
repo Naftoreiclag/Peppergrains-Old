@@ -432,6 +432,11 @@ void DesignerGameLayer::newPlate(Vec3 location) {
         plate->mEdges.push_back(new StraightEdge(plate, Vec3(-0.5f, 0.f, 0.5f), Vec3(-0.5f, 0.f, -0.5f)));
     }
     
+    // Set up sockets
+    {
+        //plate->mSockets.push_back(new Socket());
+    }
+    
     mPlates.push_back(plate);
     
     plate->setLocation(location, 1.f / 12.f);
@@ -461,10 +466,12 @@ void DesignerGameLayer::onBegin() {
     mRootNode = new SceneNode();
     mRootNode->grab();
     
+    mRootNode->newChild()->move(glm::vec3(2.f, 2.f, 2.f))->grabModel(resman->findModel("Motor.model"));
+    
     mRenderer = new DeferredRenderer(mScreenWidth, mScreenHeight);
     mRenderer->grab();
     
-    mRenderer->setSkyColor(glm::vec3(0.f, 0.f, 0.f));
+    mRenderer->setSkyColor(glm::vec3(0.f, 1.5f, 2.f));
     
     mCameraSpeedMin = 2.0f;
     mCameraSpeedMax = 10.f;
@@ -778,6 +785,18 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     if(inputStates->isPressed(Input::Scancode::K_6)) {
         mDebugWireframe = false;
+    }
+    if(inputStates->isPressed(Input::Scancode::K_7)) {
+        mRenderer->setSSAOEnabled(true);
+    }
+    if(inputStates->isPressed(Input::Scancode::K_8)) {
+        mRenderer->setSSAOEnabled(false);
+    }
+    if(inputStates->isPressed(Input::Scancode::K_9)) {
+        mRenderer->setShadowsEnabled(true);
+    }
+    if(inputStates->isPressed(Input::Scancode::K_0)) {
+        mRenderer->setShadowsEnabled(false);
     }
     mShowAllEdges = inputStates->isPressed(Input::Scancode::K_H);
     
