@@ -29,10 +29,11 @@ StraightEdge::StraightEdge(Plate* plate, const Vec3& start, const Vec3& end)
 StraightEdge::~StraightEdge() { }
 
 bool StraightEdge::canBindTo(Edge* otherEdge) const {
+    assert(otherEdge != this && "Attempting to bind straight edge to itself!");
+    assert(otherEdge->mPlate != mPlate && "Attempting to bind two edges of the same plate!");
     if(otherEdge->mType != Edge::Type::STRAIGHT) {
         return false;
     }
-    
     StraightEdge* other = static_cast<StraightEdge*>(otherEdge);
     
     return Math::lineSegmentsColinear(mWorldStartLoc, mWorldEndLoc, other->mWorldStartLoc, other->mWorldEndLoc);
@@ -58,7 +59,7 @@ void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeSha
     
     glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
     
-    if(mUnions.size() > 0) {
+    if(mLinks.size() > 0) {
         glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
         glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
     } else {
@@ -123,6 +124,8 @@ OmniSocket::OmniSocket(Plate* plate, const Vec3& location)
 OmniSocket::~OmniSocket() { }
 
 bool OmniSocket::canBindTo(Socket* otherSocket) const {
+    assert(otherSocket != this && "Attempting to bind omni socket to itself!");
+    assert(otherSocket->mPlate != mPlate && "Attempting to bind two sockets of the same plate!");
     if(otherSocket->mType == Socket::Type::OMNI) {
         OmniSocket* other = static_cast<OmniSocket*>(otherSocket);
         return Math::equalish(other->mWorldLocation, mWorldLocation);
@@ -166,16 +169,16 @@ FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal)
 FlatSocket::~FlatSocket() { }
 
 bool FlatSocket::canBindTo(Socket* otherSocket) const {
+    assert(otherSocket != this && "Attempting to bind flat socket to itself!");
+    assert(otherSocket->mPlate != mPlate && "Attempting to bind two sockets of the same plate!");
     if(otherSocket->mType == Socket::Type::OMNI) {
         OmniSocket* other = static_cast<OmniSocket*>(otherSocket);
         return Math::equalish(other->mWorldLocation, mWorldLocation);
     } else if(otherSocket->mType == Socket::Type::FLAT) {
         FlatSocket* other = static_cast<FlatSocket*>(otherSocket);
-        
         if(!Math::equalish(other->mWorldLocation, mWorldLocation)) {
             return false;
         }
-        
         return Math::oppositeDirection(other->mWorldNormal, mWorldNormal);
     }
     
@@ -220,7 +223,7 @@ Plate::Plate()
 , intermediatePitch(0.f)
 , intermediateYaw(0.f)
 , intermediateRoll(0.f)
-, needRebuildUnionGraph(false) { }
+, needRebuildLinks(false) { }
 Plate::~Plate() { }
 
 void Plate::setIntermediatePitch(float radians) {
@@ -268,7 +271,7 @@ Vec3 Plate::getLocation() const {
     );
 }
 void Plate::onTransformChanged() {
-    needRebuildUnionGraph = true;
+    needRebuildLinks = true;
     
     for(std::vector<Edge*>::iterator iter2 = mEdges.begin(); iter2 != mEdges.end(); ++ iter2) {
         Edge* myEdge = *iter2;
@@ -276,21 +279,20 @@ void Plate::onTransformChanged() {
         myEdge->onPlateChangeTransform(mLocation, mOrientation);
     }
 }
-void Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
-    if(!needRebuildUnionGraph) {
+void Plate::rebuildLinks(std::vector<Plate*>& plates) {
+    if(!needRebuildLinks) {
         return;
     }
 
-    
     for(std::vector<Edge*>::iterator myEdgesIterator = mEdges.begin(); myEdgesIterator != mEdges.end(); ++ myEdgesIterator) {
         Edge* myEdge = *myEdgesIterator;
 
         // Disconnect from all edges
-        for(std::vector<Edge*>::iterator myEdgesUnionsIterator = myEdge->mUnions.begin(); myEdgesUnionsIterator != myEdge->mUnions.end(); ++ myEdgesUnionsIterator) {
-            Edge* otherEdge = *myEdgesUnionsIterator;
-            otherEdge->mUnions.erase(std::remove(otherEdge->mUnions.begin(), otherEdge->mUnions.end(), myEdge), otherEdge->mUnions.end());
+        for(std::vector<Edge*>::iterator myEdgesLinksIterator = myEdge->mLinks.begin(); myEdgesLinksIterator != myEdge->mLinks.end(); ++ myEdgesLinksIterator) {
+            Edge* otherEdge = *myEdgesLinksIterator;
+            otherEdge->mLinks.erase(std::remove(otherEdge->mLinks.begin(), otherEdge->mLinks.end(), myEdge), otherEdge->mLinks.end());
         }
-        myEdge->mUnions.clear();
+        myEdge->mLinks.clear();
         
         // Connect (or reconnect) to edges that are valid
         for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
@@ -300,14 +302,39 @@ void Plate::rebuildUnionGraph(std::vector<Plate*>& plates) {
                 Edge* otherEdge = *otherPlateEdgesIterator;
                 assert(myEdge != otherEdge && "Two plates share the same edge instance!");
                 if(myEdge->canBindTo(otherEdge) && otherEdge->canBindTo(myEdge)) {
-                    myEdge->mUnions.push_back(otherEdge);
-                    otherEdge->mUnions.push_back(myEdge);
+                    myEdge->mLinks.push_back(otherEdge);
+                    otherEdge->mLinks.push_back(myEdge);
                 }
             }
         }
     }
     
-    needRebuildUnionGraph = false;
+    for(std::vector<Socket*>::iterator mySocketsIterator = mSockets.begin(); mySocketsIterator != mSockets.end(); ++ mySocketsIterator) {
+        Socket* mySocket = *mySocketsIterator;
+
+        // Disconnect from all Sockets
+        for(std::vector<Socket*>::iterator mySocketsLinksIterator = mySocket->mLinks.begin(); mySocketsLinksIterator != mySocket->mLinks.end(); ++ mySocketsLinksIterator) {
+            Socket* otherSocket = *mySocketsLinksIterator;
+            otherSocket->mLinks.erase(std::remove(otherSocket->mLinks.begin(), otherSocket->mLinks.end(), mySocket), otherSocket->mLinks.end());
+        }
+        mySocket->mLinks.clear();
+        
+        // Connect (or reconnect) to sockets that are valid
+        for(std::vector<Plate*>::iterator otherPlateIterator = plates.begin(); otherPlateIterator != plates.end(); ++ otherPlateIterator) {
+            Plate* other = *otherPlateIterator;
+            if(other == this) { continue; } // Skip self
+            for(std::vector<Socket*>::iterator otherPlateSocketsIterator = other->mSockets.begin(); otherPlateSocketsIterator != other->mSockets.end(); ++ otherPlateSocketsIterator) {
+                Socket* otherSocket = *otherPlateSocketsIterator;
+                assert(mySocket != otherSocket && "Two plates share the same socket instance!");
+                if(mySocket->canBindTo(otherSocket) && otherSocket->canBindTo(mySocket)) {
+                    mySocket->mLinks.push_back(otherSocket);
+                    otherSocket->mLinks.push_back(mySocket);
+                }
+            }
+        }
+    }
+    
+    needRebuildLinks = false;
 }
 void Plate::setLocation(Vec3 location, float snapSize) {
     uint32_t newIntegralX = (uint32_t) std::floor(Math::nearestMultiple(location.x, snapSize) * 12.f + 0.5);

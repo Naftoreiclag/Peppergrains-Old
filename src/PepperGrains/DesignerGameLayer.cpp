@@ -84,7 +84,7 @@ DesignerGameLayer::DesignerGameLayer(uint32_t width, uint32_t height)
 DesignerGameLayer::~DesignerGameLayer() {
 }
 
-void DesignerGameLayer::newPlate(Vec3 location) {
+void DesignerGameLayer::newSquarePlate(Vec3 location) {
     Plate* plate = new Plate();
     
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -129,9 +129,59 @@ void DesignerGameLayer::newPlate(Vec3 location) {
     
     plate->setLocation(location, 1.f / 12.f);
 }
+void DesignerGameLayer::newMotor(Vec3 location) {
+    Plate* plate = new Plate();
+    
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    plate->mSceneNode = mRootNode->newChild();
+    plate->mSceneNode->grab();
+    plate->mSceneNode->grabModel(resman->findModel("Motor.model"));
+    
+    plate->collisionShape = new btCylinderShapeZ(Vec3(1.f / 4.f, 1.f / 4.f, 1.f / 3.f));
+    plate->motionState = new btDefaultMotionState();
+    plate->collisionObject = new btCollisionObject();
+    plate->collisionObject->setCollisionShape(plate->collisionShape);
+    plate->collisionObject->setUserPointer(plate);
+    plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    
+    mCollisionWorld->addCollisionObject(plate->collisionObject);
+    plate->collisionWorld = mCollisionWorld;
+    
+    // Set up edges
+    {
+    }
+    
+    // Set up sockets
+    {
+    }
+    
+    mPlates.push_back(plate);
+    
+    plate->setLocation(location, 1.f / 12.f);
+}
 
 void DesignerGameLayer::deletePlate(Plate* plate) {
     mPlates.erase(std::remove(mPlates.begin(), mPlates.end(), plate), mPlates.end());
+    
+    for(std::vector<Edge*>::iterator iter = plate->mEdges.begin(); iter != plate->mEdges.end(); ++ iter) {
+        Edge* edge = *iter;
+        for(std::vector<Edge*>::iterator iter2 = edge->mLinks.begin(); iter2 != edge->mLinks.end(); ++ iter2) {
+            Edge* other = *iter2;
+            other->mLinks.erase(std::remove(other->mLinks.begin(), other->mLinks.end(), edge), other->mLinks.end());
+        }
+        
+        // Should be fine to do this since the binding areas of the same plate are not supposed to be able to connect
+        delete edge;
+    }
+    for(std::vector<Socket*>::iterator iter = plate->mSockets.begin(); iter != plate->mSockets.end(); ++ iter) {
+        Socket* socket = *iter;
+        for(std::vector<Socket*>::iterator iter2 = socket->mLinks.begin(); iter2 != socket->mLinks.end(); ++ iter2) {
+            Socket* other = *iter2;
+            other->mLinks.erase(std::remove(other->mLinks.begin(), other->mLinks.end(), socket), other->mLinks.end());
+        }
+        delete socket;
+    }
     
     plate->mSceneNode->drop();
     
@@ -154,7 +204,6 @@ void DesignerGameLayer::onBegin() {
     mRootNode = new SceneNode();
     mRootNode->grab();
     
-    mRootNode->newChild()->move(glm::vec3(2.f, 2.f, 2.f))->grabModel(resman->findModel("Motor.model"));
     
     mRenderer = new DeferredRenderer(mScreenWidth, mScreenHeight);
     mRenderer->grab();
@@ -213,15 +262,26 @@ void DesignerGameLayer::onBegin() {
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
-    newPlate(Vec3(1.f, 1.f, 1.f));
-    newPlate(Vec3(1.f, 2.f, 1.f));
-    newPlate(Vec3(1.f, 3.f, 1.f));
-    newPlate(Vec3(1.f, 4.f, 1.f));
-    newPlate(Vec3(1.f, 5.f, 1.f));
-    newPlate(Vec3(1.f, 6.f, 1.f));
-    newPlate(Vec3(1.f, 7.f, 1.f));
-    newPlate(Vec3(1.f, 8.f, 1.f));
-    newPlate(Vec3(1.f, 9.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newMotor(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
+    newSquarePlate(Vec3(1.f, 1.f, 1.f));
 }
 
 void DesignerGameLayer::updateManipulatorTransform() {
@@ -795,7 +855,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     }
     for(std::vector<Plate*>::iterator iter = mPlates.begin(); iter != mPlates.end(); ++ iter) {
         Plate* targetLoc = *iter;
-        targetLoc->rebuildUnionGraph(mPlates);
+        targetLoc->rebuildLinks(mPlates);
     }
     
     mRenderer->renderFrame(mRootNode, debugShow, mDebugWireframe);

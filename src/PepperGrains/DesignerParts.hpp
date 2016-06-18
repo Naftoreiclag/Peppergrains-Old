@@ -60,7 +60,7 @@ public:
     
     Plate* mPlate;
     
-    std::vector<Edge*> mUnions;
+    std::vector<Edge*> mLinks;
     
     virtual bool canBindTo(Edge* other) const = 0;
     virtual void renderLines(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
@@ -102,7 +102,7 @@ public:
     
     Plate* mPlate;
     
-    std::vector<Socket*> mUnions;
+    std::vector<Socket*> mLinks;
     
     virtual bool canBindTo(Socket* other) const = 0;
     virtual void render(const DeferredRenderer* renderer, const SlimeShader& mSlimeShader) const = 0;
@@ -178,8 +178,8 @@ public:
     void setLocation(Vec3 location, float snapSize);
     
     void onTransformChanged();
-    bool needRebuildUnionGraph;
-    void rebuildUnionGraph(std::vector<Plate*>& plates);
+    bool needRebuildLinks;
+    void rebuildLinks(std::vector<Plate*>& plates);
     
     float intermediatePitch;
     float intermediateYaw;
