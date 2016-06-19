@@ -29,9 +29,13 @@
 namespace pgg {
 
 struct SlimeShader {
-    ShaderProgramResource* mShaderProg;
-    GLuint mColorHandle;
-    GLuint mSunHandle;
+    ShaderProgramResource* mSunAwareProg;
+    GLuint mSunAwareColorHandle;
+    GLuint mSunAwareSunDirectionHandle;
+    
+    // ???
+    ShaderProgramResource* mSunUnawareProg;
+    GLuint mSunUnawareColorHandle;
     
     GeometryResource* mVertexBall;
     GeometryResource* mStraightEdge;
@@ -125,8 +129,10 @@ public:
 
 class FlatSocket : public Socket {
 public:
-    FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal);
+    FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal, bool renderBothSides = false);
     virtual ~FlatSocket();
+    
+    bool mRenderBothSides;
     
     Vec3 mLocation;
     Vec3 mNormal;
@@ -151,8 +157,16 @@ public:
     // For plates with multiple adjustment points
     std::vector<Plate*> mMultiplatePartners;
     
-    bool allowManualLocation;
-    bool allowManualRotation;
+    bool mIsConnector;
+    struct ConnectorData {
+        bool isChief;
+        
+        SceneNode* pipe;
+    };
+    ConnectorData mConnectorData;
+    
+    bool mAllowManualLocation;
+    bool mAllowManualRotation;
     
     // Precise storage of location
     int32_t mIntegralX;
@@ -175,10 +189,10 @@ public:
     glm::quat mRenderOrientation;
     
     SceneNode* mSceneNode;
-    btCollisionObject* collisionObject;
-    btCollisionShape* collisionShape;
-    btCollisionWorld* collisionWorld;
-    btMotionState* motionState;
+    btCollisionObject* mCollisionObject;
+    btCollisionShape* mCollisionShape;
+    btCollisionWorld* mCollisionWorld;
+    btMotionState* mMotionState;
     
     Vec3 getLocation() const;
     void setLocation(Vec3 location, float snapSize);

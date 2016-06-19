@@ -93,15 +93,15 @@ void DesignerGameLayer::newSquarePlate(Vec3 location) {
     plate->mSceneNode->grab();
     plate->mSceneNode->grabModel(resman->findModel("SquarePlate.model"));
     
-    plate->collisionShape = new btBoxShape(Vec3(0.5f, 1.f / 60.f, 0.5f));
-    plate->motionState = new btDefaultMotionState();
-    plate->collisionObject = new btCollisionObject();
-    plate->collisionObject->setCollisionShape(plate->collisionShape);
-    plate->collisionObject->setUserPointer(plate);
-    plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    plate->mCollisionShape = new btBoxShape(Vec3(0.5f, 1.f / 60.f, 0.5f));
+    plate->mMotionState = new btDefaultMotionState();
+    plate->mCollisionObject = new btCollisionObject();
+    plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
+    plate->mCollisionObject->setUserPointer(plate);
+    plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
     
-    mCollisionWorld->addCollisionObject(plate->collisionObject);
-    plate->collisionWorld = mCollisionWorld;
+    mCollisionWorld->addCollisionObject(plate->mCollisionObject);
+    plate->mCollisionWorld = mCollisionWorld;
     
     // Set up edges
     {
@@ -138,15 +138,15 @@ void DesignerGameLayer::newMotor(Vec3 location) {
     plate->mSceneNode->grab();
     plate->mSceneNode->grabModel(resman->findModel("Motor.model"));
     
-    plate->collisionShape = new btCylinderShapeZ(Vec3(1.f / 4.f, 1.f / 4.f, 1.f / 3.f));
-    plate->motionState = new btDefaultMotionState();
-    plate->collisionObject = new btCollisionObject();
-    plate->collisionObject->setCollisionShape(plate->collisionShape);
-    plate->collisionObject->setUserPointer(plate);
-    plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    plate->mCollisionShape = new btCylinderShapeZ(Vec3(1.f / 4.f, 1.f / 4.f, 1.f / 3.f));
+    plate->mMotionState = new btDefaultMotionState();
+    plate->mCollisionObject = new btCollisionObject();
+    plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
+    plate->mCollisionObject->setUserPointer(plate);
+    plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
     
-    mCollisionWorld->addCollisionObject(plate->collisionObject);
-    plate->collisionWorld = mCollisionWorld;
+    mCollisionWorld->addCollisionObject(plate->mCollisionObject);
+    plate->mCollisionWorld = mCollisionWorld;
     
     // Set up edges
     {
@@ -154,6 +154,14 @@ void DesignerGameLayer::newMotor(Vec3 location) {
     
     // Set up sockets
     {
+        float extent = 1.f / 3.f;
+        
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(extent, 0.f, 0.f), Vec3(1.f, 0.f, 0.f), true));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(-extent, 0.f, 0.f), Vec3(-1.f, 0.f, 0.f), true));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, extent, 0.f), Vec3(0.f, 1.f, 0.f), true));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, -extent, 0.f), Vec3(0.f, -1.f, 0.f), true));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, 0.f, extent), Vec3(0.f, 0.f, 1.f), true));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, 0.f, -extent), Vec3(0.f, 0.f, -1.f), true));
     }
     
     mPlates.push_back(plate);
@@ -173,19 +181,17 @@ void DesignerGameLayer::newConnector(Vec3 location) {
         plate->mSceneNode->grab();
         plate->mSceneNode->grabModel(resman->findModel("ConnectorBase.model"));
         
-        plate->collisionShape = new btSphereShape(1.f / 12.f);
-        plate->motionState = new btDefaultMotionState();
-        plate->collisionObject = new btCollisionObject();
-        plate->collisionObject->setCollisionShape(plate->collisionShape);
-        plate->collisionObject->setUserPointer(plate);
-        plate->collisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+        plate->mCollisionShape = new btSphereShape(1.f / 12.f);
+        plate->mMotionState = new btDefaultMotionState();
+        plate->mCollisionObject = new btCollisionObject();
+        plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
+        plate->mCollisionObject->setUserPointer(plate);
+        plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
         
-        mCollisionWorld->addCollisionObject(plate->collisionObject);
-        plate->collisionWorld = mCollisionWorld;
+        mCollisionWorld->addCollisionObject(plate->mCollisionObject);
+        plate->mCollisionWorld = mCollisionWorld;
         
-        plate->allowManualRotation = false;
-        
-        plate->mSockets.push_back(new OmniSocket(plate, Vec3(0.f)));
+        plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f), Vec3(0.f, -1.f, 0.f), true));
         
         mPlates.push_back(plate);
         
@@ -193,6 +199,17 @@ void DesignerGameLayer::newConnector(Vec3 location) {
             plate->setLocation(location, 1.f / 12.f);
         } else {
             plate->setLocation(location + Vec3(0.f, 1.f, 0.f), 1.f / 12.f);
+        }
+        
+        plate->mIsConnector = true;
+        plate->mConnectorData.pipe = mRootNode->newChild();
+        plate->mConnectorData.pipe->grab();
+        
+        if(i == 0) {
+            plate->mConnectorData.isChief = true;
+            plate->mConnectorData.pipe->grabModel(resman->findModel("ConnectorPipe.model"));
+        } else {
+            plate->mConnectorData.isChief = false;
         }
         
         plates[i] = plate;
@@ -224,11 +241,15 @@ void DesignerGameLayer::deletePlate(Plate* plate) {
         delete socket;
     }
     
+    if(plate->mIsConnector) {
+        plate->mConnectorData.pipe->drop();
+    }
+    
     plate->mSceneNode->drop();
     
-    delete plate->collisionObject;
-    delete plate->motionState;
-    delete plate->collisionShape;
+    delete plate->mCollisionObject;
+    delete plate->mMotionState;
+    delete plate->mCollisionShape;
     
     delete plate;
 }
@@ -303,7 +324,12 @@ void DesignerGameLayer::onBegin() {
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
-    newConnector(Vec3(1.f, 1.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
+    newConnector(Vec3(1.f, 2.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
@@ -391,18 +417,32 @@ void DesignerGameLayer::updateManipulatorPhysics() {
 void DesignerGameLayer::loadSlimeShader() {
     ResourceManager* resman = ResourceManager::getSingleton();
     
-    mSlimeShader.mShaderProg = resman->findShaderProgram("Manipulator.shaderProgram");
-    mSlimeShader.mShaderProg->grab();
-    
-    const std::vector<ShaderProgramResource::Control>& uniformFloats = mSlimeShader.mShaderProg->getUniformVec3s();
-    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformFloats.begin(); iter != uniformFloats.end(); ++ iter) {
-        const ShaderProgramResource::Control& entry = *iter;
-        if(entry.name == "color") {
-            mSlimeShader.mColorHandle = entry.handle;
-        } else if(entry.name == "sunDirection") {
-            mSlimeShader.mSunHandle = entry.handle;
+    mSlimeShader.mSunAwareProg = resman->findShaderProgram("Manipulator.shaderProgram");
+    mSlimeShader.mSunAwareProg->grab();
+    {
+        const std::vector<ShaderProgramResource::Control>& uniformVec3s = mSlimeShader.mSunAwareProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformVec3s.begin(); iter != uniformVec3s.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "color") {
+                mSlimeShader.mSunAwareColorHandle = entry.handle;
+            } else if(entry.name == "sunDirection") {
+                mSlimeShader.mSunAwareSunDirectionHandle = entry.handle;
+            }
         }
     }
+    
+    mSlimeShader.mSunUnawareProg = resman->findShaderProgram("MinimalColor.shaderProgram");
+    mSlimeShader.mSunUnawareProg->grab();
+    {
+        const std::vector<ShaderProgramResource::Control>& uniformVec3s = mSlimeShader.mSunAwareProg->getUniformVec3s();
+        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = uniformVec3s.begin(); iter != uniformVec3s.end(); ++ iter) {
+            const ShaderProgramResource::Control& entry = *iter;
+            if(entry.name == "color") {
+                mSlimeShader.mSunUnawareColorHandle = entry.handle;
+            }
+        }
+    }
+    
     
     mSlimeShader.mVertexBall = resman->findGeometry("VertexBall.geometry");
     mSlimeShader.mVertexBall->grab();
@@ -416,44 +456,41 @@ void DesignerGameLayer::loadSlimeShader() {
     glGenVertexArrays(1, &mSlimeShader.mVertexBallVAO);
     glBindVertexArray(mSlimeShader.mVertexBallVAO);
     mSlimeShader.mVertexBall->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mSlimeShader.mVertexBall->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    if(mSlimeShader.mSunAwareProg->needsPosAttrib()) {
+        mSlimeShader.mVertexBall->enablePositionAttrib(mSlimeShader.mSunAwareProg->getPosAttrib());
     }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mSlimeShader.mVertexBall->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunAwareProg->needsNormalAttrib()) {
+        mSlimeShader.mVertexBall->enableNormalAttrib(mSlimeShader.mSunAwareProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
     glGenVertexArrays(1, &mSlimeShader.mStraightEdgeVAO);
     glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
     mSlimeShader.mStraightEdge->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mSlimeShader.mStraightEdge->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    if(mSlimeShader.mSunAwareProg->needsPosAttrib()) {
+        mSlimeShader.mStraightEdge->enablePositionAttrib(mSlimeShader.mSunAwareProg->getPosAttrib());
     }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mSlimeShader.mStraightEdge->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunAwareProg->needsNormalAttrib()) {
+        mSlimeShader.mStraightEdge->enableNormalAttrib(mSlimeShader.mSunAwareProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
     glGenVertexArrays(1, &mSlimeShader.mFlatSocketVAO);
     glBindVertexArray(mSlimeShader.mFlatSocketVAO);
     mSlimeShader.mFlatSocket->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mSlimeShader.mFlatSocket->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
-    }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mSlimeShader.mFlatSocket->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunUnawareProg->needsPosAttrib()) {
+        mSlimeShader.mFlatSocket->enablePositionAttrib(mSlimeShader.mSunUnawareProg->getPosAttrib());
     }
     glBindVertexArray(0);
     
     glGenVertexArrays(1, &mSlimeShader.mOmniSocketVAO);
     glBindVertexArray(mSlimeShader.mOmniSocketVAO);
     mSlimeShader.mOmniSocket->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mSlimeShader.mOmniSocket->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    if(mSlimeShader.mSunAwareProg->needsPosAttrib()) {
+        mSlimeShader.mOmniSocket->enablePositionAttrib(mSlimeShader.mSunAwareProg->getPosAttrib());
     }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mSlimeShader.mOmniSocket->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunAwareProg->needsNormalAttrib()) {
+        mSlimeShader.mOmniSocket->enableNormalAttrib(mSlimeShader.mSunAwareProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
@@ -480,22 +517,22 @@ void DesignerGameLayer::loadManipulator() {
     glGenVertexArrays(1, &mManipulator.arrowVAO);
     glBindVertexArray(mManipulator.arrowVAO);
     mManipulator.arrow->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mManipulator.arrow->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    if(mSlimeShader.mSunAwareProg->needsPosAttrib()) {
+        mManipulator.arrow->enablePositionAttrib(mSlimeShader.mSunAwareProg->getPosAttrib());
     }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mManipulator.arrow->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunAwareProg->needsNormalAttrib()) {
+        mManipulator.arrow->enableNormalAttrib(mSlimeShader.mSunAwareProg->getNormalAttrib());
     }
     glBindVertexArray(0);
     
     glGenVertexArrays(1, &mManipulator.wheelVAO);
     glBindVertexArray(mManipulator.wheelVAO);
     mManipulator.wheel->bindBuffers();
-    if(mSlimeShader.mShaderProg->needsPosAttrib()) {
-        mManipulator.wheel->enablePositionAttrib(mSlimeShader.mShaderProg->getPosAttrib());
+    if(mSlimeShader.mSunAwareProg->needsPosAttrib()) {
+        mManipulator.wheel->enablePositionAttrib(mSlimeShader.mSunAwareProg->getPosAttrib());
     }
-    if(mSlimeShader.mShaderProg->needsNormalAttrib()) {
-        mManipulator.wheel->enableNormalAttrib(mSlimeShader.mShaderProg->getNormalAttrib());
+    if(mSlimeShader.mSunAwareProg->needsNormalAttrib()) {
+        mManipulator.wheel->enableNormalAttrib(mSlimeShader.mSunAwareProg->getNormalAttrib());
     }
     glBindVertexArray(0);
 }
@@ -508,7 +545,7 @@ void DesignerGameLayer::unloadManipulator() {
 }
 
 void DesignerGameLayer::unloadSlimeShader() {
-    mSlimeShader.mShaderProg->drop();
+    mSlimeShader.mSunAwareProg->drop();
     
     mSlimeShader.mVertexBall->drop();
     mSlimeShader.mStraightEdge->drop();
@@ -666,11 +703,11 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
                     bool valid = false;
                     for(int8_t i = 0; i < 6; ++ i) {
                         if(mManipulator.collisionObjects[i] == touched) {
-                            if(i <= 3 && mPlateSelected->allowManualLocation) {
+                            if(i <= 3 && mPlateSelected->mAllowManualLocation) {
                                 mManipulator.handleHovered = i;
                                 valid = true;
                             }
-                            if(i > 3 && mPlateSelected->allowManualRotation) {
+                            if(i > 3 && mPlateSelected->mAllowManualRotation) {
                                 mManipulator.handleHovered = i;
                                 valid = true;
                             }
@@ -973,27 +1010,27 @@ void DesignerGameLayer::renderSecondLayer() {
         mUtilityNode->setLocalScale(Vec3(mManipulator.scale));
         mUtilityNode->rotateYaw(glm::radians(90.f));
 
-        glUseProgram(mSlimeShader.mShaderProg->getHandle());
+        glUseProgram(mSlimeShader.mSunAwareProg->getHandle());
         
-        glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+        glUniform3fv(mSlimeShader.mSunAwareSunDirectionHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
         
         for(int8_t i = 0; i < 3; ++ i) {
             if(i == 0) {
-                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
+                glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 0.f)));
             }
             else if(i == 1) {
-                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
+                glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 0.f)));
                 mUtilityNode->rotateYaw(glm::radians(-90.f));
                 mUtilityNode->rotatePitch(glm::radians(-90.f));
             }
             else if(i == 2) {
-                glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
+                glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 1.f)));
                 mUtilityNode->rotatePitch(glm::radians(90.f));
             }
             
-            mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+            mSlimeShader.mSunAwareProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
             
-            if(mPlateSelected->allowManualLocation) {
+            if(mPlateSelected->mAllowManualLocation) {
                 glBindVertexArray(mManipulator.arrowVAO);
                 if(mManipulator.handleHovered == i) {
                     glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);
@@ -1008,7 +1045,7 @@ void DesignerGameLayer::renderSecondLayer() {
                 mManipulator.arrow->drawElements();
             }
             
-            if(mPlateSelected->allowManualRotation) {
+            if(mPlateSelected->mAllowManualRotation) {
                 glBindVertexArray(mManipulator.wheelVAO);
                 if(mManipulator.handleHovered == i + 3) {
                     glBlendColor(alphaHover, alphaHover, alphaHover, 1.0f);

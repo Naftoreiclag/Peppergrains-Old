@@ -55,16 +55,16 @@ void StraightEdge::renderLines(const DeferredRenderer* mRenderer, const SlimeSha
     mUtilityNode->setLocalScale(glm::vec3(1.f, 1.f, length));
     mUtilityNode->setLocalOrientation(Math::quaternionLookAt(dir, Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
     
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    glUseProgram(mSlimeShader.mSunAwareProg->getHandle());
     
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mSunAwareSunDirectionHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
     if(mLinks.size() > 0) {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
+        glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 1.f, 1.f)));
     } else {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
+        glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 1.f, 0.f)));
     }
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    mSlimeShader.mSunAwareProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mStraightEdgeVAO);
     mSlimeShader.mStraightEdge->drawElements();
     
@@ -86,12 +86,12 @@ void StraightEdge::renderVertices(const DeferredRenderer* mRenderer, const Slime
     
     mUtilityNode->setLocalTranslation(mStartLoc);
     
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    glUseProgram(mSlimeShader.mSunAwareProg->getHandle());
     
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
-    glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 1.f)));
+    glUniform3fv(mSlimeShader.mSunAwareSunDirectionHandle, 1, glm::value_ptr(mRenderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.f, 1.f)));
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
+    mSlimeShader.mSunAwareProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), mRenderer->getCameraViewMatrix(), mRenderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mVertexBallVAO);
     mSlimeShader.mVertexBall->drawElements();
     
@@ -139,16 +139,16 @@ void OmniSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSl
     SceneNode* mUtilityNode = mDummyPlate->newChild();
     mUtilityNode->setLocalTranslation(mLocation);
     
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    glUseProgram(mSlimeShader.mSunAwareProg->getHandle());
     
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
+    glUniform3fv(mSlimeShader.mSunAwareSunDirectionHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
     if(mLinks.size() > 0) {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
+        glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
     } else {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+        glUniform3fv(mSlimeShader.mSunAwareColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
     }
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
+    mSlimeShader.mSunAwareProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mOmniSocketVAO);
     mSlimeShader.mOmniSocket->drawElements();
     
@@ -163,10 +163,11 @@ void OmniSocket::onPlateChangeTransform(const Vec3& location, const glm::quat& o
     mWorldLocation += location;
 }
 
-FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal)
+FlatSocket::FlatSocket(Plate* plate, const Vec3& location, const Vec3& normal, bool renderBothSides)
 : Socket(Socket::Type::FLAT, plate)
 , mLocation(location)
-, mNormal(normal) { }
+, mNormal(normal)
+, mRenderBothSides(renderBothSides) { }
 FlatSocket::~FlatSocket() { }
 
 bool FlatSocket::canBindTo(Socket* otherSocket) const {
@@ -193,18 +194,24 @@ void FlatSocket::render(const DeferredRenderer* renderer, const SlimeShader& mSl
     mUtilityNode->setLocalTranslation(mLocation);
     mUtilityNode->setLocalOrientation(Math::quaternionLookAt(Vec3(mNormal), Vec3(0.f, 0.f, 1.f), Vec3(0.f, 1.f, 0.f)));
     
-    glUseProgram(mSlimeShader.mShaderProg->getHandle());
+    glUseProgram(mSlimeShader.mSunUnawareProg->getHandle());
     
-    glUniform3fv(mSlimeShader.mSunHandle, 1, glm::value_ptr(renderer->getSunDirection() * -1.f));
     if(mLinks.size() > 0) {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
+        glUniform3fv(mSlimeShader.mSunUnawareColorHandle, 1, glm::value_ptr(glm::vec3(0.f, 0.5f, 1.f)));
     } else {
-        glUniform3fv(mSlimeShader.mColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
+        glUniform3fv(mSlimeShader.mSunUnawareColorHandle, 1, glm::value_ptr(glm::vec3(1.f, 0.5f, 0.f)));
     }
     glBlendColor(0.4f, 0.4f, 0.4f, 1.f);
-    mSlimeShader.mShaderProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
+    mSlimeShader.mSunUnawareProg->bindModelViewProjMatrices(mUtilityNode->calcWorldTransform(), renderer->getCameraViewMatrix(), renderer->getCameraProjectionMatrix());
     glBindVertexArray(mSlimeShader.mFlatSocketVAO);
+    
+    if(mRenderBothSides) {
+        glDisable(GL_CULL_FACE);
+    }
     mSlimeShader.mFlatSocket->drawElements();
+    if(mRenderBothSides) {
+        glEnable(GL_CULL_FACE);
+    }
     
     glBindVertexArray(0);
     glUseProgram(0);
@@ -229,8 +236,9 @@ Plate::Plate()
 , intermediateYaw(0.f)
 , intermediateRoll(0.f)
 , needRebuildLinks(false)
-, allowManualLocation(true)
-, allowManualRotation(true) { }
+, mAllowManualLocation(true)
+, mAllowManualRotation(true)
+, mIsConnector(false) { }
 Plate::~Plate() { }
 
 void Plate::setIntermediatePitch(float radians) {
@@ -403,10 +411,31 @@ void Plate::tick(float tpf) {
     mSceneNode->setLocalTranslation(mRenderLocation);
     mSceneNode->setLocalOrientation(mRenderOrientation);
     
-    collisionObject->getWorldTransform().setOrigin(mRenderLocation);
-    collisionObject->getWorldTransform().setRotation(Quate(mRenderOrientation));
-    collisionWorld->removeCollisionObject(collisionObject);
-    collisionWorld->addCollisionObject(collisionObject);
+    if(mIsConnector) {
+        assert(mMultiplatePartners.begin() != mMultiplatePartners.end() && "Connector without multiplate partner!");
+        
+        if(mConnectorData.isChief) {
+            Plate* mOtherPlate = *(mMultiplatePartners.begin());
+            
+            Vec3 worldStart = Vec3(mSceneNode->calcWorldTransform() * glm::vec4(0.f, 1.f / 12.f, 0.f, 1.f));
+            Vec3 worldEnd = Vec3(mOtherPlate->mSceneNode->calcWorldTransform() * glm::vec4(0.f, 1.f / 12.f, 0.f, 1.f));
+            
+            Vec3 displacement = worldEnd - worldStart;
+            float magnitude = displacement.mag();
+            
+            mConnectorData.pipe->setLocalTranslation(worldStart);
+            mConnectorData.pipe->setLocalOrientation(Math::quaternionLookAt(
+                displacement / magnitude, 
+                Vec3(0.f, 0.f, 1.f),
+                Vec3(0.f, 1.f, 0.f)));
+            mConnectorData.pipe->setLocalScale(Vec3(1.f, 1.f, magnitude));
+        }
+    }
+    
+    mCollisionObject->getWorldTransform().setOrigin(mRenderLocation);
+    mCollisionObject->getWorldTransform().setRotation(Quate(mRenderOrientation));
+    mCollisionWorld->removeCollisionObject(mCollisionObject);
+    mCollisionWorld->addCollisionObject(mCollisionObject);
 }
 void Plate::renderEdges(const DeferredRenderer* mRenderer, const SlimeShader& mSlimeShader) const {
     for(std::vector<Edge*>::const_iterator iter = mEdges.cbegin(); iter != mEdges.cend(); ++ iter) {
