@@ -25,7 +25,8 @@ SceneNode::SceneNode()
 , mParent(nullptr)
 , mModelRes(nullptr)
 , mLocalScale(glm::vec3(1.f))
-, mLocalTranslation(glm::vec3(0.f)) {
+, mLocalTranslation(glm::vec3(0.f))
+, mVisible(true) {
 }
 
 SceneNode::~SceneNode() {
@@ -250,7 +251,15 @@ SceneNode* SceneNode::dropModel() {
     return this;
 }
 
+SceneNode* SceneNode::setVisible(const bool& visibility) {
+    mVisible = visibility;
+}
+
 void SceneNode::render(const Model::RenderPass& rendPass) {
+    if(!mVisible) {
+        return;
+    }
+    
     this->calcWorldTransform();
 
     if(mModelRes) {

@@ -223,6 +223,8 @@
       <File Name="StreamStuff.cpp"/>
       <File Name="StreamStuff.hpp"/>
     </VirtualDirectory>
+    <File Name="MissionGameLayer.hpp"/>
+    <File Name="MissionGameLayer.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

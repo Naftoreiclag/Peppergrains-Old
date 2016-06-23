@@ -42,12 +42,15 @@ private:
     // World transform is this scene node's transform applied to its parent's (recursively)
     glm::mat4 mWorldTransform;
     bool mWorldTransformDirty;
+    
+    // Skip rendering when false
+    bool mVisible;
 
     // Family relationships
     SceneNode* mParent;
     std::vector<SceneNode*> mChildren;
 
-    // This scenenode may be responsible for rendering a model
+    // This scenenode may be responsible for rendering a model; also disables rendering of children
     Model* mModelRes;
 public:
     const glm::vec3& getLocalScale() const;
@@ -98,6 +101,8 @@ public:
     // Model
     SceneNode* grabModel(Model* model);
     SceneNode* dropModel();
+    
+    SceneNode* setVisible(const bool& visibility);
 
     // Calculates world transform (which becomes the model matrix) and then renders
     void render(const Model::RenderPass& rendPass);

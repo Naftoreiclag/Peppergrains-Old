@@ -137,9 +137,11 @@ private:
     bool mDebugWireframe;
     bool mShowAllEdges;
     
+    void newWheel(Vec3 location);
     void newConnector(Vec3 location);
     void newSquarePlate(Vec3 location);
     void newMotor(Vec3 location);
+    void newCore(Vec3 location);
     void deletePlate(Plate* plate);
     
     void selectPlate(Plate* plate);

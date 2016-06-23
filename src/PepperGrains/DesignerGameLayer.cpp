@@ -148,10 +148,6 @@ void DesignerGameLayer::newMotor(Vec3 location) {
     mCollisionWorld->addCollisionObject(plate->mCollisionObject);
     plate->mCollisionWorld = mCollisionWorld;
     
-    // Set up edges
-    {
-    }
-    
     // Set up sockets
     {
         float extent = 1.f / 3.f;
@@ -162,6 +158,72 @@ void DesignerGameLayer::newMotor(Vec3 location) {
         plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, -extent, 0.f), Vec3(0.f, -1.f, 0.f), true));
         plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, 0.f, extent), Vec3(0.f, 0.f, 1.f), true));
         plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, 0.f, -extent), Vec3(0.f, 0.f, -1.f), true));
+    }
+    
+    plate->mIsMotor = true;
+    
+    ModelResource* strutModel = resman->findModel("MotorStrut.model");
+    plate->mMotorData.struts[0] = plate->mSceneNode->newChild()->grabModel(strutModel)->setVisible(false);
+    plate->mMotorData.struts[1] = plate->mSceneNode->newChild()->grabModel(strutModel)->rotateRoll(glm::radians(180.f))->setVisible(false);
+    plate->mMotorData.struts[2] = plate->mSceneNode->newChild()->grabModel(strutModel)->rotateRoll(glm::radians(90.f))->setVisible(false);
+    plate->mMotorData.struts[3] = plate->mSceneNode->newChild()->grabModel(strutModel)->rotateRoll(glm::radians(-90.f))->setVisible(false);
+    
+    mPlates.push_back(plate);
+    
+    plate->setLocation(location, 1.f / 12.f);
+}
+
+void DesignerGameLayer::newCore(Vec3 location) {
+    Plate* plate = new Plate();
+    
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    plate->mSceneNode = mRootNode->newChild();
+    plate->mSceneNode->grab();
+    plate->mSceneNode->grabModel(resman->findModel("Core.model"));
+    
+    plate->mCollisionShape = new btBoxShape(Vec3(1.f, 1.f, 1.f));
+    plate->mMotionState = new btDefaultMotionState();
+    plate->mCollisionObject = new btCollisionObject();
+    plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
+    plate->mCollisionObject->setUserPointer(plate);
+    plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    
+    mCollisionWorld->addCollisionObject(plate->mCollisionObject);
+    plate->mCollisionWorld = mCollisionWorld;
+    
+    // Set up edges
+    {
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, 1.f, -1.f), Vec3(1.f, 1.f, -1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, 1.f, -1.f), Vec3(1.f, 1.f, 1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, 1.f, 1.f), Vec3(-1.f, 1.f, 1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, 1.f, 1.f), Vec3(-1.f, 1.f, -1.f)));
+        
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, -1.f, -1.f), Vec3(1.f, -1.f, -1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, -1.f, -1.f), Vec3(1.f, -1.f, 1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, -1.f, 1.f), Vec3(-1.f, -1.f, 1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, -1.f, 1.f), Vec3(-1.f, -1.f, -1.f)));
+        
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, 1.f, -1.f), Vec3(-1.f, -1.f, -1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, 1.f, -1.f), Vec3(1.f, -1.f, -1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(1.f, 1.f, 1.f), Vec3(1.f, -1.f, 1.f)));
+        plate->mEdges.push_back(new StraightEdge(plate, Vec3(-1.f, 1.f, 1.f), Vec3(-1.f, -1.f, 1.f)));
+    }
+    
+    // Set up sockets
+    {
+        /*
+        for(uint8_t x = 1; x < 6; ++ x) {
+            for(uint8_t z = 1; z < 6; ++ z) {
+                
+                float xf = (float) x;
+                float zf = (float) z;
+                
+                plate->mSockets.push_back(new FlatSocket(plate, Vec3(xf * (1.f / 6.f) - 0.5f, 0.f, zf * (1.f / 6.f) - 0.5f), Vec3(0.f, 1.f, 0.f)));
+                plate->mSockets.push_back(new FlatSocket(plate, Vec3(xf * (1.f / 6.f) - 0.5f, 0.f, zf * (1.f / 6.f) - 0.5f), Vec3(0.f, -1.f, 0.f)));
+            }
+        }
+        */
     }
     
     mPlates.push_back(plate);
@@ -186,7 +248,7 @@ void DesignerGameLayer::newConnector(Vec3 location) {
         plate->mCollisionObject = new btCollisionObject();
         plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
         plate->mCollisionObject->setUserPointer(plate);
-        plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+        plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 1.f / 12.f, 0.f));
         
         mCollisionWorld->addCollisionObject(plate->mCollisionObject);
         plate->mCollisionWorld = mCollisionWorld;
@@ -199,6 +261,11 @@ void DesignerGameLayer::newConnector(Vec3 location) {
             plate->setLocation(location, 1.f / 12.f);
         } else {
             plate->setLocation(location + Vec3(0.f, 1.f, 0.f), 1.f / 12.f);
+        }
+        
+        if(i == 1) {
+            plate->setIntermediateRoll(glm::radians(180.f));
+            plate->finalizeRotation();
         }
         
         plate->mIsConnector = true;
@@ -219,6 +286,31 @@ void DesignerGameLayer::newConnector(Vec3 location) {
     plates[1]->mMultiplatePartners.push_back(plates[0]);
 }
 
+void DesignerGameLayer::newWheel(Vec3 location) {
+    Plate* plate = new Plate();
+    
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
+    plate->mSceneNode = mRootNode->newChild();
+    plate->mSceneNode->grab();
+    plate->mSceneNode->grabModel(resman->findModel("Wheel.model"));
+    
+    plate->mCollisionShape = new btCylinderShapeZ(Vec3(5.f / 12.f, 5.f / 12.f, 1.f / 6.f));
+    plate->mMotionState = new btDefaultMotionState();
+    plate->mCollisionObject = new btCollisionObject();
+    plate->mCollisionObject->setCollisionShape(plate->mCollisionShape);
+    plate->mCollisionObject->setUserPointer(plate);
+    plate->mCollisionObject->getWorldTransform().setOrigin(Vec3(0.f, 0.f, 0.f));
+    
+    mCollisionWorld->addCollisionObject(plate->mCollisionObject);
+    plate->mCollisionWorld = mCollisionWorld;
+    
+    mPlates.push_back(plate);
+    
+    plate->mSockets.push_back(new FlatSocket(plate, Vec3(0.f, 0.f, -1.f / 6.f), Vec3(0.f, 0.f, -1.f), true));
+    
+    plate->setLocation(location, 1.f / 12.f);
+}
 void DesignerGameLayer::deletePlate(Plate* plate) {
     mPlates.erase(std::remove(mPlates.begin(), mPlates.end(), plate), mPlates.end());
     
@@ -324,12 +416,21 @@ void DesignerGameLayer::onBegin() {
     cyclicSawtooth = 0.f;
     cyclicSinusodal = 0.f;
     
+    newCore(Vec3(0.f, 0.f, 0.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
     newConnector(Vec3(1.f, 2.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
+    newWheel(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));
     newMotor(Vec3(1.f, 1.f, 1.f));

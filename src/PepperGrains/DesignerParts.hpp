@@ -165,6 +165,12 @@ public:
     };
     ConnectorData mConnectorData;
     
+    bool mIsMotor;
+    struct MotorData {
+        SceneNode* struts[4];
+    };
+    MotorData mMotorData;
+    
     bool mAllowManualLocation;
     bool mAllowManualRotation;
     

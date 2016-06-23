@@ -14,6 +14,8 @@
 #include "DesignerParts.hpp"
 #include "MathUtil.hpp"
 
+#include <iostream>
+
 namespace pgg
 {
 
@@ -238,7 +240,8 @@ Plate::Plate()
 , needRebuildLinks(false)
 , mAllowManualLocation(true)
 , mAllowManualRotation(true)
-, mIsConnector(false) { }
+, mIsConnector(false)
+, mIsMotor(false) { }
 Plate::~Plate() { }
 
 void Plate::setIntermediatePitch(float radians) {
@@ -429,6 +432,26 @@ void Plate::tick(float tpf) {
                 Vec3(0.f, 0.f, 1.f),
                 Vec3(0.f, 1.f, 0.f)));
             mConnectorData.pipe->setLocalScale(Vec3(1.f, 1.f, magnitude));
+        }
+    }
+    
+    // TODO: only run this when links change
+    if(mIsMotor) {
+        uint8_t i = 0;
+        for(std::vector<Socket*>::iterator iter = mSockets.begin(); iter != mSockets.end(); ++ iter) {
+            Socket* socket = *iter;
+            
+            if(socket->mLinks.size() > 0) {
+                mMotorData.struts[i]->setVisible(true);
+            } else {
+                mMotorData.struts[i]->setVisible(false);
+            }
+            
+            ++ i;
+            
+            if(i >= 4) {
+                break;
+            }
         }
     }
     
