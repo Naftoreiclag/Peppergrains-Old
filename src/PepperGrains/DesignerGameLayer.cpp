@@ -38,6 +38,7 @@
 #include "Vec3.hpp"
 #include "Quate.hpp"
 #include "MathUtil.hpp"
+#include "InstancedModel.hpp"
 
 namespace pgg {
 
@@ -363,6 +364,8 @@ void DesignerGameLayer::onBegin() {
     mRenderer->grab();
     
     mRenderer->setSkyColor(glm::vec3(0.f, 1.5f, 2.f));
+    
+    mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
     
     mCameraSpeedMin = 2.0f;
     mCameraSpeedMax = 10.f;

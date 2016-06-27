@@ -45,15 +45,15 @@ void InstancedModel::load() {
         break;
     }
     
-    glm::vec3 offsets[40000];
+    glm::vec3 offsets[160000];
     {
         uint32_t index = 0;
-        for(uint32_t x = 0; x < 200; ++ x) {
-            for(uint32_t z = 0; z < 200; ++ z) {
+        for(uint32_t x = 0; x < 400; ++ x) {
+            for(uint32_t z = 0; z < 400; ++ z) {
                 float fx = x * 4;
                 float fz = z * 4;
-                fx -= 400;
-                fz -= 400;
+                fx -= 800;
+                fz -= 800;
                 
                 offsets[index ++] = glm::vec3(fx, 10, fz);
             }
@@ -122,7 +122,7 @@ void InstancedModel::render(const Model::RenderPass& rendPass, const glm::mat4& 
 
     glBindVertexArray(mVertexArrayObject);
 
-    mGeometry->drawElementsInstanced(40000);
+    mGeometry->drawElementsInstanced(160000);
 
     glBindVertexArray(0);
 

@@ -55,6 +55,15 @@ private:
     };
     ScreenShader mScreenShader;
     
+    struct SSIPG {
+        GLuint framebuffer;
+        
+        GLuint instanceTexture;
+        GLuint depthStencilTexture;
+    };
+    SSIPG mSurfaceParticles;
+    
+    
     struct DebugScreenShader {
         ShaderProgramResource* shaderProg;
         
