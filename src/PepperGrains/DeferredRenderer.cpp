@@ -80,6 +80,51 @@ void DeferredRenderer::load() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     
+    {
+        // Instance texture
+        glGenTextures(1, &mSSIPG.instanceColorTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
+        // DepthStencil mapping
+        glGenTextures(1, &mSSIPG.depthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glGenFramebuffers(1, &mSSIPG.framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.gFramebuffer);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceColorTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
+        
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+        // Tile pass
+        glGenTextures(1, &mSSIPG.tileTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.tileTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, mScreenWidth / 8, mScreenHeight / 8, 0, GL_RED, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    
     ResourceManager* resman = ResourceManager::getSingleton();
     // GBuffer shader
     {

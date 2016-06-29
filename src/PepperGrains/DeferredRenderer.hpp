@@ -58,10 +58,11 @@ private:
     struct SSIPG {
         GLuint framebuffer;
         
-        GLuint instanceTexture;
+        GLuint instanceColorTexture;
+        GLuint tileTexture;
         GLuint depthStencilTexture;
     };
-    SSIPG mSurfaceParticles;
+    SSIPG mSSIPG;
     
     
     struct DebugScreenShader {
