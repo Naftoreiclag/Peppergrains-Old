@@ -85,6 +85,8 @@ private:
     
     void loadError();
     bool mIsErrorResource;
+    
+    void grabNeededHLVShader();
 
 public:
     MaterialResource();

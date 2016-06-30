@@ -24,8 +24,6 @@
 
 namespace pgg {
 
-
-
 MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
     // Until proven otherwise
     type = Type::NOTHING;
@@ -49,7 +47,6 @@ MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
     }
 }
 MaterialResource::MaterialInput::MaterialInput(TextureResource* textureRes) {
-    // Until proven otherwise
     type = Type::TEXTURE;
     textureValue = textureRes;
     textureValue->grab();
@@ -63,6 +60,7 @@ MaterialResource::MaterialInput::~MaterialInput() {
     switch(type) {
         case Type::TEXTURE: {
             textureValue->drop();
+            textureValue = nullptr;
             break;
         }
         default: break;
@@ -83,9 +81,24 @@ MaterialResource::Technique::Type MaterialResource::getTechniqueType() const {
 MaterialResource::MaterialResource()
 : mLoaded(false)
 , mIsErrorResource(false) {
+    mTechnique.shaderProg = nullptr;
 }
 
 MaterialResource::~MaterialResource() {
+}
+
+void MaterialResource::grabNeededHLVShader() {
+    ResourceManager* resman = ResourceManager::getSingleton();
+    if(mTechnique.shaderProg) {
+        mTechnique.shaderProg->drop();
+        mTechnique.shaderProg = nullptr;
+    }
+    if(!mTechnique.normals->isNothing()) {
+        mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
+    } else {
+        mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
+    }
+    mTechnique.shaderProg->grab();
 }
 
 void MaterialResource::loadError() {
@@ -99,8 +112,7 @@ void MaterialResource::loadError() {
     mTechnique.normals = new MaterialInput();
     mTechnique.ssipgMap = new MaterialInput();
     mTechnique.ssipgFlow = new MaterialInput();
-    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
-    mTechnique.shaderProg->grab();
+    grabNeededHLVShader();
     
     mLoaded = true;
     mIsErrorResource = true;
@@ -150,15 +162,7 @@ void MaterialResource::load() {
                 mTechnique.normals = new MaterialInput(techniqueData["normals"]);
                 mTechnique.ssipgMap = new MaterialInput(techniqueData["ssipg-map"]);
                 mTechnique.ssipgFlow = new MaterialInput(techniqueData["ssipg-flow"]);
-                
-                if(!mTechnique.normals->isNothing()) {
-                    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
-                } else {
-                    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
-                }
-                mTechnique.shaderProg->grab();
-                
-                
+                grabNeededHLVShader();
                 
                 break;
             }
@@ -179,6 +183,10 @@ void MaterialResource::unload() {
             delete mTechnique.normals;
             delete mTechnique.ssipgMap;
             delete mTechnique.ssipgFlow;
+            
+            mTechnique.shaderProg->drop();
+            mTechnique.shaderProg = nullptr;
+            
             break;
         }
         default: break;
