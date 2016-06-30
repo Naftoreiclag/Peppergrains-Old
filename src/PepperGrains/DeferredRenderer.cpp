@@ -102,7 +102,7 @@ void DeferredRenderer::load() {
         glBindTexture(GL_TEXTURE_2D, 0);
         
         glGenFramebuffers(1, &mSSIPG.framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.gFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceColorTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
         

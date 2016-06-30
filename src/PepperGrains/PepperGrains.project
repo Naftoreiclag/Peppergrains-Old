@@ -67,8 +67,6 @@
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
     <VirtualDirectory Name="Resources">
-      <File Name="ImageResource.cpp"/>
-      <File Name="ImageResource.hpp"/>
       <File Name="MiscResource.cpp"/>
       <File Name="MiscResource.hpp"/>
       <File Name="Resource.cpp"/>
@@ -77,14 +75,6 @@
       <File Name="ResourceManager.hpp"/>
       <File Name="StringResource.cpp"/>
       <File Name="StringResource.hpp"/>
-      <File Name="TextureResource.cpp"/>
-      <File Name="TextureResource.hpp"/>
-      <File Name="MaterialResource.hpp"/>
-      <File Name="MaterialResource.cpp"/>
-      <File Name="GeometryResource.cpp"/>
-      <File Name="GeometryResource.hpp"/>
-      <File Name="FontResource.cpp"/>
-      <File Name="FontResource.hpp"/>
       <VirtualDirectory Name="Shaders">
         <File Name="ShaderProgramResource.cpp"/>
         <File Name="ShaderProgramResource.hpp"/>
@@ -127,6 +117,16 @@
       <File Name="ModelResource.hpp"/>
       <File Name="DeferredRenderer.cpp"/>
       <File Name="DeferredRenderer.hpp"/>
+      <File Name="FontResource.cpp"/>
+      <File Name="FontResource.hpp"/>
+      <File Name="GeometryResource.cpp"/>
+      <File Name="GeometryResource.hpp"/>
+      <File Name="ImageResource.cpp"/>
+      <File Name="ImageResource.hpp"/>
+      <File Name="MaterialResource.cpp"/>
+      <File Name="MaterialResource.hpp"/>
+      <File Name="TextureResource.cpp"/>
+      <File Name="TextureResource.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>

@@ -24,6 +24,51 @@
 
 namespace pgg {
 
+
+
+MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
+    // Until proven otherwise
+    type = Type::NOTHING;
+    
+    if(inputData.isObject()) {
+        const Json::Value& typeData = inputData["type"];
+        
+        if(!typeData.isNull()) {
+            
+            ResourceManager* resman = ResourceManager::getSingleton();
+            
+            if(typeData.asString() == "texture") {
+                type = Type::TEXTURE;
+                
+                textureValue = resman->findTexture(inputData["value"].asString());
+                textureValue->grab();
+            } else if(typeData.asString() == "constant") {
+                
+            }
+        }
+    }
+}
+MaterialResource::MaterialInput::~MaterialInput() {
+    switch(type) {
+        case Type::TEXTURE: {
+            textureValue->drop();
+            break;
+        }
+        default: break;
+    }
+}
+bool MaterialResource::MaterialInput::isNothing() const { return type == Type::NOTHING; }
+
+MaterialResource::Technique::Technique()
+: type(Type::NONE) {
+}
+MaterialResource::Technique::~Technique() {
+    
+}
+MaterialResource::Technique::Type MaterialResource::getTechniqueType() const {
+    return mTechnique.type;
+}
+
 MaterialResource::MaterialResource()
 : mLoaded(false)
 , mIsErrorResource(false) {
@@ -37,6 +82,7 @@ void MaterialResource::loadError() {
     
     ResourceManager* rmgr = ResourceManager::getSingleton();
     
+    /*
     mShaderProg = rmgr->getFallbackShaderProgram();
     mShaderProg->grab();
     
@@ -51,6 +97,7 @@ void MaterialResource::loadError() {
         input.texture->grab();
         mSampler2Ds.push_back(input);
     }
+    */
     
     mLoaded = true;
     mIsErrorResource = true;
@@ -61,6 +108,7 @@ void MaterialResource::loadError() {
 void MaterialResource::unloadError() {
     assert(mLoaded && "Attempted to unload material before loading it");
     
+    /*
     mShaderProg->drop();
 
     for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
@@ -68,6 +116,7 @@ void MaterialResource::unloadError() {
 
         input.texture->drop();
     }
+     */
     
     mLoaded = false;
     mIsErrorResource = false;
@@ -81,7 +130,7 @@ void MaterialResource::load() {
         return;
     }
 
-    ResourceManager* rmgr = ResourceManager::getSingleton();
+    ResourceManager* resman = ResourceManager::getSingleton();
 
     Json::Value matData;
     {
@@ -89,7 +138,63 @@ void MaterialResource::load() {
         loader >> matData;
         loader.close();
     }
+    
+    const Json::Value& techniqueListData = matData["techniques"];
+    
+    mTechnique.type = Technique::Type::NONE;
+    
+    
+    std::cout << "b";
+    if(techniqueListData.isArray()) {
+    std::cout << "e";
+        for(Json::Value::const_iterator iter = techniqueListData.begin(); iter != techniqueListData.end(); ++ iter) {
+    std::cout << "a";
+            const Json::Value& techniqueData = *iter;
+            
+            
+    std::cout << "a";
+            const Json::Value& typeData = techniqueData["type"];
+            
+    std::cout << "a";
+            if(typeData.asString() == "glsl-shader") {
+                mTechnique.type = Technique::Type::GLSL_SHADER;
+                // ???
+                
+                if(false) {
+                    break;
+                }
+            }
+            else if(typeData.asString() == "high-level-values") {
+                mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
+                
+    std::cout << "a";
+                mTechnique.diffuse = new MaterialInput(techniqueData["diffuse"]);
+                mTechnique.specular = new MaterialInput(techniqueData["specular"]);
+                mTechnique.normals = new MaterialInput(techniqueData["normals"]);
+                mTechnique.ssipgMap = new MaterialInput(techniqueData["ssipg-map"]);
+                mTechnique.ssipgFlow = new MaterialInput(techniqueData["ssipg-flow"]);
+                
+    std::cout << "a";
+                if(!mTechnique.normals->isNothing()) {
+                    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
+                } else {
+                    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
+                }
+                mTechnique.shaderProg->grab();
+                
+                
+    std::cout << "a";
+                
+                break;
+            }
+            
+        }
+    std::cout << "a";
+    
+    }
+    std::cout << "c";
 
+    /*
     mShaderProg = rmgr->findShaderProgram(matData["shaderProgram"].asString());
     mShaderProg->grab();
 
@@ -124,6 +229,7 @@ void MaterialResource::load() {
             // replace with error texture
         }
     }
+    */
 
     mLoaded = true;
 }
@@ -131,6 +237,20 @@ void MaterialResource::load() {
 void MaterialResource::unload() {
     assert(mLoaded && "Attempted to unload material before loading it");
 
+    switch(mTechnique.type) {
+        case Technique::Type::HIGH_LEVEL_VALUES: {
+            delete mTechnique.diffuse;
+            delete mTechnique.specular;
+            delete mTechnique.normals;
+            delete mTechnique.ssipgMap;
+            delete mTechnique.ssipgFlow;
+            break;
+        }
+        default: break;
+    }
+    mTechnique.type = Technique::Type::NONE;
+
+    /*
     if(mIsErrorResource) {
         unloadError();
         return;
@@ -143,8 +263,57 @@ void MaterialResource::unload() {
 
         input.texture->drop();
     }
+    */
 
     mLoaded = false;
+}
+
+void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) const {
+    if(mTechnique.shaderProg->needsPosAttrib()) {
+        geometry->enablePositionAttrib(mTechnique.shaderProg->getPosAttrib());
+    }
+    if(mTechnique.shaderProg->needsColorAttrib()) {
+        geometry->enableColorAttrib(mTechnique.shaderProg->getColorAttrib());
+    }
+    if(mTechnique.shaderProg->needsUVAttrib()) {
+        geometry->enableUVAttrib(mTechnique.shaderProg->getUVAttrib());
+    }
+    if(mTechnique.shaderProg->needsNormalAttrib()) {
+        geometry->enableNormalAttrib(mTechnique.shaderProg->getNormalAttrib());
+    }
+    if(mTechnique.shaderProg->needsTangentAttrib()) {
+        geometry->enableTangentAttrib(mTechnique.shaderProg->getTangentAttrib());
+    }
+    if(mTechnique.shaderProg->needsBitangentAttrib()) {
+        geometry->enableBitangentAttrib(mTechnique.shaderProg->getBitangentAttrib());
+    }
+}
+void MaterialResource::use(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const {
+    
+    // Tell OpenGL to use that shader program
+    glUseProgram(mTechnique.shaderProg->getHandle());
+
+    // Tell OpenGL to use the provided matrices
+    mTechnique.shaderProg->bindModelViewProjMatrices(mMat, vMat, pMat);
+
+    // Bind the textures specified by the material
+    unsigned int index = 0;
+    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mTechnique.shaderProg->getUniformSampler2Ds().begin(); iter != mTechnique.shaderProg->getUniformSampler2Ds().end(); ++ iter) {
+        const ShaderProgramResource::Control& control = *iter;
+        
+        if(control.name == "diffuse" && !mTechnique.diffuse->isNothing()) {
+            glActiveTexture(GL_TEXTURE0 + index);
+            glBindTexture(GL_TEXTURE_2D, mTechnique.diffuse->textureValue->getHandle());
+            glUniform1i(control.handle, index);
+            ++ index;
+        }
+        if(control.name == "normals" && !mTechnique.normals->isNothing()) {
+            glActiveTexture(GL_TEXTURE0 + index);
+            glBindTexture(GL_TEXTURE_2D, mTechnique.normals->textureValue->getHandle());
+            glUniform1i(control.handle, index);
+            ++ index;
+        }
+    }
 }
 
 void MaterialResource::bindTextures() {
@@ -159,7 +328,7 @@ void MaterialResource::bindTextures() {
 }
 
 const ShaderProgramResource* MaterialResource::getShaderProg() const {
-    return mShaderProg;
+    return mTechnique.shaderProg;
 }
 
 }

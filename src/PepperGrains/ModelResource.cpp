@@ -131,25 +131,7 @@ void ModelResource::load() {
     mGeometry->bindBuffers();
 
     // Tell OpenGL which attributes to read, how to read them, and where to send them
-    const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
-    if(shaderProg->needsPosAttrib()) {
-        mGeometry->enablePositionAttrib(shaderProg->getPosAttrib());
-    }
-    if(shaderProg->needsColorAttrib()) {
-        mGeometry->enableColorAttrib(shaderProg->getColorAttrib());
-    }
-    if(shaderProg->needsUVAttrib()) {
-        mGeometry->enableUVAttrib(shaderProg->getUVAttrib());
-    }
-    if(shaderProg->needsNormalAttrib()) {
-        mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
-    }
-    if(shaderProg->needsTangentAttrib()) {
-        mGeometry->enableTangentAttrib(shaderProg->getTangentAttrib());
-    }
-    if(shaderProg->needsBitangentAttrib()) {
-        mGeometry->enableBitangentAttrib(shaderProg->getBitangentAttrib());
-    }
+    mMaterial->enableVertexAttributesFor(mGeometry);
 
     // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
@@ -197,17 +179,7 @@ void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& m
     }
     */
     
-    // Get the shader program specified by the material
-    const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
-
-    // Tell OpenGL to use that shader program
-    glUseProgram(shaderProg->getHandle());
-
-    // Tell OpenGL to use the provided matrices
-    shaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
-
-    // Bind the textures specified by the material
-    mMaterial->bindTextures();
+    mMaterial->use(modelMat, rendPass.viewMat, rendPass.projMat);
 
     // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     glBindVertexArray(mVertexArrayObject);

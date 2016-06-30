@@ -365,7 +365,7 @@ void DesignerGameLayer::onBegin() {
     
     mRenderer->setSkyColor(glm::vec3(0.f, 1.5f, 2.f));
     
-    mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
+    //mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
     
     mCameraSpeedMin = 2.0f;
     mCameraSpeedMax = 10.f;
