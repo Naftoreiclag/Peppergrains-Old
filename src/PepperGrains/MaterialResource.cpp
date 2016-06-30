@@ -48,6 +48,17 @@ MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
         }
     }
 }
+MaterialResource::MaterialInput::MaterialInput(TextureResource* textureRes) {
+    // Until proven otherwise
+    type = Type::TEXTURE;
+    textureValue = textureRes;
+    textureValue->grab();
+}
+
+MaterialResource::MaterialInput::MaterialInput() {
+    type = Type::NOTHING;
+}
+
 MaterialResource::MaterialInput::~MaterialInput() {
     switch(type) {
         case Type::TEXTURE: {
@@ -80,46 +91,21 @@ MaterialResource::~MaterialResource() {
 void MaterialResource::loadError() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
     
-    ResourceManager* rmgr = ResourceManager::getSingleton();
+    ResourceManager* resman = ResourceManager::getSingleton();
     
-    /*
-    mShaderProg = rmgr->getFallbackShaderProgram();
-    mShaderProg->grab();
-    
-    // Iterate through all the Sampler2Ds that the shader program requests
-    const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
-    for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-        const ShaderProgramResource::Control& entry = *iter;
-        
-        Sampler2DInput input;
-        input.handle = entry.handle;
-        input.texture = rmgr->getFallbackTexture();
-        input.texture->grab();
-        mSampler2Ds.push_back(input);
-    }
-    */
+    mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
+    mTechnique.diffuse = new MaterialInput(resman->getFallbackTexture());
+    mTechnique.specular = new MaterialInput();
+    mTechnique.normals = new MaterialInput();
+    mTechnique.ssipgMap = new MaterialInput();
+    mTechnique.ssipgFlow = new MaterialInput();
+    mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
+    mTechnique.shaderProg->grab();
     
     mLoaded = true;
     mIsErrorResource = true;
     
     std::cout << "Material error: " << this->getName() << std::endl;
-}
-
-void MaterialResource::unloadError() {
-    assert(mLoaded && "Attempted to unload material before loading it");
-    
-    /*
-    mShaderProg->drop();
-
-    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
-        Sampler2DInput& input = *iter;
-
-        input.texture->drop();
-    }
-     */
-    
-    mLoaded = false;
-    mIsErrorResource = false;
 }
 
 void MaterialResource::load() {
@@ -141,21 +127,13 @@ void MaterialResource::load() {
     
     const Json::Value& techniqueListData = matData["techniques"];
     
-    mTechnique.type = Technique::Type::NONE;
-    
-    
-    std::cout << "b";
     if(techniqueListData.isArray()) {
-    std::cout << "e";
         for(Json::Value::const_iterator iter = techniqueListData.begin(); iter != techniqueListData.end(); ++ iter) {
-    std::cout << "a";
             const Json::Value& techniqueData = *iter;
             
             
-    std::cout << "a";
             const Json::Value& typeData = techniqueData["type"];
             
-    std::cout << "a";
             if(typeData.asString() == "glsl-shader") {
                 mTechnique.type = Technique::Type::GLSL_SHADER;
                 // ???
@@ -167,14 +145,12 @@ void MaterialResource::load() {
             else if(typeData.asString() == "high-level-values") {
                 mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
                 
-    std::cout << "a";
                 mTechnique.diffuse = new MaterialInput(techniqueData["diffuse"]);
                 mTechnique.specular = new MaterialInput(techniqueData["specular"]);
                 mTechnique.normals = new MaterialInput(techniqueData["normals"]);
                 mTechnique.ssipgMap = new MaterialInput(techniqueData["ssipg-map"]);
                 mTechnique.ssipgFlow = new MaterialInput(techniqueData["ssipg-flow"]);
                 
-    std::cout << "a";
                 if(!mTechnique.normals->isNothing()) {
                     mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
                 } else {
@@ -183,54 +159,13 @@ void MaterialResource::load() {
                 mTechnique.shaderProg->grab();
                 
                 
-    std::cout << "a";
                 
                 break;
             }
             
         }
-    std::cout << "a";
     
     }
-    std::cout << "c";
-
-    /*
-    mShaderProg = rmgr->findShaderProgram(matData["shaderProgram"].asString());
-    mShaderProg->grab();
-
-    // Find all Sampler2Ds
-    {
-        const Json::Value& sampler2Ds = matData["sampler2D"];
-
-        if(!sampler2Ds.isNull()) {
-            
-            // Iterate through all the Sampler2Ds that the shader program requests
-            const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
-            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
-                const ShaderProgramResource::Control& entry = *iter;
-                
-                Sampler2DInput input;
-                input.handle = entry.handle;
-
-                // Find the appropriate texture
-                const Json::Value& value = sampler2Ds[entry.name];
-                if(!value.isNull()) {
-                    input.texture = rmgr->findTexture(value.asString());
-                } else { // Texture receives no input
-                    input.texture = rmgr->getFallbackTexture();
-                }
-                
-                input.texture->grab();
-                mSampler2Ds.push_back(input);
-            }
-
-        }
-        else {
-            // replace with error texture
-        }
-    }
-    */
-
     mLoaded = true;
 }
 
@@ -250,22 +185,8 @@ void MaterialResource::unload() {
     }
     mTechnique.type = Technique::Type::NONE;
 
-    /*
-    if(mIsErrorResource) {
-        unloadError();
-        return;
-    }
-
-    mShaderProg->drop();
-
-    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
-        Sampler2DInput& input = *iter;
-
-        input.texture->drop();
-    }
-    */
-
     mLoaded = false;
+    mIsErrorResource = false;
 }
 
 void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) const {
@@ -313,17 +234,6 @@ void MaterialResource::use(const glm::mat4& mMat, const glm::mat4& vMat, const g
             glUniform1i(control.handle, index);
             ++ index;
         }
-    }
-}
-
-void MaterialResource::bindTextures() {
-    unsigned int index = 0;
-    for(std::vector<Sampler2DInput>::iterator iter = mSampler2Ds.begin(); iter != mSampler2Ds.end(); ++ iter) {
-        Sampler2DInput& control = *iter;
-        glActiveTexture(GL_TEXTURE0 + index);
-        glBindTexture(GL_TEXTURE_2D, control.texture->getHandle());
-        glUniform1i(control.handle, index);
-        ++ index;
     }
 }
 

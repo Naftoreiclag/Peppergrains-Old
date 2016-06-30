@@ -37,6 +37,8 @@ public:
         Type type;
         
         MaterialInput(const Json::Value& input);
+        MaterialInput(TextureResource* textureRes);
+        MaterialInput();
         ~MaterialInput();
         
         TextureResource* textureValue;
@@ -79,17 +81,9 @@ public:
 private:
     Technique mTechnique;
 
-    struct Sampler2DInput {
-        GLuint handle;
-        TextureResource* texture;
-    };
-
-    std::vector<Sampler2DInput> mSampler2Ds;
-
     bool mLoaded;
     
     void loadError();
-    void unloadError();
     bool mIsErrorResource;
 
 public:
@@ -104,8 +98,6 @@ public:
     void use(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const;
     
     Technique::Type getTechniqueType() const;
-
-    void bindTextures();
 
     const ShaderProgramResource* getShaderProg() const;
 };
