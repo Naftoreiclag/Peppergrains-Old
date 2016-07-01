@@ -73,10 +73,11 @@ public:
         MaterialInput* diffuse;
         MaterialInput* specular;
         MaterialInput* normals;
-        MaterialInput* ssipgMap;
+        MaterialInput* ssipgSpots;
         MaterialInput* ssipgFlow;
         
-        ShaderProgramResource* shaderProg;
+        ShaderProgramResource* geometryPassProg;
+        ShaderProgramResource* ssipgPassProg;
     };
     
 private:
@@ -87,7 +88,7 @@ private:
     void loadError();
     bool mIsErrorResource;
     
-    void grabNeededHLVShader();
+    void grabNeededHLVShaders();
 
 public:
     MaterialResource();

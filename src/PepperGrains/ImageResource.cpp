@@ -49,7 +49,7 @@ void ImageResource::loadError() {
     mLoaded = true;
     mIsErrorResource = true;
     
-    std::cout << "Image error: " << this->getName() << std::endl;
+    std::cout << "Image error: [" << this->getName() << "]" << std::endl;
 }
 
 void ImageResource::unloadError() {

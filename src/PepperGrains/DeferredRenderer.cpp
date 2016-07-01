@@ -368,6 +368,30 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         }
     }
     
+    // SSIPG pass
+    {
+        glViewport(0, 0, mScreenWidth / 2, mScreenHeight / 2);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        Model::RenderPass ssipgRenderPass(Model::RenderPass::Type::SSIPG);
+        ssipgRenderPass.viewMat = mCamera.viewMat;
+        ssipgRenderPass.projMat = mCamera.projMat;
+        ssipgRenderPass.camPos = mCamera.position;
+        mRootNode->render(ssipgRenderPass);
+    }
     // Geometry pass
     {
         glViewport(0, 0, mScreenWidth, mScreenHeight);
@@ -400,33 +424,6 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         geometryRenderPass.camPos = mCamera.position;
         mRootNode->render(geometryRenderPass);
     }
-    
-    // SSIPG pass
-    /*
-    {
-        glViewport(0, 0, mScreenWidth / 2, mScreenHeight / 2);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
-        GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0
-        };
-        glDrawBuffers(1, colorAttachments);
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glDepthMask(GL_TRUE);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-        glDisable(GL_STENCIL_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        glDisable(GL_BLEND);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        Model::RenderPass ssipgRenderPass(Model::RenderPass::Type::SSIPG);
-        ssipgRenderPass.viewMat = mCamera.viewMat;
-        ssipgRenderPass.projMat = mCamera.projMat;
-        ssipgRenderPass.camPos = mCamera.position;
-        mRootNode->render(ssipgRenderPass);
-    }
-    */
     
     // Brightness Render
     {

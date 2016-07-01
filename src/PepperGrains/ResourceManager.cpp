@@ -164,6 +164,7 @@ void ResourceManager::grabFallbacks() {
 StringResource* ResourceManager::findString(std::string name) {
     StringResource* res = mStrings[name];
     if(!res) {
+        std::cout << "Could not find string [" << name << "]" << std::endl;
         return mFallbackString;
     } else {
         return res;
@@ -172,6 +173,7 @@ StringResource* ResourceManager::findString(std::string name) {
 ImageResource* ResourceManager::findImage(std::string name) {
     ImageResource* res = mImages[name];
     if(!res) {
+        std::cout << "Could not find image [" << name << "]" << std::endl;
         return mFallbackImage;
     } else {
         return res;
@@ -180,6 +182,7 @@ ImageResource* ResourceManager::findImage(std::string name) {
 TextureResource* ResourceManager::findTexture(std::string name) {
     TextureResource* res = mTextures[name];
     if(!res) {
+        std::cout << "Could not find texture [" << name << "]" << std::endl;
         return mFallbackTexture;
     } else {
         return res;
@@ -188,6 +191,7 @@ TextureResource* ResourceManager::findTexture(std::string name) {
 ModelResource* ResourceManager::findModel(std::string name) {
     ModelResource* res = mModels[name];
     if(!res) {
+        std::cout << "Could not find model [" << name << "]" << std::endl;
         return mFallbackModel;
     } else {
         return res;
@@ -196,6 +200,7 @@ ModelResource* ResourceManager::findModel(std::string name) {
 MaterialResource* ResourceManager::findMaterial(std::string name) {
     MaterialResource* res = mMaterials[name];
     if(!res) {
+        std::cout << "Could not find material [" << name << "]" << std::endl;
         return mFallbackMaterial;
     } else {
         return res;
@@ -204,6 +209,7 @@ MaterialResource* ResourceManager::findMaterial(std::string name) {
 GeometryResource* ResourceManager::findGeometry(std::string name) {
     GeometryResource* res = mGeometries[name];
     if(!res) {
+        std::cout << "Could not find geometry [" << name << "]" << std::endl;
         return mFallbackGeometry;
     } else {
         return res;
@@ -212,6 +218,7 @@ GeometryResource* ResourceManager::findGeometry(std::string name) {
 ShaderResource* ResourceManager::findShader(std::string name) {
     ShaderResource* res = mShaders[name];
     if(!res) {
+        std::cout << "Could not find shader [" << name << "]" << std::endl;
         return mFallbackShader;
     } else {
         return res;
@@ -220,6 +227,7 @@ ShaderResource* ResourceManager::findShader(std::string name) {
 ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
     ShaderProgramResource* res = mShaderPrograms[name];
     if(!res) {
+        std::cout << "Could not find shader program [" << name << "]" << std::endl;
         return mFallbackShaderProgram;
     } else {
         return res;
@@ -228,6 +236,7 @@ ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
 FontResource* ResourceManager::findFont(std::string name) {
     FontResource* res = mFonts[name];
     if(!res) {
+        std::cout << "Could not find font [" << name << "]" << std::endl;
         return mFallbackFont;
     } else {
         return res;
