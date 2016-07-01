@@ -587,7 +587,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mDebugScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.brightTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
         glUniform1i(mDebugScreenShader.brightHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);

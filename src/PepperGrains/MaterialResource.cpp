@@ -260,8 +260,7 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
             }
         }
     }
-    else if(rpc.type == Model::RenderPass::Type::SSIPG) {
-        /*
+    else if(rpc.type == Model::RenderPass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
         glUseProgram(mTechnique.ssipgPassProg->getHandle());
         
         mTechnique.ssipgPassProg->bindModelViewProjMatrices(mMat, rpc.viewMat, rpc.projMat);
@@ -277,20 +276,19 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
                 ++ index;
             }
         }
-        */
     }
 }
 bool MaterialResource::isVisible(const Model::RenderPass& rpc) const {
     if(rpc.type == Model::RenderPass::Type::GEOMETRY) {
-        return true;
+        return mTechnique.geometryPassProg != nullptr;
     }
     
     if(rpc.type == Model::RenderPass::Type::SHADOW) {
-        return true;
+        return mTechnique.geometryPassProg != nullptr;
     }
     
     if(rpc.type == Model::RenderPass::Type::SSIPG) {
-        return mTechnique.ssipgSpots->specified();
+        return mTechnique.ssipgPassProg != nullptr;
     }
 }
 

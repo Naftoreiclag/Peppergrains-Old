@@ -181,7 +181,8 @@ void DesignerGameLayer::newCore(Vec3 location) {
     
     plate->mSceneNode = mRootNode->newChild();
     plate->mSceneNode->grab();
-    plate->mSceneNode->grabModel(resman->findModel("Core.model"));
+    //plate->mSceneNode->grabModel(resman->findModel("Core.model"));
+    plate->mSceneNode->grabModel(resman->findModel("SSIPGTest.model"));
     
     plate->mCollisionShape = new btBoxShape(Vec3(1.f, 1.f, 1.f));
     plate->mMotionState = new btDefaultMotionState();
@@ -365,7 +366,7 @@ void DesignerGameLayer::onBegin() {
     
     mRenderer->setSkyColor(glm::vec3(0.f, 1.5f, 2.f));
     
-    mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
+    //mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
     
     mCameraSpeedMin = 2.0f;
     mCameraSpeedMax = 10.f;
@@ -396,6 +397,11 @@ void DesignerGameLayer::onBegin() {
     mDebugCube->setLocalScale(Vec3(0.2, 0.2, 0.2));
     mDebugCube->grab();
     mDebugCube->setLocalTranslation(Vec3(999, 999, 999));
+    
+    mDebugShowX = false;
+    mDebugShowY = false;
+    mDebugShowZ = false;
+    mDebugShowW = false;
     
     loadSlimeShader();
     loadManipulator();
@@ -730,36 +736,43 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     // mInfCheck->setFocus(comp->mSceneNode->getLocalTranslation());
     
     glm::vec4 debugShow;
-    if(inputStates->isPressed(Input::Scancode::K_1)) {
+    if(mDebugShowX) {
         debugShow.x = 1.f;
     }
-    if(inputStates->isPressed(Input::Scancode::K_2)) {
+    if(mDebugShowY) {
         debugShow.y = 1.f;
     }
-    if(inputStates->isPressed(Input::Scancode::K_3)) {
+    if(mDebugShowZ) {
         debugShow.z = 1.f;
     }
-    if(inputStates->isPressed(Input::Scancode::K_4)) {
+    if(mDebugShowW) {
         debugShow.w = 1.f;
     }
-    if(inputStates->isPressed(Input::Scancode::K_5)) {
-        mDebugWireframe = true;
+    {
+        bool enabling = inputStates->isPressed(Input::Scancode::K_SHIFT_LEFT);
+        if(inputStates->isPressed(Input::Scancode::K_1)) {
+            mDebugShowX = enabling;
+        }
+        if(inputStates->isPressed(Input::Scancode::K_2)) {
+            mDebugShowY = enabling;
+        }
+        if(inputStates->isPressed(Input::Scancode::K_3)) {
+            mDebugShowZ = enabling;
+        }
+        if(inputStates->isPressed(Input::Scancode::K_4)) {
+            mDebugShowW = enabling;
+        }
+        if(inputStates->isPressed(Input::Scancode::K_5)) {
+            mDebugWireframe = enabling;
+        }
+        if(inputStates->isPressed(Input::Scancode::K_6)) {
+            mRenderer->setSSAOEnabled(enabling);
+        }
+        if(inputStates->isPressed(Input::Scancode::K_7)) {
+            mRenderer->setShadowsEnabled(enabling);
+        }
     }
-    if(inputStates->isPressed(Input::Scancode::K_6)) {
-        mDebugWireframe = false;
-    }
-    if(inputStates->isPressed(Input::Scancode::K_7)) {
-        mRenderer->setSSAOEnabled(true);
-    }
-    if(inputStates->isPressed(Input::Scancode::K_8)) {
-        mRenderer->setSSAOEnabled(false);
-    }
-    if(inputStates->isPressed(Input::Scancode::K_9)) {
-        mRenderer->setShadowsEnabled(true);
-    }
-    if(inputStates->isPressed(Input::Scancode::K_0)) {
-        mRenderer->setShadowsEnabled(false);
-    }
+    
     mShowAllEdges = inputStates->isPressed(Input::Scancode::K_H);
     
     if(inputStates->isPressed(Input::Scancode::K_Q)) {

@@ -134,6 +134,11 @@ private:
     float fpsWeight;
     float oneSecondTimer;
     
+    bool mDebugShowX;
+    bool mDebugShowY;
+    bool mDebugShowZ;
+    bool mDebugShowW;
+    
     bool mDebugWireframe;
     bool mShowAllEdges;
     
