@@ -381,8 +381,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_STENCIL_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -390,6 +389,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         ssipgRenderPass.viewMat = mCamera.viewMat;
         ssipgRenderPass.projMat = mCamera.projMat;
         ssipgRenderPass.camPos = mCamera.position;
+        ssipgRenderPass.nearPlane = mCamera.nearDepth;
+        ssipgRenderPass.farPlane = mCamera.farDepth;
+        ssipgRenderPass.setScreenSize(mScreenWidth / 2, mScreenHeight / 2);
         mRootNode->render(ssipgRenderPass);
     }
     // Geometry pass
@@ -422,6 +424,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
+        geometryRenderPass.nearPlane = mCamera.nearDepth;
+        geometryRenderPass.farPlane = mCamera.farDepth;
+        geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
         mRootNode->render(geometryRenderPass);
     }
     
@@ -461,6 +466,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         }
         brightRPC.nearPlane = mCamera.nearDepth;
         brightRPC.farPlane = mCamera.farDepth;
+        brightRPC.setScreenSize(mScreenWidth, mScreenHeight);
         brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
         brightRPC.normalTexture = mGBuff.normalTexture;
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
@@ -591,7 +597,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mDebugScreenShader.brightHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.depthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
         glUniform1i(mDebugScreenShader.depthHandle, 3);
         
         glBindVertexArray(mFullscreenVao);

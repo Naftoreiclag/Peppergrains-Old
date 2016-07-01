@@ -327,26 +327,29 @@ void ShaderProgramResource::load() {
 
     // Setup uniform matrices
     {
-        const Json::Value& matrices = progData["matrices"];
-        if(matrices.isNull()) {
+        const Json::Value& passUniforms = progData["pass-uniforms"];
+        if(passUniforms.isNull()) {
             mUseMMat = false;
             mUseVMat = false;
             mUsePMat = false;
         }
         else {
-            const Json::Value& mMat = matrices["model"];
-            const Json::Value& vMat = matrices["view"];
-            const Json::Value& pMat = matrices["projection"];
-            const Json::Value& mvMat = matrices["modelView"];
-            const Json::Value& vpMat = matrices["viewProjection"];
-            const Json::Value& mvpMat = matrices["modelViewProjection"];
-            const Json::Value& imMat = matrices["inverseModel"];
-            const Json::Value& ivMat = matrices["inverseView"];
-            const Json::Value& ipMat = matrices["inverseProjection"];
-            const Json::Value& imvMat = matrices["inverseModelView"];
-            const Json::Value& ivpMat = matrices["inverseViewProjection"];
-            const Json::Value& imvpMat = matrices["inverseModelViewProjection"];
-            const Json::Value& svpMat = matrices["sunViewProjection"];
+            const Json::Value& mMat = passUniforms["model"];
+            const Json::Value& vMat = passUniforms["view"];
+            const Json::Value& pMat = passUniforms["projection"];
+            const Json::Value& mvMat = passUniforms["modelView"];
+            const Json::Value& vpMat = passUniforms["viewProjection"];
+            const Json::Value& mvpMat = passUniforms["modelViewProjection"];
+            const Json::Value& imMat = passUniforms["inverseModel"];
+            const Json::Value& ivMat = passUniforms["inverseView"];
+            const Json::Value& ipMat = passUniforms["inverseProjection"];
+            const Json::Value& imvMat = passUniforms["inverseModelView"];
+            const Json::Value& ivpMat = passUniforms["inverseViewProjection"];
+            const Json::Value& imvpMat = passUniforms["inverseModelViewProjection"];
+            const Json::Value& svpMat = passUniforms["sunViewProjection"];
+            const Json::Value& scrSz = passUniforms["screenSize"];
+            const Json::Value& iScrSz = passUniforms["inverseScreenSize"];
+            const Json::Value& camLoc = passUniforms["cameraLocation"];
 
             if(mMat.isNull()) { mUseMMat = false; } else { mUseMMat = true;
                 mMMatUnif = glGetUniformLocation(mShaderProg, mMat.asString().c_str());
@@ -384,10 +387,17 @@ void ShaderProgramResource::load() {
             if(imvpMat.isNull()) { mUseIMVPMat = false; } else { mUseIMVPMat = true;
                 mIMVPMatUnif = glGetUniformLocation(mShaderProg, imvpMat.asString().c_str());
             }
-            
-            if(svpMat.isNull()) { mUseSunViewProjMatrix = false; } else {
-                mUseSunViewProjMatrix = true;
+            if(svpMat.isNull()) { mUseSunViewProjMatrix = false; } else { mUseSunViewProjMatrix = true;
                 mSunViewProjMatrixUnif = glGetUniformLocation(mShaderProg, svpMat.asString().c_str());
+            }
+            if(scrSz.isNull()) { mUseScreenSize = false; } else { mUseScreenSize = true;
+                mScreenSizeUnif = glGetUniformLocation(mShaderProg, scrSz.asString().c_str());
+            }
+            if(iScrSz.isNull()) { mUseIScreenSize = false; } else { mUseIScreenSize = true;
+                mIScreenSizeUnif = glGetUniformLocation(mShaderProg, iScrSz.asString().c_str());
+            }
+            if(camLoc.isNull()) { mUseCameraLoc = false; } else { mUseCameraLoc = true;
+                mCameraLocUnif = glGetUniformLocation(mShaderProg, camLoc.asString().c_str());
             }
         }
     }
@@ -633,6 +643,19 @@ void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, con
         glUniformMatrix4fv(mIMVPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat * vMat * mMat)));
     }
 }
+void ShaderProgramResource::bindRenderPass(const Model::RenderPass& rpc, const glm::mat4& modelMat) const {
+    bindModelViewProjMatrices(modelMat, rpc.viewMat, rpc.projMat);
+    
+    if(mUseScreenSize) {
+        glUniform2fv(mScreenSizeUnif, 1, glm::value_ptr(rpc.screenSize));
+    }
+    if(mUseIScreenSize) {
+        glUniform2fv(mIScreenSizeUnif, 1, glm::value_ptr(rpc.invScreenSize));
+    }
+    if(mUseCameraLoc) {
+        glUniform3fv(mCameraLocUnif, 1, glm::value_ptr(rpc.camPos));
+    }
+}
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }
 
@@ -648,6 +671,10 @@ bool ShaderProgramResource::needsInvProjMatrix() const { return mUseIPMat; }
 bool ShaderProgramResource::needsInvModelViewMatrix() const { return mUseIMVMat; }
 bool ShaderProgramResource::needsInvViewProjMatrix() const { return mUseIVPMat; }
 bool ShaderProgramResource::needsInvModelViewProjMatrix() const { return mUseIMVPMat; }
+bool ShaderProgramResource::needsSunViewProjMatrix() const { return mUseSunViewProjMatrix; }
+bool ShaderProgramResource::needsScreenSize() const { return mUseScreenSize; }
+bool ShaderProgramResource::needsInvScreenSize() const { return mUseIScreenSize; }
+bool ShaderProgramResource::needsCameraLocation() const { return mUseCameraLoc; }
 
 GLuint ShaderProgramResource::getModelMatrixUnif() const { return mMMatUnif; }
 GLuint ShaderProgramResource::getViewMatrixUnif() const { return mVMatUnif; }
@@ -661,21 +688,25 @@ GLuint ShaderProgramResource::getInvProjMatrixUnif() const { return mIPMatUnif; 
 GLuint ShaderProgramResource::getInvModelViewMatrixUnif() const { return mIMVMatUnif; }
 GLuint ShaderProgramResource::getInvViewProjMatrixUnif() const { return mIVPMatUnif; }
 GLuint ShaderProgramResource::getInvModelViewProjMatrixUnif() const { return mIMVPMatUnif; }
+GLuint ShaderProgramResource::getSunViewProjMatrixUnif() const { return mSunViewProjMatrixUnif; }
+GLuint ShaderProgramResource::getScreenSizeUnif() const { return mScreenSizeUnif; }
+GLuint ShaderProgramResource::getInvScreenSizeUnif() const { return mIScreenSizeUnif; }
+GLuint ShaderProgramResource::getCameraLocationUnif() const { return mCameraLocUnif; }
 
-bool ShaderProgramResource::needsSunViewProjMatrix() const { return mUseSunViewProjMatrix; }
 bool ShaderProgramResource::needsPosAttrib() const { return mUsePosAttrib; }
 bool ShaderProgramResource::needsColorAttrib() const { return mUseColorAttrib; }
 bool ShaderProgramResource::needsUVAttrib() const { return mUseUVAttrib; }
 bool ShaderProgramResource::needsNormalAttrib() const { return mUseNormalAttrib; }
 bool ShaderProgramResource::needsTangentAttrib() const { return mUseTangentAttrib; }
 bool ShaderProgramResource::needsBitangentAttrib() const { return mUseBitangentAttrib; }
-GLuint ShaderProgramResource::getSunViewProjMatrixUnif() const { return mSunViewProjMatrixUnif; }
+
 GLuint ShaderProgramResource::getPosAttrib() const { return mPosAttrib; }
 GLuint ShaderProgramResource::getColorAttrib() const { return mColorAttrib; }
 GLuint ShaderProgramResource::getUVAttrib() const { return mUVAttrib; }
 GLuint ShaderProgramResource::getNormalAttrib() const { return mNormalAttrib; }
 GLuint ShaderProgramResource::getTangentAttrib() const { return mTangentAttrib; }
 GLuint ShaderProgramResource::getBitangentAttrib() const { return mBitangentAttrib; }
+
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformSampler2Ds() const { return mUniformSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformFloats() const { return mUniformFloats; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec2s() const { return mUniformVec2s; }

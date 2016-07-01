@@ -154,6 +154,7 @@ void SSAOModel::SharedResources::render(const Model::RenderPass& rendPass, const
     
     glUniform3fv(mSSAOKernelHandle, 64, mKernels.ssao);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
+    // TODO fix this
     glUniform2fv(mNoiseRatioHandle, 1, glm::value_ptr(glm::vec2(1280.f / 8.f, 720.f / 8.f)));
     
     glUniform1fv(mNearHandle, 1, &rendPass.nearPlane);

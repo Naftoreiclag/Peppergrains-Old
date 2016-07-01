@@ -21,6 +21,7 @@
 
 #include "Resource.hpp"
 #include "ShaderResource.hpp"
+#include "Model.hpp"
 
 namespace pgg {
 
@@ -98,6 +99,11 @@ private:
     bool mUseIMVMat;
     bool mUseIVPMat;
     bool mUseIMVPMat;
+    bool mUseSunViewProjMatrix;
+    bool mUseScreenSize;
+    bool mUseIScreenSize;
+    bool mUseCameraLoc;
+    
     GLuint mMMatUnif;
     GLuint mVMatUnif;
     GLuint mPMatUnif;
@@ -110,9 +116,10 @@ private:
     GLuint mIMVMatUnif;
     GLuint mIVPMatUnif;
     GLuint mIMVPMatUnif;
-    
-    bool mUseSunViewProjMatrix;
     GLuint mSunViewProjMatrixUnif;
+    GLuint mScreenSizeUnif;
+    GLuint mIScreenSizeUnif;
+    GLuint mCameraLocUnif;
 
     bool mUsePosAttrib;
     GLuint mPosAttrib;
@@ -143,6 +150,7 @@ public:
     virtual ~ShaderProgramResource();
     
     void bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const;
+    void bindRenderPass(const Model::RenderPass& rpc, const glm::mat4& modelMat) const;
     
     void load();
     void unload();
@@ -161,6 +169,9 @@ public:
     bool needsInvModelViewMatrix() const;
     bool needsInvViewProjMatrix() const;
     bool needsInvModelViewProjMatrix() const;
+    bool needsScreenSize() const;
+    bool needsInvScreenSize() const;
+    bool needsCameraLocation() const;
     
     GLuint getModelMatrixUnif() const;
     GLuint getViewMatrixUnif() const;
@@ -174,6 +185,9 @@ public:
     GLuint getInvModelViewMatrixUnif() const;
     GLuint getInvViewProjMatrixUnif() const;
     GLuint getInvModelViewProjMatrixUnif() const;
+    GLuint getScreenSizeUnif() const;
+    GLuint getInvScreenSizeUnif() const;
+    GLuint getCameraLocationUnif() const;
     
     bool needsSunViewProjMatrix() const;
     bool needsPosAttrib() const;

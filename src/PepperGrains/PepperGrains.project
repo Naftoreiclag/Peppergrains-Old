@@ -75,12 +75,7 @@
       <File Name="ResourceManager.hpp"/>
       <File Name="StringResource.cpp"/>
       <File Name="StringResource.hpp"/>
-      <VirtualDirectory Name="Shaders">
-        <File Name="ShaderProgramResource.cpp"/>
-        <File Name="ShaderProgramResource.hpp"/>
-        <File Name="ShaderResource.cpp"/>
-        <File Name="ShaderResource.hpp"/>
-      </VirtualDirectory>
+      <VirtualDirectory Name="Shaders"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Rendering">
       <File Name="ManualModel.hpp"/>
@@ -127,6 +122,10 @@
       <File Name="MaterialResource.hpp"/>
       <File Name="TextureResource.cpp"/>
       <File Name="TextureResource.hpp"/>
+      <File Name="ShaderProgramResource.cpp"/>
+      <File Name="ShaderProgramResource.hpp"/>
+      <File Name="ShaderResource.cpp"/>
+      <File Name="ShaderResource.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>

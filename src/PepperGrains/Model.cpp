@@ -20,6 +20,12 @@ Model::RenderPass::RenderPass(RenderPass::Type renderPassType)
 : type(renderPassType)
 , availableFustrumAABB(false) {
 }
+
+void Model::RenderPass::setScreenSize(uint32_t width, uint32_t height) {
+    screenSize = glm::vec2((float) width, (float) height);
+    invScreenSize = glm::vec2(1.f / ((float) width), 1.f / ((float) height));
+}
+
 Model::RenderPass::~RenderPass() { }
 void Model::RenderPass::calculateFustrumAABB() {
     glm::mat4 invVPMatrix = glm::inverse(projMat * viewMat);

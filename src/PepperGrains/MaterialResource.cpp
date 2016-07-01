@@ -237,7 +237,7 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
         glUseProgram(mTechnique.geometryPassProg->getHandle());
 
         // Tell OpenGL to use the provided matrices
-        mTechnique.geometryPassProg->bindModelViewProjMatrices(mMat, rpc.viewMat, rpc.projMat);
+        mTechnique.geometryPassProg->bindRenderPass(rpc, mMat);
 
         // Bind the textures specified by the material
         unsigned int index = 0;
@@ -263,7 +263,7 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
     else if(rpc.type == Model::RenderPass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
         glUseProgram(mTechnique.ssipgPassProg->getHandle());
         
-        mTechnique.ssipgPassProg->bindModelViewProjMatrices(mMat, rpc.viewMat, rpc.projMat);
+        mTechnique.ssipgPassProg->bindRenderPass(rpc, mMat);
         
         unsigned int index = 0;
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mTechnique.ssipgPassProg->getUniformSampler2Ds().begin(); iter != mTechnique.ssipgPassProg->getUniformSampler2Ds().end(); ++ iter) {

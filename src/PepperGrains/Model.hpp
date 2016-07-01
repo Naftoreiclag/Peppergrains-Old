@@ -45,6 +45,11 @@ public:
         float nearPlane;
         float farPlane;
         
+        glm::vec2 screenSize;
+        glm::vec2 invScreenSize;
+        
+        void setScreenSize(uint32_t width, uint32_t height);
+        
         float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
         
         GLuint framebuffer;
