@@ -26,16 +26,17 @@ public:
     Model();
     virtual ~Model();
     
-    enum RenderPassType {
-        GEOMETRY,
-        SHADOW,
-        LOCAL_LIGHTS,
-        GLOBAL_LIGHTS,
-        SCREEN
-    };
-    
     // Might someday have different configs for different renderables
     struct RenderPass {
+        enum Type {
+            GEOMETRY,
+            SHADOW,
+            LOCAL_LIGHTS,
+            GLOBAL_LIGHTS,
+            SSIPG,
+            SCREEN
+        };
+        
         glm::mat4 viewMat;
         glm::mat4 projMat;
         
@@ -51,18 +52,13 @@ public:
         GLuint normalTexture;
         GLuint brightTexture;
         GLuint depthStencilTexture;
-        /*
-        GLuint normalized2DNoiseTexture;
-        
-        float ssao[64];
-         */
         
         GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
         glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];
         
-        RenderPassType type;
+        Type type;
         
-        RenderPass(RenderPassType renderPassType);
+        RenderPass(RenderPass::Type renderPassType);
         ~RenderPass();
         
         bool availableFustrumAABB;

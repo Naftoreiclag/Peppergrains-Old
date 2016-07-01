@@ -16,7 +16,7 @@
 namespace pgg {
 Model::Model() { }
 Model::~Model() { }
-Model::RenderPass::RenderPass(RenderPassType renderPassType)
+Model::RenderPass::RenderPass(RenderPass::Type renderPassType)
 : type(renderPassType)
 , availableFustrumAABB(false) {
 }

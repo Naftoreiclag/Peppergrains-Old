@@ -176,7 +176,7 @@ void SunLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mDLightVao);
 }
 void SunLightModel::SharedResources::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Model::RenderPassType::GLOBAL_LIGHTS) {
+    if(rendPass.type != Model::RenderPass::Type::GLOBAL_LIGHTS) {
         return;
     }
     

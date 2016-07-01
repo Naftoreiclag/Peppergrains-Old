@@ -21,6 +21,7 @@
 #include "Resource.hpp" // Base class: Resource
 #include "ShaderProgramResource.hpp"
 #include "TextureResource.hpp"
+#include "Model.hpp"
 
 #include "GeometryResource.hpp"
 
@@ -43,7 +44,7 @@ public:
         
         TextureResource* textureValue;
         
-        bool isNothing() const;
+        bool specified() const;
     };
     
     /* Different techniques allow for automatic fallback behavior.
@@ -97,7 +98,9 @@ public:
     void unload();
     
     void enableVertexAttributesFor(GeometryResource* geometry) const;
-    void use(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const;
+    bool isVisible(const Model::RenderPass& rpc) const;
+    void use(const Model::RenderPass& rpc, const glm::mat4& mMat) const;
+    
     
     Technique::Type getTechniqueType() const;
 

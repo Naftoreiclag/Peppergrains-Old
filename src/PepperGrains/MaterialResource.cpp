@@ -66,7 +66,7 @@ MaterialResource::MaterialInput::~MaterialInput() {
         default: break;
     }
 }
-bool MaterialResource::MaterialInput::isNothing() const { return type == Type::NOTHING; }
+bool MaterialResource::MaterialInput::specified() const { return type != Type::NOTHING; }
 
 MaterialResource::Technique::Technique()
 : type(Type::NONE) {
@@ -93,7 +93,7 @@ void MaterialResource::grabNeededHLVShader() {
         mTechnique.shaderProg->drop();
         mTechnique.shaderProg = nullptr;
     }
-    if(!mTechnique.normals->isNothing()) {
+    if(mTechnique.normals->specified()) {
         mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
     } else {
         mTechnique.shaderProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
@@ -217,31 +217,44 @@ void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) con
         geometry->enableBitangentAttrib(mTechnique.shaderProg->getBitangentAttrib());
     }
 }
-void MaterialResource::use(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const {
+void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) const {
     
     // Tell OpenGL to use that shader program
     glUseProgram(mTechnique.shaderProg->getHandle());
 
     // Tell OpenGL to use the provided matrices
-    mTechnique.shaderProg->bindModelViewProjMatrices(mMat, vMat, pMat);
+    mTechnique.shaderProg->bindModelViewProjMatrices(mMat, rpc.viewMat, rpc.projMat);
 
     // Bind the textures specified by the material
     unsigned int index = 0;
     for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mTechnique.shaderProg->getUniformSampler2Ds().begin(); iter != mTechnique.shaderProg->getUniformSampler2Ds().end(); ++ iter) {
         const ShaderProgramResource::Control& control = *iter;
         
-        if(control.name == "diffuse" && !mTechnique.diffuse->isNothing()) {
+        if(control.name == "diffuse" && mTechnique.diffuse->specified()) {
             glActiveTexture(GL_TEXTURE0 + index);
             glBindTexture(GL_TEXTURE_2D, mTechnique.diffuse->textureValue->getHandle());
             glUniform1i(control.handle, index);
             ++ index;
         }
-        if(control.name == "normals" && !mTechnique.normals->isNothing()) {
+        if(control.name == "normals" && mTechnique.normals->specified()) {
             glActiveTexture(GL_TEXTURE0 + index);
             glBindTexture(GL_TEXTURE_2D, mTechnique.normals->textureValue->getHandle());
             glUniform1i(control.handle, index);
             ++ index;
         }
+    }
+}
+bool MaterialResource::isVisible(const Model::RenderPass& rpc) const {
+    if(rpc.type == Model::RenderPass::Type::GEOMETRY) {
+        return true;
+    }
+    
+    if(rpc.type == Model::RenderPass::Type::SHADOW) {
+        return true;
+    }
+    
+    if(rpc.type == Model::RenderPass::Type::SSIPG) {
+        return mTechnique.ssipgMap->specified();
     }
 }
 

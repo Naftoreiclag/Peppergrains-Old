@@ -141,7 +141,7 @@ void TessModel::unload() {
 }
 void TessModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != RenderPassType::GEOMETRY && rendPass.type != RenderPassType::SHADOW) {
+    if(rendPass.type != RenderPass::Type::GEOMETRY && rendPass.type != RenderPass::Type::SHADOW) {
         return;
     }
     

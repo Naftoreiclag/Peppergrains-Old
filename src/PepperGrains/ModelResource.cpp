@@ -159,7 +159,7 @@ void ModelResource::unload() {
 
 void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != Model::RenderPassType::GEOMETRY && rendPass.type != Model::RenderPassType::SHADOW) {
+    if(!mMaterial->isVisible(rendPass)) {
         return;
     }
     
@@ -179,7 +179,7 @@ void ModelResource::render(const Model::RenderPass& rendPass, const glm::mat4& m
     }
     */
     
-    mMaterial->use(modelMat, rendPass.viewMat, rendPass.projMat);
+    mMaterial->use(rendPass, modelMat);
 
     // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     glBindVertexArray(mVertexArrayObject);

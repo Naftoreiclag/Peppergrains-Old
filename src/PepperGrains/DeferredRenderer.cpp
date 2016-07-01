@@ -84,7 +84,7 @@ void DeferredRenderer::load() {
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceColorTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth / 2, mScreenHeight / 2, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -93,7 +93,7 @@ void DeferredRenderer::load() {
         // DepthStencil mapping
         glGenTextures(1, &mSSIPG.depthStencilTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth / 2, mScreenHeight / 2, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -360,7 +360,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glDisable(GL_BLEND);
             glClear(GL_DEPTH_BUFFER_BIT);
             
-            Model::RenderPass sunRPC(Model::RenderPassType::SHADOW);
+            Model::RenderPass sunRPC(Model::RenderPass::Type::SHADOW);
             sunRPC.viewMat = mSun.viewMatrix;
             sunRPC.projMat = mSun.projectionMatrices[i];
             sunRPC.camPos = mSun.direction * 100000.f;
@@ -394,13 +394,39 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         
-        Model::RenderPass rootNodeRPC(Model::RenderPassType::GEOMETRY);
-        rootNodeRPC.viewMat = mCamera.viewMat;
-        rootNodeRPC.projMat = mCamera.projMat;
-        rootNodeRPC.camPos = mCamera.position;
-        rootNodeRPC.calculateFustrumAABB();
-        mRootNode->render(rootNodeRPC);
+        Model::RenderPass geometryRenderPass(Model::RenderPass::Type::GEOMETRY);
+        geometryRenderPass.viewMat = mCamera.viewMat;
+        geometryRenderPass.projMat = mCamera.projMat;
+        geometryRenderPass.camPos = mCamera.position;
+        mRootNode->render(geometryRenderPass);
     }
+    
+    // SSIPG pass
+    /*
+    {
+        glViewport(0, 0, mScreenWidth / 2, mScreenHeight / 2);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        Model::RenderPass ssipgRenderPass(Model::RenderPass::Type::SSIPG);
+        ssipgRenderPass.viewMat = mCamera.viewMat;
+        ssipgRenderPass.projMat = mCamera.projMat;
+        ssipgRenderPass.camPos = mCamera.position;
+        mRootNode->render(ssipgRenderPass);
+    }
+    */
     
     // Brightness Render
     {
@@ -428,7 +454,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         // glm::mat4 sunViewProjMat = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
         
         // Render pass config
-        Model::RenderPass brightRPC(Model::RenderPassType::LOCAL_LIGHTS);
+        Model::RenderPass brightRPC(Model::RenderPass::Type::LOCAL_LIGHTS);
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;
@@ -495,7 +521,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             
             // Actual rendering
             {    
-                brightRPC.type = Model::RenderPassType::GLOBAL_LIGHTS;
+                brightRPC.type = Model::RenderPass::Type::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
                 if(mSun.shadowsEnabled) {
                     mSun.sunModel->render(brightRPC, glm::inverse(mSun.viewMatrix));

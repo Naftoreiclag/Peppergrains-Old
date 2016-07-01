@@ -154,7 +154,7 @@ void GrassModel::unload() {
 }
 void GrassModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != RenderPassType::GEOMETRY) {
+    if(rendPass.type != RenderPass::Type::GEOMETRY) {
         return;
     }
     

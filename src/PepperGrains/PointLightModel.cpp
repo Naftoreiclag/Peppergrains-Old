@@ -107,7 +107,7 @@ void PointLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mVertexArrayObject);
 }
 void PointLightModel::SharedResources::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor, const GLfloat& lightRad, const GLfloat& lightVolRad) {
-    if(rendPass.type != Model::RenderPassType::LOCAL_LIGHTS) {
+    if(rendPass.type != Model::RenderPass::Type::LOCAL_LIGHTS) {
         return;
     }
     
