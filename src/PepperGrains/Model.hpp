@@ -41,6 +41,7 @@ public:
         glm::mat4 projMat;
         
         glm::vec3 camPos;
+        glm::vec3 camDir;
         
         float nearPlane;
         float farPlane;

@@ -389,6 +389,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         ssipgRenderPass.viewMat = mCamera.viewMat;
         ssipgRenderPass.projMat = mCamera.projMat;
         ssipgRenderPass.camPos = mCamera.position;
+        ssipgRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
         ssipgRenderPass.nearPlane = mCamera.nearDepth;
         ssipgRenderPass.farPlane = mCamera.farDepth;
         ssipgRenderPass.setScreenSize(mScreenWidth / 2, mScreenHeight / 2);
@@ -424,6 +425,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
+        geometryRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
         geometryRenderPass.nearPlane = mCamera.nearDepth;
         geometryRenderPass.farPlane = mCamera.farDepth;
         geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
@@ -460,6 +462,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;
+        brightRPC.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
         // TODO: something else
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
             brightRPC.cascadeBorders[i] = mCamera.cascadeBorders[i];

@@ -103,6 +103,7 @@ private:
     bool mUseScreenSize;
     bool mUseIScreenSize;
     bool mUseCameraLoc;
+    bool mUseCameraDir;
     
     GLuint mMMatUnif;
     GLuint mVMatUnif;
@@ -120,6 +121,7 @@ private:
     GLuint mScreenSizeUnif;
     GLuint mIScreenSizeUnif;
     GLuint mCameraLocUnif;
+    GLuint mCameraDirUnif;
 
     bool mUsePosAttrib;
     GLuint mPosAttrib;
@@ -172,6 +174,7 @@ public:
     bool needsScreenSize() const;
     bool needsInvScreenSize() const;
     bool needsCameraLocation() const;
+    bool needsCameraDirection() const;
     
     GLuint getModelMatrixUnif() const;
     GLuint getViewMatrixUnif() const;
@@ -188,6 +191,7 @@ public:
     GLuint getScreenSizeUnif() const;
     GLuint getInvScreenSizeUnif() const;
     GLuint getCameraLocationUnif() const;
+    GLuint getCameraDirectionUnif() const;
     
     bool needsSunViewProjMatrix() const;
     bool needsPosAttrib() const;

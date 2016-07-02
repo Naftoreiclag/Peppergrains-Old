@@ -350,6 +350,7 @@ void ShaderProgramResource::load() {
             const Json::Value& scrSz = passUniforms["screenSize"];
             const Json::Value& iScrSz = passUniforms["inverseScreenSize"];
             const Json::Value& camLoc = passUniforms["cameraLocation"];
+            const Json::Value& camDir = passUniforms["cameraDirection"];
 
             if(mMat.isNull()) { mUseMMat = false; } else { mUseMMat = true;
                 mMMatUnif = glGetUniformLocation(mShaderProg, mMat.asString().c_str());
@@ -398,6 +399,9 @@ void ShaderProgramResource::load() {
             }
             if(camLoc.isNull()) { mUseCameraLoc = false; } else { mUseCameraLoc = true;
                 mCameraLocUnif = glGetUniformLocation(mShaderProg, camLoc.asString().c_str());
+            }
+            if(camDir.isNull()) { mUseCameraDir = false; } else { mUseCameraDir = true;
+                mCameraDirUnif = glGetUniformLocation(mShaderProg, camDir.asString().c_str());
             }
         }
     }
@@ -655,6 +659,9 @@ void ShaderProgramResource::bindRenderPass(const Model::RenderPass& rpc, const g
     if(mUseCameraLoc) {
         glUniform3fv(mCameraLocUnif, 1, glm::value_ptr(rpc.camPos));
     }
+    if(mUseCameraDir) {
+        glUniform3fv(mCameraDirUnif, 1, glm::value_ptr(rpc.camDir));
+    }
 }
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }
@@ -675,6 +682,7 @@ bool ShaderProgramResource::needsSunViewProjMatrix() const { return mUseSunViewP
 bool ShaderProgramResource::needsScreenSize() const { return mUseScreenSize; }
 bool ShaderProgramResource::needsInvScreenSize() const { return mUseIScreenSize; }
 bool ShaderProgramResource::needsCameraLocation() const { return mUseCameraLoc; }
+bool ShaderProgramResource::needsCameraDirection() const { return mUseCameraDir; }
 
 GLuint ShaderProgramResource::getModelMatrixUnif() const { return mMMatUnif; }
 GLuint ShaderProgramResource::getViewMatrixUnif() const { return mVMatUnif; }
@@ -692,6 +700,7 @@ GLuint ShaderProgramResource::getSunViewProjMatrixUnif() const { return mSunView
 GLuint ShaderProgramResource::getScreenSizeUnif() const { return mScreenSizeUnif; }
 GLuint ShaderProgramResource::getInvScreenSizeUnif() const { return mIScreenSizeUnif; }
 GLuint ShaderProgramResource::getCameraLocationUnif() const { return mCameraLocUnif; }
+GLuint ShaderProgramResource::getCameraDirectionUnif() const { return mCameraDirUnif; }
 
 bool ShaderProgramResource::needsPosAttrib() const { return mUsePosAttrib; }
 bool ShaderProgramResource::needsColorAttrib() const { return mUseColorAttrib; }
