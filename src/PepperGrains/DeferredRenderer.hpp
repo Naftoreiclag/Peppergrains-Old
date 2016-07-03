@@ -58,7 +58,10 @@ private:
     struct SSIPG {
         ShaderResource* computeShader;
         
+        GLuint shaderProg;
+        
         GLuint ssbo;
+        GLuint ssboHandle;
         
         GLuint framebuffer;
         

@@ -95,38 +95,18 @@ void DeferredRenderer::load() {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        
-        GLuint ssboHandle = glGetProgramResourceIndex(mSSIPG.computeShader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
-        
         GLuint magicIndex = 0;
-        
-        glShaderStorageBlockBinding(mSSIPG.computeShader->getHandle(), ssboHandle, magicIndex);
-        
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, magicIndex, mSSIPG.ssbo);
         
+        mSSIPG.ssboHandle = glGetProgramResourceIndex(mSSIPG.computeShader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
+        glShaderStorageBlockBinding(mSSIPG.computeShader->getHandle(), mSSIPG.ssboHandle, magicIndex);
         
         
-        GLuint shaderProg = glCreateProgram();
-        glAttachShader(shaderProg, mSSIPG.computeShader->getHandle());
-        glLinkProgram(shaderProg);
-        glDetachShader(shaderProg, mSSIPG.computeShader->getHandle());
+        mSSIPG.shaderProg = glCreateProgram();
+        glAttachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
+        glLinkProgram(mSSIPG.shaderProg);
+        glDetachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
         
-        glUseProgram(shaderProg);
-        glDispatchCompute(1, 2, 1);
-        glUseProgram(0);
-        
-        std::cout << "asdf" << std::endl;
-        
-        glDeleteProgram(shaderProg);
-        
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
-        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        
-        count = *((GLuint*) untimely);
-        
-        std::cout << "count " << count << std::endl;
-        
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         
         
         // Instance texture
@@ -325,6 +305,8 @@ void DeferredRenderer::unload() {
     glDeleteTextures(1, &mSSIPG.depthStencilTexture);
     glDeleteFramebuffers(1, &mSSIPG.framebuffer);
     mSSIPG.computeShader->drop();
+    glDeleteProgram(mSSIPG.shaderProg);
+    glDeleteBuffers(1, &mSSIPG.ssbo);
 
     mScreenShader.shaderProg->drop();
     mDebugScreenShader.shaderProg->drop();
@@ -437,6 +419,18 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         mRootNode->render(ssipgRenderPass);
         
         //
+        glUseProgram(mSSIPG.shaderProg);
+        glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
+        glUseProgram(0);
+        
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
+        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        
+        GLuint count = *((GLuint*) untimely);
+        
+        std::cout << "count " << count << std::endl;
+        
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
     }
     // Geometry pass
     {
