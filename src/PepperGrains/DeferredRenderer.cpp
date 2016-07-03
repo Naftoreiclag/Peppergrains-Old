@@ -13,11 +13,15 @@
 
 #include "DeferredRenderer.hpp"
 
+#include <iostream>
+
 #include "ResourceManager.hpp"
 
 namespace pgg {
     
 void DeferredRenderer::load() {
+    ResourceManager* resman = ResourceManager::getSingleton();
+    
     mSSAO.enabled = true;
     mSun.shadowsEnabled = true;
     
@@ -64,8 +68,8 @@ void DeferredRenderer::load() {
     
     // Create framebuffers
     {
-        glGenFramebuffers(1, &mGBuff.gFramebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.gFramebuffer);
+        glGenFramebuffers(1, &mGBuff.framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.diffuseTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mGBuff.brightTexture, 0);
@@ -80,11 +84,47 @@ void DeferredRenderer::load() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     
+    // SSIPG
     {
+        mSSIPG.computeShader = resman->findShader("Tomatoes.computeShader");
+        mSSIPG.computeShader->grab();
+        
+        GLuint count = 0;
+        
+        glGenBuffers(1, &mSSIPG.ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        
+        GLuint ssboHandle = glGetProgramResourceIndex(mSSIPG.computeShader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
+        
+        GLuint magicIndex = 0;
+        
+        glShaderStorageBlockBinding(mSSIPG.computeShader->getHandle(), ssboHandle, magicIndex);
+        
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, magicIndex, mSSIPG.ssbo);
+        
+        
+        
+        GLuint shaderProg = glCreateProgram();
+        glAttachShader(shaderProg, mSSIPG.computeShader->getHandle());
+        glLinkProgram(shaderProg);
+        glDetachShader(shaderProg, mSSIPG.computeShader->getHandle());
+        
+        glUseProgram(shaderProg);
+        glDispatchCompute(1, 1, 1);
+        glUseProgram(0);
+        
+        std::cout << "asdf" << std::endl;
+        
+        
+        
+        glDeleteProgram(shaderProg);
+        
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceColorTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth / 2, mScreenHeight / 2, 0, GL_RGB, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -93,7 +133,7 @@ void DeferredRenderer::load() {
         // DepthStencil mapping
         glGenTextures(1, &mSSIPG.depthStencilTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth / 2, mScreenHeight / 2, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -112,20 +152,8 @@ void DeferredRenderer::load() {
         glDrawBuffers(1, colorAttachments);
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        
-        // Tile pass
-        glGenTextures(1, &mSSIPG.tileTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.tileTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, mScreenWidth / 8, mScreenHeight / 8, 0, GL_RED, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
     
-    ResourceManager* resman = ResourceManager::getSingleton();
     // GBuffer shader
     {
         mScreenShader.shaderProg = resman->findShaderProgram("GBuffer.shaderProgram");
@@ -283,7 +311,12 @@ void DeferredRenderer::unload() {
     glDeleteTextures(1, &mGBuff.normalTexture);
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
     glDeleteTextures(1, &mGBuff.brightTexture);
-    glDeleteFramebuffers(1, &mGBuff.gFramebuffer);
+    glDeleteFramebuffers(1, &mGBuff.framebuffer);
+    
+    glDeleteTextures(1, &mSSIPG.instanceColorTexture);
+    glDeleteTextures(1, &mSSIPG.depthStencilTexture);
+    glDeleteFramebuffers(1, &mSSIPG.framebuffer);
+    mSSIPG.computeShader->drop();
 
     mScreenShader.shaderProg->drop();
     mDebugScreenShader.shaderProg->drop();
@@ -370,7 +403,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     
     // SSIPG pass
     {
-        glViewport(0, 0, mScreenWidth / 2, mScreenHeight / 2);
+        glViewport(0, 0, mScreenWidth, mScreenHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0
@@ -392,13 +425,15 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         ssipgRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
         ssipgRenderPass.nearPlane = mCamera.nearDepth;
         ssipgRenderPass.farPlane = mCamera.farDepth;
-        ssipgRenderPass.setScreenSize(mScreenWidth / 2, mScreenHeight / 2);
+        ssipgRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
         mRootNode->render(ssipgRenderPass);
+        
+        //
     }
     // Geometry pass
     {
         glViewport(0, 0, mScreenWidth, mScreenHeight);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.gFramebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0,
             GL_COLOR_ATTACHMENT1

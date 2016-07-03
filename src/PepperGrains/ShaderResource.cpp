@@ -111,6 +111,8 @@ void ShaderResource::load() {
         glGetShaderInfoLog(mHandle, 512, 0, infoLog);
         std::cout << infoLog;
         std::cout << shaderSrcStr;
+    } else {
+        std::cout << "Compiled shader " << this->getName() << std::endl;
     }
 
     mLoaded = true;

@@ -37,7 +37,7 @@ private:
     GLuint mFullscreenIbo;
 
     struct GBuffer {
-        GLuint gFramebuffer;
+        GLuint framebuffer;
         
         GLuint diffuseTexture;
         GLuint normalTexture;
@@ -56,10 +56,13 @@ private:
     ScreenShader mScreenShader;
     
     struct SSIPG {
+        ShaderResource* computeShader;
+        
+        GLuint ssbo;
+        
         GLuint framebuffer;
         
         GLuint instanceColorTexture;
-        GLuint tileTexture;
         GLuint depthStencilTexture;
     };
     SSIPG mSSIPG;
