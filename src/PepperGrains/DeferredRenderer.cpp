@@ -112,14 +112,22 @@ void DeferredRenderer::load() {
         glDetachShader(shaderProg, mSSIPG.computeShader->getHandle());
         
         glUseProgram(shaderProg);
-        glDispatchCompute(1, 1, 1);
+        glDispatchCompute(1, 2, 1);
         glUseProgram(0);
         
         std::cout << "asdf" << std::endl;
         
-        
-        
         glDeleteProgram(shaderProg);
+        
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
+        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        
+        count = *((GLuint*) untimely);
+        
+        std::cout << "count " << count << std::endl;
+        
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        
         
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceColorTexture);
