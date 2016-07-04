@@ -101,18 +101,28 @@ void DeferredRenderer::load() {
         mSSIPG.ssboHandle = glGetProgramResourceIndex(mSSIPG.computeShader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
         glShaderStorageBlockBinding(mSSIPG.computeShader->getHandle(), mSSIPG.ssboHandle, magicIndex);
         
-        
         mSSIPG.shaderProg = glCreateProgram();
         glAttachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
         glLinkProgram(mSSIPG.shaderProg);
         glDetachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
         
         
+        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspoints");
+        /*
+        std::cout << mSSIPG.imageHandle << std::endl;        
+        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsb");
+        std::cout << mSSIPG.imageHandle << std::endl;
+        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsc");
+        std::cout << mSSIPG.imageHandle << std::endl;
+        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsd");
+        std::cout << mSSIPG.imageHandle << std::endl;
+        */
+        
         
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceColorTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mScreenWidth, mScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -420,6 +430,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         //
         glUseProgram(mSSIPG.shaderProg);
+        glBindImageTexture(0, mSSIPG.instanceColorTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glUniform1i(mSSIPG.imageHandle, 0);
         glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
         glUseProgram(0);
         

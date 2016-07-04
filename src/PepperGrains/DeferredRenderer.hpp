@@ -59,6 +59,7 @@ private:
         ShaderResource* computeShader;
         
         GLuint shaderProg;
+        GLuint imageHandle;
         
         GLuint ssbo;
         GLuint ssboHandle;
