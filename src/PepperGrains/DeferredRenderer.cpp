@@ -89,17 +89,20 @@ void DeferredRenderer::load() {
         mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
         mSSIPG.compute.shader->grab();
         
+        mSSIPG.counterBufferIndex = 0;
+        mSSIPG.instanceBufferIndex = 1;
+        mSSIPG.instanceImageIndex = 1;
+        
         GLuint count = 0;
         
         glGenBuffers(1, &mSSIPG.counterBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        GLuint magicIndex = 0;
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, magicIndex, mSSIPG.counterBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
         
         mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.shader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
-        glShaderStorageBlockBinding(mSSIPG.compute.shader->getHandle(), mSSIPG.compute.counterBufferHandle, magicIndex);
+        glShaderStorageBlockBinding(mSSIPG.compute.shader->getHandle(), mSSIPG.compute.counterBufferHandle, mSSIPG.counterBufferIndex);
         
         mSSIPG.compute.prog = glCreateProgram();
         glAttachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
@@ -108,15 +111,6 @@ void DeferredRenderer::load() {
         
         
         mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspoints");
-        /*
-        std::cout << mSSIPG.compute.imageHandle << std::endl;        
-        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsb");
-        std::cout << mSSIPG.compute.imageHandle << std::endl;
-        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsc");
-        std::cout << mSSIPG.compute.imageHandle << std::endl;
-        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsd");
-        std::cout << mSSIPG.compute.imageHandle << std::endl;
-        */
         
         
         // Instance texture
@@ -259,43 +253,47 @@ void DeferredRenderer::load() {
         glBindVertexArray(0);
     }
     
-    mSun.shadowMapResolution = 1024;
-    mSun.direction = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
-    mSun.location = glm::vec3(1.f, 1.f, 1.f);
-    
-    mSun.directionalModel = new DirectionalLightModel(glm::vec3(1.f, 1.f, 1.f));
-    mSun.directionalModel->grab();
-    
-    mSun.sunModel = new SunLightModel(glm::vec3(1.f, 1.f, 1.f));
-    mSun.sunModel->grab();
-    
-    mSSAO.ssaoModel = new SSAOModel();
-    mSSAO.ssaoModel->grab();
-    
-    // Depth mapping
-    glGenTextures(PGG_NUM_SUN_CASCADES, mSun.depthTextures);
-    
-    for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        glBindTexture(GL_TEXTURE_2D, mSun.depthTextures[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSun.shadowMapResolution, mSun.shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    glGenFramebuffers(PGG_NUM_SUN_CASCADES, mSun.framebuffers);
-    for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mSun.framebuffers[i]);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSun.depthTextures[i], 0);
+    // Sun and shadow
+    {
+        mSun.shadowMapResolution = 1024;
+        mSun.direction = glm::normalize(glm::vec3(-1.f, -1.f, -1.f));
+        mSun.location = glm::vec3(1.f, 1.f, 1.f);
         
-        // No color buffers
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
+        mSun.directionalModel = new DirectionalLightModel(glm::vec3(1.f, 1.f, 1.f));
+        mSun.directionalModel->grab();
+        
+        mSun.sunModel = new SunLightModel(glm::vec3(1.f, 1.f, 1.f));
+        mSun.sunModel->grab();
+        
+        mSSAO.ssaoModel = new SSAOModel();
+        mSSAO.ssaoModel->grab();
+        
+        // Depth mapping
+        glGenTextures(PGG_NUM_SUN_CASCADES, mSun.depthTextures);
+        
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            glBindTexture(GL_TEXTURE_2D, mSun.depthTextures[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, mSun.shadowMapResolution, mSun.shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glGenFramebuffers(PGG_NUM_SUN_CASCADES, mSun.framebuffers);
+        for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
+            glBindFramebuffer(GL_FRAMEBUFFER, mSun.framebuffers[i]);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mSun.depthTextures[i], 0);
+            
+            // No color buffers
+            glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     this->setCameraProjection(glm::radians(90.f), 0.2f, 400.f);
 }
@@ -317,6 +315,7 @@ void DeferredRenderer::unload() {
     mSSIPG.compute.shader->drop();
     glDeleteProgram(mSSIPG.compute.prog);
     glDeleteBuffers(1, &mSSIPG.counterBuffer);
+    glDeleteBuffers(1, &mSSIPG.instanceBuffer);
 
     mScreenShader.shaderProg->drop();
     mDebugScreenShader.shaderProg->drop();
@@ -430,8 +429,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         //
         glUseProgram(mSSIPG.compute.prog);
-        glBindImageTexture(0, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
-        glUniform1i(mSSIPG.compute.instanceImageHandle, 0);
+        glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glUniform1i(mSSIPG.compute.instanceImageHandle, mSSIPG.instanceImageIndex);
         glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
         glUseProgram(0);
         
@@ -441,7 +440,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         std::cout << "count " << count << std::endl;
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         count = 0;
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(count), &count);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
     // Geometry pass
     {

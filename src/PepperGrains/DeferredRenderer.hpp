@@ -69,6 +69,10 @@ private:
         GLuint counterBuffer;
         GLuint instanceBuffer;
         
+        GLuint counterBufferIndex;
+        GLuint instanceBufferIndex;
+        GLuint instanceImageIndex;
+        
         GLuint instanceImageTexture;
         GLuint depthStencilTexture;
         
