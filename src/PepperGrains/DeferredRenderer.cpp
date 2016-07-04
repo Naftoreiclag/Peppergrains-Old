@@ -427,6 +427,11 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         ssipgRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
         mRootNode->render(ssipgRenderPass);
         
+        // Reset counter
+        GLuint count = 0;
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(count), &count);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        
         //
         glUseProgram(mSSIPG.compute.prog);
         glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
@@ -436,12 +441,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
         GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        GLuint count = *((GLuint*) untimely);
+        count = *((GLuint*) untimely);
         std::cout << "count " << count << std::endl;
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-        count = 0;
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(count), &count);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
     // Geometry pass
     {
