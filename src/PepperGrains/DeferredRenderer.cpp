@@ -115,11 +115,14 @@ void DeferredRenderer::load() {
         glDrawBuffers(1, colorAttachments);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
         
-        // Counter and instance buffers
+        // Counter buffer
         glGenBuffers(1, &mSSIPG.counterBuffer);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
+        glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0); // Cleanup
+        
+        // Instance buffer
         glGenBuffers(1, &mSSIPG.instanceBuffer);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 5, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
@@ -130,7 +133,7 @@ void DeferredRenderer::load() {
         mSSIPG.instanceImageIndex = 1;
         
         // Bind buffers to the indices specified above
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBufferIndex, mSSIPG.instanceBuffer);
         
         // Compute shader
@@ -145,11 +148,11 @@ void DeferredRenderer::load() {
             glDetachShader(mSSIPG.comp.prog, mSSIPG.comp.shader->getHandle());
             
             // Program handles
-            mSSIPG.comp.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "CounterBuffer");
+            //mSSIPG.comp.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "CounterBuffer");
             mSSIPG.comp.instanceBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
             mSSIPG.comp.instanceImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
             
-            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
+            //glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.instanceBufferHandle, mSSIPG.instanceBufferIndex);
         }
         
@@ -497,11 +500,13 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         // Reset counter
         GLuint count = 0;
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(count), &count);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
+        glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(count), &count);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
         
         //
         glUseProgram(mSSIPG.comp.prog);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
         glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
         glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
@@ -546,14 +551,13 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         mRootNode->render(geometryRenderPass);
         
         
-        /*
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
+        GLvoid* untimely = glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY);
         GLuint count = *((GLuint*) untimely);
         std::cout << "count " << count << std::endl;
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-        */
+        glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
         
+        /*
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
         GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
         //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
@@ -564,6 +568,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         std::cout << "count " << asdfx << "\t" << asdfy << "\t" << potato << std::endl;
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        */
         
         glDisable(GL_CULL_FACE);
         glUseProgram(mSSIPG.inst.shaderProg->getHandle());
