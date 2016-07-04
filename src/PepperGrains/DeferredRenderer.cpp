@@ -86,42 +86,42 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
-        mSSIPG.computeShader = resman->findShader("Tomatoes.computeShader");
-        mSSIPG.computeShader->grab();
+        mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
+        mSSIPG.compute.shader->grab();
         
         GLuint count = 0;
         
-        glGenBuffers(1, &mSSIPG.ssbo);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
+        glGenBuffers(1, &mSSIPG.counterBuffer);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         GLuint magicIndex = 0;
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, magicIndex, mSSIPG.ssbo);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, magicIndex, mSSIPG.counterBuffer);
         
-        mSSIPG.ssboHandle = glGetProgramResourceIndex(mSSIPG.computeShader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
-        glShaderStorageBlockBinding(mSSIPG.computeShader->getHandle(), mSSIPG.ssboHandle, magicIndex);
+        mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.shader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
+        glShaderStorageBlockBinding(mSSIPG.compute.shader->getHandle(), mSSIPG.compute.counterBufferHandle, magicIndex);
         
-        mSSIPG.shaderProg = glCreateProgram();
-        glAttachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
-        glLinkProgram(mSSIPG.shaderProg);
-        glDetachShader(mSSIPG.shaderProg, mSSIPG.computeShader->getHandle());
+        mSSIPG.compute.prog = glCreateProgram();
+        glAttachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
+        glLinkProgram(mSSIPG.compute.prog);
+        glDetachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
         
         
-        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspoints");
+        mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspoints");
         /*
-        std::cout << mSSIPG.imageHandle << std::endl;        
-        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsb");
-        std::cout << mSSIPG.imageHandle << std::endl;
-        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsc");
-        std::cout << mSSIPG.imageHandle << std::endl;
-        mSSIPG.imageHandle = glGetUniformLocation(mSSIPG.shaderProg, "sspointsd");
-        std::cout << mSSIPG.imageHandle << std::endl;
+        std::cout << mSSIPG.compute.imageHandle << std::endl;        
+        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsb");
+        std::cout << mSSIPG.compute.imageHandle << std::endl;
+        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsc");
+        std::cout << mSSIPG.compute.imageHandle << std::endl;
+        mSSIPG.compute.imageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspointsd");
+        std::cout << mSSIPG.compute.imageHandle << std::endl;
         */
         
         
         // Instance texture
-        glGenTextures(1, &mSSIPG.instanceColorTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
+        glGenTextures(1, &mSSIPG.instanceImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mScreenWidth, mScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -141,7 +141,7 @@ void DeferredRenderer::load() {
         
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceColorTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
@@ -311,12 +311,12 @@ void DeferredRenderer::unload() {
     glDeleteTextures(1, &mGBuff.brightTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
-    glDeleteTextures(1, &mSSIPG.instanceColorTexture);
+    glDeleteTextures(1, &mSSIPG.instanceImageTexture);
     glDeleteTextures(1, &mSSIPG.depthStencilTexture);
     glDeleteFramebuffers(1, &mSSIPG.framebuffer);
-    mSSIPG.computeShader->drop();
-    glDeleteProgram(mSSIPG.shaderProg);
-    glDeleteBuffers(1, &mSSIPG.ssbo);
+    mSSIPG.compute.shader->drop();
+    glDeleteProgram(mSSIPG.compute.prog);
+    glDeleteBuffers(1, &mSSIPG.counterBuffer);
 
     mScreenShader.shaderProg->drop();
     mDebugScreenShader.shaderProg->drop();
@@ -429,13 +429,13 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         mRootNode->render(ssipgRenderPass);
         
         //
-        glUseProgram(mSSIPG.shaderProg);
-        glBindImageTexture(0, mSSIPG.instanceColorTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
-        glUniform1i(mSSIPG.imageHandle, 0);
+        glUseProgram(mSSIPG.compute.prog);
+        glBindImageTexture(0, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glUniform1i(mSSIPG.compute.instanceImageHandle, 0);
         glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
         glUseProgram(0);
         
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
         GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
         GLuint count = *((GLuint*) untimely);
         std::cout << "count " << count << std::endl;
@@ -644,7 +644,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mDebugScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceColorTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
         glUniform1i(mDebugScreenShader.brightHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);

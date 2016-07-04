@@ -56,18 +56,23 @@ private:
     ScreenShader mScreenShader;
     
     struct SSIPG {
-        ShaderResource* computeShader;
+        struct CompShader {
+            ShaderResource* shader;
+            GLuint prog;
+            
+            GLuint instanceImageHandle;
+            GLuint counterBufferHandle;
+            GLuint instanceBufferHandle;
+        };
+        CompShader compute;
         
-        GLuint shaderProg;
-        GLuint imageHandle;
+        GLuint counterBuffer;
+        GLuint instanceBuffer;
         
-        GLuint ssbo;
-        GLuint ssboHandle;
+        GLuint instanceImageTexture;
+        GLuint depthStencilTexture;
         
         GLuint framebuffer;
-        
-        GLuint instanceColorTexture;
-        GLuint depthStencilTexture;
     };
     SSIPG mSSIPG;
     
