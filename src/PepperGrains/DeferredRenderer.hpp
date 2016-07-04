@@ -19,6 +19,7 @@
 #include "OpenGLStuff.hpp"
 #include "HardValueStuff.hpp"
 #include "ReferenceCounted.hpp"
+#include "GeometryResource.hpp"
 #include "SceneNode.hpp"
 #include "ShaderProgramResource.hpp"
 #include "DirectionalLightModel.hpp"
@@ -64,7 +65,18 @@ private:
             GLuint counterBufferHandle;
             GLuint instanceBufferHandle;
         };
-        CompShader compute;
+        CompShader comp;
+        
+        struct InstShader {
+            ShaderProgramResource* shaderProg;
+            GeometryResource* geometry;
+            
+            GLuint vao;
+            
+            GLuint packedPixelHandle;
+            GLuint depthHandle;
+        };
+        InstShader inst;
         
         GLuint counterBuffer;
         GLuint instanceBuffer;

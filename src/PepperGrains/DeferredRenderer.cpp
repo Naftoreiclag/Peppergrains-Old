@@ -134,19 +134,81 @@ void DeferredRenderer::load() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBufferIndex, mSSIPG.instanceBuffer);
         
         // Compute shader
-        mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
-        mSSIPG.compute.shader->grab();
+        {
+            mSSIPG.comp.shader = resman->findShader("Tomatoes.computeShader");
+            mSSIPG.comp.shader->grab();
+            
+            // Compute shader program
+            mSSIPG.comp.prog = glCreateProgram();
+            glAttachShader(mSSIPG.comp.prog, mSSIPG.comp.shader->getHandle());
+            glLinkProgram(mSSIPG.comp.prog);
+            glDetachShader(mSSIPG.comp.prog, mSSIPG.comp.shader->getHandle());
+            
+            // Program handles
+            mSSIPG.comp.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "CounterBuffer");
+            mSSIPG.comp.instanceBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
+            mSSIPG.comp.instanceImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
+            
+            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
+            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.instanceBufferHandle, mSSIPG.instanceBufferIndex);
+        }
         
-        // Compute shader program
-        mSSIPG.compute.prog = glCreateProgram();
-        glAttachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
-        glLinkProgram(mSSIPG.compute.prog);
-        glDetachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
-        
-        mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "instanceImage");
-        mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.prog, GL_SHADER_STORAGE_BLOCK, "CounterSSBO");
-        
-        glShaderStorageBlockBinding(mSSIPG.compute.prog, mSSIPG.compute.counterBufferHandle, mSSIPG.counterBufferIndex);
+        // Instance shader
+        {
+            mSSIPG.inst.geometry = resman->findGeometry("GrassBlade.geometry");
+            mSSIPG.inst.shaderProg = resman->findShaderProgram("Blueberry.shaderProgram");
+            
+            mSSIPG.inst.geometry->grab();
+            mSSIPG.inst.shaderProg->grab();
+            
+            
+            const std::vector<ShaderProgramResource::Control>& intancedUints = mSSIPG.inst.shaderProg->getInstancedUints();
+            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedUints.begin(); iter != intancedUints.end(); ++ iter) {
+                const ShaderProgramResource::Control& entry = *iter;
+                mSSIPG.inst.packedPixelHandle = entry.handle;
+                break;
+            }
+            
+            const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getInstancedUints();
+            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2ds.begin(); iter != sampler2ds.end(); ++ iter) {
+                const ShaderProgramResource::Control& entry = *iter;
+                if(entry.name == "depth") {
+                    mSSIPG.inst.depthHandle = entry.handle;
+                }
+            }
+            
+            glGenVertexArrays(1, &mSSIPG.inst.vao);
+            glBindVertexArray(mSSIPG.inst.vao);
+    
+            mSSIPG.inst.geometry->bindBuffers();
+            
+            if(mSSIPG.inst.shaderProg->needsPosAttrib()) {
+                mSSIPG.inst.geometry->enablePositionAttrib(mSSIPG.inst.shaderProg->getPosAttrib());
+            }
+            if(mSSIPG.inst.shaderProg->needsColorAttrib()) {
+                mSSIPG.inst.geometry->enableColorAttrib(mSSIPG.inst.shaderProg->getColorAttrib());
+            }
+            if(mSSIPG.inst.shaderProg->needsUVAttrib()) {
+                mSSIPG.inst.geometry->enableUVAttrib(mSSIPG.inst.shaderProg->getUVAttrib());
+            }
+            if(mSSIPG.inst.shaderProg->needsNormalAttrib()) {
+                mSSIPG.inst.geometry->enableNormalAttrib(mSSIPG.inst.shaderProg->getNormalAttrib());
+            }
+            if(mSSIPG.inst.shaderProg->needsTangentAttrib()) {
+                mSSIPG.inst.geometry->enableTangentAttrib(mSSIPG.inst.shaderProg->getTangentAttrib());
+            }
+            if(mSSIPG.inst.shaderProg->needsBitangentAttrib()) {
+                mSSIPG.inst.geometry->enableBitangentAttrib(mSSIPG.inst.shaderProg->getBitangentAttrib());
+            }
+            
+            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.comp.instanceBufferHandle);
+            glEnableVertexAttribArray(mSSIPG.inst.packedPixelHandle);
+            glVertexAttribPointer(mSSIPG.inst.packedPixelHandle, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*) (0 * sizeof(GLuint)));
+            glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            
+            glBindVertexArray(0);
+        }
         
     }
     
@@ -316,8 +378,8 @@ void DeferredRenderer::unload() {
     glDeleteTextures(1, &mSSIPG.instanceImageTexture);
     glDeleteTextures(1, &mSSIPG.depthStencilTexture);
     glDeleteFramebuffers(1, &mSSIPG.framebuffer);
-    mSSIPG.compute.shader->drop();
-    glDeleteProgram(mSSIPG.compute.prog);
+    mSSIPG.comp.shader->drop();
+    glDeleteProgram(mSSIPG.comp.prog);
     glDeleteBuffers(1, &mSSIPG.counterBuffer);
     glDeleteBuffers(1, &mSSIPG.instanceBuffer);
 
@@ -437,17 +499,13 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         
         //
-        glUseProgram(mSSIPG.compute.prog);
+        glUseProgram(mSSIPG.comp.prog);
         glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
-        glUniform1i(mSSIPG.compute.instanceImageHandle, mSSIPG.instanceImageIndex);
+        glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
         glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
         glUseProgram(0);
         
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        count = *((GLuint*) untimely);
-        std::cout << "count " << count << std::endl;
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        //
     }
     // Geometry pass
     {
@@ -484,6 +542,25 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         geometryRenderPass.farPlane = mCamera.farDepth;
         geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
         mRootNode->render(geometryRenderPass);
+        
+        
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
+        GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        GLuint count = *((GLuint*) untimely);
+        // std::cout << "count " << count << std::endl;
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        
+        glDisable(GL_CULL_FACE);
+        glUseProgram(mSSIPG.inst.shaderProg->getHandle());
+        mSSIPG.inst.shaderProg->bindRenderPass(geometryRenderPass, glm::mat4());
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
+        glUniform1i(mSSIPG.inst.depthHandle, 0);
+        glBindVertexArray(mSSIPG.inst.vao);
+        mSSIPG.inst.geometry->drawElementsInstanced(count);
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glEnable(GL_CULL_FACE);
     }
     
     // Brightness Render

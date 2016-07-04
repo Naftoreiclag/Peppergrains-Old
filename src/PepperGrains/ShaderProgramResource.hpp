@@ -34,6 +34,7 @@ public:
 
     const std::vector<Control>& getUniformSampler2Ds() const;
     const std::vector<Control>& getUniformFloats() const;
+    const std::vector<Control>& getUniformUints() const;
     const std::vector<Control>& getUniformVec2s() const;
     const std::vector<Control>& getUniformVec3s() const;
     const std::vector<Control>& getUniformVec4s() const;
@@ -41,6 +42,7 @@ public:
     
     const std::vector<Control>& getInstancedSampler2Ds() const;
     const std::vector<Control>& getInstancedFloats() const;
+    const std::vector<Control>& getInstancedUints() const;
     const std::vector<Control>& getInstancedVec2s() const;
     const std::vector<Control>& getInstancedVec3s() const;
     const std::vector<Control>& getInstancedVec4s() const;
@@ -55,6 +57,7 @@ private:
 
     std::vector<Control> mUniformSampler2Ds;
     std::vector<Control> mUniformFloats;
+    std::vector<Control> mUniformUints;
     std::vector<Control> mUniformVec2s;
     std::vector<Control> mUniformVec3s;
     std::vector<Control> mUniformVec4s;
@@ -62,6 +65,7 @@ private:
     
     std::vector<Control> mInstancedSampler2Ds;
     std::vector<Control> mInstancedFloats;
+    std::vector<Control> mInstancedUints;
     std::vector<Control> mInstancedVec2s;
     std::vector<Control> mInstancedVec3s;
     std::vector<Control> mInstancedVec4s;

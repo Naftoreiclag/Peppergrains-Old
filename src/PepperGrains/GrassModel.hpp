@@ -25,8 +25,6 @@ namespace pgg {
 class GrassModel : public Model {
 private:
     GLuint mVertexArrayObject;
-    GLuint mVertexBufferObject;
-    GLuint mIndexBufferObject;
     ShaderProgramResource* mShaderProg;
     GeometryResource* mGeometry;
     GLuint mOffsetHandle;
