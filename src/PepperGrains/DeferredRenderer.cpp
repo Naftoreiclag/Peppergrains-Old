@@ -437,12 +437,11 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.ssbo);
         GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        
         GLuint count = *((GLuint*) untimely);
-        
         std::cout << "count " << count << std::endl;
-        
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        count = 0;
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_DYNAMIC_COPY);
     }
     // Geometry pass
     {
