@@ -101,7 +101,7 @@ void DeferredRenderer::load() {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
         
-        mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.shader->getHandle(), GL_SHADER_STORAGE_BLOCK, "MacDuff");
+        mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.shader->getHandle(), GL_SHADER_STORAGE_BLOCK, "CounterSSBO");
         glShaderStorageBlockBinding(mSSIPG.compute.shader->getHandle(), mSSIPG.compute.counterBufferHandle, mSSIPG.counterBufferIndex);
         
         mSSIPG.compute.prog = glCreateProgram();
@@ -110,7 +110,7 @@ void DeferredRenderer::load() {
         glDetachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
         
         
-        mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "sspoints");
+        mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "instanceImage");
         
         
         // Instance texture
