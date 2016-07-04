@@ -86,18 +86,18 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
-        mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
-        mSSIPG.compute.shader->grab();
-        
+        // Enums
         mSSIPG.counterBufferIndex = 0;
         mSSIPG.instanceBufferIndex = 1;
         mSSIPG.instanceImageIndex = 1;
         
-        GLuint count = 0;
+        // Compute shader
+        mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
+        mSSIPG.compute.shader->grab();
         
         glGenBuffers(1, &mSSIPG.counterBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(count), &count, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
         
