@@ -121,7 +121,7 @@ void DeferredRenderer::load() {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 80000, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 5, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
@@ -166,14 +166,16 @@ void DeferredRenderer::load() {
             for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedUints.begin(); iter != intancedUints.end(); ++ iter) {
                 const ShaderProgramResource::Control& entry = *iter;
                 mSSIPG.inst.packedPixelHandle = entry.handle;
+                std::cout << entry.name << std::endl;
                 break;
             }
             
-            const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getInstancedUints();
+            const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getUniformSampler2Ds();
             for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2ds.begin(); iter != sampler2ds.end(); ++ iter) {
                 const ShaderProgramResource::Control& entry = *iter;
                 if(entry.name == "depth") {
                     mSSIPG.inst.depthHandle = entry.handle;
+                    std::cout << entry.name << std::endl;
                 }
             }
             
@@ -544,10 +546,23 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         mRootNode->render(geometryRenderPass);
         
         
+        /*
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
         GLvoid* untimely = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
         GLuint count = *((GLuint*) untimely);
-        // std::cout << "count " << count << std::endl;
+        std::cout << "count " << count << std::endl;
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        */
+        
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
+        GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+        //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
+        GLuint* potato = (GLuint*) egg;
+        
+        GLuint asdfy = potato[0] >> 16;
+        GLuint asdfx = potato[0] & ((1 << 16) - 1);
+        
+        std::cout << "count " << asdfx << "\t" << asdfy << "\t" << potato << std::endl;
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         
         glDisable(GL_CULL_FACE);
@@ -557,7 +572,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
         glUniform1i(mSSIPG.inst.depthHandle, 0);
         glBindVertexArray(mSSIPG.inst.vao);
-        mSSIPG.inst.geometry->drawElementsInstanced(count);
+        //mSSIPG.inst.geometry->drawElementsInstanced(count);
         glBindVertexArray(0);
         glUseProgram(0);
         glEnable(GL_CULL_FACE);
