@@ -104,38 +104,40 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0); // Cleanup
         
+        // Framebuffer
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
-        
-        GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0
-        };
+        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
         glDrawBuffers(1, colorAttachments);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
         
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // Counter and instance buffers
+        glGenBuffers(1, &mSSIPG.counterBuffer);
+        glGenBuffers(1, &mSSIPG.instanceBuffer);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 80000, 0, GL_STREAM_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
-        // Enums
+        // Indices to which various objects are bound to
         mSSIPG.counterBufferIndex = 0;
         mSSIPG.instanceBufferIndex = 1;
         mSSIPG.instanceImageIndex = 1;
+        
+        // Bind buffers to the indices specified above
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBufferIndex, mSSIPG.instanceBuffer);
         
         // Compute shader
         mSSIPG.compute.shader = resman->findShader("Tomatoes.computeShader");
         mSSIPG.compute.shader->grab();
         
-        glGenBuffers(1, &mSSIPG.counterBuffer);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), 0, GL_STREAM_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
-        
-        
-        glShaderStorageBlockBinding(mSSIPG.compute.shader->getHandle(), mSSIPG.compute.counterBufferHandle, mSSIPG.counterBufferIndex);
-        
+        // Compute shader program
         mSSIPG.compute.prog = glCreateProgram();
         glAttachShader(mSSIPG.compute.prog, mSSIPG.compute.shader->getHandle());
         glLinkProgram(mSSIPG.compute.prog);
@@ -144,6 +146,7 @@ void DeferredRenderer::load() {
         mSSIPG.compute.instanceImageHandle = glGetUniformLocation(mSSIPG.compute.prog, "instanceImage");
         mSSIPG.compute.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.compute.prog, GL_SHADER_STORAGE_BLOCK, "CounterSSBO");
         
+        glShaderStorageBlockBinding(mSSIPG.compute.prog, mSSIPG.compute.counterBufferHandle, mSSIPG.counterBufferIndex);
         
     }
     
