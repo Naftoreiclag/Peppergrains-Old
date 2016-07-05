@@ -230,7 +230,7 @@ void DeferredRenderer::load() {
             
             glBindBuffer(GL_ARRAY_BUFFER, tempArray);
             glEnableVertexAttribArray(mSSIPG.inst.packedPixelHandle);
-            glVertexAttribPointer(mSSIPG.inst.packedPixelHandle, 1, GL_INT, GL_FALSE, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
+            glVertexAttribIPointer(mSSIPG.inst.packedPixelHandle, 1, GL_INT, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
             glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
