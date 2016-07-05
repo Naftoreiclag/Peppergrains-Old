@@ -165,8 +165,8 @@ void DeferredRenderer::load() {
             mSSIPG.inst.shaderProg->grab();
             
             
-            const std::vector<ShaderProgramResource::Control>& intancedUints = mSSIPG.inst.shaderProg->getInstancedUints();
-            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedUints.begin(); iter != intancedUints.end(); ++ iter) {
+            const std::vector<ShaderProgramResource::Control>& intancedInts = mSSIPG.inst.shaderProg->getInstancedInts();
+            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedInts.begin(); iter != intancedInts.end(); ++ iter) {
                 const ShaderProgramResource::Control& entry = *iter;
                 mSSIPG.inst.packedPixelHandle = entry.handle;
                 std::cout << entry.name << std::endl;
@@ -554,9 +554,13 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         GLvoid* untimely = glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY);
         GLuint count = *((GLuint*) untimely);
-        //std::cout << "count " << count << std::endl;
+        if((mLastCount > count && mLastCount - count > 100) || (count > mLastCount && count - mLastCount > 100)) {
+            std::cout << "count " << count << std::endl;
+            mLastCount = count;
+        }
         glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
         
+        /*
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
         GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
         //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
@@ -567,6 +571,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         std::cout << "count " << asdfx << "\t" << asdfy << "\t" << potato << std::endl;
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+        */
         
         glDisable(GL_CULL_FACE);
         glUseProgram(mSSIPG.inst.shaderProg->getHandle());
@@ -575,7 +580,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
         glUniform1i(mSSIPG.inst.depthHandle, 0);
         glBindVertexArray(mSSIPG.inst.vao);
-        //mSSIPG.inst.geometry->drawElementsInstanced(count);
+        mSSIPG.inst.geometry->drawElementsInstanced(5);
         glBindVertexArray(0);
         glUseProgram(0);
         glEnable(GL_CULL_FACE);

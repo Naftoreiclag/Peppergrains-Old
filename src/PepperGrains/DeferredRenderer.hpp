@@ -36,6 +36,8 @@ private:
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
+    
+    uint32_t mLastCount;
 
     struct GBuffer {
         GLuint framebuffer;
