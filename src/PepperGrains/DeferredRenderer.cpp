@@ -124,7 +124,7 @@ void DeferredRenderer::load() {
         // Instance buffer
         glGenBuffers(1, &mSSIPG.instanceBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 5, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 80000, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
@@ -223,7 +223,7 @@ void DeferredRenderer::load() {
             glBufferData(GL_ARRAY_BUFFER, sizeof(test), test, GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, 0); // Cleanup
             
-            glBindBuffer(GL_ARRAY_BUFFER, tempArray);
+            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.instanceBuffer);
             glEnableVertexAttribArray(mSSIPG.inst.packedPixelHandle);
             glVertexAttribIPointer(mSSIPG.inst.packedPixelHandle, 1, GL_INT, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
             glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
