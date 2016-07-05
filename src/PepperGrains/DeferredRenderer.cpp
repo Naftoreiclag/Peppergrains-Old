@@ -206,9 +206,29 @@ void DeferredRenderer::load() {
                 mSSIPG.inst.geometry->enableBitangentAttrib(mSSIPG.inst.shaderProg->getBitangentAttrib());
             }
             
-            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.comp.instanceBufferHandle);
+            
+            GLint test[100];
+            for(int i = 0; i < 100; ++ i) {
+                
+                GLuint x = i % 10;
+                GLuint y = (i - x) / 10;
+                
+                x *= 128;
+                y *= 72;
+                
+                test[i] = (y << 16) | x;
+            }
+            
+            GLuint tempArray;
+            
+            glGenBuffers(1, &tempArray);
+            glBindBuffer(GL_ARRAY_BUFFER, tempArray);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(test), test, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, 0); // Cleanup
+            
+            glBindBuffer(GL_ARRAY_BUFFER, tempArray);
             glEnableVertexAttribArray(mSSIPG.inst.packedPixelHandle);
-            glVertexAttribPointer(mSSIPG.inst.packedPixelHandle, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*) (0 * sizeof(GLuint)));
+            glVertexAttribPointer(mSSIPG.inst.packedPixelHandle, 1, GL_INT, GL_FALSE, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
             glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
