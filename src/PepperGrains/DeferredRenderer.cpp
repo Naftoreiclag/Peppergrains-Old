@@ -217,6 +217,8 @@ void DeferredRenderer::load() {
                 y *= 72;
                 
                 test[i] = (y << 16) | x;
+                
+                test[i] = i;
             }
             
             GLuint tempArray;
@@ -600,7 +602,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
         glUniform1i(mSSIPG.inst.depthHandle, 0);
         glBindVertexArray(mSSIPG.inst.vao);
-        mSSIPG.inst.geometry->drawElementsInstanced(5);
+        mSSIPG.inst.geometry->drawElementsInstanced(100);
         glBindVertexArray(0);
         glUseProgram(0);
         glEnable(GL_CULL_FACE);
