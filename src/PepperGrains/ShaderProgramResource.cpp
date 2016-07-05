@@ -413,6 +413,7 @@ void ShaderProgramResource::load() {
         if(!instancing.isNull()) {
             const Json::Value& sampler2Ds = instancing["sampler2D"];
             const Json::Value& floats = instancing["float"];
+            const Json::Value& ints = instancing["int"];
             const Json::Value& uints = instancing["uint"];
             const Json::Value& vec2s = instancing["vec2"];
             const Json::Value& vec3s = instancing["vec3"];
@@ -444,6 +445,18 @@ void ShaderProgramResource::load() {
                     control.handle = glGetAttribLocation(mShaderProg, value.asString().c_str());
 
                     mInstancedFloats.push_back(control);
+                }
+            }
+            if(!ints.isNull()) {
+                for(Json::Value::const_iterator iter = ints.begin(); iter != ints.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetAttribLocation(mShaderProg, value.asString().c_str());
+
+                    mInstancedInts.push_back(control);
                 }
             }
             if(!uints.isNull()) {
@@ -516,6 +529,7 @@ void ShaderProgramResource::load() {
         if(!instancing.isNull()) {
             const Json::Value& sampler2Ds = instancing["sampler2D"];
             const Json::Value& floats = instancing["float"];
+            const Json::Value& ints = instancing["int"];
             const Json::Value& uints = instancing["uint"];
             const Json::Value& vec2s = instancing["vec2"];
             const Json::Value& vec3s = instancing["vec3"];
@@ -547,6 +561,18 @@ void ShaderProgramResource::load() {
                     control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
 
                     mUniformFloats.push_back(control);
+                }
+            }
+            if(!ints.isNull()) {
+                for(Json::Value::const_iterator iter = ints.begin(); iter != ints.end(); ++ iter) {
+                    const Json::Value& key = iter.key();
+                    const Json::Value& value = *iter;
+
+                    Control control;
+                    control.name = key.asString();
+                    control.handle = glGetUniformLocation(mShaderProg, value.asString().c_str());
+
+                    mUniformInts.push_back(control);
                 }
             }
             if(!uints.isNull()) {
@@ -744,6 +770,7 @@ GLuint ShaderProgramResource::getBitangentAttrib() const { return mBitangentAttr
 
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformSampler2Ds() const { return mUniformSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformFloats() const { return mUniformFloats; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformInts() const { return mUniformInts; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformUints() const { return mUniformUints; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec2s() const { return mUniformVec2s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformVec3s() const { return mUniformVec3s; }
@@ -751,6 +778,7 @@ const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUni
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getUniformMat4s() const { return mUniformMat4s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedSampler2Ds() const { return mInstancedSampler2Ds; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedFloats() const { return mInstancedFloats; }
+const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedInts() const { return mInstancedInts; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedUints() const { return mInstancedUints; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedVec2s() const { return mInstancedVec2s; }
 const std::vector<ShaderProgramResource::Control>& ShaderProgramResource::getInstancedVec3s() const { return mInstancedVec3s; }
