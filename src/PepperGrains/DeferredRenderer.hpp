@@ -64,8 +64,11 @@ private:
             GLuint prog;
             
             GLuint instanceImageHandle;
+            GLuint htpedImageHandle;
+            
             GLuint counterBufferHandle;
             GLuint instanceBufferHandle;
+            GLuint htpedBufferHandle;
         };
         CompShader comp;
         
@@ -75,17 +78,23 @@ private:
             
             GLuint vao;
             
+
             GLuint packedPixelHandle;
+            GLuint htpedHandle;
             GLuint depthHandle;
         };
         InstShader inst;
         
         GLuint counterBuffer;
         GLuint instanceBuffer;
+        GLuint htpedBuffer;
         
         GLuint counterBufferIndex;
         GLuint instanceBufferIndex;
+        GLuint htpedBufferIndex;
+
         GLuint instanceImageIndex;
+        GLuint htpedImageIndex;
         
         GLuint instanceImageTexture;
         GLuint depthStencilTexture;
