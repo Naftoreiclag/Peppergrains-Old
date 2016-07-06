@@ -89,6 +89,9 @@ void DeferredRenderer::load() {
         mSSIPG.textureWidth = mScreenWidth;
         mSSIPG.textureHeight = mScreenHeight;
         
+        //mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
+        mSSIPG.maxInstances = 5;
+        
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceImageTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
@@ -99,8 +102,8 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
         // DepthStencil mapping
-        glGenTextures(1, &mSSIPG.depthStencilTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
+        glGenTextures(1, &mSSIPG.depthTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -113,7 +116,7 @@ void DeferredRenderer::load() {
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthTexture, 0);
         GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
         glDrawBuffers(1, colorAttachments);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
@@ -127,12 +130,12 @@ void DeferredRenderer::load() {
         // Instance buffer
         glGenBuffers(1, &mSSIPG.instanceBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 80000, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         glGenBuffers(1, &mSSIPG.htpedBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * 80000, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
@@ -453,7 +456,7 @@ void DeferredRenderer::unload() {
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
     glDeleteTextures(1, &mSSIPG.instanceImageTexture);
-    glDeleteTextures(1, &mSSIPG.depthStencilTexture);
+    glDeleteTextures(1, &mSSIPG.depthTexture);
     glDeleteFramebuffers(1, &mSSIPG.framebuffer);
     mSSIPG.comp.shader->drop();
     glDeleteProgram(mSSIPG.comp.prog);
@@ -581,7 +584,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
         glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
-        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthStencilTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
         glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.htpedImageIndex);
         
         glActiveTexture(GL_TEXTURE0 + 2);
@@ -639,29 +642,28 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         if((mLastCount > count && mLastCount - count > 100) || (count > mLastCount && count - mLastCount > 100)) {
             std::cout << "count " << count << std::endl;
             mLastCount = count;
+            
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
+            GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+            //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
+            GLfloat* potato = (GLfloat*) egg;
+            
+            std::cout << "potato " << potato[0] << std::endl;
+            glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         }
         glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
         
-        /*
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
-        GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
-        //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
-        GLuint* potato = (GLuint*) egg;
-        
-        GLuint asdfy = potato[0] >> 16;
-        GLuint asdfx = potato[0] & ((1 << 16) - 1);
-        
-        std::cout << "count " << asdfx << "\t" << asdfy << "\t" << potato << std::endl;
-        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-        */
         
         glDisable(GL_CULL_FACE);
         glUseProgram(mSSIPG.inst.shaderProg->getHandle());
         mSSIPG.inst.shaderProg->bindRenderPass(geometryRenderPass, glm::mat4());
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
         glUniform1i(mSSIPG.inst.depthHandle, 0);
         glBindVertexArray(mSSIPG.inst.vao);
+        if(count > mSSIPG.maxInstances) {
+            count = mSSIPG.maxInstances;
+        }
         mSSIPG.inst.geometry->drawElementsInstanced(count);
         glBindVertexArray(0);
         glUseProgram(0);
@@ -836,7 +838,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mDebugScreenShader.brightHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
         glUniform1i(mDebugScreenShader.depthHandle, 3);
         
         glBindVertexArray(mFullscreenVao);

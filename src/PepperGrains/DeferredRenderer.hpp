@@ -61,6 +61,7 @@ private:
     struct SSIPG {
         uint32_t textureWidth;
         uint32_t textureHeight;
+        uint32_t maxInstances;
         
         struct CompShader {
             ShaderResource* shader;
@@ -101,7 +102,7 @@ private:
         GLuint htpedImageIndex;
         
         GLuint instanceImageTexture;
-        GLuint depthStencilTexture;
+        GLuint depthTexture;
         
         GLuint framebuffer;
     };
