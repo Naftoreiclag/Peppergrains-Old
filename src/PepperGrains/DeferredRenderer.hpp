@@ -59,10 +59,14 @@ private:
     ScreenShader mScreenShader;
     
     struct SSIPG {
+        uint32_t textureWidth;
+        uint32_t textureHeight;
+        
         struct CompShader {
             ShaderResource* shader;
             GLuint prog;
             
+            GLuint instanceSamplerHandle;
             GLuint instanceImageHandle;
             GLuint htpedImageHandle;
             

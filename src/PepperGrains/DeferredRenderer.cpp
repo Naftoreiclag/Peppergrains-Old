@@ -86,10 +86,13 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
+        mSSIPG.textureWidth = mScreenWidth;
+        mSSIPG.textureHeight = mScreenHeight;
+        
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceImageTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mScreenWidth, mScreenHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -98,7 +101,7 @@ void DeferredRenderer::load() {
         // DepthStencil mapping
         glGenTextures(1, &mSSIPG.depthStencilTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthStencilTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, mScreenWidth, mScreenHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -110,7 +113,7 @@ void DeferredRenderer::load() {
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthStencilTexture, 0);
         GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
         glDrawBuffers(1, colorAttachments);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
@@ -171,6 +174,8 @@ void DeferredRenderer::load() {
             /*
             mSSIPG.comp.htpedImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "htpedImage");
             */
+            
+            mSSIPG.comp.instanceSamplerHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceSampler");
             
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.instanceBufferHandle, mSSIPG.instanceBufferIndex);
@@ -552,7 +557,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     
     // SSIPG pass
     {
-        glViewport(0, 0, mScreenWidth, mScreenHeight);
+        glViewport(0, 0, mSSIPG.textureWidth, mSSIPG.textureHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0
@@ -574,7 +579,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         ssipgRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
         ssipgRenderPass.nearPlane = mCamera.nearDepth;
         ssipgRenderPass.farPlane = mCamera.farDepth;
-        ssipgRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
+        ssipgRenderPass.setScreenSize(mSSIPG.textureWidth, mSSIPG.textureHeight);
         mRootNode->render(ssipgRenderPass);
         
         // Reset counter
@@ -592,7 +597,12 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthStencilTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
         glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.htpedImageIndex);
         */
-        glDispatchCompute(mScreenWidth / 8, mScreenHeight / 8, 1);
+        
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
+        glUniform1i(mSSIPG.comp.instanceSamplerHandle, 2);
+
+        glDispatchCompute(mSSIPG.textureWidth / 8, mSSIPG.textureHeight / 8, 1);
         /*
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
         */
