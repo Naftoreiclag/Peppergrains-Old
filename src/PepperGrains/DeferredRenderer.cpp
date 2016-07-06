@@ -90,7 +90,7 @@ void DeferredRenderer::load() {
         mSSIPG.textureHeight = mScreenHeight;
         
         //mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
-        mSSIPG.maxInstances = 5;
+        mSSIPG.maxInstances = 9999;
         
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceImageTexture);
@@ -643,7 +643,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             std::cout << "count " << count << std::endl;
             mLastCount = count;
             
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBuffer);
             GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
             //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
             GLfloat* potato = (GLfloat*) egg;
