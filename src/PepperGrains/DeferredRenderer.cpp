@@ -130,28 +130,22 @@ void DeferredRenderer::load() {
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * 80000, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
-        /*
         glGenBuffers(1, &mSSIPG.htpedBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * 80000, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
-        */
         
         // Indices to which various objects are bound to
         mSSIPG.counterBufferIndex = 3;
         mSSIPG.instanceBufferIndex = 1;
         mSSIPG.instanceImageIndex = 1;
-        /*
         mSSIPG.htpedBufferIndex = 4;
         mSSIPG.htpedImageIndex = 2;
-        */
         
         // Bind buffers to the indices specified above
         glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBufferIndex, mSSIPG.instanceBuffer);
-        /*
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBufferIndex, mSSIPG.htpedBuffer);
-        */
         
         // Compute shader
         {
@@ -167,21 +161,15 @@ void DeferredRenderer::load() {
             // Program handles
             //mSSIPG.comp.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "CounterBuffer");
             mSSIPG.comp.instanceBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
-            /*
             mSSIPG.comp.htpedBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "HtpedBuffer");
-            */
             mSSIPG.comp.instanceImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
-            /*
             mSSIPG.comp.htpedImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "htpedImage");
-            */
             
             mSSIPG.comp.instanceSamplerHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceSampler");
             
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.instanceBufferHandle, mSSIPG.instanceBufferIndex);
-            /*
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.htpedBufferHandle, mSSIPG.htpedBufferIndex);
-            */
         }
         
         // Instance shader
@@ -220,6 +208,7 @@ void DeferredRenderer::load() {
                     break;
                 }
             }
+            */
             {
                 const std::vector<ShaderProgramResource::Control>& intancedFloats = mSSIPG.inst.shaderProg->getInstancedFloats();
                 for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedFloats.begin(); iter != intancedFloats.end(); ++ iter) {
@@ -229,6 +218,7 @@ void DeferredRenderer::load() {
                     break;
                 }
             }
+            /*
             {
                 const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getUniformSampler2Ds();
                 for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2ds.begin(); iter != sampler2ds.end(); ++ iter) {
@@ -288,13 +278,11 @@ void DeferredRenderer::load() {
             glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
-            /*
             glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.htpedBuffer);
             glEnableVertexAttribArray(mSSIPG.inst.htpedHandle);
             glVertexAttribPointer(mSSIPG.inst.htpedHandle, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
             glVertexAttribDivisor(mSSIPG.inst.htpedHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
-            */
             
             glBindVertexArray(0);
         }
@@ -593,10 +581,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
         glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
-        /*
-        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthStencilTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthStencilTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
         glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.htpedImageIndex);
-        */
         
         glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
