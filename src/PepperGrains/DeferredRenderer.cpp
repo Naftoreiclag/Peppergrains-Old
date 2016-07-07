@@ -89,13 +89,13 @@ void DeferredRenderer::load() {
         mSSIPG.textureWidth = mScreenWidth;
         mSSIPG.textureHeight = mScreenHeight;
         
-        //mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
-        mSSIPG.maxInstances = 9999;
+        mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
+        //mSSIPG.maxInstances = 9999;
         
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceImageTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -105,6 +105,7 @@ void DeferredRenderer::load() {
         glGenTextures(1, &mSSIPG.depthTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -582,9 +583,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         //
         glUseProgram(mSSIPG.comp.prog);
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
-        glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
-        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
         glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.htpedImageIndex);
         
         glActiveTexture(GL_TEXTURE0 + 2);

@@ -408,7 +408,7 @@ void DesignerGameLayer::onBegin() {
     
     mInfCheck = new InfiniteCheckerboardModel();
     mInfCheck->grab();
-    mRootNode->newChild()->grabModel(mInfCheck);
+    //mRootNode->newChild()->grabModel(mInfCheck);
 
     fps = 0.f;
     fpsWeight = 0.85f;
