@@ -86,11 +86,13 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
-        mSSIPG.textureWidth = mScreenWidth;
-        mSSIPG.textureHeight = mScreenHeight;
+        mSSIPG.textureWidth = mScreenWidth / 2;
+        mSSIPG.textureHeight = mScreenHeight / 2;
         
         mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
         //mSSIPG.maxInstances = 9999;
+        
+        // TODO: optimize texture internal formats
         
         // Instance texture
         glGenTextures(1, &mSSIPG.instanceImageTexture);
@@ -101,11 +103,28 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
+        // Orientation texture
+        glGenTextures(1, &mSSIPG.orientationTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.orientationTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
+        // Force texture
+        glGenTextures(1, &mSSIPG.forceTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.forceTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
         // DepthStencil mapping
         glGenTextures(1, &mSSIPG.depthTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -117,9 +136,11 @@ void DeferredRenderer::load() {
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mSSIPG.orientationTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSSIPG.forceTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthTexture, 0);
-        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
-        glDrawBuffers(1, colorAttachments);
+        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, colorAttachments);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
         
         // Counter buffer
@@ -653,6 +674,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         }
         glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+        geometryRenderPass.setScreenSize(mSSIPG.textureWidth, mSSIPG.textureHeight);
         
         
         glDisable(GL_CULL_FACE);

@@ -102,6 +102,9 @@ private:
         GLuint htpedImageIndex;
         
         GLuint instanceImageTexture;
+        GLuint orientationTexture;
+        GLuint forceTexture;
+        
         GLuint depthTexture;
         
         GLuint framebuffer;

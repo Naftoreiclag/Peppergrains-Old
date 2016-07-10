@@ -233,23 +233,31 @@ void ShaderProgramResource::load() {
             const Json::Value& diffuseSym = fragOut["diffuse"];
             const Json::Value& normalSym = fragOut["normal"];
             const Json::Value& brightSym = fragOut["bright"];
+            const Json::Value& ssipgDepthSym = fragOut["ssipg-depth"];
+            const Json::Value& ssipgOrientSym = fragOut["ssipg-orientation"];
+            const Json::Value& ssipgForceSym = fragOut["ssipg-force"];
             
             // TODO: use enums instead of 0, 1, 2...
             if(!colorSym.isNull()) {
-                std::string symbol = colorSym.asString();
-                glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
+                glBindFragDataLocation(mShaderProg, 0, colorSym.asString().c_str());
             }
             if(!diffuseSym.isNull()) {
-                std::string symbol = diffuseSym.asString();
-                glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
+                glBindFragDataLocation(mShaderProg, 0, diffuseSym.asString().c_str());
             }
             if(!normalSym.isNull()) {
-                std::string symbol = normalSym.asString();
-                glBindFragDataLocation(mShaderProg, 1, symbol.c_str());
+                glBindFragDataLocation(mShaderProg, 1, normalSym.asString().c_str());
             }
             if(!brightSym.isNull()) {
-                std::string symbol = brightSym.asString();
-                glBindFragDataLocation(mShaderProg, 0, symbol.c_str());
+                glBindFragDataLocation(mShaderProg, 0, brightSym.asString().c_str());
+            }
+            if(!ssipgDepthSym.isNull()) {
+                glBindFragDataLocation(mShaderProg, 0, ssipgDepthSym.asString().c_str());
+            }
+            if(!ssipgOrientSym.isNull()) {
+                glBindFragDataLocation(mShaderProg, 1, ssipgOrientSym.asString().c_str());
+            }
+            if(!ssipgForceSym.isNull()) {
+                glBindFragDataLocation(mShaderProg, 2, ssipgForceSym.asString().c_str());
             }
         }
     }
