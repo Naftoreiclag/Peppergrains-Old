@@ -517,16 +517,22 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     {
         glViewport(0, 0, mSSIPG.textureWidth, mSSIPG.textureHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
+        // Only clear the first color
+        {
+            GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
+            glDrawBuffers(1, colorAttachments);
+            glClearColor(0.f, 0.f, 0.f, 0.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
         GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         glDrawBuffers(3, colorAttachments);
-        glClearColor(0.f, 0.f, 0.f, 1.f);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_STENCIL_TEST);
         glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
         
         Model::RenderPass ssipgRenderPass(Model::RenderPass::Type::SSIPG);
         ssipgRenderPass.viewMat = mCamera.viewMat;
@@ -782,21 +788,25 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniformMatrix4fv(mDebugScreenShader.shaderProg->getInvViewProjMatrixUnif(), 1, GL_FALSE, glm::value_ptr(invViewProjMat));
         glUniform4fv(mDebugScreenShader.viewHandle, 1, glm::value_ptr(debugShow));
         
+        // 1
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, mGBuff.diffuseTexture);
         glUniform1i(mDebugScreenShader.diffuseHandle, 0);
         
+        // 2
         glActiveTexture(GL_TEXTURE0 + 1);
         glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
         glUniform1i(mDebugScreenShader.normalHandle, 1);
-        
+         
+        // 3
         glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.partDepthImageTexture);
-        glUniform1i(mDebugScreenShader.brightHandle, 2);
+        glUniform1i(mDebugScreenShader.depthHandle, 2);
         
+        // 4
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.framebufferDepthTexture);
-        glUniform1i(mDebugScreenShader.depthHandle, 3);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partOrientImageTexture);
+        glUniform1i(mDebugScreenShader.brightHandle, 3);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
