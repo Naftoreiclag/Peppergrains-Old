@@ -63,39 +63,26 @@ private:
         uint32_t textureHeight;
         uint32_t maxInstances;
         
-        struct CompShader {
-            ShaderResource* shader;
-            GLuint prog;
-            
-//            GLuint instanceSamplerHandle;
-//            GLuint htpedImageHandle;
-            
-            // 
-            GLuint counterBufferHandle;
-            GLuint partCoordBufferHandle;
-            GLuint partDescBufferHandle;
-            
-            GLuint partDepthImageHandle;
-        };
-        CompShader comp;
-        
-        struct InstShader {
-            ShaderProgramResource* shaderProg;
-            GeometryResource* geometry;
-            
-            GLuint vao;
-            
-            GLuint partCoordBufferHandle;
-            GLuint partDescHandle;
-//            GLuint depthHandle;
-        };
-        InstShader inst;
-        
         // Fragment -> compute
         GLuint partDepthImageTexture;
         GLuint partDepthImageIndex;
         GLuint partOrientImageTexture;
         GLuint partPressureImageTexture;
+        
+        // Compute shader
+        struct CompShader {
+            ShaderResource* shader;
+            GLuint prog;
+            
+            // Input
+            GLuint partDepthImageHandle;
+            
+            // Output
+            GLuint counterBufferHandle;
+            GLuint partCoordBufferHandle;
+            GLuint partDescBufferHandle;
+        };
+        CompShader comp;
         
         // Compute -> instancing
         GLuint counterBuffer;
@@ -104,9 +91,19 @@ private:
         GLuint partCoordBufferIndex;
         GLuint partDescBuffer;
         GLuint partDescBufferIndex;
-
-//        GLuint partDepthImageIndex;
         
+        // Instancing shader
+        struct InstShader {
+            ShaderProgramResource* shaderProg;
+            GeometryResource* geometry;
+            
+            GLuint vao;
+            
+            // Input
+            GLuint partCoordBufferHandle;
+            GLuint partDescHandle;
+        };
+        InstShader inst;
         
         // Required for rendering
         GLuint framebufferDepthTexture;
