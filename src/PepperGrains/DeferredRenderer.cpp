@@ -95,8 +95,8 @@ void DeferredRenderer::load() {
         // TODO: optimize texture internal formats
         
         // Instance texture
-        glGenTextures(1, &mSSIPG.instanceImageTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
+        glGenTextures(1, &mSSIPG.partDepthImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partDepthImageTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -104,8 +104,8 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
         // Orientation texture
-        glGenTextures(1, &mSSIPG.orientationTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.orientationTexture);
+        glGenTextures(1, &mSSIPG.partOrientImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partOrientImageTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -113,8 +113,8 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
         // Force texture
-        glGenTextures(1, &mSSIPG.forceTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.forceTexture);
+        glGenTextures(1, &mSSIPG.partPressureImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partPressureImageTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -122,8 +122,8 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
         // DepthStencil mapping
-        glGenTextures(1, &mSSIPG.depthTexture);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
+        glGenTextures(1, &mSSIPG.framebufferDepthTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.framebufferDepthTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -135,12 +135,10 @@ void DeferredRenderer::load() {
         // Framebuffer
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.instanceImageTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mSSIPG.orientationTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSSIPG.forceTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.depthTexture, 0);
-        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        glDrawBuffers(3, colorAttachments);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.partDepthImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mSSIPG.partOrientImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSSIPG.partPressureImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.framebufferDepthTexture, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
         
         // Counter buffer
@@ -150,27 +148,27 @@ void DeferredRenderer::load() {
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0); // Cleanup
         
         // Instance buffer
-        glGenBuffers(1, &mSSIPG.instanceBuffer);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBuffer);
+        glGenBuffers(1, &mSSIPG.partCoordBuffer);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.partCoordBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
-        glGenBuffers(1, &mSSIPG.htpedBuffer);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBuffer);
+        glGenBuffers(1, &mSSIPG.partDescBuffer);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.partDescBuffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
         mSSIPG.counterBufferIndex = 3;
-        mSSIPG.instanceBufferIndex = 1;
-        mSSIPG.instanceImageIndex = 1;
-        mSSIPG.htpedBufferIndex = 4;
-        mSSIPG.htpedImageIndex = 2;
+        mSSIPG.partCoordBufferIndex = 1;
+        mSSIPG.partDepthImageIndex = 1;
+        mSSIPG.partDescBufferIndex = 4;
+//        mSSIPG.partDepthImageIndex = 2;
         
         // Bind buffers to the indices specified above
         glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.instanceBufferIndex, mSSIPG.instanceBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBufferIndex, mSSIPG.htpedBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.partCoordBufferIndex, mSSIPG.partCoordBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, mSSIPG.partDescBufferIndex, mSSIPG.partDescBuffer);
         
         // Compute shader
         {
@@ -185,16 +183,16 @@ void DeferredRenderer::load() {
             
             // Program handles
             //mSSIPG.comp.counterBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "CounterBuffer");
-            mSSIPG.comp.instanceBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
-            mSSIPG.comp.htpedBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "HtpedBuffer");
-            mSSIPG.comp.instanceImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
-            mSSIPG.comp.htpedImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "htpedImage");
+            mSSIPG.comp.partCoordBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
+            mSSIPG.comp.partDescBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "HtpedBuffer");
+            mSSIPG.comp.partDepthImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
+//            mSSIPG.comp.htpedImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "htpedImage");
             
-            mSSIPG.comp.instanceSamplerHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceSampler");
+//            mSSIPG.comp.instanceSamplerHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceSampler");
             
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
-            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.instanceBufferHandle, mSSIPG.instanceBufferIndex);
-            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.htpedBufferHandle, mSSIPG.htpedBufferIndex);
+            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partCoordBufferHandle, mSSIPG.partCoordBufferIndex);
+            glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partDescBufferHandle, mSSIPG.partDescBufferIndex);
         }
         
         // Instance shader
@@ -209,18 +207,9 @@ void DeferredRenderer::load() {
             const std::vector<ShaderProgramResource::Control>& intancedInts = mSSIPG.inst.shaderProg->getInstancedInts();
             for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedInts.begin(); iter != intancedInts.end(); ++ iter) {
                 const ShaderProgramResource::Control& entry = *iter;
-                mSSIPG.inst.packedPixelHandle = entry.handle;
+                mSSIPG.inst.partCoordBufferHandle = entry.handle;
                 std::cout << entry.name << std::endl;
                 break;
-            }
-            
-            const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getUniformSampler2Ds();
-            for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2ds.begin(); iter != sampler2ds.end(); ++ iter) {
-                const ShaderProgramResource::Control& entry = *iter;
-                if(entry.name == "depth") {
-                    mSSIPG.inst.depthHandle = entry.handle;
-                    std::cout << entry.name << std::endl;
-                }
             }
             
             /*
@@ -243,18 +232,6 @@ void DeferredRenderer::load() {
                     break;
                 }
             }
-            /*
-            {
-                const std::vector<ShaderProgramResource::Control>& sampler2ds = mSSIPG.inst.shaderProg->getUniformSampler2Ds();
-                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2ds.begin(); iter != sampler2ds.end(); ++ iter) {
-                    const ShaderProgramResource::Control& entry = *iter;
-                    if(entry.name == "depth") {
-                        mSSIPG.inst.depthHandle = entry.handle;
-                        std::cout << entry.name << std::endl;
-                    }
-                }
-            }
-            */
             
             glGenVertexArrays(1, &mSSIPG.inst.vao);
             glBindVertexArray(mSSIPG.inst.vao);
@@ -297,13 +274,13 @@ void DeferredRenderer::load() {
             glBufferData(GL_ARRAY_BUFFER, sizeof(test), test, GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, 0); // Cleanup
             
-            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.instanceBuffer);
-            glEnableVertexAttribArray(mSSIPG.inst.packedPixelHandle);
-            glVertexAttribIPointer(mSSIPG.inst.packedPixelHandle, 1, GL_INT, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
-            glVertexAttribDivisor(mSSIPG.inst.packedPixelHandle, 1);
+            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partCoordBuffer);
+            glEnableVertexAttribArray(mSSIPG.inst.partCoordBufferHandle);
+            glVertexAttribIPointer(mSSIPG.inst.partCoordBufferHandle, 1, GL_INT, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
+            glVertexAttribDivisor(mSSIPG.inst.partCoordBufferHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
-            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.htpedBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partDescBuffer);
             glEnableVertexAttribArray(mSSIPG.inst.htpedHandle);
             glVertexAttribPointer(mSSIPG.inst.htpedHandle, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
             glVertexAttribDivisor(mSSIPG.inst.htpedHandle, 1);
@@ -477,13 +454,13 @@ void DeferredRenderer::unload() {
     glDeleteTextures(1, &mGBuff.brightTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
-    glDeleteTextures(1, &mSSIPG.instanceImageTexture);
-    glDeleteTextures(1, &mSSIPG.depthTexture);
+    glDeleteTextures(1, &mSSIPG.partDepthImageTexture);
+    glDeleteTextures(1, &mSSIPG.framebufferDepthTexture);
     glDeleteFramebuffers(1, &mSSIPG.framebuffer);
     mSSIPG.comp.shader->drop();
     glDeleteProgram(mSSIPG.comp.prog);
     glDeleteBuffers(1, &mSSIPG.counterBuffer);
-    glDeleteBuffers(1, &mSSIPG.instanceBuffer);
+    glDeleteBuffers(1, &mSSIPG.partCoordBuffer);
 
     mScreenShader.shaderProg->drop();
     mDebugScreenShader.shaderProg->drop();
@@ -572,10 +549,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     {
         glViewport(0, 0, mSSIPG.textureWidth, mSSIPG.textureHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
-        GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0
-        };
-        glDrawBuffers(1, colorAttachments);
+        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, colorAttachments);
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
@@ -604,14 +579,14 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         //
         glUseProgram(mSSIPG.comp.prog);
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
-        glBindImageTexture(mSSIPG.instanceImageIndex, mSSIPG.instanceImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-        glUniform1i(mSSIPG.comp.instanceImageHandle, mSSIPG.instanceImageIndex);
-        glBindImageTexture(mSSIPG.htpedImageIndex, mSSIPG.depthTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
-        glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.htpedImageIndex);
+        glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.partDepthImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glUniform1i(mSSIPG.comp.partDepthImageHandle, mSSIPG.partDepthImageIndex);
+//        glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.framebufferDepthTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+//        glUniform1i(mSSIPG.comp.htpedImageHandle, mSSIPG.partDepthImageIndex);
         
-        glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
-        glUniform1i(mSSIPG.comp.instanceSamplerHandle, 2);
+//        glActiveTexture(GL_TEXTURE0 + 2);
+//        glBindTexture(GL_TEXTURE_2D, mSSIPG.partDepthImageTexture);
+//        glUniform1i(mSSIPG.comp.instanceSamplerHandle, 2);
 
         glDispatchCompute(mSSIPG.textureWidth / 8, mSSIPG.textureHeight / 8, 1);
         /*
@@ -665,7 +640,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             std::cout << "count " << count << std::endl;
             mLastCount = count;
             
-            glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.htpedBuffer);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.partDescBuffer);
             GLvoid* egg = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
             //GLvoid* egg = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), GL_READ_ONLY);
             GLfloat* potato = (GLfloat*) egg;
@@ -680,9 +655,6 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glDisable(GL_CULL_FACE);
         glUseProgram(mSSIPG.inst.shaderProg->getHandle());
         mSSIPG.inst.shaderProg->bindRenderPass(geometryRenderPass, glm::mat4());
-        glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
-        glUniform1i(mSSIPG.inst.depthHandle, 0);
         glBindVertexArray(mSSIPG.inst.vao);
         if(count > mSSIPG.maxInstances) {
             count = mSSIPG.maxInstances;
@@ -857,11 +829,11 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mDebugScreenShader.normalHandle, 1);
         
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.instanceImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partDepthImageTexture);
         glUniform1i(mDebugScreenShader.brightHandle, 2);
         
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.depthTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.framebufferDepthTexture);
         glUniform1i(mDebugScreenShader.depthHandle, 3);
         
         glBindVertexArray(mFullscreenVao);

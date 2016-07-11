@@ -67,13 +67,15 @@ private:
             ShaderResource* shader;
             GLuint prog;
             
-            GLuint instanceSamplerHandle;
-            GLuint instanceImageHandle;
-            GLuint htpedImageHandle;
+//            GLuint instanceSamplerHandle;
+//            GLuint htpedImageHandle;
             
+            // 
             GLuint counterBufferHandle;
-            GLuint instanceBufferHandle;
-            GLuint htpedBufferHandle;
+            GLuint partCoordBufferHandle;
+            GLuint partDescBufferHandle;
+            
+            GLuint partDepthImageHandle;
         };
         CompShader comp;
         
@@ -83,30 +85,33 @@ private:
             
             GLuint vao;
             
-
-            GLuint packedPixelHandle;
-            GLuint htpedHandle;
-            GLuint depthHandle;
+            GLuint partCoordBufferHandle;
+            GLuint partDescHandle;
+//            GLuint depthHandle;
         };
         InstShader inst;
         
+        // Fragment -> compute
+        GLuint partDepthImageTexture;
+        GLuint partDepthImageIndex;
+        GLuint partOrientImageTexture;
+        GLuint partPressureImageTexture;
+        
+        // Compute -> instancing
         GLuint counterBuffer;
-        GLuint instanceBuffer;
-        GLuint htpedBuffer;
-        
         GLuint counterBufferIndex;
-        GLuint instanceBufferIndex;
-        GLuint htpedBufferIndex;
+        GLuint partCoordBuffer;
+        GLuint partCoordBufferIndex;
+        GLuint partDescBuffer;
+        GLuint partDescBufferIndex;
 
-        GLuint instanceImageIndex;
-        GLuint htpedImageIndex;
+//        GLuint partDepthImageIndex;
         
-        GLuint instanceImageTexture;
-        GLuint orientationTexture;
-        GLuint forceTexture;
         
-        GLuint depthTexture;
+        // Required for rendering
+        GLuint framebufferDepthTexture;
         
+        // Framebuffer
         GLuint framebuffer;
     };
     SSIPG mSSIPG;
