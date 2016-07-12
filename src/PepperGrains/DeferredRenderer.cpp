@@ -259,13 +259,11 @@ void DeferredRenderer::load() {
             
             glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partDescBuffer);
             glEnableVertexAttribArray(mSSIPG.inst.partDepthHandle);
-            glVertexAttribPointer(mSSIPG.inst.partDepthHandle, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+            glVertexAttribPointer(mSSIPG.inst.partDepthHandle, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
             glVertexAttribDivisor(mSSIPG.inst.partDepthHandle, 1);
-            /*
             glEnableVertexAttribArray(mSSIPG.inst.partDiffuseHandle);
-            glVertexAttribPointer(mSSIPG.inst.partDiffuseHandle, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+            glVertexAttribPointer(mSSIPG.inst.partDiffuseHandle, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (1 * sizeof(GLfloat)));
             glVertexAttribDivisor(mSSIPG.inst.partDiffuseHandle, 1);
-            */
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
             glBindVertexArray(0);
