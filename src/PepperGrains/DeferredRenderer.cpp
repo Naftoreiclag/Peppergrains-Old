@@ -155,7 +155,7 @@ void DeferredRenderer::load() {
         
         glGenBuffers(1, &mSSIPG.partDescBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.partDescBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * (1 + 3) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
@@ -200,8 +200,8 @@ void DeferredRenderer::load() {
             mSSIPG.inst.shaderProg->grab();
             
             {
-                const std::vector<ShaderProgramResource::Control>& intancedInts = mSSIPG.inst.shaderProg->getInstancedInts();
-                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedInts.begin(); iter != intancedInts.end(); ++ iter) {
+                const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedInts();
+                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
                     const ShaderProgramResource::Control& entry = *iter;
                     mSSIPG.inst.partCoordBufferHandle = entry.handle;
                     std::cout << entry.name << std::endl;
@@ -209,10 +209,19 @@ void DeferredRenderer::load() {
                 }
             }
             {
-                const std::vector<ShaderProgramResource::Control>& intancedFloats = mSSIPG.inst.shaderProg->getInstancedFloats();
-                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = intancedFloats.begin(); iter != intancedFloats.end(); ++ iter) {
+                const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedFloats();
+                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
                     const ShaderProgramResource::Control& entry = *iter;
-                    mSSIPG.inst.partDescHandle = entry.handle;
+                    mSSIPG.inst.partDepthHandle = entry.handle;
+                    std::cout << entry.name << std::endl;
+                    break;
+                }
+            }
+            {
+                const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedVec3s();
+                for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
+                    const ShaderProgramResource::Control& entry = *iter;
+                    mSSIPG.inst.partDiffuseHandle = entry.handle;
                     std::cout << entry.name << std::endl;
                     break;
                 }
@@ -249,9 +258,14 @@ void DeferredRenderer::load() {
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
             glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partDescBuffer);
-            glEnableVertexAttribArray(mSSIPG.inst.partDescHandle);
-            glVertexAttribPointer(mSSIPG.inst.partDescHandle, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-            glVertexAttribDivisor(mSSIPG.inst.partDescHandle, 1);
+            glEnableVertexAttribArray(mSSIPG.inst.partDepthHandle);
+            glVertexAttribPointer(mSSIPG.inst.partDepthHandle, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+            glVertexAttribDivisor(mSSIPG.inst.partDepthHandle, 1);
+            /*
+            glEnableVertexAttribArray(mSSIPG.inst.partDiffuseHandle);
+            glVertexAttribPointer(mSSIPG.inst.partDiffuseHandle, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+            glVertexAttribDivisor(mSSIPG.inst.partDiffuseHandle, 1);
+            */
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
             glBindVertexArray(0);

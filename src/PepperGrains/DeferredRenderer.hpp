@@ -101,7 +101,9 @@ private:
             
             // Input
             GLuint partCoordBufferHandle;
-            GLuint partDescHandle;
+            GLuint partDepthHandle;
+            GLuint partDiffuseHandle;
+            GLuint partOrientHandle;
         };
         InstShader inst;
         
