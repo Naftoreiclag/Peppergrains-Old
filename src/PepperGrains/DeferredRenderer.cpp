@@ -103,6 +103,15 @@ void DeferredRenderer::load() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
+        // Diffuse
+        glGenTextures(1, &mSSIPG.partDiffuseImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partDiffuseImageTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mSSIPG.textureWidth, mSSIPG.textureHeight, 0, GL_RGBA, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
         // Orientation texture
         glGenTextures(1, &mSSIPG.partOrientImageTexture);
         glBindTexture(GL_TEXTURE_2D, mSSIPG.partOrientImageTexture);
@@ -135,9 +144,10 @@ void DeferredRenderer::load() {
         // Framebuffer
         glGenFramebuffers(1, &mSSIPG.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mSSIPG.framebuffer);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.partDepthImageTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mSSIPG.partOrientImageTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSSIPG.partPressureImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mSSIPG.partDiffuseImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mSSIPG.partDepthImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSSIPG.partOrientImageTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSSIPG.partPressureImageTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mSSIPG.framebufferDepthTexture, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0); // Cleanup
         
@@ -161,8 +171,10 @@ void DeferredRenderer::load() {
         // Indices to which various objects are bound to
         mSSIPG.counterBufferIndex = 3;
         mSSIPG.partCoordBufferIndex = 1;
-        mSSIPG.partDepthImageIndex = 1;
         mSSIPG.partDescBufferIndex = 4;
+        
+        mSSIPG.partDepthImageIndex = 1;
+        mSSIPG.partDiffuseImageIndex = 2;
         
         // Bind buffers to the indices specified above
         glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
@@ -185,6 +197,7 @@ void DeferredRenderer::load() {
             mSSIPG.comp.partCoordBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "InstanceBuffer");
             mSSIPG.comp.partDescBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "HtpedBuffer");
             mSSIPG.comp.partDepthImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
+            mSSIPG.comp.partDiffuseImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "diffuseImage");
             
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partCoordBufferHandle, mSSIPG.partCoordBufferIndex);
@@ -529,15 +542,15 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
     {
         glViewport(0, 0, mSSIPG.textureWidth, mSSIPG.textureHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mSSIPG.framebuffer);
-        // Only clear the first color
+        // Only clear the depths
         {
-            GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0};
+            GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT1};
             glDrawBuffers(1, colorAttachments);
             glClearColor(0.f, 0.f, 0.f, 0.f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
-        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        glDrawBuffers(3, colorAttachments);
+        GLuint colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers(4, colorAttachments);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -567,6 +580,10 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.partDepthImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.partDepthImageHandle, mSSIPG.partDepthImageIndex);
+        /*
+        glBindImageTexture(mSSIPG.partDiffuseImageIndex, mSSIPG.partDiffuseImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glUniform1i(mSSIPG.comp.partDiffuseImageHandle, mSSIPG.partDiffuseImageIndex);
+        */
 
         glDispatchCompute(mSSIPG.textureWidth / 8, mSSIPG.textureHeight / 8, 1);
         /*
@@ -817,7 +834,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         // 4
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, mSSIPG.partOrientImageTexture);
+        glBindTexture(GL_TEXTURE_2D, mSSIPG.partDiffuseImageTexture);
         glUniform1i(mDebugScreenShader.brightHandle, 3);
         
         glBindVertexArray(mFullscreenVao);

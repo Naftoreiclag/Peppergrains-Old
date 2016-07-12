@@ -66,6 +66,8 @@ private:
         // Fragment -> compute
         GLuint partDepthImageTexture;
         GLuint partDepthImageIndex;
+        GLuint partDiffuseImageTexture;
+        GLuint partDiffuseImageIndex;
         GLuint partOrientImageTexture;
         GLuint partPressureImageTexture;
         
@@ -76,6 +78,9 @@ private:
             
             // Input
             GLuint partDepthImageHandle;
+            GLuint partDiffuseImageHandle;
+            GLuint partOrientImageHandle;
+            GLuint partPressureImageHandle;
             
             // Output
             GLuint counterBufferHandle;

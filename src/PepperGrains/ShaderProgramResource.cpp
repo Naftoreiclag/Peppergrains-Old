@@ -234,6 +234,7 @@ void ShaderProgramResource::load() {
             const Json::Value& normalSym = fragOut["normal"];
             const Json::Value& brightSym = fragOut["bright"];
             const Json::Value& ssipgDepthSym = fragOut["ssipg-depth"];
+            const Json::Value& ssipgDiffuseSym = fragOut["ssipg-diffuse"];
             const Json::Value& ssipgOrientSym = fragOut["ssipg-orientation"];
             const Json::Value& ssipgForceSym = fragOut["ssipg-force"];
             
@@ -250,14 +251,17 @@ void ShaderProgramResource::load() {
             if(!brightSym.isNull()) {
                 glBindFragDataLocation(mShaderProg, 0, brightSym.asString().c_str());
             }
+            if(!ssipgDiffuseSym.isNull()) {
+                glBindFragDataLocation(mShaderProg, 0, ssipgDiffuseSym.asString().c_str());
+            }
             if(!ssipgDepthSym.isNull()) {
-                glBindFragDataLocation(mShaderProg, 0, ssipgDepthSym.asString().c_str());
+                glBindFragDataLocation(mShaderProg, 1, ssipgDepthSym.asString().c_str());
             }
             if(!ssipgOrientSym.isNull()) {
-                glBindFragDataLocation(mShaderProg, 1, ssipgOrientSym.asString().c_str());
+                glBindFragDataLocation(mShaderProg, 2, ssipgOrientSym.asString().c_str());
             }
             if(!ssipgForceSym.isNull()) {
-                glBindFragDataLocation(mShaderProg, 2, ssipgForceSym.asString().c_str());
+                glBindFragDataLocation(mShaderProg, 3, ssipgForceSym.asString().c_str());
             }
         }
     }
