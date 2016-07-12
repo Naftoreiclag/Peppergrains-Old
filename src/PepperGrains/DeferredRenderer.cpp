@@ -86,8 +86,8 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
-        mSSIPG.textureWidth = mScreenWidth / 2;
-        mSSIPG.textureHeight = mScreenHeight / 2;
+        mSSIPG.textureWidth = mScreenWidth * 2;
+        mSSIPG.textureHeight = mScreenHeight * 2;
         
         mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
         //mSSIPG.maxInstances = 9999;
@@ -580,10 +580,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.partDepthImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.partDepthImageHandle, mSSIPG.partDepthImageIndex);
-        /*
         glBindImageTexture(mSSIPG.partDiffuseImageIndex, mSSIPG.partDiffuseImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.partDiffuseImageHandle, mSSIPG.partDiffuseImageIndex);
-        */
 
         glDispatchCompute(mSSIPG.textureWidth / 8, mSSIPG.textureHeight / 8, 1);
         /*
