@@ -86,8 +86,8 @@ void DeferredRenderer::load() {
     
     // SSIPG
     {
-        mSSIPG.textureWidth = mScreenWidth * 2;
-        mSSIPG.textureHeight = mScreenHeight * 2;
+        mSSIPG.textureWidth = mScreenWidth / 2;
+        mSSIPG.textureHeight = mScreenHeight / 2;
         
         mSSIPG.maxInstances = mSSIPG.textureWidth * mSSIPG.textureHeight;
         //mSSIPG.maxInstances = 9999;
@@ -175,6 +175,7 @@ void DeferredRenderer::load() {
         
         mSSIPG.partDepthImageIndex = 1;
         mSSIPG.partDiffuseImageIndex = 2;
+        mSSIPG.partOrientImageIndex = 3;
         
         // Bind buffers to the indices specified above
         glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBufferIndex, mSSIPG.counterBuffer);
@@ -198,6 +199,7 @@ void DeferredRenderer::load() {
             mSSIPG.comp.partDescBufferHandle = glGetProgramResourceIndex(mSSIPG.comp.prog, GL_SHADER_STORAGE_BLOCK, "HtpedBuffer");
             mSSIPG.comp.partDepthImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "instanceImage");
             mSSIPG.comp.partDiffuseImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "diffuseImage");
+            mSSIPG.comp.partOrientImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "orientImage");
             
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partCoordBufferHandle, mSSIPG.partCoordBufferIndex);
@@ -582,6 +584,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glUniform1i(mSSIPG.comp.partDepthImageHandle, mSSIPG.partDepthImageIndex);
         glBindImageTexture(mSSIPG.partDiffuseImageIndex, mSSIPG.partDiffuseImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.partDiffuseImageHandle, mSSIPG.partDiffuseImageIndex);
+        glBindImageTexture(mSSIPG.partOrientImageIndex, mSSIPG.partOrientImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        glUniform1i(mSSIPG.comp.partOrientImageHandle, mSSIPG.partOrientImageIndex);
 
         glDispatchCompute(mSSIPG.textureWidth / 8, mSSIPG.textureHeight / 8, 1);
         /*

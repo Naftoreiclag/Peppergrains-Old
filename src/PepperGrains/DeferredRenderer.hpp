@@ -69,7 +69,9 @@ private:
         GLuint partDiffuseImageTexture;
         GLuint partDiffuseImageIndex;
         GLuint partOrientImageTexture;
+        GLuint partOrientImageIndex;
         GLuint partPressureImageTexture;
+        GLuint partPressureImageIndex;
         
         // Compute shader
         struct CompShader {
