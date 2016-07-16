@@ -84,6 +84,8 @@ private:
             GLuint partOrientImageHandle;
             GLuint partPressureImageHandle;
             
+            GLuint pixelSizeHandle;
+            
             // Output
             GLuint counterBufferHandle;
             GLuint partCoordBufferHandle;
@@ -108,7 +110,7 @@ private:
             
             // Input
             GLuint partCoordBufferHandle;
-            GLuint partDepthHandle;
+            GLuint partLocationHandle;
             GLuint partDiffuseHandle;
             GLuint partOrientHandle;
         };

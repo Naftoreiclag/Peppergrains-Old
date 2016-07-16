@@ -165,7 +165,7 @@ void DeferredRenderer::load() {
         
         glGenBuffers(1, &mSSIPG.partDescBuffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, mSSIPG.partDescBuffer);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * (1 + 3) * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLfloat) * 6 * mSSIPG.maxInstances, 0, GL_STREAM_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Cleanup
         
         // Indices to which various objects are bound to
@@ -201,6 +201,8 @@ void DeferredRenderer::load() {
             mSSIPG.comp.partDiffuseImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "diffuseImage");
             mSSIPG.comp.partOrientImageHandle = glGetUniformLocation(mSSIPG.comp.prog, "orientImage");
             
+            mSSIPG.comp.pixelSizeHandle = glGetUniformLocation(mSSIPG.comp.prog, "uPixelSize");
+            
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.counterBufferHandle, mSSIPG.counterBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partCoordBufferHandle, mSSIPG.partCoordBufferIndex);
             glShaderStorageBlockBinding(mSSIPG.comp.prog, mSSIPG.comp.partDescBufferHandle, mSSIPG.partDescBufferIndex);
@@ -214,6 +216,7 @@ void DeferredRenderer::load() {
             mSSIPG.inst.geometry->grab();
             mSSIPG.inst.shaderProg->grab();
             
+            /*
             {
                 const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedInts();
                 for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
@@ -227,18 +230,23 @@ void DeferredRenderer::load() {
                 const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedFloats();
                 for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
                     const ShaderProgramResource::Control& entry = *iter;
-                    mSSIPG.inst.partDepthHandle = entry.handle;
+                    mSSIPG.inst.partLocationHandle = entry.handle;
                     std::cout << entry.name << std::endl;
                     break;
                 }
             }
+            */
             {
                 const std::vector<ShaderProgramResource::Control>& controlVector = mSSIPG.inst.shaderProg->getInstancedVec3s();
                 for(std::vector<ShaderProgramResource::Control>::const_iterator iter = controlVector.begin(); iter != controlVector.end(); ++ iter) {
                     const ShaderProgramResource::Control& entry = *iter;
-                    mSSIPG.inst.partDiffuseHandle = entry.handle;
-                    std::cout << entry.name << std::endl;
-                    break;
+                    if(entry.name == "location") {
+                        mSSIPG.inst.partLocationHandle = entry.handle;
+                        std::cout << entry.name << std::endl;
+                    } else if(entry.name == "diffuse") {
+                        mSSIPG.inst.partDiffuseHandle = entry.handle;
+                        std::cout << entry.name << std::endl;
+                    }
                 }
             }
             
@@ -266,18 +274,20 @@ void DeferredRenderer::load() {
                 mSSIPG.inst.geometry->enableBitangentAttrib(mSSIPG.inst.shaderProg->getBitangentAttrib());
             }
             
+            /*
             glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partCoordBuffer);
             glEnableVertexAttribArray(mSSIPG.inst.partCoordBufferHandle);
             glVertexAttribIPointer(mSSIPG.inst.partCoordBufferHandle, 1, GL_INT, 1 * sizeof(GLint), (void*) (0 * sizeof(GLint)));
             glVertexAttribDivisor(mSSIPG.inst.partCoordBufferHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
+            */
             
             glBindBuffer(GL_ARRAY_BUFFER, mSSIPG.partDescBuffer);
-            glEnableVertexAttribArray(mSSIPG.inst.partDepthHandle);
-            glVertexAttribPointer(mSSIPG.inst.partDepthHandle, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
-            glVertexAttribDivisor(mSSIPG.inst.partDepthHandle, 1);
+            glEnableVertexAttribArray(mSSIPG.inst.partLocationHandle);
+            glVertexAttribPointer(mSSIPG.inst.partLocationHandle, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+            glVertexAttribDivisor(mSSIPG.inst.partLocationHandle, 1);
             glEnableVertexAttribArray(mSSIPG.inst.partDiffuseHandle);
-            glVertexAttribPointer(mSSIPG.inst.partDiffuseHandle, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*) (1 * sizeof(GLfloat)));
+            glVertexAttribPointer(mSSIPG.inst.partDiffuseHandle, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*) (3 * sizeof(GLfloat)));
             glVertexAttribDivisor(mSSIPG.inst.partDiffuseHandle, 1);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
@@ -579,6 +589,9 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         //
         glUseProgram(mSSIPG.comp.prog);
+        
+        glUniform2fv(mSSIPG.comp.pixelSizeHandle, 1, glm::value_ptr(glm::vec2(1.f / ssipgRenderPass.screenSize.x, 1.f / ssipgRenderPass.screenSize.y)));
+        
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.partDepthImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
         glUniform1i(mSSIPG.comp.partDepthImageHandle, mSSIPG.partDepthImageIndex);
