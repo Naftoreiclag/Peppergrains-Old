@@ -143,7 +143,6 @@
     <File Name="PepperGrains.cpp"/>
     <File Name="TerrainRenderer.hpp"/>
     <File Name="TerrainRenderer.cpp"/>
-    <VirtualDirectory Name="Debug"/>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>

@@ -125,6 +125,22 @@ private:
     SSIPG mSSIPG;
     
     
+    struct PostProcess {
+        // Used as an intermediate between passes
+        GLuint framebuffer;
+        
+        
+        struct FXAA {
+            bool enabled;
+            
+            ShaderProgramResource* shaderProg;
+            
+            GLuint inputTextureHandle;
+        };
+        FXAA mFXAA;
+    }
+    PostProcess mPost;
+    
     struct DebugScreenShader {
         ShaderProgramResource* shaderProg;
         

@@ -365,6 +365,8 @@ void DesignerGameLayer::onBegin() {
     mRenderer->grab();
     
     mRenderer->setSkyColor(glm::vec3(0.f, 1.5f, 2.f));
+    mRenderer->setSSAOEnabled(false);
+    mRenderer->setShadowsEnabled(false);
     
     //mRootNode->newChild()->grabModel(resman->findModel("SSIPGTest.model"));
     
