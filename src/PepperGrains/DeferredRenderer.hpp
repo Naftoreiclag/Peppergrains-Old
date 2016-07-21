@@ -141,7 +141,7 @@ private:
             GLuint inputTextureHandle;
         };
         FXAA mFXAA;
-    }
+    };
     PostProcess mPost;
     
     struct DebugScreenShader {

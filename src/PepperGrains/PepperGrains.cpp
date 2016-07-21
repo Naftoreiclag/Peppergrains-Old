@@ -21,6 +21,7 @@
 
 #include "OpenGLStuff.hpp"
 #include "SDL2/SDL.h"
+#include "soundio/soundio.h"
 
 #include "ResourceManager.hpp"
 
@@ -48,6 +49,11 @@ int PepperGrains::run(int argc, char* argv[]) {
     
     uint32_t windowWidth = 1280;
     uint32_t windowHeight = 960;
+    
+    SoundIo* soundio = soundio_create();
+    soundio_connect(soundio);
+    
+    std::cout << soundio_backend_name(soundio->current_backend) << std::endl;
     
     /*
     int glMajorVersion;
