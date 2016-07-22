@@ -41,6 +41,7 @@ namespace Sound {
 class Endpoint {
 private:
     SoundIoDevice* mDevice;
+    SoundIoOutStream* mStream;
     
     std::vector<Receiver*> mReceivers;
 public:
@@ -49,9 +50,13 @@ public:
     
     void setDevice(SoundIoDevice* device);
     
+    void writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);
+    
     void grabReciever(Receiver* receiver);
     void dropReceiver(Receiver* receiver);
 };
+
+void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);
 
 } // namespace Sound
 } // namespace pgg
