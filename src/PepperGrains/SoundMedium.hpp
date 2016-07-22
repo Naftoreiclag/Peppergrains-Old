@@ -14,34 +14,24 @@
    limitations under the License.
 */
 
-#ifndef PGG_PEPPERGRAINS_HPP
-#define PGG_PEPPERGRAINS_HPP
-
-#include "soundio/soundio.h"
-
-#include "GameLayerMachine.hpp"
-#include "SoundEndpoint.hpp"
+#ifndef PGG_SOUND_MEDIUM_HPP
+#define PGG_SOUND_MEDIUM_HPP
 
 namespace pgg {
+namespace Sound {
 
-class PepperGrains {
+/* Objects in a Context which interact with sounds without producing any.
+ * 
+ * Examples: air, water, walls
+ */
+class Medium {
 public:
-    static PepperGrains* getSingleton();
-public:
-    PepperGrains();
-    ~PepperGrains();
-private:
-    SoundIo* mSndIo;
-    SoundIoDevice* mSndDevice;
-public:
-    Sound::Endpoint* mSndEndpoint;
+    Medium();
+    ~Medium();
 
-    bool mMainLoopRunning;
-    GameLayerMachine* mGameLayerMachine;
-    
-    int run(int argc, char* argv[]);
 };
 
-}
+} // namespace Sound
+} // namespace pgg
 
-#endif // PGG_PEPPERGRAINS_HPP
+#endif // PGG_SOUND_MEDIUM_HPP

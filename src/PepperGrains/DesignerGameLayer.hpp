@@ -30,6 +30,9 @@
 #include "Vec2.hpp"
 #include "DebugInfiniteCheckerboardModel.hpp"
 #include "Vec3.hpp"
+#include "SoundEndpoint.hpp"
+#include "SoundContext.hpp"
+#include "SoundReceiver.hpp"
 
 namespace pgg {
 
@@ -44,6 +47,10 @@ private:
     InfiniteCheckerboardModel* mInfCheck;
     
     btRigidBody* mPlaneRigid;
+    
+    Sound::Endpoint* mSndEndpoint;
+    Sound::Receiver* mSndReceiver;
+    Sound::Context* mSndContext;
     
     struct CollisionWorldPackage {
         CollisionWorldPackage();

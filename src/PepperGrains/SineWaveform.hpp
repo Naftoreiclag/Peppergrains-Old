@@ -14,34 +14,22 @@
    limitations under the License.
 */
 
-#ifndef PGG_PEPPERGRAINS_HPP
-#define PGG_PEPPERGRAINS_HPP
+#ifndef PGG_SINEWAVEFORM_HPP
+#define PGG_SINEWAVEFORM_HPP
 
-#include "soundio/soundio.h"
-
-#include "GameLayerMachine.hpp"
-#include "SoundEndpoint.hpp"
+#include "SoundWaveform.hpp"
 
 namespace pgg {
 
-class PepperGrains {
+class SineWaveform : public Sound::Waveform {
 public:
-    static PepperGrains* getSingleton();
-public:
-    PepperGrains();
-    ~PepperGrains();
-private:
-    SoundIo* mSndIo;
-    SoundIoDevice* mSndDevice;
-public:
-    Sound::Endpoint* mSndEndpoint;
-
-    bool mMainLoopRunning;
-    GameLayerMachine* mGameLayerMachine;
+    SineWaveform(float frequency = 440.f);
+    ~SineWaveform();
     
-    int run(int argc, char* argv[]);
+    float mFrequency;
+
 };
 
-}
+} // namespace pgg
 
-#endif // PGG_PEPPERGRAINS_HPP
+#endif // PGG_SINEWAVEFORM_HPP

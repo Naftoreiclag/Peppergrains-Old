@@ -223,6 +223,26 @@
     </VirtualDirectory>
     <File Name="MissionGameLayer.hpp"/>
     <File Name="MissionGameLayer.cpp"/>
+    <VirtualDirectory Name="sound">
+      <File Name="SoundSource.hpp"/>
+      <File Name="SoundSource.cpp"/>
+      <File Name="SoundContext.hpp"/>
+      <File Name="SoundContext.cpp"/>
+      <File Name="SoundReceiver.hpp"/>
+      <File Name="SoundReceiver.cpp"/>
+      <File Name="SoundMedium.hpp"/>
+      <File Name="SoundMedium.cpp"/>
+      <File Name="SoundWaveform.hpp"/>
+      <File Name="SoundWaveform.cpp"/>
+      <File Name="SoundEndpoint.hpp"/>
+      <File Name="SoundEndpoint.cpp"/>
+      <File Name="SoundSample.hpp"/>
+      <File Name="SoundSample.cpp"/>
+      <VirtualDirectory Name="test">
+        <File Name="SineWaveform.hpp"/>
+        <File Name="SineWaveform.cpp"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

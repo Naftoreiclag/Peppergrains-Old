@@ -42,6 +42,9 @@
 #include "Quate.hpp"
 #include "MathUtil.hpp"
 #include "InstancedModel.hpp"
+#include "PepperGrains.hpp"
+#include "SoundSource.hpp"
+#include "SineWaveform.hpp"
 
 namespace pgg {
 
@@ -357,6 +360,22 @@ void DesignerGameLayer::onBegin() {
     
     mCollisionWorld = mCollisionPackage[0].mCollisionWorld;
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
+    
+    mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
+    mSndReceiver = new Sound::Receiver();
+    mSndReceiver->grab();
+    
+    mSndContext = new Sound::Context();
+    mSndContext->grab();
+    
+    Sound::Source* source = new Sound::Source();
+    source->grab();
+    
+    source->play(new SineWaveform());
+    mSndContext->grabSource(source);
+    source->drop();
+    
+    mSndEndpoint->grabReciever(mSndReceiver);
     
     ResourceManager* resman = ResourceManager::getSingleton();
     

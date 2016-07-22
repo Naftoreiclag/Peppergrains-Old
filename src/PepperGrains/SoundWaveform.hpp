@@ -14,34 +14,28 @@
    limitations under the License.
 */
 
-#ifndef PGG_PEPPERGRAINS_HPP
-#define PGG_PEPPERGRAINS_HPP
-
-#include "soundio/soundio.h"
-
-#include "GameLayerMachine.hpp"
-#include "SoundEndpoint.hpp"
+#ifndef PGG_SOUND_WAVEFORM_HPP
+#define PGG_SOUND_WAVEFORM_HPP
 
 namespace pgg {
+namespace Sound {
 
-class PepperGrains {
+/* The "raw" sound; no effects applied. Used by Samples during final mixing to
+ * build the final buffer used by the Endpoint to send to the sound card.
+ * 
+ * This class is meant to be extended for sounds which are constructed in different
+ * ways, such as a MIDI or voice synthesizer.
+ * 
+ * It is typical for a single waveform to be used by many samples.
+ */
+class Waveform {
 public:
-    static PepperGrains* getSingleton();
-public:
-    PepperGrains();
-    ~PepperGrains();
-private:
-    SoundIo* mSndIo;
-    SoundIoDevice* mSndDevice;
-public:
-    Sound::Endpoint* mSndEndpoint;
+    Waveform();
+    virtual ~Waveform();
 
-    bool mMainLoopRunning;
-    GameLayerMachine* mGameLayerMachine;
-    
-    int run(int argc, char* argv[]);
 };
 
-}
+} // namespace Sound
+} // namespace pgg
 
-#endif // PGG_PEPPERGRAINS_HPP
+#endif // PGG_SOUND_WAVEFORM_HPP

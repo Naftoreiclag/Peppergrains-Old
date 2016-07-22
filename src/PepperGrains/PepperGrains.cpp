@@ -21,7 +21,6 @@
 
 #include "OpenGLStuff.hpp"
 #include "SDL2/SDL.h"
-#include "soundio/soundio.h"
 
 #include "ResourceManager.hpp"
 
@@ -50,10 +49,20 @@ int PepperGrains::run(int argc, char* argv[]) {
     uint32_t windowWidth = 1280;
     uint32_t windowHeight = 960;
     
-    SoundIo* soundio = soundio_create();
-    soundio_connect(soundio);
+    // Initialize sound system
+    mSndIo = soundio_create();
     
-    std::cout << soundio_backend_name(soundio->current_backend) << std::endl;
+    // Connect to the first available backend
+    soundio_connect(mSndIo);
+    
+    // Initial event flush
+    soundio_flush_events(mSndIo);
+    
+    // Use default device
+    mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo));
+    
+    mSndEndpoint = new Sound::Endpoint();
+    mSndEndpoint->setDevice(mSndDevice);
     
     /*
     int glMajorVersion;
@@ -141,6 +150,8 @@ int PepperGrains::run(int argc, char* argv[]) {
     while(mMainLoopRunning) {
         inputState.setMouseDelta(0, 0);
         
+        soundio_flush_events(mSndIo);
+        
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -154,6 +165,8 @@ int PepperGrains::run(int argc, char* argv[]) {
                     mGameLayerMachine->onTextInput(TextInputEvent(event.text));
                     break;
                 }
+                
+                // Both press and release should trigger the same event
                 case SDL_KEYUP:
                 case SDL_KEYDOWN: {
                     mGameLayerMachine->onKeyboardEvent(KeyboardEvent(event.key));
@@ -165,6 +178,8 @@ int PepperGrains::run(int argc, char* argv[]) {
                     mGameLayerMachine->onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }
+                
+                // Both press and release should trigger the same event
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN: {
                     mGameLayerMachine->onMouseButton(MouseButtonEvent(event.button));

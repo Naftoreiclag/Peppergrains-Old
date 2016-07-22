@@ -14,34 +14,18 @@
    limitations under the License.
 */
 
-#ifndef PGG_PEPPERGRAINS_HPP
-#define PGG_PEPPERGRAINS_HPP
-
-#include "soundio/soundio.h"
-
-#include "GameLayerMachine.hpp"
-#include "SoundEndpoint.hpp"
+#include "SoundSample.hpp"
 
 namespace pgg {
+namespace Sound {
 
-class PepperGrains {
-public:
-    static PepperGrains* getSingleton();
-public:
-    PepperGrains();
-    ~PepperGrains();
-private:
-    SoundIo* mSndIo;
-    SoundIoDevice* mSndDevice;
-public:
-    Sound::Endpoint* mSndEndpoint;
-
-    bool mMainLoopRunning;
-    GameLayerMachine* mGameLayerMachine;
-    
-    int run(int argc, char* argv[]);
-};
-
+Sample::Sample()
+{
 }
 
-#endif // PGG_PEPPERGRAINS_HPP
+Sample::~Sample()
+{
+}
+
+} // namespace Sound
+} // namespace pgg
