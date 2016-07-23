@@ -41,7 +41,7 @@ public:
     
     Context* mContext;
     
-    void evaluate(std::vector<Sample*>& sampleList);
+    void evaluate(std::vector<Sample*>& sampleList, const double& calltime);
     
     void load();
     void unload();

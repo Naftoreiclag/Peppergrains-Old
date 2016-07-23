@@ -18,10 +18,12 @@
 #define PGG_SOUND_SOURCE_HPP
 
 #include <stdint.h>
+#include <vector>
 
 #include "Vec3.hpp"
 #include "ReferenceCounted.hpp"
 #include "SoundWaveform.hpp"
+#include "SoundSample.hpp"
 
 namespace pgg {
 namespace Sound {
@@ -31,6 +33,16 @@ namespace Sound {
  * to the Endpoint. 
  */
 class Source : public ReferenceCounted {
+private:
+    struct PlayingWaveform {
+        PlayingWaveform(Waveform* waveform, double startTime);
+        ~PlayingWaveform();
+        
+        Waveform* const waveform;
+        double const startTime;
+    };
+    
+    std::vector<PlayingWaveform*> mPlayingWaveforms;
 public:
     struct Modifier {
         typedef uint16_t Flag;
@@ -58,6 +70,7 @@ public:
     void unload();
     
     uint32_t play(Waveform* waveform);
+    void evaluate(std::vector<Sample*>& sampleList, const double& callTime, const Sample::Modifiers& modifiers);
     
     Modifier::Flag mEnabledModifiers;
     Vec3 mLocation;

@@ -15,6 +15,7 @@
 */
 
 #include "SoundReceiver.hpp"
+#include "SoundContext.hpp"
 
 namespace pgg {
 namespace Sound {
@@ -25,7 +26,8 @@ Receiver::Receiver() {
 Receiver::~Receiver() {
 }
 
-void Receiver::evaluate(std::vector<Sample*>& sampleList) {
+void Receiver::evaluate(std::vector<Sample*>& sampleList, const double& calltime) {
+    mContext->evaluate(this, sampleList, calltime);
 }
 
 void Receiver::load() {

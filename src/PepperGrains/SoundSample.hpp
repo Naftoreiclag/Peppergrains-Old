@@ -31,13 +31,16 @@ namespace Sound {
  */
 class Sample {
 public:
+    struct Modifiers {
+        float speed;
+        float time;
+    };
+public:
     Sample();
     ~Sample();
 
     Waveform* mWaveform;
-    
-    float mSpeed;
-    float mTime;
+    Modifiers mModifiers;
 };
 
 } // namespace Sound

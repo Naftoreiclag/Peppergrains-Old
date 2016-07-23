@@ -375,7 +375,7 @@ void DesignerGameLayer::onBegin() {
     mSndContext->grabSource(source);
     source->drop();
     
-    mSndEndpoint->grabReciever(mSndReceiver);
+    //mSndEndpoint->grabReciever(mSndReceiver);
     
     ResourceManager* resman = ResourceManager::getSingleton();
     

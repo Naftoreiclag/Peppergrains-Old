@@ -73,6 +73,18 @@ void Endpoint::setDevice(SoundIoDevice* device) {
 }
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
+    double calltime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
+    
+    std::vector<Sample*> sampleList;
+    for(std::vector<Receiver*>::iterator iter = mReceivers.begin(); iter != mReceivers.end(); ++ iter) {
+        Receiver* receiver = *iter;
+        receiver->evaluate(sampleList, calltime);
+    }
+    
+    for(std::vector<Sample*>::iterator iter = sampleList.begin(); iter != sampleList.end(); ++ iter) {
+        Sample* sample = *iter;
+        delete sample;
+    }
 }
 
 void Endpoint::grabReciever(Receiver* receiver) {

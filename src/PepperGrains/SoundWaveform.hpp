@@ -17,6 +17,8 @@
 #ifndef PGG_SOUND_WAVEFORM_HPP
 #define PGG_SOUND_WAVEFORM_HPP
 
+#include "ReferenceCounted.hpp"
+
 namespace pgg {
 namespace Sound {
 

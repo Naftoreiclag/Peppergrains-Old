@@ -16,8 +16,15 @@
 
 #include "SoundSource.hpp"
 
+#include "PepperGrains.hpp"
+
 namespace pgg {
 namespace Sound {
+
+Source::PlayingWaveform::PlayingWaveform(Waveform* waveform, double startTime)
+: waveform(waveform)
+, startTime(startTime) { }
+Source::PlayingWaveform::~PlayingWaveform() { }
 
 // 3D effects:
 const Source::Modifier::Flag Source::Modifier::DOPPLER = 0x0001;
@@ -40,7 +47,20 @@ Source::Source(Modifier::Flag flags) {
 Source::~Source() {
 }
 uint32_t Source::play(Waveform* waveform) {
-    
+    mPlayingWaveforms.push_back(new PlayingWaveform(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
+}
+void Source::evaluate(std::vector<Sample*>& sampleList, const double& callTime, const Sample::Modifiers& modifiers) {
+    for(std::vector<PlayingWaveform*>::iterator iter = mPlayingWaveforms.begin(); iter != mPlayingWaveforms.end(); ++ iter) {
+        PlayingWaveform* playingWave = *iter;
+        
+        Sample* output = new Sample();
+        
+        output->mWaveform = playingWave->waveform;
+        output->mModifiers = modifiers;
+        output->mModifiers.time = callTime - playingWave->startTime;
+        
+        sampleList.push_back(output);
+    }
 }
 
 void Source::load() { }

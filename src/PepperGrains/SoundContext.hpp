@@ -35,8 +35,8 @@ namespace Sound {
  */
 class Context : public ReferenceCounted {
 public:
-    Context();
-    Context(float machSpeed);
+    // 340 = roughly the speed of sound in meters per second, in common real-world contexts
+    Context(float machSpeed = 340.f);
     ~Context();
 private:
     std::vector<Source*> mSources;
@@ -46,7 +46,7 @@ public:
     float mMachSpeed;
     
     // Populate vector with samples that would be heard by this receiver
-    void evaluate(Receiver* receiver, std::vector<Sample*>& sampleList);
+    void evaluate(Receiver* receiver, std::vector<Sample*>& sampleList, const double& callTime);
     
     void grabSource(Source* source);
     void dropSource(Source* source);

@@ -21,16 +21,24 @@
 namespace pgg {
 namespace Sound {
 
-Context::Context()
-: mMachSpeed(340.f) // Roughly the speed of sound in meters per second, in common real-world contexts
-{
-}
-
 Context::Context(float machSpeed)
 : mMachSpeed(machSpeed) {
 }
 
 Context::~Context() {
+}
+
+void Context::evaluate(Receiver* receiver, std::vector<Sample*>& sampleList, const double& callTime) {
+    for(std::vector<Source*>::iterator iter = mSources.begin(); iter != mSources.end(); ++ iter) {
+        Source* source = *iter;
+        
+        Sample::Modifiers settings;
+        
+        // TODO: Adjust modifier based on source modifier flags and 3D orientations
+        
+        source->evaluate(sampleList, callTime, settings);
+    }
+    
 }
 
 // TODO: assert that grabbed source is not already in vector
