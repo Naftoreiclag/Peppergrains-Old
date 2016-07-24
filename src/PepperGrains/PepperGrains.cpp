@@ -233,11 +233,11 @@ int PepperGrains::run(int argc, char* argv[]) {
     return 0;
 }
 
-uint32_t PepperGrains::getRunningTimeMilliseconds() {
+uint32_t PepperGrains::getRunningTimeMilliseconds() const {
     return SDL_GetTicks();
 }
 
-double PepperGrains::getRunningTimeSeconds() {
+double PepperGrains::getRunningTimeSeconds() const {
     return ((double) SDL_GetTicks()) * 0.001;
 }
 

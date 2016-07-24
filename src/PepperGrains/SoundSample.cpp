@@ -21,8 +21,8 @@
 namespace pgg {
 namespace Sound {
 
-Sample::Sample()
-{
+Sample::Sample(Waveform* waveform)
+: mWaveform(waveform) {
 }
 
 Sample::~Sample()

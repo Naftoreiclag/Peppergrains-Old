@@ -39,8 +39,8 @@ public:
     bool mMainLoopRunning;
     GameLayerMachine* mGameLayerMachine;
     
-    uint32_t getRunningTimeMilliseconds();
-    double getRunningTimeSeconds();
+    uint32_t getRunningTimeMilliseconds() const;
+    double getRunningTimeSeconds() const;
     
     int run(int argc, char* argv[]);
 };

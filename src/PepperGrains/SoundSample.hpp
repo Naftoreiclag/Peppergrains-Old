@@ -39,7 +39,7 @@ public:
         float time;
     };
 public:
-    Sample();
+    Sample(Waveform* waveform);
     ~Sample();
     
     void mix(
@@ -48,7 +48,7 @@ public:
         uint32_t channelCount, uint32_t frameCount, 
         uint32_t sampleRate) const;
 
-    Waveform* mWaveform;
+    Waveform* const mWaveform;
     Modifiers mModifiers;
 };
 

@@ -73,7 +73,8 @@ void Endpoint::setDevice(SoundIoDevice* device) {
 }
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
-    double callTime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
+    double callTime = PepperGrains::getSingleton()->getRunningTimeSeconds();
+    // std::cout << callTime << std::endl;
     
     const SoundIoChannelLayout& layout = stream->layout;
     
@@ -87,13 +88,14 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFra
     
     int frameCount;
     while(framesRemaining > 0) {
+        frameCount = framesRemaining;
         int error = soundio_outstream_begin_write(stream, &channels, &frameCount);
         if(error) {
             // !!!
         }
         
         if(!frameCount) {
-            // !!!
+            break;
         }
         
         // Initialize channel with zeros (Not sure this is needed in all cases)
@@ -106,14 +108,20 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFra
         }
         
         // Perform mixing
-        for(std::vector<Sample>::iterator iter = mSamples.begin(); iter != mSamples.end(); ++ iter) {
-            Sample& sample = *iter;
-            
-            sample.mix(callTime, channels, channelCount, frameCount, sampleRate);
+        {
+            std::lock_guard<std::mutex> lock(mSamplesMutex);
+            for(std::vector<Sample>::iterator iter = mSamples.begin(); iter != mSamples.end(); ++ iter) {
+                Sample& sample = *iter;
+                
+                sample.mix(callTime, channels, channelCount, frameCount, sampleRate);
+            }
         }
         
         callTime += frameDuration * frameCount;
+        soundio_outstream_end_write(stream);
+        framesRemaining -= frameCount;
     }
+    /**/
 }
 
 void Endpoint::grabReciever(Receiver* receiver) {
@@ -125,6 +133,12 @@ void Endpoint::dropReceiver(Receiver* receiver) {
     
     receiver->drop();
 }
+
+void Endpoint::playSample(Sample sample) {
+    std::lock_guard<std::mutex> lock(mSamplesMutex);
+    mSamples.push_back(sample);
+}
+
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
     Endpoint* endpnt = static_cast<Endpoint*>(stream->userdata);
     endpnt->writeCallback(stream, minFrames, maxFrames);

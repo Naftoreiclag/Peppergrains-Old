@@ -53,9 +53,8 @@ void Source::evaluate(std::vector<Sample*>& sampleList, const double& callTime, 
     for(std::vector<PlayingWaveform*>::iterator iter = mPlayingWaveforms.begin(); iter != mPlayingWaveforms.end(); ++ iter) {
         PlayingWaveform* playingWave = *iter;
         
-        Sample* output = new Sample();
+        Sample* output = new Sample(playingWave->waveform);
         
-        output->mWaveform = playingWave->waveform;
         output->mModifiers = modifiers;
         output->mModifiers.time = callTime - playingWave->startTime;
         

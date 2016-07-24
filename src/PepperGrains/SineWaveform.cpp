@@ -16,6 +16,7 @@
 
 #include "SineWaveform.hpp"
 
+#include <iostream>
 #include <cmath>
 
 namespace pgg {
@@ -32,6 +33,7 @@ void SineWaveform::mix(
     SoundIoChannelArea* channels, uint32_t channelCount, 
     uint32_t frameCount, uint32_t sampleRate) const
 {
+    
     float frameDuration = 1.f / sampleRate;
     float radSpeed = mFrequency * 6.2831853f;
     
