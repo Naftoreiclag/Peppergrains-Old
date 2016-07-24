@@ -73,17 +73,46 @@ void Endpoint::setDevice(SoundIoDevice* device) {
 }
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
-    double calltime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
+    double callTime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
     
-    std::vector<Sample*> sampleList;
-    for(std::vector<Receiver*>::iterator iter = mReceivers.begin(); iter != mReceivers.end(); ++ iter) {
-        Receiver* receiver = *iter;
-        receiver->evaluate(sampleList, calltime);
-    }
+    const SoundIoChannelLayout& layout = stream->layout;
     
-    for(std::vector<Sample*>::iterator iter = sampleList.begin(); iter != sampleList.end(); ++ iter) {
-        Sample* sample = *iter;
-        delete sample;
+    uint32_t framesRemaining = maxFrames;
+    uint32_t sampleRate = stream->sample_rate;
+    
+    double frameDuration = 1.0 / sampleRate;
+    
+    SoundIoChannelArea* channels;
+    uint32_t channelCount = layout.channel_count;
+    
+    int frameCount;
+    while(framesRemaining > 0) {
+        int error = soundio_outstream_begin_write(stream, &channels, &frameCount);
+        if(error) {
+            // !!!
+        }
+        
+        if(!frameCount) {
+            // !!!
+        }
+        
+        // Initialize channel with zeros (Not sure this is needed in all cases)
+        for(uint32_t channelIndex = 0; channelIndex < channelCount; ++ channelIndex) {
+            SoundIoChannelArea& channel = channels[channelIndex];
+            for(int frame = 0; frame < frameCount; ++ frame) {
+                float& sample = *reinterpret_cast<float*>(channel.ptr + channel.step * frame);
+                sample = 0.f;
+            }
+        }
+        
+        // Perform mixing
+        for(std::vector<Sample>::iterator iter = mSamples.begin(); iter != mSamples.end(); ++ iter) {
+            Sample& sample = *iter;
+            
+            sample.mix(callTime, channels, channelCount, frameCount, sampleRate);
+        }
+        
+        callTime += frameDuration * frameCount;
     }
 }
 

@@ -17,7 +17,9 @@
 #ifndef PGG_SOUND_SAMPLE_HPP
 #define PGG_SOUND_SAMPLE_HPP
 
-#include "SoundWaveform.hpp"
+#include <stdint.h>
+
+#include "soundio/soundio.h"
 
 namespace pgg {
 namespace Sound {
@@ -29,6 +31,7 @@ namespace Sound {
  * 
  * Samples typically share a single Waveform with other Samples.
  */
+class Waveform;
 class Sample {
 public:
     struct Modifiers {
@@ -38,6 +41,12 @@ public:
 public:
     Sample();
     ~Sample();
+    
+    void mix(
+        double callTime, 
+        SoundIoChannelArea* channels, 
+        uint32_t channelCount, uint32_t frameCount, 
+        uint32_t sampleRate) const;
 
     Waveform* mWaveform;
     Modifiers mModifiers;

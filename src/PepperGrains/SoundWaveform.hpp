@@ -19,6 +19,8 @@
 
 #include "ReferenceCounted.hpp"
 
+#include "SoundSample.hpp"
+
 namespace pgg {
 namespace Sound {
 
@@ -34,7 +36,12 @@ class Waveform {
 public:
     Waveform();
     virtual ~Waveform();
-
+    
+    virtual void mix(
+        const Sample::Modifiers& modifiers, double callTime, 
+        SoundIoChannelArea* channels, uint32_t channelCount, 
+        uint32_t frameCount, 
+        uint32_t sampleRate) const = 0;
 };
 
 } // namespace Sound

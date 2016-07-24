@@ -16,6 +16,8 @@
 
 #include "SoundSample.hpp"
 
+#include "SoundWaveform.hpp"
+
 namespace pgg {
 namespace Sound {
 
@@ -25,6 +27,9 @@ Sample::Sample()
 
 Sample::~Sample()
 {
+}
+void Sample::mix(double callTime, SoundIoChannelArea* channels, uint32_t channelCount, uint32_t frameCount, uint32_t sampleRate) const {
+    mWaveform->mix(mModifiers, callTime, channels, channelCount, frameCount, sampleRate);
 }
 
 } // namespace Sound

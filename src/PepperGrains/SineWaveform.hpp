@@ -27,6 +27,12 @@ public:
     ~SineWaveform();
     
     float mFrequency;
+    
+    void mix(
+        const Sound::Sample::Modifiers& modifiers, double callTime, 
+        SoundIoChannelArea* channels, uint32_t channelCount, 
+        uint32_t frameCount, 
+        uint32_t sampleRate) const;
 
 };
 

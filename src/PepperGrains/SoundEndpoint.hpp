@@ -18,10 +18,12 @@
 #define PGG_SOUND_ENDPOINT_HPP
 
 #include <vector>
+#include <mutex>
 
 #include "soundio/soundio.h"
 
 #include "SoundReceiver.hpp"
+#include "SoundSample.hpp"
 
 namespace pgg {
 namespace Sound {
@@ -44,6 +46,10 @@ private:
     SoundIoOutStream* mStream;
     
     std::vector<Receiver*> mReceivers;
+    
+    std::mutex mSamplesMutex;
+    std::vector<Sample> mSamples;
+    
 public:
     Endpoint();
     ~Endpoint();
@@ -54,6 +60,12 @@ public:
     
     void grabReciever(Receiver* receiver);
     void dropReceiver(Receiver* receiver);
+    
+    // Thread-safe; adds a sample to the mixing vector
+    void playSample(Sample sample);
+    
+    // Thread-safe; removes all samples which no longer affect 
+    void expireSamples();
 };
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);
