@@ -362,9 +362,9 @@ void DesignerGameLayer::onBegin() {
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
+    mSndEndpoint->playSample(Sound::Sample(new SineWaveform(880.f)));
     mSndEndpoint->playSample(Sound::Sample(new SineWaveform(440.f)));
     mSndEndpoint->playSample(Sound::Sample(new SineWaveform(220.f)));
-    mSndEndpoint->playSample(Sound::Sample(new SineWaveform(110.f)));
     /*
     mSndReceiver = new Sound::Receiver();
     mSndReceiver->grab();

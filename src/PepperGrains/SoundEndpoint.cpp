@@ -42,6 +42,8 @@ void Endpoint::setDevice(SoundIoDevice* device) {
         if(mStream) soundio_outstream_destroy(mStream);
     }
     
+    mRuntime = PepperGrains::getSingleton()->getRunningTimeSeconds();
+    
     mDevice = device;
     soundio_device_ref(mDevice);
     
@@ -55,9 +57,11 @@ void Endpoint::setDevice(SoundIoDevice* device) {
     mStream->format = SoundIoFormatFloat32NE;
     mStream->write_callback = endpointSoundIoWriteCallback;
     mStream->userdata = this;
+    //mStream->sample_rate = soundio_device_nearest_sample_rate(mDevice, 1);
     
     int error = soundio_outstream_open(mStream);
     if(error) {
+        std::cout << "Sample rate: " << mStream->sample_rate << std::endl;
         std::cerr << "Error while opening audio stream: " << soundio_strerror(error) << std::endl;
         return;
     }
@@ -73,12 +77,14 @@ void Endpoint::setDevice(SoundIoDevice* device) {
 }
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
-    double callTime = PepperGrains::getSingleton()->getRunningTimeSeconds();
+    //double callTime = PepperGrains::getSingleton()->getRunningTimeSeconds();
     // std::cout << callTime << std::endl;
     
     const SoundIoChannelLayout& layout = stream->layout;
     
-    uint32_t framesRemaining = maxFrames;
+    uint32_t framesRemaining = 1000;
+    if(framesRemaining < minFrames) { framesRemaining = minFrames; }
+    if(framesRemaining > maxFrames) { framesRemaining = maxFrames; }
     uint32_t sampleRate = stream->sample_rate;
     
     double frameDuration = 1.0 / sampleRate;
@@ -113,11 +119,11 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFra
             for(std::vector<Sample>::iterator iter = mSamples.begin(); iter != mSamples.end(); ++ iter) {
                 Sample& sample = *iter;
                 
-                sample.mix(callTime, channels, channelCount, frameCount, sampleRate);
+                sample.mix(mRuntime, channels, channelCount, frameCount, sampleRate);
             }
         }
         
-        callTime += frameDuration * frameCount;
+        mRuntime += frameDuration * frameCount;
         soundio_outstream_end_write(stream);
         framesRemaining -= frameCount;
     }

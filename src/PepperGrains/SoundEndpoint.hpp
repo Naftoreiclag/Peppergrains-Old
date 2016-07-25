@@ -50,6 +50,8 @@ private:
     std::mutex mSamplesMutex;
     std::vector<Sample> mSamples;
     
+    double mRuntime;
+    
 public:
     Endpoint();
     ~Endpoint();
