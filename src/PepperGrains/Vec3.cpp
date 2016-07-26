@@ -40,7 +40,7 @@ Vec3::Vec3(float xyz)
 }
 
 
-Vec3::Vec3(const Vec3 &v)
+Vec3::Vec3(const Vec3& v)
 : x(v.x)
 , y(v.y)
 , z(v.z) {

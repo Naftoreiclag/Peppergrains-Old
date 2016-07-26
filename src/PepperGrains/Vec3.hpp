@@ -37,7 +37,7 @@ public:
     ~Vec3();
     
     // Copy constructor
-    Vec3(const Vec3 &v); 
+    Vec3(const Vec3& v); 
     
     // Implicit conversions
     operator btVector3() const;
@@ -46,9 +46,11 @@ public:
     Vec3(const glm::vec3& v);
     Vec3(const glm::vec4& v);
     
-    // Equals
+    // Comparison
     bool operator==(const Vec3& v) const;
     bool operator!=(const Vec3& v) const;
+    
+    // (Default assignment operator is used)
     
     // Scaling
     Vec3 operator*(float s) const;
