@@ -217,6 +217,7 @@ int PepperGrains::run(int argc, char* argv[]) {
             inputState.updateMouseFromSDL();
             
             mGameLayerMachine->onTick(tpf, &inputState);
+            mSndEndpoint->evaluate();
 
             // Swap buffers (draw everything onto the screen)
             SDL_GL_SwapWindow(sdlWindow);

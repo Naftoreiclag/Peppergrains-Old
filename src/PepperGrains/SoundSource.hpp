@@ -70,7 +70,7 @@ public:
     void unload();
     
     uint32_t play(Waveform* waveform);
-    void evaluate(std::vector<Sample*>& sampleList, const double& callTime, const Sample::Modifiers& modifiers);
+    void evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& modifiers);
     
     Modifier::Flag mEnabledModifiers;
     Vec3 mLocation;

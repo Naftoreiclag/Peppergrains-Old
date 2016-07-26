@@ -30,25 +30,33 @@ namespace Sound {
  * sound card. Samples are not evaluated until this final mixing process.
  * 
  * Samples typically share a single Waveform with other Samples.
+ * 
+ * Waveform grab()'ing behaves like smart pointer
+ * 
  */
 class Waveform;
 class Sample {
 public:
     struct Modifiers {
+        Modifiers(float speed = 1.f);
+        
         float speed;
-        float time;
     };
 public:
-    Sample(Waveform* waveform);
+    Sample(Waveform* waveform = nullptr);
+    Sample(const Sample& other);
     ~Sample();
     
+    // Assignment
+    Sample& operator=(const Sample& other);
+    
     void mix(
-        double callTime, 
+        double time, 
         SoundIoChannelArea* channels, 
         uint32_t channelCount, uint32_t frameCount, 
         uint32_t sampleRate) const;
 
-    Waveform* const mWaveform;
+    Waveform* mWaveform;
     Modifiers mModifiers;
 };
 

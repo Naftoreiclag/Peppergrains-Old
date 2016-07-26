@@ -29,11 +29,13 @@ public:
     float mFrequency;
     
     void mix(
-        const Sound::Sample::Modifiers& modifiers, double callTime, 
+        const Sound::Sample::Modifiers& modifiers, double time, 
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
         uint32_t sampleRate) const;
 
+    void load();
+    void unload();
 };
 
 } // namespace pgg

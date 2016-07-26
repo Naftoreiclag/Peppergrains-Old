@@ -46,10 +46,13 @@ private:
     SoundIoOutStream* mStream;
     
     std::vector<Receiver*> mReceivers;
+    std::vector<Waveform*> mDirectWaveforms;
     
-    std::mutex mSamplesMutex;
-    std::vector<Sample> mSamples;
+    std::mutex mFinalMixMutex;
+    std::vector<Sample> mFinalMix;
     
+    // Accumulated time in seconds
+    std::mutex mRuntimeMutex;
     double mRuntime;
     
 public:
@@ -58,13 +61,19 @@ public:
     
     void setDevice(SoundIoDevice* device);
     
-    void writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);
+    void writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames);
     
     void grabReciever(Receiver* receiver);
     void dropReceiver(Receiver* receiver);
     
+    // Thread-safe; re-builds sample list
+    void evaluate();
+    
     // Thread-safe; adds a sample to the mixing vector
-    void playSample(Sample sample);
+    void playWaveform(Waveform* waveform);
+    
+    double getRuntime();
+    void syncRuntime();
     
     // Thread-safe; removes all samples which no longer affect 
     void expireSamples();

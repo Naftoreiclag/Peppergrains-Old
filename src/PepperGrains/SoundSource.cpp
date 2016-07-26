@@ -47,16 +47,17 @@ Source::Source(Modifier::Flag flags) {
 Source::~Source() {
 }
 uint32_t Source::play(Waveform* waveform) {
+    waveform->grab();
     mPlayingWaveforms.push_back(new PlayingWaveform(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
 }
-void Source::evaluate(std::vector<Sample*>& sampleList, const double& callTime, const Sample::Modifiers& modifiers) {
+void Source::evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& modifiers) {
     for(std::vector<PlayingWaveform*>::iterator iter = mPlayingWaveforms.begin(); iter != mPlayingWaveforms.end(); ++ iter) {
         PlayingWaveform* playingWave = *iter;
         
-        Sample* output = new Sample(playingWave->waveform);
+        Sample output(playingWave->waveform);
         
-        output->mModifiers = modifiers;
-        output->mModifiers.time = callTime - playingWave->startTime;
+        output.mModifiers = modifiers;
+        //output.mModifiers.time = playingWave->startTime;
         
         sampleList.push_back(output);
     }

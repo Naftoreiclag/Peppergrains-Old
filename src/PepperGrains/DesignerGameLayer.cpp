@@ -362,25 +362,22 @@ void DesignerGameLayer::onBegin() {
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
-    mSndEndpoint->playSample(Sound::Sample(new SineWaveform(880.f)));
-    mSndEndpoint->playSample(Sound::Sample(new SineWaveform(440.f)));
-    mSndEndpoint->playSample(Sound::Sample(new SineWaveform(220.f)));
-    /*
-    mSndReceiver = new Sound::Receiver();
-    mSndReceiver->grab();
-    
     mSndContext = new Sound::Context();
     mSndContext->grab();
     
+    mSndReceiver = new Sound::Receiver(mSndContext);
+    mSndReceiver->grab();
+    
+    
     Sound::Source* source = new Sound::Source();
     source->grab();
-    
-    source->play(new SineWaveform());
+    source->play(new SineWaveform(440.f));
+    source->play(new SineWaveform(220.f));
+    source->play(new SineWaveform(110.f));
     mSndContext->grabSource(source);
     source->drop();
     
     mSndEndpoint->grabReciever(mSndReceiver);
-    */
     
     
     ResourceManager* resman = ResourceManager::getSingleton();

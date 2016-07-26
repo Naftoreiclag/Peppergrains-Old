@@ -32,16 +32,19 @@ namespace Sound {
  * 
  * It is typical for a single waveform to be used by many samples.
  */
-class Waveform {
+class Waveform : virtual public ReferenceCounted {
 public:
     Waveform();
     virtual ~Waveform();
     
     virtual void mix(
-        const Sample::Modifiers& modifiers, double callTime, 
+        const Sample::Modifiers& modifiers, double time, 
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
         uint32_t sampleRate) const = 0;
+    
+    virtual void load() = 0;
+    virtual void unload() = 0;
 };
 
 } // namespace Sound

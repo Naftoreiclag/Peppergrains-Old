@@ -20,14 +20,17 @@
 namespace pgg {
 namespace Sound {
 
-Receiver::Receiver() {
+Receiver::Receiver(Context* context)
+: mContext(context) {
 }
 
 Receiver::~Receiver() {
 }
 
-void Receiver::evaluate(std::vector<Sample*>& sampleList, const double& calltime) {
-    mContext->evaluate(this, sampleList, calltime);
+void Receiver::evaluate(std::vector<Sample>& sampleList) {
+    if(mContext) {
+        mContext->evaluate(this, sampleList);
+    }
 }
 
 void Receiver::load() {

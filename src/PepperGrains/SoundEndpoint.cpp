@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include "PepperGrains.hpp"
+#include "SoundWaveform.hpp"
 
 namespace pgg {
 namespace Sound {
@@ -76,7 +77,7 @@ void Endpoint::setDevice(SoundIoDevice* device) {
     }
 }
 
-void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {
+void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames) {
     //double callTime = PepperGrains::getSingleton()->getRunningTimeSeconds();
     // std::cout << callTime << std::endl;
     
@@ -115,19 +116,21 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, int minFrames, int maxFra
         
         // Perform mixing
         {
-            std::lock_guard<std::mutex> lock(mSamplesMutex);
-            for(std::vector<Sample>::iterator iter = mSamples.begin(); iter != mSamples.end(); ++ iter) {
-                Sample& sample = *iter;
+            std::lock_guard<std::mutex> lock(mFinalMixMutex);
+            for(std::vector<Sample>::iterator iter = mFinalMix.begin(); iter != mFinalMix.end(); ++ iter) {
+                Sample sample = *iter;
                 
                 sample.mix(mRuntime, channels, channelCount, frameCount, sampleRate);
             }
         }
         
-        mRuntime += frameDuration * frameCount;
+        {
+            std::lock_guard<std::mutex> lock(mRuntimeMutex);
+            mRuntime += frameDuration * frameCount;
+        }
         soundio_outstream_end_write(stream);
         framesRemaining -= frameCount;
     }
-    /**/
 }
 
 void Endpoint::grabReciever(Receiver* receiver) {
@@ -140,9 +143,36 @@ void Endpoint::dropReceiver(Receiver* receiver) {
     receiver->drop();
 }
 
-void Endpoint::playSample(Sample sample) {
-    std::lock_guard<std::mutex> lock(mSamplesMutex);
-    mSamples.push_back(sample);
+void Endpoint::evaluate() {
+    
+    std::vector<Sample> samples;
+    for(std::vector<Receiver*>::iterator iter = mReceivers.begin(); iter != mReceivers.end(); ++ iter) {
+        Receiver* receiver = *iter;
+        receiver->evaluate(samples);
+    }
+    
+    std::lock_guard<std::mutex> lock(mFinalMixMutex);
+    mFinalMix = samples;
+    for(std::vector<Waveform*>::iterator iter = mDirectWaveforms.begin(); iter != mDirectWaveforms.end(); ++ iter) {
+        Waveform* waveform = *iter;
+        Sample sample(waveform);
+        mFinalMix.push_back(sample);
+    }
+}
+
+double Endpoint::getRuntime() {
+    std::lock_guard<std::mutex> lock(mRuntimeMutex);
+    return mRuntime;
+}
+
+void Endpoint::syncRuntime() {
+    std::lock_guard<std::mutex> lock(mRuntimeMutex);
+    mRuntime = PepperGrains::getSingleton()->getRunningTimeSeconds();
+}
+
+void Endpoint::playWaveform(Waveform* waveform) {
+    waveform->grab();
+    mDirectWaveforms.push_back(waveform);
 }
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {

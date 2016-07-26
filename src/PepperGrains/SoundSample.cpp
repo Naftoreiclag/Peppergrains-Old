@@ -16,20 +16,51 @@
 
 #include "SoundSample.hpp"
 
+#include <iostream>
+
 #include "SoundWaveform.hpp"
 
 namespace pgg {
 namespace Sound {
 
+Sample::Modifiers::Modifiers(float spd)
+: speed(spd) {
+}
+    
 Sample::Sample(Waveform* waveform)
 : mWaveform(waveform) {
+    if(mWaveform) {
+        mWaveform->grab();
+    }
+}
+Sample::Sample(const Sample& other)
+: mWaveform(other.mWaveform) {
+    if(mWaveform) {
+        mWaveform->grab();
+    }
 }
 
-Sample::~Sample()
-{
+Sample::~Sample() {
+    if(mWaveform) {
+        mWaveform->drop();
+    }
 }
-void Sample::mix(double callTime, SoundIoChannelArea* channels, uint32_t channelCount, uint32_t frameCount, uint32_t sampleRate) const {
-    mWaveform->mix(mModifiers, callTime, channels, channelCount, frameCount, sampleRate);
+
+Sample& Sample::operator=(const Sample& other) {
+    if(mWaveform) {
+        mWaveform->drop();
+    }
+    mWaveform = other.mWaveform;
+    if(mWaveform) {
+        mWaveform->grab();
+    }
+    return *this;
+}
+
+void Sample::mix(double time, SoundIoChannelArea* channels, uint32_t channelCount, uint32_t frameCount, uint32_t sampleRate) const {
+    if(mWaveform) {
+        mWaveform->mix(mModifiers, time, channels, channelCount, frameCount, sampleRate);
+    }
 }
 
 } // namespace Sound

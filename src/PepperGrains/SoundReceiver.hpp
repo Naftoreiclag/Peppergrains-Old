@@ -34,14 +34,14 @@ class Context;
  */
 class Receiver : public ReferenceCounted {
 public:
-    Receiver();
+    Receiver(Context* context = nullptr);
     ~Receiver();
 
     Vec3 mLocation;
     
     Context* mContext;
     
-    void evaluate(std::vector<Sample*>& sampleList, const double& calltime);
+    void evaluate(std::vector<Sample>& sampleList);
     
     void load();
     void unload();
