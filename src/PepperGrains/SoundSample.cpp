@@ -34,7 +34,8 @@ Sample::Sample(Waveform* waveform)
     }
 }
 Sample::Sample(const Sample& other)
-: mWaveform(other.mWaveform) {
+: mWaveform(other.mWaveform)
+, mModifiers(other.mModifiers) {
     if(mWaveform) {
         mWaveform->grab();
     }
@@ -54,6 +55,7 @@ Sample& Sample::operator=(const Sample& other) {
     if(mWaveform) {
         mWaveform->grab();
     }
+    mModifiers = mModifiers;
     return *this;
 }
 
