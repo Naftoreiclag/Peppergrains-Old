@@ -372,8 +372,8 @@ void DesignerGameLayer::onBegin() {
     Sound::Source* source = new Sound::Source();
     source->grab();
     source->play(new SineWaveform(440.f));
-    source->play(new SineWaveform(220.f));
-    source->play(new SineWaveform(110.f));
+    //source->play(new SineWaveform(220.f));
+    //source->play(new SineWaveform(110.f));
     mSndContext->grabSource(source);
     source->drop();
     

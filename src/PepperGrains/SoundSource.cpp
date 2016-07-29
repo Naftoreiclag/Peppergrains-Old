@@ -57,7 +57,6 @@ void Source::evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& 
         Sample output(playingWave->waveform);
         
         output.mModifiers = modifiers;
-        //output.mModifiers.time = playingWave->startTime;
         
         sampleList.push_back(output);
     }

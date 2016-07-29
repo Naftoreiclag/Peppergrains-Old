@@ -54,7 +54,15 @@ private:
     // Accumulated time in seconds
     std::mutex mRuntimeMutex;
     double mRuntime;
-    
+public:
+    // Used to store per-sample per-endpoint data
+    struct Kent {
+        // False if the sample has never been output before
+        bool started;
+        
+        // Last output position, in seconds from the beginning of the waveform
+        double waveformProgress;
+    };
 public:
     Endpoint();
     ~Endpoint();

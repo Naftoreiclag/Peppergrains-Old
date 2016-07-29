@@ -48,7 +48,7 @@ public:
     // Populate vector with samples that would be heard by this receiver
     void evaluate(Receiver* receiver, std::vector<Sample>& sampleList);
     
-    void grabSource(Source* source);
+    Source* grabSource(Source* source);
     void dropSource(Source* source);
     void dropAllSources();
     

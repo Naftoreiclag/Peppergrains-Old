@@ -35,27 +35,30 @@ void Context::evaluate(Receiver* receiver, std::vector<Sample>& sampleList) {
         Sample::Modifiers modifiers;
         
         // TODO: Adjust modifier based on source modifier flags and 3D orientations
+        modifiers.speed = 1.0f;
         
         source->evaluate(sampleList, modifiers);
     }
-    
 }
 
-// TODO: assert that grabbed source is not already in vector
-void Context::grabSource(Source* source) { 
-    mSources.push_back(source);
+Source* Context::grabSource(Source* source) {
+    assert(std::find(mSources.begin(), mSources.end(), source) == mSources.end() && 
+        "Attempted to add a single sound source multiple times to the same sound context");
     
+    mSources.push_back(source);
     source->grab();
+    return source;
 }
 void Context::dropSource(Source* source) {
-    mSources.erase(std::remove(mSources.begin(), mSources.end(), source), mSources.end());
+    assert(std::find(mSources.begin(), mSources.end(), source) != mSources.end() && 
+        "Attempted to remove sound source from sound context which did not already have that source");
     
+    mSources.erase(std::remove(mSources.begin(), mSources.end(), source), mSources.end());
     source->drop();
 }
 void Context::dropAllSources() {
     for(std::vector<Source*>::iterator iter = mSources.begin(); iter != mSources.end(); ++ iter) {
         Source* source = *iter;
-        
         source->drop();
     }
     

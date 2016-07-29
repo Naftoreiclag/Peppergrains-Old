@@ -33,7 +33,6 @@ void SineWaveform::mix(
     SoundIoChannelArea* channels, uint32_t channelCount, 
     uint32_t frameCount, uint32_t sampleRate) const
 {
-    
     float frameDuration = 1.f / sampleRate;
     float radSpeed = mFrequency * 6.2831853f;
     
@@ -41,7 +40,7 @@ void SineWaveform::mix(
         SoundIoChannelArea& channel = channels[channelIndex];
         
         for(uint32_t frame = 0; frame < frameCount; ++ frame) {
-            float sineWave = sinf((time + frame * frameDuration) * radSpeed);
+            float sineWave = sinf((time + frame * frameDuration) * radSpeed * modifiers.speed);
             float& sample = *reinterpret_cast<float*>(channel.ptr + channel.step * frame);
             sample += sineWave;
         }
