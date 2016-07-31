@@ -45,8 +45,7 @@ private:
 public:
     float mMachSpeed;
     
-    // Populate vector with samples that would be heard by this receiver
-    void evaluate(Receiver* receiver, std::vector<Sample>& sampleList);
+    void updateCalc(double time, Endpoint* endpnt, Receiver* receiver);
     
     Source* grabSource(Source* source);
     void dropSource(Source* source);

@@ -16,21 +16,55 @@
 
 #include "SoundReceiver.hpp"
 #include "SoundContext.hpp"
+#include "SoundEndpoint.hpp"
 
 namespace pgg {
 namespace Sound {
 
-Receiver::Receiver(Context* context)
-: mContext(context) {
+Receiver::Receiver(Context* context, Endpoint* endpoint)
+: mContext(context)
+, mRequestedContext(nullptr)
+, mEndpoint(endpoint)
+, mRequestedEndpoint(nullptr) {
+    if(mEndpoint) {
+        mEndpoint->grabReciever(this);
+    }
+    if(mContext) {
+        
+    }
 }
 
 Receiver::~Receiver() {
 }
 
-void Receiver::evaluate(std::vector<Sample>& sampleList) {
+void Receiver::unsetContext() { setContext(nullptr); }
+void Receiver::setContext(Context* context) {
+    if(mContext == context) { return; }
     if(mContext) {
-        mContext->evaluate(this, sampleList);
+        mRequestedContext = context;
+    } else {
+        mContext = context;
+        if(mContext) {
+            
+        }
     }
+}
+
+void Receiver::unsetEndpoint() { setEndpoint(nullptr); }
+void Receiver::setEndpoint(Endpoint* endpoint) {
+    if(mEndpoint == endpoint) { return; }
+    if(mEndpoint) {
+        mRequestedEndpoint = endpoint;
+    } else {
+        mEndpoint = endpoint;
+        if(mEndpoint) {
+            mEndpoint->grabReciever(this);
+        }
+    }
+}
+
+void Receiver::updateCalc(double time, Endpoint* endpnt) {
+    mContext->updateCalc(time, endpnt, this);
 }
 
 void Receiver::load() {

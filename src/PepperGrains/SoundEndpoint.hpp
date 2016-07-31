@@ -45,27 +45,22 @@ private:
     SoundIoDevice* mDevice;
     SoundIoOutStream* mStream;
     
-    std::vector<Receiver*> mReceivers;
-    std::vector<Waveform*> mDirectWaveforms;
+    std::vector<ReceiverMixer> mReceivers;
     
     std::mutex mFinalMixMutex;
-    std::vector<Sample> mFinalMix;
+    struct ReceiverMixer {
+        Receiver* receiver;
+        std::vector<Sample*> finalMix;
+    };
     
     // Accumulated time in seconds
     std::mutex mRuntimeMutex;
     double mRuntime;
 public:
-    // Used to store per-sample per-endpoint data
-    struct Kent {
-        // False if the sample has never been output before
-        bool started;
-        
-        // Last output position, in seconds from the beginning of the waveform
-        double waveformProgress;
-    };
-public:
     Endpoint();
     ~Endpoint();
+    
+    void addReceiver(Receiver* receiver);
     
     void setDevice(SoundIoDevice* device);
     
@@ -74,17 +69,10 @@ public:
     void grabReciever(Receiver* receiver);
     void dropReceiver(Receiver* receiver);
     
-    // Thread-safe; re-builds sample list
-    void evaluate();
-    
-    // Thread-safe; adds a sample to the mixing vector
-    void playWaveform(Waveform* waveform);
+    void update(double time);
     
     double getRuntime();
     void syncRuntime();
-    
-    // Thread-safe; removes all samples which no longer affect 
-    void expireSamples();
 };
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);

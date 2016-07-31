@@ -242,6 +242,8 @@
         <File Name="SineWaveform.hpp"/>
         <File Name="SineWaveform.cpp"/>
       </VirtualDirectory>
+      <File Name="SoundMemoryManager.cpp"/>
+      <File Name="SoundMemoryManager.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

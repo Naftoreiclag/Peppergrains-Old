@@ -19,11 +19,8 @@
 namespace pgg {
 namespace Sound {
 
-Waveform::Waveform() {
-}
-
-Waveform::~Waveform() {
-}
+Waveform::Waveform() { }
+Waveform::~Waveform() { }
 
 } // namespace Sound
 } // namespace pgg

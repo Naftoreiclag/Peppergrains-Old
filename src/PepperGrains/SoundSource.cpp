@@ -50,16 +50,17 @@ uint32_t Source::play(Waveform* waveform) {
     waveform->grab();
     mPlayingWaveforms.push_back(new PlayingWaveform(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
 }
-void Source::evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& modifiers) {
-    for(std::vector<PlayingWaveform*>::iterator iter = mPlayingWaveforms.begin(); iter != mPlayingWaveforms.end(); ++ iter) {
-        PlayingWaveform* playingWave = *iter;
-        
-        Sample output(playingWave->waveform);
-        
-        output.mModifiers = modifiers;
-        
-        sampleList.push_back(output);
-    }
+
+void Source::updateCalc(double time, Endpoint* endpnt, Receiver* receiver) {
+    assert(mControlledSamples.find(EndpointReceiverPair(endpnt, receiver)) != mControlledSamples.end() && "Attempted to update non-existent sample");
+    
+    Sample* sample = *mControlledSamples.find(EndpointReceiverPair(endpnt, receiver));
+    
+    sample->updateCalc(time, time);
+    
+    // ???
+    
+    // Update samples
 }
 
 void Source::load() { }

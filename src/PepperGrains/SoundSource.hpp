@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <map>
 
 #include "Vec3.hpp"
 #include "ReferenceCounted.hpp"
@@ -42,6 +43,8 @@ private:
         double const startTime;
     };
     
+    typedef std::pair<Endpoint*, Receiver*> EndpointReceiverPair;
+    std::map<EndpointReceiverPair, Sample*> mControlledSamples;
     std::vector<PlayingWaveform*> mPlayingWaveforms;
 public:
     struct Modifier {
@@ -71,6 +74,8 @@ public:
     
     uint32_t play(Waveform* waveform);
     void evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& modifiers);
+    
+    void updateCalc(double time, Endpoint* endpnt, Receiver* receiver);
     
     Modifier::Flag mEnabledModifiers;
     Vec3 mLocation;

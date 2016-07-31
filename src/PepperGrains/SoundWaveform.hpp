@@ -27,6 +27,10 @@ namespace Sound {
 /* The "raw" sound; no effects applied. Used by Samples during final mixing to
  * build the final buffer used by the Endpoint to send to the sound card.
  * 
+ * This class is effectively just a function describing a particular sound.
+ * The function is run on a different thread meant to run real-time, so nothing 
+ * too complicated is allowed here.
+ * 
  * This class is meant to be extended for sounds which are constructed in different
  * ways, such as a MIDI or voice synthesizer.
  * 

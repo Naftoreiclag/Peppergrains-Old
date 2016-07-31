@@ -135,28 +135,32 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
 
 void Endpoint::grabReciever(Receiver* receiver) {
     mReceivers.push_back(receiver);
+    receiver->grab();
 }
 
 void Endpoint::dropReceiver(Receiver* receiver) {
-    mReceivers.erase(std::remove(mReceivers.begin(), mReceivers.end(), receiver), mReceivers.end());
+    assert(mReceivers.find(receiver) != mReceivers.end() && "Attempted to drop endpoint from receiver which had not yet grabbed it");
     
+    mReceivers.erase(std::remove(mReceivers.begin(), mReceivers.end(), receiver), mReceivers.end());
     receiver->drop();
 }
 
-void Endpoint::evaluate() {
-    
-    std::vector<Sample> samples;
+void Endpoint::update(double time) {
     for(std::vector<Receiver*>::iterator iter = mReceivers.begin(); iter != mReceivers.end(); ++ iter) {
         Receiver* receiver = *iter;
-        receiver->evaluate(samples);
+        if(receiver->mRequestedContext || receiver->mRequestedEndpoint) {
+            
+        } else {
+            receiver->updateCalc(time, this);
+        }
     }
     
-    std::lock_guard<std::mutex> lock(mFinalMixMutex);
-    mFinalMix = samples;
-    for(std::vector<Waveform*>::iterator iter = mDirectWaveforms.begin(); iter != mDirectWaveforms.end(); ++ iter) {
-        Waveform* waveform = *iter;
-        Sample sample(waveform);
-        mFinalMix.push_back(sample);
+    {
+        std::lock_guard<std::mutex> lock(mFinalMixMutex);
+        for(std::vector<Receiver*>::iterator iter = mReceivers.begin(); iter != mReceivers.end(); ++ iter) {
+            Receiver* receiver = *iter;
+            receiver->updateSafe(time, this);
+        }
     }
 }
 

@@ -26,16 +26,9 @@ namespace Sound {
 Sample::Modifiers::Modifiers(float spd)
 : speed(spd) {
 }
-    
+
 Sample::Sample(Waveform* waveform)
 : mWaveform(waveform) {
-    if(mWaveform) {
-        mWaveform->grab();
-    }
-}
-Sample::Sample(const Sample& other)
-: mWaveform(other.mWaveform)
-, mModifiers(other.mModifiers) {
     if(mWaveform) {
         mWaveform->grab();
     }
@@ -47,22 +40,20 @@ Sample::~Sample() {
     }
 }
 
-Sample& Sample::operator=(const Sample& other) {
-    if(mWaveform) {
-        mWaveform->drop();
-    }
-    mWaveform = other.mWaveform;
-    if(mWaveform) {
-        mWaveform->grab();
-    }
-    mModifiers = mModifiers;
-    return *this;
-}
-
 void Sample::mix(double time, SoundIoChannelArea* channels, uint32_t channelCount, uint32_t frameCount, uint32_t sampleRate) const {
     if(mWaveform) {
         mWaveform->mix(mModifiers, time, channels, channelCount, frameCount, sampleRate);
     }
+}
+
+void Sample::updateCalc(double time, float progress) {
+    mLastUpdateTimestamp = time;
+    mProgress = progress;
+}
+
+void Sample::updateSync() {
+    mSyncLastUpdateTimestamp = mLastUpdateTimestamp;
+    mSyncProgress = progress;
 }
 
 } // namespace Sound

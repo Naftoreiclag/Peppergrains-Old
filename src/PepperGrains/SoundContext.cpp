@@ -28,16 +28,11 @@ Context::Context(float machSpeed)
 Context::~Context() {
 }
 
-void Context::evaluate(Receiver* receiver, std::vector<Sample>& sampleList) {
+void Context::updateCalc(double time, Endpoint* endpnt, Receiver* receiver) {
     for(std::vector<Source*>::iterator iter = mSources.begin(); iter != mSources.end(); ++ iter) {
         Source* source = *iter;
         
-        Sample::Modifiers modifiers;
-        
-        // TODO: Adjust modifier based on source modifier flags and 3D orientations
-        modifiers.speed = 1.0f;
-        
-        source->evaluate(sampleList, modifiers);
+        source->updateCalc(time, Endpoint* endpnt, Receiver* receiver);
     }
 }
 

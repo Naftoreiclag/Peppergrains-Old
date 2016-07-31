@@ -31,8 +31,6 @@ namespace Sound {
  * 
  * Samples typically share a single Waveform with other Samples.
  * 
- * Waveform grab()'ing behaves like smart pointer
- * 
  */
 class Waveform;
 class Sample {
@@ -44,11 +42,7 @@ public:
     };
 public:
     Sample(Waveform* waveform = nullptr);
-    Sample(const Sample& other);
     ~Sample();
-    
-    // Assignment
-    Sample& operator=(const Sample& other);
     
     void mix(
         double time, 
@@ -56,8 +50,20 @@ public:
         uint32_t channelCount, uint32_t frameCount, 
         uint32_t sampleRate) const;
 
+    //
+    void updateCalc(double time, float progress);
+    void updateSync();
+
     Waveform* mWaveform;
     Modifiers mModifiers;
+    
+    // Last update data
+    double mLastUpdateTimestamp;
+    float mProgress;
+    
+    //
+    double mSyncLastUpdateTimestamp;
+    double mSyncProgress;
 };
 
 } // namespace Sound
