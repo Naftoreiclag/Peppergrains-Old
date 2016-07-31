@@ -29,10 +29,10 @@ public:
     float mFrequency;
     
     void mix(
-        const Sound::Sample::Modifiers& modifiers, double time, 
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
-        uint32_t sampleRate) const;
+        double start,
+        double end) const;
 
     void load();
     void unload();

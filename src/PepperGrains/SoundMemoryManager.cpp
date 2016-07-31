@@ -19,7 +19,7 @@
 namespace pgg {
 namespace Sound {
 
-static MemoryManager* MemoryManager::getSingleton() {
+MemoryManager* MemoryManager::getSingleton() {
     static MemoryManager instance;
     return &instance;
 }

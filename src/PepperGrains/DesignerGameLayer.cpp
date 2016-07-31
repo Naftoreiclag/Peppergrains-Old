@@ -362,6 +362,7 @@ void DesignerGameLayer::onBegin() {
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
+    /*
     mSndContext = new Sound::Context();
     mSndContext->grab();
     
@@ -378,6 +379,7 @@ void DesignerGameLayer::onBegin() {
     source->drop();
     
     mSndEndpoint->grabReciever(mSndReceiver);
+    */
     
     
     ResourceManager* resman = ResourceManager::getSingleton();

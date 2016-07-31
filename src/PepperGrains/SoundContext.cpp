@@ -32,7 +32,7 @@ void Context::updateCalc(double time, Endpoint* endpnt, Receiver* receiver) {
     for(std::vector<Source*>::iterator iter = mSources.begin(); iter != mSources.end(); ++ iter) {
         Source* source = *iter;
         
-        source->updateCalc(time, Endpoint* endpnt, Receiver* receiver);
+        //source->updateCalc(time, Endpoint* endpnt, Receiver* receiver);
     }
 }
 

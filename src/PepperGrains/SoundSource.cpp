@@ -21,10 +21,10 @@
 namespace pgg {
 namespace Sound {
 
-Source::PlayingWaveform::PlayingWaveform(Waveform* waveform, double startTime)
+Source::PlayingWaveformInterface::PlayingWaveformInterface(Waveform* waveform, double startTime)
 : waveform(waveform)
 , startTime(startTime) { }
-Source::PlayingWaveform::~PlayingWaveform() { }
+Source::PlayingWaveformInterface::~PlayingWaveformInterface() { }
 
 // 3D effects:
 const Source::Modifier::Flag Source::Modifier::DOPPLER = 0x0001;
@@ -48,15 +48,15 @@ Source::~Source() {
 }
 uint32_t Source::play(Waveform* waveform) {
     waveform->grab();
-    mPlayingWaveforms.push_back(new PlayingWaveform(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
+    mPlayingWaveforms.push_back(new PlayingWaveformInterface(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
 }
 
 void Source::updateCalc(double time, Endpoint* endpnt, Receiver* receiver) {
     assert(mControlledSamples.find(EndpointReceiverPair(endpnt, receiver)) != mControlledSamples.end() && "Attempted to update non-existent sample");
     
-    Sample* sample = *mControlledSamples.find(EndpointReceiverPair(endpnt, receiver));
+    //Sample* sample = *mControlledSamples.find(EndpointReceiverPair(endpnt, receiver));
     
-    sample->updateCalc(time, time);
+    //sample->updateCalc(time, time);
     
     // ???
     

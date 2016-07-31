@@ -40,39 +40,77 @@ namespace Sound {
  * 
  * Example: a program's single endpoint
  */
+
+// cgt = current global time, i.e. a timestamp for when a particular function/method is called
+
+struct ThreadData {
+    ThreadData(double startTime = 0.0);
+    
+    double progress;
+};
+
+class PlayingWaveformInterface : public ReferenceCounted {
+private:
+    Waveform* const mWaveform;
+    ThreadData* const mThreadData;
+    
+    // Update data
+    double mUpdateTimestamp;
+    double mProgressUpdate;
+    
+    // In the absense of timely update data, the sound thread will continue 
+    // to produce noise based on this dead reckoning information
+    double mSpeedReckon;
+    
+    // If true, stop playing the sound as soon as possible (next sound thread iteration)
+    bool mStopAsap;
+    
+    void load();
+    void unload();
+    
+public:
+    PlayingWaveformInterface(Waveform* waveform, double cgt, double currentPos);
+    ~PlayingWaveformInterface();
+    
+    PlayingWaveformInterface* updateProgress(double cgt, double progress);
+    PlayingWaveformInterface* reckonSpeed(double speed);
+    
+    void asapStop();
+    
+    friend class Endpoint;
+    friend class PlayingWaveform;
+};
+
+struct PlayingWaveform {
+    
+    PlayingWaveform(PlayingWaveformInterface* pwi);
+    
+    Waveform* waveform;
+    double timestamp;
+    double speedReckon;
+    double progress;
+    ThreadData* threadData;
+};
+
 class Endpoint {
 private:
     SoundIoDevice* mDevice;
     SoundIoOutStream* mStream;
     
-    std::vector<ReceiverMixer> mReceivers;
+    std::mutex mSoundioThreadMutex;
     
-    std::mutex mFinalMixMutex;
-    struct ReceiverMixer {
-        Receiver* receiver;
-        std::vector<Sample*> finalMix;
-    };
-    
-    // Accumulated time in seconds
-    std::mutex mRuntimeMutex;
-    double mRuntime;
+    std::vector<PlayingWaveformInterface*> mPlayingWaveforms;
+    std::vector<PlayingWaveform> mThreadWaveforms;
 public:
     Endpoint();
     ~Endpoint();
     
-    void addReceiver(Receiver* receiver);
-    
     void setDevice(SoundIoDevice* device);
-    
     void writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames);
     
-    void grabReciever(Receiver* receiver);
-    void dropReceiver(Receiver* receiver);
+    void updateSoundThread();
     
-    void update(double time);
-    
-    double getRuntime();
-    void syncRuntime();
+    PlayingWaveformInterface* playWaveform(Waveform* waveform, double cgt, double startPos = 0.0);
 };
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);

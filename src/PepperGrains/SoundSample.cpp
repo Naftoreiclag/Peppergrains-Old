@@ -42,7 +42,7 @@ Sample::~Sample() {
 
 void Sample::mix(double time, SoundIoChannelArea* channels, uint32_t channelCount, uint32_t frameCount, uint32_t sampleRate) const {
     if(mWaveform) {
-        mWaveform->mix(mModifiers, time, channels, channelCount, frameCount, sampleRate);
+        //mWaveform->mix(mModifiers, time, channels, channelCount, frameCount, sampleRate);
     }
 }
 
@@ -53,7 +53,7 @@ void Sample::updateCalc(double time, float progress) {
 
 void Sample::updateSync() {
     mSyncLastUpdateTimestamp = mLastUpdateTimestamp;
-    mSyncProgress = progress;
+    //mSyncProgress = progress;
 }
 
 } // namespace Sound

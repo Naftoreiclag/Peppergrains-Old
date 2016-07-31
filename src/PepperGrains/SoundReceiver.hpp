@@ -29,37 +29,12 @@ namespace Sound {
 class Context;
 class Endpoint;
 
-/* Gathers sounds; analogous to an ear or microphone. During final mixing, the
- * Receiever queries the Context to construct the list of samples to be used by
- * the Endpoint.
- */
-class Receiver : public ReferenceCounted {
+class Receiver {
 public:
     Vec3 mLocation;
-    Context* mContext;
-    Endpoint* mEndpoint;
-    
-    Context* mRequestedContext;
-    Endpoint* mRequestedEndpoint;
-    
 public:
-    Receiver(Context* context = nullptr, Endpoint* endpoint = nullptr);
+    Receiver();
     ~Receiver();
-    
-    std::vector<Sample*> mSamples;
-    
-    // Note: due to multithreading, this change is delayed until after the next endpoint update
-    void setContext(Context* context);
-    void unsetContext(); // Equivalent to setContext(nullptr);
-    
-    // Note: due to multithreading, this change is delayed until after the next endpoint update
-    void setEndpoint(Endpoint* endpoint);
-    void unsetEndpoint(); // Equivalent to setEndpoint(nullptr);
-    
-    void updateCalc(double time, Endpoint* endpnt);
-    
-    void load();
-    void unload();
     
 };
 

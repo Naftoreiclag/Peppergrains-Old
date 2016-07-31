@@ -42,10 +42,10 @@ public:
     virtual ~Waveform();
     
     virtual void mix(
-        const Sample::Modifiers& modifiers, double time, 
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
-        uint32_t sampleRate) const = 0;
+        double start,
+        double end) const = 0;
     
     virtual void load() = 0;
     virtual void unload() = 0;

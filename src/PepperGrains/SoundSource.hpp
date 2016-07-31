@@ -26,6 +26,8 @@
 #include "SoundWaveform.hpp"
 #include "SoundSample.hpp"
 
+#include "SoundEndpoint.hpp"
+
 namespace pgg {
 namespace Sound {
 
@@ -35,9 +37,9 @@ namespace Sound {
  */
 class Source : public ReferenceCounted {
 private:
-    struct PlayingWaveform {
-        PlayingWaveform(Waveform* waveform, double startTime);
-        ~PlayingWaveform();
+    struct PlayingWaveformInterface {
+        PlayingWaveformInterface(Waveform* waveform, double startTime);
+        ~PlayingWaveformInterface();
         
         Waveform* const waveform;
         double const startTime;
@@ -45,7 +47,7 @@ private:
     
     typedef std::pair<Endpoint*, Receiver*> EndpointReceiverPair;
     std::map<EndpointReceiverPair, Sample*> mControlledSamples;
-    std::vector<PlayingWaveform*> mPlayingWaveforms;
+    std::vector<PlayingWaveformInterface*> mPlayingWaveforms;
 public:
     struct Modifier {
         typedef uint16_t Flag;
