@@ -104,6 +104,8 @@ void Endpoint::setDevice(SoundIoDevice* device) {
         return;
     }
     
+    mRunningTime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
+    
     mStream->format = SoundIoFormatFloat32NE;
     mStream->write_callback = endpointSoundIoWriteCallback;
     mStream->userdata = this;
@@ -136,8 +138,6 @@ void Endpoint::setDevice(SoundIoDevice* device) {
 }
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames) {
-    
-    double cgt = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
     
     const SoundIoChannelLayout& layout = stream->layout;
     
@@ -181,13 +181,13 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
                 PlayingWaveform pw = *iter;
                 ThreadData* td = pw.threadData;
                 
-                double startX = cgt;
+                double startX = mRunningTime;
                 double endX = startX + chunkDuration;
                 
                 double startY = td->progress;
                 double endY = ((endX - pw.timestamp) * pw.speedReckon) + pw.progress;
                 
-                endY = startY + (chunkDuration * pw.speedReckon); // temp
+                //endY = startY + (chunkDuration * pw.speedReckon); // temp
                 
                 pw.waveform->mix(channels, channelCount, frameCount, startY, endY);
                 td->progress = endY;
@@ -195,7 +195,7 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
         }
         soundio_outstream_end_write(stream);
         framesRemaining -= frameCount;
-        cgt += chunkDuration;
+        mRunningTime += chunkDuration;
     }
 }
 

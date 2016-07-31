@@ -101,6 +101,8 @@ private:
     
     std::vector<PlayingWaveformInterface*> mPlayingWaveforms;
     std::vector<PlayingWaveform> mThreadWaveforms;
+    
+    double mRunningTime;
 public:
     Endpoint();
     ~Endpoint();
