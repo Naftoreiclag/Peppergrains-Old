@@ -186,6 +186,7 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
                 
                 double startY = td->progress;
                 double endY = ((endX - pw.timestamp) * pw.speedReckon) + pw.progress;
+                endY = startY + chunkDuration;
                 
                 pw.waveform->mix(channels, channelCount, frameCount, startY, endY);
                 td->progress = endY;
@@ -221,6 +222,7 @@ void Endpoint::updateSoundThread() {
                 continue;
             }
             mThreadWaveforms.push_back(PlayingWaveform(pwi));
+            std::cout << pwi->mThreadData->progress << std::endl;
         }
     }
     if(needsDeletion) {

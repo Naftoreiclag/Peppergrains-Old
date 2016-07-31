@@ -34,14 +34,14 @@ void SineWaveform::mix(
     double start,
     double end) const
 {
-    float frameDuration = frameCount / (end - start);
+    double frameDuration = 1.0 / 48000.0;//((double) frameCount) / ((end - start) * 48000.0);
     float radSpeed = mFrequency * 6.2831853f;
     
     for(uint32_t channelIndex = 0; channelIndex < channelCount; ++ channelIndex) {
         SoundIoChannelArea& channel = channels[channelIndex];
         
         for(uint32_t frame = 0; frame < frameCount; ++ frame) {
-            float sineWave = sinf((start + frame * frameDuration) * radSpeed);
+            float sineWave = sinf((start + frameDuration * frame) * radSpeed);
             float& sample = *reinterpret_cast<float*>(channel.ptr + channel.step * frame);
             sample += sineWave;
         }
