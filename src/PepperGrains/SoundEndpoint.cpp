@@ -186,7 +186,8 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
                 
                 double startY = td->progress;
                 double endY = ((endX - pw.timestamp) * pw.speedReckon) + pw.progress;
-                endY = startY + chunkDuration;
+                
+                endY = startY + (chunkDuration * pw.speedReckon); // temp
                 
                 pw.waveform->mix(channels, channelCount, frameCount, startY, endY);
                 td->progress = endY;

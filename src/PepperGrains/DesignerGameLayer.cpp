@@ -363,25 +363,9 @@ void DesignerGameLayer::onBegin() {
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
     
-    mSndEndpoint->playWaveform(new SineWaveform(440.f), 0);
-    /*
-    mSndContext = new Sound::Context();
-    mSndContext->grab();
-    
-    mSndReceiver = new Sound::Receiver(mSndContext);
-    mSndReceiver->grab();
-    
-    
-    Sound::Source* source = new Sound::Source();
-    source->grab();
-    source->play(new SineWaveform(440.f));
-    //source->play(new SineWaveform(220.f));
-    //source->play(new SineWaveform(110.f));
-    mSndContext->grabSource(source);
-    source->drop();
-    
-    mSndEndpoint->grabReciever(mSndReceiver);
-    */
+    mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f), 0);
+    mQwerty = 0.0;
+    mPwi->updateProgress(PepperGrains::getSingleton()->getRunningTimeMilliseconds(), mQwerty);
     
     
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -712,6 +696,15 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
     cyclicSinusodal = (std::sin(cyclicSawtooth * 6.2831f) + 1.f) * 0.5f;
     
     mMouseLoc = Vec2(((float) inputStates->getMouseX()) / ((float) mScreenWidth), ((float) inputStates->getMouseY()) / ((float) mScreenHeight));
+    
+    {
+        double asdf = (mMouseLoc.y * 1.4) + 0.1;
+        if(asdf < 0.1) asdf = 0.1;
+        if(asdf > 1.5) asdf = 1.5;
+        mPwi->reckonSpeed(asdf);
+        mQwerty += asdf * tpf;
+        mPwi->updateProgress(PepperGrains::getSingleton()->getRunningTimeMilliseconds(), mQwerty);
+    }
     
     Vec3 movement;
     if(inputStates->isPressed(Input::Scancode::K_D)) {

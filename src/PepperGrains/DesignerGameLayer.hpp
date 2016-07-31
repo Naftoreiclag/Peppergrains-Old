@@ -45,6 +45,8 @@ private:
     std::vector<Plate*> mPlates;
     
     InfiniteCheckerboardModel* mInfCheck;
+    Sound::PlayingWaveformInterface* mPwi;
+    double mQwerty;
     
     btRigidBody* mPlaneRigid;
     
