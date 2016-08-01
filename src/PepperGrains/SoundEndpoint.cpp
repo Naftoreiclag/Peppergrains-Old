@@ -64,9 +64,9 @@ void PlayingWaveformInterface::asapStop() {
 
 PlayingWaveform::PlayingWaveform(PlayingWaveformInterface* pwi)
 : waveform(pwi->mWaveform)
-, timestamp(pwi->mUpdateTimestamp)
-, speedReckon(pwi->mSpeedReckon)
-, progress(pwi->mProgressUpdate)
+, linearX(pwi->mUpdateTimestamp)
+, linearY(pwi->mProgressUpdate)
+, linearSlope(pwi->mSpeedReckon)
 , threadData(pwi->mThreadData) {
 }
     
@@ -104,7 +104,7 @@ void Endpoint::setDevice(SoundIoDevice* device) {
         return;
     }
     
-    mRunningTime = PepperGrains::getSingleton()->getRunningTimeMilliseconds();
+    mRunningTime = 0.0;//PepperGrains::getSingleton()->getRunningTimeMilliseconds();
     
     mStream->format = SoundIoFormatFloat32NE;
     mStream->write_callback = endpointSoundIoWriteCallback;
@@ -181,21 +181,21 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
                 PlayingWaveform pw = *iter;
                 ThreadData* td = pw.threadData;
                 
-                double startX = mRunningTime;
+                double startX = PepperGrains::getSingleton()->getRunningTimeSeconds();//mRunningTime;
                 double endX = startX + chunkDuration;
                 
                 double startY = td->progress;
-                double endY = ((endX - pw.timestamp) * pw.speedReckon) + pw.progress;
+                double endY = pw.linearY + ((endX - pw.linearX) * pw.linearSlope);
                 
-                //endY = startY + (chunkDuration * pw.speedReckon); // temp
+                //endY = startY + (chunkDuration * pw.linearSlope); // temp
                 
                 pw.waveform->mix(channels, channelCount, frameCount, startY, endY);
                 td->progress = endY;
             }
+            mRunningTime += chunkDuration;
         }
         soundio_outstream_end_write(stream);
         framesRemaining -= frameCount;
-        mRunningTime += chunkDuration;
     }
 }
 
@@ -240,6 +240,11 @@ void Endpoint::updateSoundThread() {
         }
     }
     
+}
+
+double Endpoint::getRunningTime() {
+    std::lock_guard<std::mutex> lock(mSoundioThreadMutex);
+    return mRunningTime;
 }
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames) {

@@ -86,9 +86,9 @@ struct PlayingWaveform {
     PlayingWaveform(PlayingWaveformInterface* pwi);
     
     Waveform* waveform;
-    double timestamp;
-    double speedReckon;
-    double progress;
+    double linearX;
+    double linearY;
+    double linearSlope;
     ThreadData* threadData;
 };
 
@@ -111,6 +111,7 @@ public:
     void writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames);
     
     void updateSoundThread();
+    double getRunningTime();
     
     PlayingWaveformInterface* playWaveform(Waveform* waveform, double cgt, double startPos = 0.0);
 };
