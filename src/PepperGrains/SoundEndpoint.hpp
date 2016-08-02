@@ -139,7 +139,7 @@ public:
     void updateSoundThread();
     double getRunningTime();
     
-    PlayingWaveformInterface* playWaveform(Waveform* waveform, double cgt, double startPos = 0.0);
+    PlayingWaveformInterface* playWaveform(Waveform* waveform, double phase = 0.0, double amplitude = 1.0);
 };
 
 void endpointSoundIoWriteCallback(SoundIoOutStream* stream, int minFrames, int maxFrames);

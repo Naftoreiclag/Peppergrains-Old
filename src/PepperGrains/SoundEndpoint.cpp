@@ -162,7 +162,21 @@ void Endpoint::setDevice(SoundIoDevice* device) {
     }
 }
 
+PlayingWaveformInterface* Endpoint::playWaveform(Waveform* waveform, double phase, double amplitude) {
+    PlayingWaveformInterface* pwi = new PlayingWaveformInterface(waveform, phase, amplitude);
+    
+    // No need to intepret if there is no waveform
+    if(waveform) {
+        pwi->grab();
+        mPlayingWaveforms.push_back(pwi);
+    }
+    
+    return pwi;
+}
+
 void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames) {
+    
+    double time = PepperGrains::getSingleton()->getRunningTimeSeconds();
     
     const SoundIoChannelLayout& layout = stream->layout;
     
@@ -216,10 +230,11 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
                 }
                 
                 double endPhase = td->mPhase + pw.mPhaseLinearTerm * chunkDuration;
-                double endAmplitude = td->mAmplitude + pw.mPhaseLinearTerm * chunkDuration;
+                double endAmplitude = td->mAmplitude + pw.mAmplitudeLinearTerm * chunkDuration;
                 
                 pw.mWaveform->mix(channels, channelCount, frameCount, td->mPhase, endPhase, td->mAmplitude, endAmplitude);
                 
+                td->mTimestamp = time;
                 td->mPhase = endPhase;
                 td->mAmplitude = endAmplitude;
             }
@@ -228,18 +243,6 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
         soundio_outstream_end_write(stream);
         framesRemaining -= frameCount;
     }
-}
-
-PlayingWaveformInterface* Endpoint::playWaveform(Waveform* waveform, double cgt, double startPos) {
-    PlayingWaveformInterface* pwi = new PlayingWaveformInterface(waveform, cgt, startPos);
-    
-    // No need to intepret if there is no waveform
-    if(waveform) {
-        pwi->grab();
-        mPlayingWaveforms.push_back(pwi);
-    }
-    
-    return pwi;
 }
 
 void Endpoint::updateSoundThread() {

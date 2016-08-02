@@ -363,8 +363,7 @@ void DesignerGameLayer::onBegin() {
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
     
-    mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f), 0);
-    
+    mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f));
     
     ResourceManager* resman = ResourceManager::getSingleton();
     
