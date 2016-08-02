@@ -44,8 +44,10 @@ public:
     virtual void mix(
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
-        double start,
-        double end) const = 0;
+        double startPhase,
+        double endPhase,
+        double startAmplitude,
+        double endAmplitude) const = 0;
     
     virtual void load() = 0;
     virtual void unload() = 0;

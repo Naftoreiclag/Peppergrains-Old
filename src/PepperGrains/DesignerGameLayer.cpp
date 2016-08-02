@@ -364,9 +364,6 @@ void DesignerGameLayer::onBegin() {
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
     
     mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f), 0);
-    mQwerty = 0.0;
-    mPwi->updateProgress(PepperGrains::getSingleton()->getRunningTimeSeconds(), mQwerty);
-    mPwi->reckonSpeed(1.0);
     
     
     ResourceManager* resman = ResourceManager::getSingleton();
@@ -702,9 +699,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         double asdf = (mMouseLoc.y * 1.4) + 0.1;
         if(asdf < 0.1) asdf = 0.1;
         if(asdf > 1.5) asdf = 1.5;
-        mPwi->reckonSpeed(asdf);
-        mQwerty += asdf * tpf;
-        mPwi->updateProgress(PepperGrains::getSingleton()->getRunningTimeSeconds(), mQwerty);
+        mPwi->setPhaseLinearTerm(asdf);
     }
     
     Vec3 movement;

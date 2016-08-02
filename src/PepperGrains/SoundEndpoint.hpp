@@ -43,53 +43,79 @@ namespace Sound {
 
 // cgt = current global time, i.e. a timestamp for when a particular function/method is called
 
+// Data allocated for use by the sound thread; allocation managed by main thread
 struct ThreadData {
-    ThreadData(double startTime = 0.0);
+    ThreadData(double phase, double amplitude);
     
-    double progress;
+    double mTimestamp;
+    double mPhase;
+    double mAmplitude;
 };
 
+// Allows external real-time adjustment of how sounds are being played in the sound thread
 class PlayingWaveformInterface : public ReferenceCounted {
 private:
+    // Holds method used to produce sound
     Waveform* const mWaveform;
+    
+    // Sound thread writes directly to this allocated data
     ThreadData* const mThreadData;
     
-    // Update data
-    double mUpdateTimestamp;
-    double mProgressUpdate;
+    // Data copied from mThreadData;
+    double mPreviousTimestamp;
+    double mPreviousPhase;
+    double mPreviousAmplitude;
     
-    // In the absense of timely update data, the sound thread will continue 
-    // to produce noise based on this dead reckoning information
-    double mSpeedReckon;
+    // Data sent to the sound thread, populated by external methods:
     
-    // If true, stop playing the sound as soon as possible (next sound thread iteration)
-    bool mStopAsap;
+    // Instantaneous
+    bool mSetPhaseFlag; // True when progress is forced to a certain value
+    double mSetPhase; // What to set the progress to
+    bool mSetAmplitudeFlag; // True when amplitude is forced to a certain value
+    double mSetAmplitude; // What to set the amplitude to
+    bool mStopFlag; // True when requesting stop
+    
+    // Continuous, how various attributes should be advanced within the sound thread
+    double mPhaseLinearTerm;
+    double mAmplitudeLinearTerm;
     
     void load();
     void unload();
     
 public:
-    PlayingWaveformInterface(Waveform* waveform, double cgt, double currentPos);
+    PlayingWaveformInterface(Waveform* waveform, double phase, double amplitude);
     ~PlayingWaveformInterface();
     
-    PlayingWaveformInterface* updateProgress(double cgt, double progress);
-    PlayingWaveformInterface* reckonSpeed(double speed);
+    PlayingWaveformInterface* setPhaseLinearTerm(double speed);
+    PlayingWaveformInterface* setPhase(double phase);
+    PlayingWaveformInterface* setAmplitudeLinearTerm(double m);
+    PlayingWaveformInterface* setAmplitude(double amplitude);
+    void stop();
     
-    void asapStop();
+    double getPreviousPhase();
+    double getInterpolatedPhase();
+    double getPreviousAmplitude();
+    double getInterpolatedAmplitude();
     
     friend class Endpoint;
     friend class PlayingWaveform;
 };
 
+// Commodity struct, used to communicate between threads
 struct PlayingWaveform {
-    
+    // Main thread -> sound thread
     PlayingWaveform(PlayingWaveformInterface* pwi);
+    Waveform* mWaveform;
+    bool mSetPhaseFlag;
+    double mSetPhase;
+    bool mSetAmplitudeFlag;
+    double mSetAmplitude;
+    bool mStopFlag;
+    double mPhaseLinearTerm;
+    double mAmplitudeLinearTerm;
     
-    Waveform* waveform;
-    double linearX;
-    double linearY;
-    double linearSlope;
-    ThreadData* threadData;
+    // Sound thread -> main thread
+    ThreadData* mThreadData;
 };
 
 class Endpoint {

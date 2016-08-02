@@ -26,16 +26,23 @@
 namespace pgg {
 namespace Sound {
 
-ThreadData::ThreadData(double startTime)
-: progress(startTime) {
+ThreadData::ThreadData(double phase, double amplitude)
+: mTimestamp(-1.0)
+, mPhase(phase)
+, mAmplitude(amplitude) {
 }
     
-PlayingWaveformInterface::PlayingWaveformInterface(Waveform* waveform, double cgt, double currentPos)
+PlayingWaveformInterface::PlayingWaveformInterface(Waveform* waveform, double phase, double amplitude)
 : mWaveform(waveform)
-, mThreadData(new ThreadData(currentPos))
-, mUpdateTimestamp(cgt)
-, mProgressUpdate(currentPos)
-, mStopAsap(false) {
+, mThreadData(new ThreadData(phase, amplitude))
+, mPreviousTimestamp(-1.0)
+, mPreviousPhase(phase)
+, mPreviousAmplitude(amplitude)
+, mSetPhaseFlag(false)
+, mSetAmplitudeFlag(false)
+, mStopFlag(false)
+, mPhaseLinearTerm(1.0)
+, mAmplitudeLinearTerm(1.0) {
     if(mWaveform) {
         mWaveform->grab();
     }
@@ -46,28 +53,46 @@ PlayingWaveformInterface::~PlayingWaveformInterface() {
     }
     delete mThreadData;
 }
-void PlayingWaveformInterface::load() { }
-void PlayingWaveformInterface::unload() { delete this; }
-PlayingWaveformInterface* PlayingWaveformInterface::reckonSpeed(double speed) {
-    mSpeedReckon = speed;
+
+PlayingWaveformInterface* PlayingWaveformInterface::setPhaseLinearTerm(double speed) {
+    mPhaseLinearTerm = speed;
     return this;
 }
-PlayingWaveformInterface* PlayingWaveformInterface::updateProgress(double cgt, double progress) {
-    mUpdateTimestamp = cgt;
-    mProgressUpdate = progress;
+PlayingWaveformInterface* PlayingWaveformInterface::setPhase(double phase) {
+    mSetPhase = phase;
+    mSetPhaseFlag = true;
     return this;
 }
-void PlayingWaveformInterface::asapStop() {
-    mStopAsap = true;
-    mSpeedReckon = 0.f;
+PlayingWaveformInterface* PlayingWaveformInterface::setAmplitudeLinearTerm(double m) {
+    mAmplitudeLinearTerm = m;
+    return this;
+}
+PlayingWaveformInterface* PlayingWaveformInterface::setAmplitude(double amplitude) {
+    mSetAmplitude = amplitude;
+    mSetAmplitudeFlag = true;
+    return this;
+}
+void PlayingWaveformInterface::stop() {
+    mStopFlag = true;
 }
 
+double PlayingWaveformInterface::getPreviousPhase() {
+    return mPreviousPhase;
+}
+
+void PlayingWaveformInterface::load() { }
+void PlayingWaveformInterface::unload() { delete this; }
+
 PlayingWaveform::PlayingWaveform(PlayingWaveformInterface* pwi)
-: waveform(pwi->mWaveform)
-, linearX(pwi->mUpdateTimestamp)
-, linearY(pwi->mProgressUpdate)
-, linearSlope(pwi->mSpeedReckon)
-, threadData(pwi->mThreadData) {
+: mWaveform(pwi->mWaveform)
+, mThreadData(pwi->mThreadData)
+, mSetPhaseFlag(pwi->mSetPhaseFlag)
+, mSetPhase(pwi->mSetPhase)
+, mSetAmplitudeFlag(pwi->mSetAmplitudeFlag)
+, mSetAmplitude(pwi->mSetAmplitude)
+, mStopFlag(pwi->mStopFlag)
+, mPhaseLinearTerm(pwi->mPhaseLinearTerm)
+, mAmplitudeLinearTerm(pwi->mAmplitudeLinearTerm) {
 }
     
 Endpoint::Endpoint()
@@ -179,18 +204,24 @@ void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint3
             for(std::vector<PlayingWaveform>::iterator iter = mThreadWaveforms.begin(); iter != mThreadWaveforms.end(); ++ iter) {
                 // Copying rather than reference arguably more efficient here
                 PlayingWaveform pw = *iter;
-                ThreadData* td = pw.threadData;
                 
-                double startX = PepperGrains::getSingleton()->getRunningTimeSeconds();//mRunningTime;
-                double endX = startX + chunkDuration;
+                // Persistent data
+                ThreadData* td = pw.mThreadData;
                 
-                double startY = td->progress;
-                double endY = pw.linearY + ((endX - pw.linearX) * pw.linearSlope);
+                if(pw.mSetAmplitudeFlag) {
+                    td->mAmplitude = pw.mSetAmplitude;
+                }
+                if(pw.mSetPhaseFlag) {
+                    td->mPhase = pw.mSetPhase;
+                }
                 
-                //endY = startY + (chunkDuration * pw.linearSlope); // temp
+                double endPhase = td->mPhase + pw.mPhaseLinearTerm * chunkDuration;
+                double endAmplitude = td->mAmplitude + pw.mPhaseLinearTerm * chunkDuration;
                 
-                pw.waveform->mix(channels, channelCount, frameCount, startY, endY);
-                td->progress = endY;
+                pw.mWaveform->mix(channels, channelCount, frameCount, td->mPhase, endPhase, td->mAmplitude, endAmplitude);
+                
+                td->mPhase = endPhase;
+                td->mAmplitude = endAmplitude;
             }
             mRunningTime += chunkDuration;
         }
@@ -218,21 +249,24 @@ void Endpoint::updateSoundThread() {
         mThreadWaveforms.clear();
         for(std::vector<PlayingWaveformInterface*>::iterator iter = mPlayingWaveforms.begin(); iter != mPlayingWaveforms.end(); ++ iter) {
             PlayingWaveformInterface* pwi = *iter;
-            if(pwi->mStopAsap) {
+            ThreadData* td = pwi->mThreadData;
+
+            pwi->mPreviousTimestamp = td->mTimestamp;
+            pwi->mPreviousPhase = td->mPhase;
+            pwi->mPreviousAmplitude = td->mAmplitude;
+            if(pwi->mStopFlag) {
                 needsDeletion = true;
                 continue;
             }
             mThreadWaveforms.push_back(PlayingWaveform(pwi));
-            std::cout << pwi->mThreadData->progress << std::endl;
         }
     }
     if(needsDeletion) {
         for(size_t index = 0; index < mPlayingWaveforms.size();) {
             PlayingWaveformInterface* pwi = mPlayingWaveforms[index];
-            if(pwi->mStopAsap) {
+            if(pwi->mStopFlag) {
                 std::swap(pwi, mPlayingWaveforms.back());
                 mPlayingWaveforms.pop_back();
-                
                 pwi->drop();
             } else {
                 ++ index;

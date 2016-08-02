@@ -31,8 +31,10 @@ public:
     void mix(
         SoundIoChannelArea* channels, uint32_t channelCount, 
         uint32_t frameCount, 
-        double start,
-        double end) const;
+        double startPhase,
+        double endPhase,
+        double startAmplitude,
+        double endAmplitude) const;
 
     void load();
     void unload();
