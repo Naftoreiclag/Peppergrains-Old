@@ -18,6 +18,7 @@
 #define PGG_PEPPERGRAINS_HPP
 
 #include "soundio/soundio.h"
+#include "lua.hpp"
 
 #include "GameLayerMachine.hpp"
 #include "SoundEndpoint.hpp"
@@ -33,6 +34,10 @@ public:
 private:
     SoundIo* mSndIo;
     SoundIoDevice* mSndDevice;
+    
+    float mTps;
+    float mTpsWeight;
+    float mOneSecondTimer;
 public:
     Sound::Endpoint* mSndEndpoint;
 

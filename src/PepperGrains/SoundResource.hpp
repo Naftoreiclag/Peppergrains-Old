@@ -14,37 +14,31 @@
    limitations under the License.
 */
 
-#ifndef PGG_MECHBODY_HPP
-#define PGG_MECHBODY_HPP
+#ifndef PGG_SOUNDRESOURCE_HPP
+#define PGG_SOUNDRESOURCE_HPP
 
-#include <vector>
-#include <stdint.h>
+#include "SoundWaveform.hpp"
+#include "Resource.hpp"
 
 namespace pgg {
 
-class MechBody {
-private:
-    class Plate {
-        
-        Plate();
-        virtual ~Plate();
-        
-        int32_t mLocX;
-        int32_t mLocY;
-        int32_t mLocZ;
-        
-        int32_t mScaleX;
-        int32_t mScaleY;
-        int32_t mScaleZ;
-    };
-    
+class SoundResource : public Resource, public Sound::Waveform {
 public:
-    MechBody();
-    ~MechBody();
+    SoundResource();
+    ~SoundResource();
     
-    std::vector<Plate*> mPlates;
+    void mix(
+        SoundIoChannelArea* channels, uint32_t channelCount, 
+        uint32_t frameCount, 
+        double startPhase,
+        double endPhase,
+        double startAmplitude,
+        double endAmplitude) const;
+        
+    void load();
+    void unload();
 };
 
-}
+} // namespace pgg
 
-#endif // PGG_MECHBODY_HPP
+#endif // PGG_SOUNDRESOURCE_HPP

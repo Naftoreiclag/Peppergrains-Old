@@ -16,15 +16,9 @@
 
 #include "SoundSource.hpp"
 
-#include "PepperGrains.hpp"
-
 namespace pgg {
 namespace Sound {
 
-Source::PlayingWaveformInterface::PlayingWaveformInterface(Waveform* waveform, double startTime)
-: waveform(waveform)
-, startTime(startTime) { }
-Source::PlayingWaveformInterface::~PlayingWaveformInterface() { }
 
 // 3D effects:
 const Source::Modifier::Flag Source::Modifier::DOPPLER = 0x0001;
@@ -45,22 +39,6 @@ Source::Source(Modifier::Flag flags) {
 }
 
 Source::~Source() {
-}
-uint32_t Source::play(Waveform* waveform) {
-    waveform->grab();
-    mPlayingWaveforms.push_back(new PlayingWaveformInterface(waveform, PepperGrains::getSingleton()->getRunningTimeSeconds()));
-}
-
-void Source::updateCalc(double time, Endpoint* endpnt, Receiver* receiver) {
-    assert(mControlledSamples.find(EndpointReceiverPair(endpnt, receiver)) != mControlledSamples.end() && "Attempted to update non-existent sample");
-    
-    //Sample* sample = *mControlledSamples.find(EndpointReceiverPair(endpnt, receiver));
-    
-    //sample->updateCalc(time, time);
-    
-    // ???
-    
-    // Update samples
 }
 
 void Source::load() { }

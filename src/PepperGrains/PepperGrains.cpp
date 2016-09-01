@@ -28,6 +28,7 @@
 #include "OverworldGameLayer.hpp"
 #include "OpenGLContextData.hpp"
 #include "SDLRendererData.hpp"
+#include "MissionGameLayer.hpp"
 
 namespace pgg {
 
@@ -46,6 +47,9 @@ int PepperGrains::run(int argc, char* argv[]) {
         return -1;
     }
     
+    mTps = 0.f;
+    mTpsWeight = 0.85f;
+    
     uint32_t windowWidth = 1280;
     uint32_t windowHeight = 960;
     
@@ -63,14 +67,6 @@ int PepperGrains::run(int argc, char* argv[]) {
     
     mSndEndpoint = new Sound::Endpoint();
     mSndEndpoint->setDevice(mSndDevice);
-    
-    /*
-    int glMajorVersion;
-    int glMinorVersion;
-    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &glMajorVersion);
-    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &glMinorVersion);
-    std::cout << "OpenGL Version (Default): " << glMajorVersion << "." << glMinorVersion << std::endl;
-    */
     
     // These attributes must be set before creating any SDL windows
     // Note: the major and minor version are only hints (not guranteed to use 4.3)
@@ -135,13 +131,20 @@ int PepperGrains::run(int argc, char* argv[]) {
         return -1;
     }
     
+    lua_State* luaState = luaL_newstate();
+    
+    luaL_openlibs(luaState);
+    
+    int testError = luaL_loadfile(luaState, "test.lua");
+    testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
+    
     boost::filesystem::path resourceDef = "../../../resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
     resman->mapAll(resourceDef);
 
     mGameLayerMachine = new GameLayerMachine();
     
-    mGameLayerMachine->addBottom(new DesignerGameLayer(windowWidth, windowHeight));
+    mGameLayerMachine->addBottom(new MissionGameLayer());
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
@@ -213,6 +216,16 @@ int PepperGrains::run(int argc, char* argv[]) {
             tpf /= 1000.f;
             prev = now;
             
+            if(tpf > 0) {
+                float fpsNew = 1 / tpf;
+                mTps = (mTps * mTpsWeight) + (fpsNew * (1.f - mTpsWeight));
+            }
+            mOneSecondTimer += tpf;
+            if(mOneSecondTimer > 1.f) {
+                mOneSecondTimer -= 1.f;
+                std::cout << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+            }
+            
             inputState.updateKeysFromSDL();
             inputState.updateMouseFromSDL();
             
@@ -223,6 +236,9 @@ int PepperGrains::run(int argc, char* argv[]) {
             SDL_GL_SwapWindow(sdlWindow);
         }
     }
+    
+    
+    lua_close(luaState);
     
     SDL_GL_DeleteContext(glContext);
     

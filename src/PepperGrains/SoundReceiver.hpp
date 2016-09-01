@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "ReferenceCounted.hpp"
-#include "SoundSample.hpp"
 #include "Vec3.hpp"
 
 namespace pgg {

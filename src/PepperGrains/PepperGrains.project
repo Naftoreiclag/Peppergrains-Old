@@ -195,10 +195,6 @@
     </VirtualDirectory>
     <File Name="DesignerGameLayer.cpp"/>
     <File Name="DesignerGameLayer.hpp"/>
-    <VirtualDirectory Name="Robotics">
-      <File Name="MechBody.hpp"/>
-      <File Name="MechBody.cpp"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="Abstraction">
       <File Name="NALInputs.hpp"/>
       <File Name="NALEvents.cpp"/>
@@ -224,26 +220,26 @@
     <File Name="MissionGameLayer.hpp"/>
     <File Name="MissionGameLayer.cpp"/>
     <VirtualDirectory Name="sound">
-      <File Name="SoundSource.hpp"/>
-      <File Name="SoundSource.cpp"/>
-      <File Name="SoundContext.hpp"/>
-      <File Name="SoundContext.cpp"/>
-      <File Name="SoundReceiver.hpp"/>
-      <File Name="SoundReceiver.cpp"/>
-      <File Name="SoundMedium.hpp"/>
-      <File Name="SoundMedium.cpp"/>
-      <File Name="SoundWaveform.hpp"/>
-      <File Name="SoundWaveform.cpp"/>
       <File Name="SoundEndpoint.hpp"/>
       <File Name="SoundEndpoint.cpp"/>
-      <File Name="SoundSample.hpp"/>
-      <File Name="SoundSample.cpp"/>
-      <VirtualDirectory Name="test">
-        <File Name="SineWaveform.hpp"/>
-        <File Name="SineWaveform.cpp"/>
+      <VirtualDirectory Name="soundgraph">
+        <File Name="SoundContext.cpp"/>
+        <File Name="SoundContext.hpp"/>
+        <File Name="SoundMedium.cpp"/>
+        <File Name="SoundMedium.hpp"/>
+        <File Name="SoundReceiver.cpp"/>
+        <File Name="SoundReceiver.hpp"/>
+        <File Name="SoundSource.cpp"/>
+        <File Name="SoundSource.hpp"/>
       </VirtualDirectory>
-      <File Name="SoundMemoryManager.cpp"/>
-      <File Name="SoundMemoryManager.hpp"/>
+      <VirtualDirectory Name="waveforms">
+        <File Name="SineWaveform.cpp"/>
+        <File Name="SineWaveform.hpp"/>
+        <File Name="SoundResource.cpp"/>
+        <File Name="SoundResource.hpp"/>
+        <File Name="SoundWaveform.cpp"/>
+        <File Name="SoundWaveform.hpp"/>
+      </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
@@ -367,6 +363,7 @@
         <IncludePath Value="$(SDL2_HOME)/include"/>
         <IncludePath Value="$(BULLET_HOME)/include/bullet"/>
         <IncludePath Value="$(LSIO_HOME)/include"/>
+        <IncludePath Value="$(LUA_HOME)/include"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(GLEW_HOME)/lib"/>
@@ -374,6 +371,7 @@
         <LibraryPath Value="$(BOOST_HOME)/lib"/>
         <LibraryPath Value="$(BULLET_HOME)/lib"/>
         <LibraryPath Value="$(LSIO_HOME)/lib"/>
+        <LibraryPath Value="$(LUA_HOME)/lib"/>
         <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
@@ -385,6 +383,7 @@
         <Library Value="BulletCollision.dll"/>
         <Library Value="LinearMath.dll"/>
         <Library Value="soundio"/>
+        <Library Value="lua"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
@@ -395,7 +394,8 @@ GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM
 MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64
 BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7
-LSIO_HOME=../../dependencies-win/mingw-w64/libsoundio-1.1.0]]>
+LSIO_HOME=../../dependencies-win/mingw-w64/libsoundio-1.1.0
+LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -409,6 +409,7 @@ LSIO_HOME=../../dependencies-win/mingw-w64/libsoundio-1.1.0]]>
         <Command Enabled="yes">cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(BULLET_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(LSIO_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(LUA_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
         <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>

@@ -22,20 +22,12 @@
 
 #include "soundio/soundio.h"
 
-#include "SoundReceiver.hpp"
-#include "SoundSample.hpp"
+#include "SoundWaveform.hpp"
 
 namespace pgg {
 namespace Sound {
 
 /* Final stage between software mixing and the device. Holds a single buffer.
- * During final mixing, all Receivers are evaluated, producing a comprehensive
- * list of Samples which are finally evaluated to fill the buffer.
- * 
- * Endpoints can use more than one receiver to simulate multiple layered channels,
- * such as having a GUI button press "click" sound effect channel on top of the
- * normal game sounds.
- * 
  * There is probably no reason to have more than one Endpoint per program.
  * 
  * Example: a program's single endpoint

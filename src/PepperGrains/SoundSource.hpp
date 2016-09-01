@@ -24,7 +24,6 @@
 #include "Vec3.hpp"
 #include "ReferenceCounted.hpp"
 #include "SoundWaveform.hpp"
-#include "SoundSample.hpp"
 
 #include "SoundEndpoint.hpp"
 
@@ -36,18 +35,6 @@ namespace Sound {
  * to the Endpoint. 
  */
 class Source : public ReferenceCounted {
-private:
-    struct PlayingWaveformInterface {
-        PlayingWaveformInterface(Waveform* waveform, double startTime);
-        ~PlayingWaveformInterface();
-        
-        Waveform* const waveform;
-        double const startTime;
-    };
-    
-    typedef std::pair<Endpoint*, Receiver*> EndpointReceiverPair;
-    std::map<EndpointReceiverPair, Sample*> mControlledSamples;
-    std::vector<PlayingWaveformInterface*> mPlayingWaveforms;
 public:
     struct Modifier {
         typedef uint16_t Flag;
@@ -73,11 +60,6 @@ public:
     
     void load();
     void unload();
-    
-    uint32_t play(Waveform* waveform);
-    void evaluate(std::vector<Sample>& sampleList, const Sample::Modifiers& modifiers);
-    
-    void updateCalc(double time, Endpoint* endpnt, Receiver* receiver);
     
     Modifier::Flag mEnabledModifiers;
     Vec3 mLocation;

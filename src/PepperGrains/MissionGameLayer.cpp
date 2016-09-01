@@ -16,6 +16,8 @@
 
 #include "MissionGameLayer.hpp"
 
+#include <chrono>
+#include <thread>
 
 namespace pgg
 {
@@ -38,7 +40,7 @@ void MissionGameLayer::onEnd() {
 
 // Ticks
 void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
-    
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 }

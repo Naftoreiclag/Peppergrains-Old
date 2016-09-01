@@ -363,7 +363,7 @@ void DesignerGameLayer::onBegin() {
     
     mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
     
-    mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f));
+    // mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f));
     
     ResourceManager* resman = ResourceManager::getSingleton();
     
@@ -698,7 +698,7 @@ void DesignerGameLayer::onTick(float tpf, const InputState* inputStates) {
         double asdf = (mMouseLoc.y * 1.4) + 0.1;
         if(asdf < 0.1) asdf = 0.1;
         if(asdf > 1.5) asdf = 1.5;
-        mPwi->setPhaseLinearTerm(asdf);
+        // mPwi->setPhaseLinearTerm(asdf);
     }
     
     Vec3 movement;
