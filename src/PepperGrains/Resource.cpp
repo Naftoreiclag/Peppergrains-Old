@@ -43,8 +43,14 @@ const std::string& Resource::getName() {
 void Resource::setSize(uint32_t size) {
     mFileSize = size;
 }
-const uint32_t& Resource::getSize() {
+uint32_t Resource::getSize() {
     return mFileSize;
+}
+void Resource::setEnvironment(uint32_t environment) {
+    mEnvironment = environment;
+}
+uint32_t Resource::getEnvironment() {
+    return mEnvironment;
 }
 
 }

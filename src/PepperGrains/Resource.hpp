@@ -30,6 +30,7 @@ class Resource : virtual public ReferenceCounted {
 private:
     uint32_t mFileSize;
     std::string mName;
+    uint32_t mEnvironment;
     boost::filesystem::path mFile;
 public:
     Resource();
@@ -44,7 +45,9 @@ public:
     void setName(std::string name);
     const std::string& getName();
     void setSize(uint32_t size);
-    const uint32_t& getSize();
+    uint32_t getSize();
+    void setEnvironment(uint32_t environment);
+    uint32_t getEnvironment();
 };
 
 }

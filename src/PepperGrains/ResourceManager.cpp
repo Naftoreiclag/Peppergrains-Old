@@ -16,9 +16,11 @@
 
 #include "ResourceManager.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "json/json.h"
 
@@ -31,8 +33,8 @@ ResourceManager* ResourceManager::getSingleton() {
 }
 
 ResourceManager::ResourceManager()
-: mPermaloadThreshold(0),
-mFallbacksGrabbed(false) {
+: mFallbacksGrabbed(false)
+, mAddonsLoaded(false) {
     mFallbackString = new StringResource();
     mFallbackImage = new ImageResource();
     mFallbackTexture = new TextureResource();
@@ -78,15 +80,9 @@ ShaderResource* ResourceManager::getFallbackShader() { return mFallbackShader; }
 ShaderProgramResource* ResourceManager::getFallbackShaderProgram() { return mFallbackShaderProgram; }
 FontResource* ResourceManager::getFallbackFont() { return mFallbackFont; }
 
-void ResourceManager::setPermaloadThreshold(uint32_t size) {
-    mPermaloadThreshold = size;
-}
-const uint32_t& ResourceManager::getPermaloadThreshold() {
-    return mPermaloadThreshold;
-}
-
 void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
     Json::Value dataPackData;
+    
     {
         std::ifstream reader(dataPackFile.string().c_str());
         reader >> dataPackData;
@@ -141,11 +137,181 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
         newRes->setName(name);
         newRes->setFile(dataPackDir / file);
         newRes->setSize(size);
-        if(size < mPermaloadThreshold) {
-            newRes->grab();
+    }
+}
+
+void ResourceManager::preloadAddon(boost::filesystem::path package) {
+    Json::Value dataPackData;
+    
+    {
+        std::ifstream reader((package / "data.package").string().c_str());
+        reader >> dataPackData;
+        reader.close();
+    }
+    
+    Addon* addon = new Addon();
+    
+    Json::Value& jInfo = dataPackData["info"];
+    
+    if(!jInfo.isNull()) {
+        Json::Value& jName = jInfo["name"];
+        Json::Value& jDesc = jInfo["description"];
+        Json::Value& jAuthor = jInfo["author"];
+        Json::Value& jLicense = jInfo["license"];
+        
+        if(!jName.isNull()) {
+            addon->mName = jName.asString();
+        }
+        if(!jDesc.isNull()) {
+            addon->mDesc = jDesc.asString();
+        }
+        if(!jAuthor.isNull()) {
+            addon->mAuthor = jAuthor.asString();
+        }
+        if(!jLicense.isNull()) {
+            addon->mLicense = jLicense.asString();
+        }
+    }
+    
+    Json::Value& jEnviron = dataPackData["environment"];
+    if(!jEnviron.isNull()) {
+        Json::Value& jAddress = jEnviron["address"];
+        Json::Value& jShare = jEnviron["share"];
+        Json::Value& jRequire = jEnviron["requre"];
+        Json::Value& jAfter = jEnviron["after"];
+        
+        if(!jAddress.isNull()) {
+            addon->mAddress = jAddress.asString();
+        }
+        if(!jShare.isNull() && jShare.isArray()) {
+            for(Json::Value::iterator iter = jShare.begin(); iter != jShare.end(); ++ iter) {
+                addon->mShare.push_back(iter->asString());
+                std::sort(addon->mShare.begin(), addon->mShare.end());
+            }
+        }
+        if(!jRequire.isNull() && jRequire.isArray()) {
+            for(Json::Value::iterator iter = jRequire.begin(); iter != jRequire.end(); ++ iter) {
+                addon->mRequire.push_back(iter->asString());
+                std::sort(addon->mRequire.begin(), addon->mRequire.end());
+            }
+        }
+        if(!jAfter.isNull() && jAfter.isArray()) {
+            for(Json::Value::iterator iter = jAfter.begin(); iter != jAfter.end(); ++ iter) {
+                addon->mAfter.push_back(iter->asString());
+                std::sort(addon->mAfter.begin(), addon->mAfter.end());
+            }
+        }
+    }
+    
+    Json::Value& jBootstrap = dataPackData["bootstrap"];
+    if(!jBootstrap.isNull() && jBootstrap.isArray()) {
+        for(Json::Value::iterator iter = jBootstrap.begin(); iter != jBootstrap.end(); ++ iter) {
+            addon->mBootstap.push_back(iter->asString());
+        }
+    }
+    
+    mAddons.push_back(addon);
+}
+
+void ResourceManager::bootstrapAddons() {
+    // Check for address naming conflicts
+    {
+        typedef std::map<std::string, std::vector<Addon*>> Population;
+        
+        Population populated;
+        bool namingConflict = false;
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            Addon* addon = *iter;
+            
+            if(populated.find(addon->mAddress) == populated.end()) {
+                std::vector<Addon*> occupants;
+                occupants.push_back(addon);
+                populated[addon->mAddress] = occupants;
+            }
+            else {
+                populated[addon->mAddress].push_back(addon);
+                namingConflict = true;
+            }
+        }
+        
+        if(namingConflict) {
+            for(Population::iterator iter = populated.begin(); iter != populated.end(); ++ iter) {
+                std::vector<Addon*>& occupants = iter->second;
+                if(occupants.size() > 1) {
+                    AddonError ae;
+                    ae.mType = AddonError::Type::ADDRESS_CONFLICT;
+                    ae.mAddons = occupants;
+                    
+                    for(std::vector<Addon*>::iterator iter2 = occupants.begin(); iter2 != occupants.end(); ++ iter2) {
+                        Addon* conflict = *iter2;
+                        conflict->mLoadErrors.push_back(ae);
+                        
+                        // Remove failed addon from list
+                        /*
+                        for(std::vector<Addon*>::iterator iter3 = mAddons.begin(); iter3 != mAddons.end(); iter3 != mAddons.end()) {
+                            Addon* asdf = *iter3;
+                            if(conflict == asdf) {
+                                mAddons.erase(iter3);
+                                break;
+                            }
+                        }
+                        */
+                    }
+                }
+            }
         }
         
     }
+    
+    // Check for missing requirements
+    {
+        std::vector<std::string> nonError;
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end();) {
+            Addon* addon = *iter;
+            
+            if(addon->mLoadErrors.size() == 0) {
+                nonError.push_back(addon->mAddress);
+            }
+        }
+        std::sort(nonError.begin(), nonError.end());
+        
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            Addon* addon = *iter;
+            if(!std::includes(nonError.begin(), nonError.end(), addon->mRequire.begin(), addon->mRequire.end())) {
+                AddonError ae;
+                ae.mType = AddonError::Type::MISSING_REQUIREMENT;
+                for(std::vector<std::string>::iterator iter2 = addon->mRequire.begin(); iter2 != addon->mRequire.end(); ++ iter2) {
+                    std::string requirement = *iter2;
+                    if(std::find(nonError.begin(), nonError.end(), requirement) == nonError.end()) {
+                        ae.mStrings.push_back(requirement);
+                    }
+                }
+                
+                addon->mLoadErrors.push_back(ae);
+            }
+        }
+    }
+    
+    // Fail addons
+    {
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end();) {
+            Addon* addon = *iter;
+            
+            if(addon->mLoadErrors.size() > 0) {
+                mFailedAddons.push_back(addon);
+                iter = mAddons.erase(iter);
+            } else {
+                ++ iter;
+            }
+        }
+    }
+    
+    // Determine load order based on "after"
+    typedef std::vector<std::vector<Addon*>> LoadOrder;
+    
+    {
+    }
+    
 }
 
 void ResourceManager::grabFallbacks() {
