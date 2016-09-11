@@ -45,13 +45,24 @@ private:
     struct Addon;
     struct AddonError {
         enum Type {
-            CIRCULAR_AFTER, // Multiple mods try to load after each other
-            BOOTSTRAP_ERROR, // Problem running bootstrap script
-            ADDRESS_CONFLICT, // Multiple mods try to occupy the same address
-            CORRUPT_MISING_RESOURCE,
-            MISSING_REQUIREMENT // Mod listed in "require" absent
+            // Encountered during load order determination
+            CIRCULAR_AFTER, // Multiple addons try to load after each other
+            ADDRESS_CONFLICT, // Multiple addons try to occupy the same address
+            
+            // Problem running bootstrap script
+            BOOTSTRAP_ERROR,
+            
+            CONCURRENT_MODIFICATION, // Access racing with another addon
+            
+            REQUIREMENT_CRASHED, // Addon listed in "require" present, but crashes
+            REQUIREMENT_MISSING, // Addon listed in "require" absent
+            
+            // These can only happen due to failed Resource Manager output
+            CORRUPT_MISING_RESOURCE // Addon has a missing resource
         };
         Type mType;
+        
+        // Displayed to user
         std::vector<std::string> mStrings;
         std::vector<Addon*> mAddons;
     };
@@ -60,16 +71,29 @@ private:
     struct Addon {
         std::vector<AddonError> mLoadErrors;
         
+        // Human-readable info
         std::string mName;
         std::string mDesc;
         std::string mAuthor;
         std::string mLicense;
         
+        // Requested properties
         std::string mAddress;
         std::vector<std::string> mShare;
         std::vector<std::string> mRequire;
         std::vector<std::string> mAfter;
+        
+        // Bootstrap scripts to run, in order
         std::vector<std::string> mBootstap;
+        
+        // Links to addons which determined this addon's load order (discludes errors at that point)
+        std::vector<Addon*> mAfterLink;
+        
+        // Links to addons which listed this addon as a requirement
+        std::vector<Addon*> mNeededBy;
+        
+        // Links to addons which have given this addon permission to access protected members
+        std::vector<Addon*> mAccessTo;
         
         // Resources provided by this addon
         std::map<std::string, MiscResource*> mMiscs;
@@ -101,6 +125,19 @@ private:
     ShaderResource* mFallbackShader;
     ShaderProgramResource* mFallbackShaderProgram;
     FontResource* mFallbackFont;
+    
+    /* To prevent errors occuring due to arbitrary load order, all addons which are eligible to
+     * be loaded at any given point in the load process are loaded "together," i.e. as if they
+     * were all loading at the same time on different threads.
+     * 
+     * This method simulates this effect by loading the addons sequentially, but keeping track of
+     * the resources that they modify. If multiple addons try to modify the same resource in a
+     * single call of this method, both error.
+     * 
+     * Error checking is also done on all addons in the provided vector.
+     */
+    void bootstrapAddonsConcurrently(std::vector<Addon*> addons);
+    
 public:
     ResourceManager();
     ~ResourceManager();

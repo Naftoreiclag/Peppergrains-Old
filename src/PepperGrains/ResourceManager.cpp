@@ -245,17 +245,6 @@ void ResourceManager::bootstrapAddons() {
                     for(std::vector<Addon*>::iterator iter2 = occupants.begin(); iter2 != occupants.end(); ++ iter2) {
                         Addon* conflict = *iter2;
                         conflict->mLoadErrors.push_back(ae);
-                        
-                        // Remove failed addon from list
-                        /*
-                        for(std::vector<Addon*>::iterator iter3 = mAddons.begin(); iter3 != mAddons.end(); iter3 != mAddons.end()) {
-                            Addon* asdf = *iter3;
-                            if(conflict == asdf) {
-                                mAddons.erase(iter3);
-                                break;
-                            }
-                        }
-                        */
                     }
                 }
             }
@@ -266,7 +255,7 @@ void ResourceManager::bootstrapAddons() {
     // Check for missing requirements
     {
         std::vector<std::string> nonError;
-        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end();) {
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
             Addon* addon = *iter;
             
             if(addon->mLoadErrors.size() == 0) {
@@ -279,7 +268,7 @@ void ResourceManager::bootstrapAddons() {
             Addon* addon = *iter;
             if(!std::includes(nonError.begin(), nonError.end(), addon->mRequire.begin(), addon->mRequire.end())) {
                 AddonError ae;
-                ae.mType = AddonError::Type::MISSING_REQUIREMENT;
+                ae.mType = AddonError::Type::REQUIREMENT_MISSING;
                 for(std::vector<std::string>::iterator iter2 = addon->mRequire.begin(); iter2 != addon->mRequire.end(); ++ iter2) {
                     std::string requirement = *iter2;
                     if(std::find(nonError.begin(), nonError.end(), requirement) == nonError.end()) {
@@ -294,7 +283,7 @@ void ResourceManager::bootstrapAddons() {
     
     // Fail addons
     {
-        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end();) {
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
             Addon* addon = *iter;
             
             if(addon->mLoadErrors.size() > 0) {
@@ -307,10 +296,119 @@ void ResourceManager::bootstrapAddons() {
     }
     
     // Determine load order based on "after"
-    typedef std::vector<std::vector<Addon*>> LoadOrder;
+    std::vector<std::vector<Addon*>> loadOrder;
     
     {
+        // First link the "after" set together
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            Addon* addon = *iter;
+            for(std::vector<std::string>::iterator iter2 = addon->mAfter.begin(); iter2 != addon->mAfter.end(); ++ iter2) {
+                std::string afterName = *iter2;
+                for(std::vector<Addon*>::iterator iter3 = mAddons.begin(); iter3 != mAddons.end(); ++ iter3) {
+                    Addon* other = *iter3;
+                    if(other->mAddress == afterName) {
+                        addon->mAfterLink.push_back(other);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Simulate the loading sequence; this vector stores all addons which are currently loaded
+        std::vector<Addon*> areLoaded;
+        
+        // Addons that are not sorted yet
+        std::vector<Addon*> yetUnsorted = mAddons;
+        
+        while(true) {
+            // These addons will be loaded together
+            std::vector<Addon*> loadGroup;
+            
+            for(std::vector<Addon*>::iterator iter = yetUnsorted.begin(); iter != yetUnsorted.end(); /*May erase*/) {
+                Addon* addon = *iter;
+                
+                // If all "after" addons have already been loaded, then add this one to the load stack
+                bool canLoad = true;
+                for(std::vector<Addon*>::iterator iter3 = addon.mAfterLink.begin(); iter3 != addon.mAfterLink.end(); ++ iter3) {
+                    Addon* afterMe = *iter3;
+                    if(std::find(areLoaded.begin(), areLoaded.end(), afterMe) == areLoaded.end()) {
+                        canLoad = false;
+                        break;
+                    }
+                }
+                
+                if(canLoad) {
+                    // Note: Cannot add to areLoaded list yet!
+                    loadGroup.push_back(addon);
+                    
+                    iter = yetUnsorted.erase(iter);
+                } else {
+                    ++ iter;
+                }
+            }
+            
+            if(loadGroup.size() > 0) {
+                loadOrder.push_back(loadGroup);
+                
+                // These are now considered "loaded"
+                areLoaded.insert(areLoaded.end(), loadGroup.begin(), loadGroup.end());
+            } else {
+                // All addons which can be loaded are loaded, leaving only circular dependencies
+                if(yetUnsorted.size() > 0) {
+                    for(std::vector<Addon*>::iterator iter = yetUnsorted.begin(); iter != yetUnsorted.end(); ++ iter) {
+                        Addon* addon = *iter;
+                        AddonError ae;
+                        ae.mType = AddonError::Type::CIRCULAR_AFTER;
+                        
+                        // Add to the error list addons which are not yet loaded (and must therefore also have circular dependencies)
+                        for(std::vector<Addon*>::iterator iter3 = addon.mAfterLink.begin(); iter3 != addon.mAfterLink.end(); ++ iter3) {
+                            Addon* afterMe = *iter3;
+                            if(std::find(areLoaded.begin(), areLoaded.end(), afterMe) == areLoaded.end()) {
+                                ae.mAddons.push_back(afterMe);
+                            }
+                        }
+                        
+                        addon.mLoadErrors.push_back(ae);
+                        
+                        // Add to fail list, remove from success list
+                        mFailedAddons.push_back(addon);
+                        mAddons.erase(std::remove(mAddons.begin(), mAddons.end(), addon), mAddons.end())
+                    }
+                }
+                
+                // All is well
+                else {
+                    break;
+                }
+            }
+        }
+        
     }
+    
+    // Load order now set, finally can load
+    for(std::vector<std::vector<Addon*>>::iterator iter = loadOrder.begin(); iter != loadOrder.end(); ++ iter) {
+        // Particular step
+        bootstrapAddonsConcurrently(*iter);
+    }
+    
+    // Fail addons that encountered an error during bootstrap
+    {
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
+            Addon* addon = *iter;
+            
+            if(addon->mLoadErrors.size() > 0) {
+                mFailedAddons.push_back(addon);
+                iter = mAddons.erase(iter);
+            } else {
+                ++ iter;
+            }
+        }
+    }
+    
+    mAddonsLoaded = true;
+}
+
+void ResourceManager::bootstrapAddonsConcurrently(std::vector<Addon*> addons) {
     
 }
 
