@@ -17,3 +17,4 @@ Utilized Libraries
 |[OpenGL](https://www.opengl.org/)|[(Implementation-dependent)](http://www.sgi.com/tech/opengl/)|Rendering|
 |[SDL2](https://www.libsdl.org/)|[zlib](https://www.libsdl.org/license.php)|Window/event handling|
 |[stb](https://github.com/nothings/stb)|[Public Domain](https://github.com/nothings/stb/blob/master/README.md)|PNG loading|
+*Note: The above library and license listings are reproduced here solely to give the reader a sense of the scale of my PepperGrains project. Each library utilized is the copyright of its respective author(s). Please see individual library homepages for more accurate licensing information. (I have frequently made mistakes in keeping this list up-to-date!)*
