@@ -10,8 +10,8 @@ Utilized Libraries
 ------------------
 |Name|License|Why|
 |---|---|---|
-|[Boost](http://www.boost.org/)|[zlib](https://github.com/bulletphysics/bullet3/blob/master/LICENSE.txt)|All-around useful|
-|[Bullet Physics](http://bulletphysics.org/)|[Boost](http://www.boost.org/users/license.html)|3D collision resolution/physics|
+|[Boost](http://www.boost.org/)|[Boost](http://www.boost.org/users/license.html)|All-around useful|
+|[Bullet Physics](http://bulletphysics.org/)|[zlib](https://github.com/bulletphysics/bullet3/blob/master/LICENSE.txt)|3D collision resolution/physics|
 |[JsonCpp](https://github.com/open-source-parsers/jsoncpp/)|[Public Domain](https://github.com/open-source-parsers/jsoncpp/blob/master/LICENSE)|Serialization, config files|
 |[libsoundio](http://libsound.io)|[MIT](https://github.com/andrewrk/libsoundio/blob/master/LICENSE)|Sound output|
 |[OpenGL](https://www.opengl.org/)|[(Implementation-dependent)](http://www.sgi.com/tech/opengl/)|Rendering|
