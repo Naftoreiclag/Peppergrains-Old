@@ -138,7 +138,7 @@ int PepperGrains::run(int argc, char* argv[]) {
     int testError = luaL_loadfile(luaState, "test.lua");
     testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
     
-    boost::filesystem::path resourceDef = "../../../resources/data.package";
+    boost::filesystem::path resourceDef = "resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
     resman->mapAll(resourceDef);
 

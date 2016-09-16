@@ -114,6 +114,18 @@ private:
     
     bool mAddonsLoaded;
     
+    
+    std::map<std::string, MiscResource*> mMiscs;
+    std::map<std::string, StringResource*> mStrings;
+    std::map<std::string, ImageResource*> mImages;
+    std::map<std::string, TextureResource*> mTextures;
+    std::map<std::string, ModelResource*> mModels;
+    std::map<std::string, MaterialResource*> mMaterials;
+    std::map<std::string, GeometryResource*> mGeometries;
+    std::map<std::string, ShaderResource*> mShaders;
+    std::map<std::string, ShaderProgramResource*> mShaderPrograms;
+    std::map<std::string, FontResource*> mFonts;
+    
     // Used only when resource lookup fails
     bool mFallbacksGrabbed;
     StringResource* mFallbackString;
@@ -142,9 +154,17 @@ public:
     ResourceManager();
     ~ResourceManager();
     
+    // Loading of core resources which are never unloaded. Restored to original state if an addon
+    // which modifies a core resource is unloaded
     void loadCore(boost::filesystem::path package);
+    
+    // Parse a package and add to the loading list
     void preloadAddon(boost::filesystem::path package);
+    
+    // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
     void bootstrapAddons();
+    
+    // Unload all addons, restore core resources to original state.
     void clearAddons();
 
     void mapAll(boost::filesystem::path data);

@@ -329,7 +329,7 @@ void ResourceManager::bootstrapAddons() {
                 
                 // If all "after" addons have already been loaded, then add this one to the load stack
                 bool canLoad = true;
-                for(std::vector<Addon*>::iterator iter3 = addon.mAfterLink.begin(); iter3 != addon.mAfterLink.end(); ++ iter3) {
+                for(std::vector<Addon*>::iterator iter3 = addon->mAfterLink.begin(); iter3 != addon->mAfterLink.end(); ++ iter3) {
                     Addon* afterMe = *iter3;
                     if(std::find(areLoaded.begin(), areLoaded.end(), afterMe) == areLoaded.end()) {
                         canLoad = false;
@@ -361,18 +361,18 @@ void ResourceManager::bootstrapAddons() {
                         ae.mType = AddonError::Type::CIRCULAR_AFTER;
                         
                         // Add to the error list addons which are not yet loaded (and must therefore also have circular dependencies)
-                        for(std::vector<Addon*>::iterator iter3 = addon.mAfterLink.begin(); iter3 != addon.mAfterLink.end(); ++ iter3) {
+                        for(std::vector<Addon*>::iterator iter3 = addon->mAfterLink.begin(); iter3 != addon->mAfterLink.end(); ++ iter3) {
                             Addon* afterMe = *iter3;
                             if(std::find(areLoaded.begin(), areLoaded.end(), afterMe) == areLoaded.end()) {
                                 ae.mAddons.push_back(afterMe);
                             }
                         }
                         
-                        addon.mLoadErrors.push_back(ae);
+                        addon->mLoadErrors.push_back(ae);
                         
                         // Add to fail list, remove from success list
                         mFailedAddons.push_back(addon);
-                        mAddons.erase(std::remove(mAddons.begin(), mAddons.end(), addon), mAddons.end())
+                        mAddons.erase(std::remove(mAddons.begin(), mAddons.end(), addon), mAddons.end());
                     }
                 }
                 
