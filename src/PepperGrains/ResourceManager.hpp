@@ -33,12 +33,16 @@
 #include "ShaderResource.hpp"
 #include "ShaderProgramResource.hpp"
 #include "FontResource.hpp"
+#include "ScriptResource.hpp"
 
 namespace pgg {
 
 class ResourceManager {
 public:
     static ResourceManager* getSingleton();
+    
+    
+    
 private:
 
     //
@@ -106,6 +110,7 @@ private:
         std::map<std::string, ShaderResource*> mShaders;
         std::map<std::string, ShaderProgramResource*> mShaderPrograms;
         std::map<std::string, FontResource*> mFonts;
+        std::map<std::string, ScriptResource*> mScripts;
     };
     
     std::vector<Addon*> mCores;
@@ -113,7 +118,6 @@ private:
     std::vector<Addon*> mFailedAddons;
     
     bool mAddonsLoaded;
-    
     
     std::map<std::string, MiscResource*> mMiscs;
     std::map<std::string, StringResource*> mStrings;
@@ -127,7 +131,6 @@ private:
     std::map<std::string, FontResource*> mFonts;
     
     // Used only when resource lookup fails
-    bool mFallbacksGrabbed;
     StringResource* mFallbackString;
     ImageResource* mFallbackImage;
     TextureResource* mFallbackTexture;
@@ -137,6 +140,31 @@ private:
     ShaderResource* mFallbackShader;
     ShaderProgramResource* mFallbackShaderProgram;
     FontResource* mFallbackFont;
+    
+public:
+    ResourceManager();
+    ~ResourceManager();
+    
+    // Abstractions are fun
+    // Subclass ScriptEvaluator to pass during bootstrapping
+    class ScriptEvaulator {
+    };
+    
+    // Loading of core resources which are never unloaded. Restored to original state if an addon
+    // which modifies a core resource is unloaded
+    void loadCore(boost::filesystem::path package, ScriptEvaulator* evalulator);
+    
+    // Parse a package and add to the loading list
+    void preloadAddon(boost::filesystem::path package);
+    void preloadAddons(boost::filesystem::path dir); // Utility; load from directory
+    
+    // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
+    void bootstrapAddons(ScriptEvaulator* evalulator);
+    
+    // Unload all addons, restore core resources to original state.
+    void clearAddons();
+private:
+
     
     /* To prevent errors occuring due to arbitrary load order, all addons which are eligible to
      * be loaded at any given point in the load process are loaded "together," i.e. as if they
@@ -148,28 +176,11 @@ private:
      * 
      * Error checking is also done on all addons in the provided vector.
      */
-    void bootstrapAddonsConcurrently(std::vector<Addon*> addons);
-    
-public:
-    ResourceManager();
-    ~ResourceManager();
-    
-    // Loading of core resources which are never unloaded. Restored to original state if an addon
-    // which modifies a core resource is unloaded
-    void loadCore(boost::filesystem::path package);
-    
-    // Parse a package and add to the loading list
-    void preloadAddon(boost::filesystem::path package);
-    
-    // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
-    void bootstrapAddons();
-    
-    // Unload all addons, restore core resources to original state.
-    void clearAddons();
+    void bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaulator* evalulator);
 
     void mapAll(boost::filesystem::path data);
-    void grabFallbacks();
     
+public:
     StringResource* getFallbackString();
     ImageResource* getFallbackImage();
     TextureResource* getFallbackTexture();

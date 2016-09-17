@@ -132,19 +132,17 @@ int PepperGrains::run(int argc, char* argv[]) {
     }
     
     lua_State* luaState = luaL_newstate();
-    
     luaL_openlibs(luaState);
     
-    int testError = luaL_loadfile(luaState, "test.lua");
-    testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
+    //int testError = luaL_loadfile(luaState, "test.lua");
+    //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
     
-    boost::filesystem::path resourceDef = "resources/data.package";
     ResourceManager* resman = ResourceManager::getSingleton();
-    resman->mapAll(resourceDef);
+    resman->loadCore("core/core.package", this);
+    resman->preloadAddons("addons");
+    resman->bootstrapAddons(this);
 
-    mGameLayerMachine = new GameLayerMachine();
-    
-    mGameLayerMachine->addBottom(new MissionGameLayer());
+    mGameLayerMachine.addBottom(new MissionGameLayer());
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
@@ -159,44 +157,44 @@ int PepperGrains::run(int argc, char* argv[]) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT: {
-                    mGameLayerMachine->onQuit(QuitEvent(event.quit));
-                    mGameLayerMachine->removeAll();
+                    mGameLayerMachine.onQuit(QuitEvent(event.quit));
+                    mGameLayerMachine.removeAll();
                     mMainLoopRunning = false;
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    mGameLayerMachine->onTextInput(TextInputEvent(event.text));
+                    mGameLayerMachine.onTextInput(TextInputEvent(event.text));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_KEYUP:
                 case SDL_KEYDOWN: {
-                    mGameLayerMachine->onKeyboardEvent(KeyboardEvent(event.key));
+                    mGameLayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
                     break;
                 }
                 case SDL_MOUSEMOTION: {
                     MouseMoveEvent mme(event.motion);
                     inputState.setMouseDelta(mme.dx, mme.dy);
-                    mGameLayerMachine->onMouseMove(MouseMoveEvent(event.motion));
+                    mGameLayerMachine.onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN: {
-                    mGameLayerMachine->onMouseButton(MouseButtonEvent(event.button));
+                    mGameLayerMachine.onMouseButton(MouseButtonEvent(event.button));
                     break;
                 }
                 case SDL_MOUSEWHEEL: {
-                    mGameLayerMachine->onMouseWheel(MouseWheelMoveEvent(event.wheel));
+                    mGameLayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
                     break;
                 }
                 case SDL_WINDOWEVENT: {
                     switch(event.window.event) {
                         // This also catches resizing due to API calls
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                            mGameLayerMachine->onWindowSizeUpdate(WindowResizeEvent(event.window));
+                            mGameLayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
                         }
                     }
                 }
@@ -229,7 +227,7 @@ int PepperGrains::run(int argc, char* argv[]) {
             inputState.updateKeysFromSDL();
             inputState.updateMouseFromSDL();
             
-            mGameLayerMachine->onTick(tpf, &inputState);
+            mGameLayerMachine.onTick(tpf, &inputState);
             mSndEndpoint->updateSoundThread();
 
             // Swap buffers (draw everything onto the screen)

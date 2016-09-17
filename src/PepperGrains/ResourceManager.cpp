@@ -33,8 +33,7 @@ ResourceManager* ResourceManager::getSingleton() {
 }
 
 ResourceManager::ResourceManager()
-: mFallbacksGrabbed(false)
-, mAddonsLoaded(false) {
+: mAddonsLoaded(false) {
     mFallbackString = new StringResource();
     mFallbackImage = new ImageResource();
     mFallbackTexture = new TextureResource();
@@ -44,20 +43,28 @@ ResourceManager::ResourceManager()
     mFallbackShader = new ShaderResource(ShaderResource::Type::FRAGMENT);
     mFallbackShaderProgram = new ShaderProgramResource();
     mFallbackFont = new FontResource();
+    
+    mFallbackString->grab();
+    mFallbackImage->grab();
+    mFallbackTexture->grab();
+    mFallbackModel->grab();
+    mFallbackMaterial->grab();
+    mFallbackGeometry->grab();
+    mFallbackShader->grab();
+    mFallbackShaderProgram->grab();
+    mFallbackFont->grab();
 }
 
 ResourceManager::~ResourceManager() {
-    if(mFallbacksGrabbed) {
-        mFallbackString->drop();
-        mFallbackImage->drop();
-        mFallbackTexture->drop();
-        mFallbackModel->drop();
-        mFallbackMaterial->drop();
-        mFallbackGeometry->drop();
-        mFallbackShader->drop();
-        mFallbackShaderProgram->drop();
-        mFallbackFont->drop();
-    }
+    mFallbackString->drop();
+    mFallbackImage->drop();
+    mFallbackTexture->drop();
+    mFallbackModel->drop();
+    mFallbackMaterial->drop();
+    mFallbackGeometry->drop();
+    mFallbackShader->drop();
+    mFallbackShaderProgram->drop();
+    mFallbackFont->drop();
     
     delete mFallbackString;
     delete mFallbackImage;
@@ -140,6 +147,10 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
     }
 }
 
+void ResourceManager::loadCore(boost::filesystem::path package, ScriptEvaulator* evalulator) {
+    
+}
+
 void ResourceManager::preloadAddon(boost::filesystem::path package) {
     Json::Value dataPackData;
     
@@ -213,7 +224,11 @@ void ResourceManager::preloadAddon(boost::filesystem::path package) {
     mAddons.push_back(addon);
 }
 
-void ResourceManager::bootstrapAddons() {
+void ResourceManager::preloadAddons(boost::filesystem::path dir) {
+    
+}
+
+void ResourceManager::bootstrapAddons(ScriptEvaulator* evalulator) {
     // Check for address naming conflicts
     {
         typedef std::map<std::string, std::vector<Addon*>> Population;
@@ -388,7 +403,7 @@ void ResourceManager::bootstrapAddons() {
     // Load order now set, finally can load
     for(std::vector<std::vector<Addon*>>::iterator iter = loadOrder.begin(); iter != loadOrder.end(); ++ iter) {
         // Particular step
-        bootstrapAddonsConcurrently(*iter);
+        bootstrapAddonsConcurrently(*iter, evalulator);
     }
     
     // Fail addons that encountered an error during bootstrap
@@ -408,24 +423,8 @@ void ResourceManager::bootstrapAddons() {
     mAddonsLoaded = true;
 }
 
-void ResourceManager::bootstrapAddonsConcurrently(std::vector<Addon*> addons) {
+void ResourceManager::bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaulator* evalulator) {
     
-}
-
-void ResourceManager::grabFallbacks() {
-    assert(!mFallbacksGrabbed && "Grabbed fallbacks more than once!");
-    
-    mFallbackString->grab();
-    mFallbackImage->grab();
-    mFallbackTexture->grab();
-    mFallbackModel->grab();
-    mFallbackMaterial->grab();
-    mFallbackGeometry->grab();
-    mFallbackShader->grab();
-    mFallbackShaderProgram->grab();
-    mFallbackFont->grab();
-    
-    mFallbacksGrabbed = true;
 }
 
 StringResource* ResourceManager::findString(std::string name) {

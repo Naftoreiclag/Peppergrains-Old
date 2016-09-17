@@ -76,6 +76,8 @@
       <File Name="StringResource.cpp"/>
       <File Name="StringResource.hpp"/>
       <VirtualDirectory Name="Shaders"/>
+      <File Name="ScriptResource.cpp"/>
+      <File Name="ScriptResource.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Rendering">
       <File Name="ManualModel.hpp"/>
@@ -449,6 +451,8 @@ LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
         <IncludePath Value="$(GLM_HOME)/include"/>
         <IncludePath Value="$(SDL2_HOME)/include"/>
         <IncludePath Value="$(BULLET_HOME)/include/bullet"/>
+        <IncludePath Value="$(LSIO_HOME)/include"/>
+        <IncludePath Value="$(LUA_HOME)/include"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">
@@ -456,6 +460,8 @@ LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
         <LibraryPath Value="$(SDL2_HOME)/lib"/>
         <LibraryPath Value="$(BOOST_HOME)/lib"/>
         <LibraryPath Value="$(BULLET_HOME)/lib"/>
+        <LibraryPath Value="$(LSIO_HOME)/lib"/>
+        <LibraryPath Value="$(LUA_HOME)/lib"/>
         <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
@@ -463,16 +469,23 @@ LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
         <Library Value="opengl32"/>
         <Library Value="boost_system-mgw51-s-1_59"/>
         <Library Value="boost_filesystem-mgw51-s-1_59"/>
+        <Library Value="BulletDynamics.dll"/>
+        <Library Value="BulletCollision.dll"/>
+        <Library Value="LinearMath.dll"/>
+        <Library Value="soundio"/>
+        <Library Value="lua"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinRelease" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinRelease" Command="&quot;../built/PepperGrains/WinWinRelease/$(ProjectName)&quot;" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./../../run" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[BOOST_HOME=C:/boost
 SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
 GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
 GLM_HOME=../../dependencies-win/header-only/GLM
 MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64
-BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7]]>
+BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7
+LSIO_HOME=../../dependencies-win/mingw-w64/libsoundio-1.1.0
+LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
@@ -485,6 +498,8 @@ BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7]]>
         <Command Enabled="yes">cp $(GLEW_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(MINGW64_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="yes">cp $(BULLET_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(LSIO_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
+        <Command Enabled="yes">cp $(LUA_HOME)/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># In case the environment variables fail:</Command>
         <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/SDL2/bin/*.dll $(IntermediateDirectory)</Command>
         <Command Enabled="no"># cp ../../dependencies-win/mingw-w64/GLEW/bin/*.dll $(IntermediateDirectory)</Command>

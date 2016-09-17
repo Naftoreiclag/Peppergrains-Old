@@ -22,10 +22,11 @@
 
 #include "GameLayerMachine.hpp"
 #include "SoundEndpoint.hpp"
+#include "ResourceManager.hpp"
 
 namespace pgg {
 
-class PepperGrains {
+class PepperGrains : ResourceManager::ScriptEvaulator {
 public:
     static PepperGrains* getSingleton();
 public:
@@ -42,7 +43,7 @@ public:
     Sound::Endpoint* mSndEndpoint;
 
     bool mMainLoopRunning;
-    GameLayerMachine* mGameLayerMachine;
+    GameLayerMachine mGameLayerMachine;
     
     uint32_t getRunningTimeMilliseconds() const;
     double getRunningTimeSeconds() const;
