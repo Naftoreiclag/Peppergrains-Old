@@ -14,5 +14,6 @@ backup/*
 built/*
 
 run/resources/*
+run/core/*
 dependencies/*
 dependencies-win/*

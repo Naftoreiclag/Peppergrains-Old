@@ -141,7 +141,7 @@ int PepperGrains::run(int argc, char* argv[]) {
     //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
     
     ResourceManager* resman = ResourceManager::getSingleton();
-    resman->mapAll("core/core.package");
+    resman->mapAll("core/data.package");
     /*
     resman->loadCore("core/core.package", *bootstrapScriptEval);
     resman->preloadAddonDirectory("addons");

@@ -44,18 +44,31 @@ ResourceManager::ResourceManager()
     mFallbackShaderProgram = new ShaderProgramResource();
     mFallbackFont = new FontResource();
     
+    /*
+    std::cout << "a";
     mFallbackString->grab();
+    std::cout << "a";
     mFallbackImage->grab();
+    std::cout << "a";
     mFallbackTexture->grab();
+    std::cout << "a";
     mFallbackModel->grab();
+    std::cout << "a";
     mFallbackMaterial->grab();
+    std::cout << "a";
     mFallbackGeometry->grab();
+    std::cout << "a";
     mFallbackShader->grab();
+    std::cout << "a";
     mFallbackShaderProgram->grab();
+    std::cout << "a";
     mFallbackFont->grab();
+    std::cout << "a";
+    */
 }
 
 ResourceManager::~ResourceManager() {
+    /*
     mFallbackString->drop();
     mFallbackImage->drop();
     mFallbackTexture->drop();
@@ -65,6 +78,7 @@ ResourceManager::~ResourceManager() {
     mFallbackShader->drop();
     mFallbackShaderProgram->drop();
     mFallbackFont->drop();
+    */
     
     delete mFallbackString;
     delete mFallbackImage;
