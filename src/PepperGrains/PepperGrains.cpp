@@ -31,6 +31,9 @@
 #include "MissionGameLayer.hpp"
 
 namespace pgg {
+    
+void BootstrapScriptEval::execute(const ResourceManager::Addon* addon, ScriptResource* bootScript) {
+}
 
 PepperGrains* PepperGrains::getSingleton() {
     static PepperGrains instance;
@@ -138,9 +141,12 @@ int PepperGrains::run(int argc, char* argv[]) {
     //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
     
     ResourceManager* resman = ResourceManager::getSingleton();
-    resman->loadCore("core/core.package", this);
-    resman->preloadAddons("addons");
-    resman->bootstrapAddons(this);
+    resman->mapAll("core/core.package");
+    /*
+    resman->loadCore("core/core.package", *bootstrapScriptEval);
+    resman->preloadAddonDirectory("addons");
+    resman->bootstrapAddons(*bootstrapScriptEval);
+    */
 
     mGameLayerMachine.addBottom(new MissionGameLayer());
 

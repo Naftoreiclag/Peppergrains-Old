@@ -147,23 +147,24 @@ void ResourceManager::mapAll(boost::filesystem::path dataPackFile) {
     }
 }
 
-void ResourceManager::loadCore(boost::filesystem::path package, ScriptEvaulator* evalulator) {
+void ResourceManager::loadCore(boost::filesystem::path package, ScriptEvaluator* evalulator) {
     
 }
 
-void ResourceManager::preloadAddon(boost::filesystem::path package) {
-    Json::Value dataPackData;
+void ResourceManager::preloadAddon(boost::filesystem::path packageDir) {
+    if(!boost::filesystem::exists(packageDir)) return;
+    
+    Json::Value jPackage;
     
     {
-        std::ifstream reader((package / "data.package").string().c_str());
-        reader >> dataPackData;
+        std::ifstream reader((packageDir / "data.package").string().c_str());
+        reader >> jPackage;
         reader.close();
     }
     
     Addon* addon = new Addon();
     
-    Json::Value& jInfo = dataPackData["info"];
-    
+    Json::Value& jInfo = jPackage["info"];
     if(!jInfo.isNull()) {
         Json::Value& jName = jInfo["name"];
         Json::Value& jDesc = jInfo["description"];
@@ -184,7 +185,7 @@ void ResourceManager::preloadAddon(boost::filesystem::path package) {
         }
     }
     
-    Json::Value& jEnviron = dataPackData["environment"];
+    Json::Value& jEnviron = jPackage["environment"];
     if(!jEnviron.isNull()) {
         Json::Value& jAddress = jEnviron["address"];
         Json::Value& jShare = jEnviron["share"];
@@ -214,21 +215,102 @@ void ResourceManager::preloadAddon(boost::filesystem::path package) {
         }
     }
     
-    Json::Value& jBootstrap = dataPackData["bootstrap"];
+    Json::Value& jBootstrap = jPackage["bootstrap"];
     if(!jBootstrap.isNull() && jBootstrap.isArray()) {
         for(Json::Value::iterator iter = jBootstrap.begin(); iter != jBootstrap.end(); ++ iter) {
             addon->mBootstap.push_back(iter->asString());
         }
     }
     
+    // TODO: check validity of resource list in next loop
+    
+    const Json::Value& jResources = jPackage["resources"];
+    for(Json::Value::const_iterator iter = jResources.begin(); iter != jResources.end(); ++ iter) {
+        const Json::Value& jResource = *iter;
+        
+        std::string resType = jResource["type"].asString();
+        std::string name = jResource["name"].asString();
+        std::string file = jResource["file"].asString();
+        uint32_t size = jResource["size"].asInt();
+        
+        Resource* newRes;
+        if(resType == "text") {
+            newRes = addon->mStrings[name] = new StringResource();
+        } else if(resType == "compute-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::COMPUTE);
+        } else if(resType == "vertex-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::VERTEX);
+        } else if(resType == "tess-control-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::TESS_CONTROL);
+        } else if(resType == "tess-evaluation-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::TESS_EVALUATION);
+        } else if(resType == "geometry-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::GEOMETRY);
+        } else if(resType == "fragment-shader") {
+            newRes = addon->mShaders[name] = new ShaderResource(ShaderResource::Type::FRAGMENT);
+        } else if(resType == "shader-program") {
+            newRes = addon->mShaderPrograms[name] = new ShaderProgramResource();
+        } else if(resType == "image") {
+            newRes = addon->mImages[name] = new ImageResource();
+        } else if(resType == "texture") {
+            newRes = addon->mTextures[name] = new TextureResource();
+        } else if(resType == "model") {
+            newRes = addon->mModels[name] = new ModelResource();
+        } else if(resType == "material") {
+            newRes = addon->mMaterials[name] = new MaterialResource();
+        } else if(resType == "geometry") {
+            newRes = addon->mGeometries[name] = new GeometryResource();
+        } else if(resType == "font") {
+            newRes = addon->mFonts[name] = new FontResource();
+        } else if(resType == "waveform") {
+            //newRes = addon->mWaveforms[name] = new WaveformResource();
+        } else if(resType == "script") {
+            newRes = addon->mScripts[name] = new ScriptResource();
+        } else if(resType == "component") {
+            //newRes = addon->mComponents[name] = new ComponentResource();
+        } else if(resType == "composition") {
+            //newRes = addon->mCompositions[name] = new CompositionResource();
+        } else {
+            newRes = addon->mMiscs[name] = new MiscResource();
+        }
+        
+        newRes->setName(name);
+        newRes->setFile(packageDir / file);
+        newRes->setSize(size);
+    }
+    
     mAddons.push_back(addon);
 }
 
-void ResourceManager::preloadAddons(boost::filesystem::path dir) {
+void ResourceManager::preloadAddonDirectory(boost::filesystem::path dir) {
+    if(!boost::filesystem::exists(dir)) return;
     
+    std::vector<boost::filesystem::path> packages;
+    {
+        boost::filesystem::directory_iterator endIter;
+        for(boost::filesystem::directory_iterator iter(dir); iter != endIter; ++ iter) {
+            boost::filesystem::path juliet = *iter;
+            if(boost::filesystem::is_directory(juliet)) {
+                if(boost::filesystem::exists(juliet / "data.package")) {
+                    packages.push_back(juliet);
+                }
+            }
+            else {
+                if(juliet.has_filename() && juliet.extension() == ".addon") {
+                    packages.push_back(juliet);
+                }
+            }
+        }
+    }
+    
+    for(std::vector<boost::filesystem::path>::iterator iter = packages.begin(); iter != packages.end(); ++ iter) {
+        preloadAddon(*iter);
+    }
 }
 
-void ResourceManager::bootstrapAddons(ScriptEvaulator* evalulator) {
+void ResourceManager::bootstrapAddons(ScriptEvaluator* evalulator) {
+    assert(!mAddonsLoaded && "Addons have already been loaded!");
+    
     // Check for address naming conflicts
     {
         typedef std::map<std::string, std::vector<Addon*>> Population;
@@ -270,7 +352,7 @@ void ResourceManager::bootstrapAddons(ScriptEvaulator* evalulator) {
     // Check for missing requirements
     {
         std::vector<std::string> nonError;
-        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
+        for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
             Addon* addon = *iter;
             
             if(addon->mLoadErrors.size() == 0) {
@@ -423,11 +505,47 @@ void ResourceManager::bootstrapAddons(ScriptEvaulator* evalulator) {
     mAddonsLoaded = true;
 }
 
-void ResourceManager::bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaulator* evalulator) {
+void ResourceManager::bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaluator* eval) {
+    // TODO: randomize reading of input vector
     
+    for(std::vector<Addon*>::iterator iter = addons.begin(); iter != addons.end(); /*May erase*/) {
+        Addon* addon = *iter;
+        
+        for(std::vector<std::string>::iterator iter2 = addon->mBootstap.begin(); iter2 != addon->mBootstap.end(); ++ iter2) {
+            std::string bootName = *iter2;
+            
+            std::map<std::string, ScriptResource*>::iterator iter3 = addon->mScripts.find(bootName);
+            if(iter3 == addon->mScripts.end()) {
+                AddonError ae;
+                ae.mType = AddonError::BOOTSTRAP_SCRIPT_MISSING;
+                ae.mStrings.push_back(bootName);
+                
+                addon->mLoadErrors.push_back(ae);
+                break;
+            } else {
+                ScriptResource* script = iter3->second;
+                
+                // Run script
+                eval->execute(addon, script);
+            }
+        }
+        
+        if(addon->mLoadErrors.size() > 0) {
+            mFailedAddons.push_back(addon);
+            iter = mAddons.erase(iter);
+        } else {
+            ++ iter;
+        }
+    }
 }
 
-StringResource* ResourceManager::findString(std::string name) {
+void ResourceManager::clearAddons() {
+    assert(mAddonsLoaded && "Addons have not yet been loaded!");
+    
+    mAddonsLoaded = false;
+}
+
+StringResource* ResourceManager::findString(std::string name, std::string address) {
     StringResource* res = mStrings[name];
     if(!res) {
         std::cout << "Could not find string [" << name << "]" << std::endl;
@@ -436,7 +554,7 @@ StringResource* ResourceManager::findString(std::string name) {
         return res;
     }
 }
-ImageResource* ResourceManager::findImage(std::string name) {
+ImageResource* ResourceManager::findImage(std::string name, std::string address) {
     ImageResource* res = mImages[name];
     if(!res) {
         std::cout << "Could not find image [" << name << "]" << std::endl;
@@ -445,7 +563,7 @@ ImageResource* ResourceManager::findImage(std::string name) {
         return res;
     }
 }
-TextureResource* ResourceManager::findTexture(std::string name) {
+TextureResource* ResourceManager::findTexture(std::string name, std::string address) {
     TextureResource* res = mTextures[name];
     if(!res) {
         std::cout << "Could not find texture [" << name << "]" << std::endl;
@@ -454,7 +572,7 @@ TextureResource* ResourceManager::findTexture(std::string name) {
         return res;
     }
 }
-ModelResource* ResourceManager::findModel(std::string name) {
+ModelResource* ResourceManager::findModel(std::string name, std::string address) {
     ModelResource* res = mModels[name];
     if(!res) {
         std::cout << "Could not find model [" << name << "]" << std::endl;
@@ -463,7 +581,7 @@ ModelResource* ResourceManager::findModel(std::string name) {
         return res;
     }
 }
-MaterialResource* ResourceManager::findMaterial(std::string name) {
+MaterialResource* ResourceManager::findMaterial(std::string name, std::string address) {
     MaterialResource* res = mMaterials[name];
     if(!res) {
         std::cout << "Could not find material [" << name << "]" << std::endl;
@@ -472,7 +590,7 @@ MaterialResource* ResourceManager::findMaterial(std::string name) {
         return res;
     }
 }
-GeometryResource* ResourceManager::findGeometry(std::string name) {
+GeometryResource* ResourceManager::findGeometry(std::string name, std::string address) {
     GeometryResource* res = mGeometries[name];
     if(!res) {
         std::cout << "Could not find geometry [" << name << "]" << std::endl;
@@ -481,7 +599,7 @@ GeometryResource* ResourceManager::findGeometry(std::string name) {
         return res;
     }
 }
-ShaderResource* ResourceManager::findShader(std::string name) {
+ShaderResource* ResourceManager::findShader(std::string name, std::string address) {
     ShaderResource* res = mShaders[name];
     if(!res) {
         std::cout << "Could not find shader [" << name << "]" << std::endl;
@@ -490,7 +608,7 @@ ShaderResource* ResourceManager::findShader(std::string name) {
         return res;
     }
 }
-ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
+ShaderProgramResource* ResourceManager::findShaderProgram(std::string name, std::string address) {
     ShaderProgramResource* res = mShaderPrograms[name];
     if(!res) {
         std::cout << "Could not find shader program [" << name << "]" << std::endl;
@@ -499,7 +617,7 @@ ShaderProgramResource* ResourceManager::findShaderProgram(std::string name) {
         return res;
     }
 }
-FontResource* ResourceManager::findFont(std::string name) {
+FontResource* ResourceManager::findFont(std::string name, std::string address) {
     FontResource* res = mFonts[name];
     if(!res) {
         std::cout << "Could not find font [" << name << "]" << std::endl;
@@ -507,6 +625,11 @@ FontResource* ResourceManager::findFont(std::string name) {
     } else {
         return res;
     }
+}
+
+ScriptResource* ResourceManager::findScript(std::string name, std::string address) {
+    
+    
 }
 
 }

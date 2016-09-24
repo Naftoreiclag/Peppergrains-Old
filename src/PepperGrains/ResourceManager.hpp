@@ -41,20 +41,30 @@ class ResourceManager {
 public:
     static ResourceManager* getSingleton();
     
+    StringResource* findString(std::string name, std::string address = "core");
+    ImageResource* findImage(std::string name, std::string address = "core");
+    TextureResource* findTexture(std::string name, std::string address = "core");
+    ModelResource* findModel(std::string name, std::string address = "core");
+    MaterialResource* findMaterial(std::string name, std::string address = "core");
+    GeometryResource* findGeometry(std::string name, std::string address = "core");
+    ShaderResource* findShader(std::string name, std::string address = "core");
+    ShaderProgramResource* findShaderProgram(std::string name, std::string address = "core");
+    FontResource* findFont(std::string name, std::string address = "core");
+    ScriptResource* findScript(std::string name, std::string address = "core");
     
+    struct Addon;
     
 private:
-
     //
-    struct Addon;
     struct AddonError {
         enum Type {
             // Encountered during load order determination
             CIRCULAR_AFTER, // Multiple addons try to load after each other
             ADDRESS_CONFLICT, // Multiple addons try to occupy the same address
             
-            // Problem running bootstrap script
-            BOOTSTRAP_ERROR,
+            // Problem running bootstrap scripts
+            BOOTSTRAP_SCRIPT_ERROR, // Script error during execution
+            BOOTSTRAP_SCRIPT_MISSING, // Specified script cannot be found
             
             CONCURRENT_MODIFICATION, // Access racing with another addon
             
@@ -71,6 +81,7 @@ private:
         std::vector<Addon*> mAddons;
     };
 
+public:
     //
     struct Addon {
         std::vector<AddonError> mLoadErrors;
@@ -112,7 +123,8 @@ private:
         std::map<std::string, FontResource*> mFonts;
         std::map<std::string, ScriptResource*> mScripts;
     };
-    
+
+private:
     std::vector<Addon*> mCores;
     std::vector<Addon*> mAddons;
     std::vector<Addon*> mFailedAddons;
@@ -129,37 +141,34 @@ private:
     std::map<std::string, ShaderResource*> mShaders;
     std::map<std::string, ShaderProgramResource*> mShaderPrograms;
     std::map<std::string, FontResource*> mFonts;
-    
-    // Used only when resource lookup fails
-    StringResource* mFallbackString;
-    ImageResource* mFallbackImage;
-    TextureResource* mFallbackTexture;
-    ModelResource* mFallbackModel;
-    MaterialResource* mFallbackMaterial;
-    GeometryResource* mFallbackGeometry;
-    ShaderResource* mFallbackShader;
-    ShaderProgramResource* mFallbackShaderProgram;
-    FontResource* mFallbackFont;
+    std::map<std::string, ScriptResource*> mScripts;
     
 public:
     ResourceManager();
     ~ResourceManager();
     
+    // Changes to core resources
+    struct CoreModification {
+        
+    };
+    
     // Abstractions are fun
     // Subclass ScriptEvaluator to pass during bootstrapping
-    class ScriptEvaulator {
+    class ScriptEvaluator {
+    public:
+        virtual void execute(const Addon* addon, ScriptResource* bootScript) = 0;
     };
     
     // Loading of core resources which are never unloaded. Restored to original state if an addon
     // which modifies a core resource is unloaded
-    void loadCore(boost::filesystem::path package, ScriptEvaulator* evalulator);
+    void loadCore(boost::filesystem::path package, ScriptEvaluator* evaluator);
     
     // Parse a package and add to the loading list
     void preloadAddon(boost::filesystem::path package);
-    void preloadAddons(boost::filesystem::path dir); // Utility; load from directory
+    void preloadAddonDirectory(boost::filesystem::path dir); // Utility; load from directory
     
     // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
-    void bootstrapAddons(ScriptEvaulator* evalulator);
+    void bootstrapAddons(ScriptEvaluator* evalulator);
     
     // Unload all addons, restore core resources to original state.
     void clearAddons();
@@ -174,13 +183,19 @@ private:
      * the resources that they modify. If multiple addons try to modify the same resource in a
      * single call of this method, both error.
      * 
-     * Error checking is also done on all addons in the provided vector.
+     * Unfortunately, there may still be order-dependency which cannot be checked (e.g. a script
+     * calling another script's function created within the same call cannot be intervened). To
+     * "prevent" this, load order within this call is also randomized.
+     * 
+     * Error checking is also done on all addons before bootstrapping them "individually"
      */
-    void bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaulator* evalulator);
+    void bootstrapAddonsConcurrently(std::vector<Addon*> addons, ScriptEvaluator* evalulator);
 
-    void mapAll(boost::filesystem::path data);
     
 public:
+    
+    void mapAll(boost::filesystem::path data);
+    
     StringResource* getFallbackString();
     ImageResource* getFallbackImage();
     TextureResource* getFallbackTexture();
@@ -190,16 +205,18 @@ public:
     ShaderResource* getFallbackShader();
     ShaderProgramResource* getFallbackShaderProgram();
     FontResource* getFallbackFont();
-
-    StringResource* findString(std::string name);
-    ImageResource* findImage(std::string name);
-    TextureResource* findTexture(std::string name);
-    ModelResource* findModel(std::string name);
-    MaterialResource* findMaterial(std::string name);
-    GeometryResource* findGeometry(std::string name);
-    ShaderResource* findShader(std::string name);
-    ShaderProgramResource* findShaderProgram(std::string name);
-    FontResource* findFont(std::string name);
+private:
+    
+    // Used only when resource lookup fails
+    StringResource* mFallbackString;
+    ImageResource* mFallbackImage;
+    TextureResource* mFallbackTexture;
+    ModelResource* mFallbackModel;
+    MaterialResource* mFallbackMaterial;
+    GeometryResource* mFallbackGeometry;
+    ShaderResource* mFallbackShader;
+    ShaderProgramResource* mFallbackShaderProgram;
+    FontResource* mFallbackFont;
 };
 
 }

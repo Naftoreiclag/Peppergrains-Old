@@ -25,20 +25,29 @@
 #include "ResourceManager.hpp"
 
 namespace pgg {
+    
+class BootstrapScriptEval : public ResourceManager::ScriptEvaluator {
+public:
+    void execute(const ResourceManager::Addon* addon, ScriptResource* bootScript);
+};
 
-class PepperGrains : ResourceManager::ScriptEvaulator {
+class PepperGrains {
 public:
     static PepperGrains* getSingleton();
 public:
     PepperGrains();
     ~PepperGrains();
+    
 private:
     SoundIo* mSndIo;
     SoundIoDevice* mSndDevice;
     
+    BootstrapScriptEval bootstrapScriptEval;
+    
     float mTps;
     float mTpsWeight;
     float mOneSecondTimer;
+    
 public:
     Sound::Endpoint* mSndEndpoint;
 
@@ -48,7 +57,10 @@ public:
     uint32_t getRunningTimeMilliseconds() const;
     double getRunningTimeSeconds() const;
     
+    
     int run(int argc, char* argv[]);
+    
+    
 };
 
 }
