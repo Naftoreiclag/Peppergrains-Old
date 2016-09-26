@@ -166,7 +166,23 @@ void SmacRenderer::renderFrame(SceneNode* rootNode) {
     
     // Render gbuffer, passing in probe data
     {
-        
+        glViewport(0, 0, mScreenWidth, mScreenHeight);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0,
+            GL_COLOR_ATTACHMENT1,
+            GL_COLOR_ATTACHMENT2
+        };
+        glDrawBuffers(3, colorAttachments);
+        glClearColor(1.f, 1.f, 0.f, 1.f);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
     // Perform post-process
