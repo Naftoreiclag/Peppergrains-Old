@@ -128,6 +128,8 @@
       <File Name="ShaderProgramResource.hpp"/>
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
+      <File Name="SmacRenderer.cpp"/>
+      <File Name="SmacRenderer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>

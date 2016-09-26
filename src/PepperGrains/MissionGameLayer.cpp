@@ -22,8 +22,9 @@
 namespace pgg
 {
 
-MissionGameLayer::MissionGameLayer()
-{
+MissionGameLayer::MissionGameLayer(uint32_t width, uint32_t height)
+: mScreenWidth(width)
+, mScreenHeight(height) {
 }
 
 MissionGameLayer::~MissionGameLayer()
@@ -32,15 +33,20 @@ MissionGameLayer::~MissionGameLayer()
 
 // Lifecycle
 void MissionGameLayer::onBegin() {
+    mSmac = new SmacRenderer(mScreenWidth, mScreenHeight);
+    mSmac->grab();
     
 }
 void MissionGameLayer::onEnd() {
+    mSmac->drop();
     
 }
 
 // Ticks
 void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
+    mSmac->renderFrame(0);
 }
 
 }

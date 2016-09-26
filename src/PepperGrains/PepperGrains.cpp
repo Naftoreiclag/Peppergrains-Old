@@ -148,7 +148,7 @@ int PepperGrains::run(int argc, char* argv[]) {
     resman->bootstrapAddons(*bootstrapScriptEval);
     */
 
-    mGameLayerMachine.addBottom(new MissionGameLayer());
+    mGameLayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;

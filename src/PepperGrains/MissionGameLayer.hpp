@@ -18,14 +18,21 @@
 #define PGG_MISSIONGAMELAYER_HPP
 
 #include "GameLayer.hpp"
+#include "SmacRenderer.hpp"
 
 namespace pgg {
 
 class MissionGameLayer : public GameLayer {
 public:
-    MissionGameLayer();
+    MissionGameLayer(uint32_t width, uint32_t height);
     ~MissionGameLayer();
+private:
+    uint32_t mScreenWidth;
+    uint32_t mScreenHeight;
     
+    SmacRenderer* mSmac;
+
+public:
     // Lifecycle
     void onBegin();
     void onEnd();

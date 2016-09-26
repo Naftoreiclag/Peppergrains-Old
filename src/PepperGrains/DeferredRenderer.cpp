@@ -862,7 +862,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         glUseProgram(0);
         
-    } else {
+    }
+    else {
         glUseProgram(mScreenShader.shaderProg->getHandle());
     
         glActiveTexture(GL_TEXTURE0 + 0);
