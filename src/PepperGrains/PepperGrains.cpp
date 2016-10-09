@@ -32,19 +32,31 @@
 
 namespace pgg {
     
-void BootstrapScriptEval::execute(const ResourceManager::Addon* addon, ScriptResource* bootScript) {
-}
+class BootstrapScriptEval : public ResourceManager::ScriptEvaluator {
+public:
+    void execute(const ResourceManager::Addon* addon, ScriptResource* bootScript) {
+        
+    }
+};
 
-PepperGrains* PepperGrains::getSingleton() {
-    static PepperGrains instance;
+namespace PepperGrains {
 
-    return &instance;
-}
+SoundIo* mSndIo;
+SoundIoDevice* mSndDevice;
 
-PepperGrains::PepperGrains() { }
-PepperGrains::~PepperGrains() { }
+BootstrapScriptEval bootstrapScriptEval;
 
-int PepperGrains::run(int argc, char* argv[]) {
+float mTps;
+float mTpsWeight;
+float mOneSecondTimer;
+
+Sound::Endpoint* mSndEndpoint;
+
+bool mMainLoopRunning;
+GameLayerMachine mGameLayerMachine;
+    
+
+int run(int argc, char* argv[]) {
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Could not initalize SDL video" << std::endl;
         return -1;
@@ -252,13 +264,10 @@ int PepperGrains::run(int argc, char* argv[]) {
     return 0;
 }
 
-uint32_t PepperGrains::getRunningTimeMilliseconds() const {
-    return SDL_GetTicks();
-}
-
-double PepperGrains::getRunningTimeSeconds() const {
-    return ((double) SDL_GetTicks()) * 0.001;
 }
 
 }
 
+int main(int argc, char* argv[]) {
+    return pgg::PepperGrains::run(argc, argv);
+}

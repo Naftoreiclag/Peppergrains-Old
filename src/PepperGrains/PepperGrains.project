@@ -65,7 +65,6 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="main.cpp"/>
     <VirtualDirectory Name="Resources">
       <File Name="MiscResource.cpp"/>
       <File Name="MiscResource.hpp"/>

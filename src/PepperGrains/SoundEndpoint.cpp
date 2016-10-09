@@ -176,7 +176,7 @@ PlayingWaveformInterface* Endpoint::playWaveform(Waveform* waveform, double phas
 
 void Endpoint::writeCallback(SoundIoOutStream* stream, uint32_t minFrames, uint32_t maxFrames) {
     
-    double time = PepperGrains::getSingleton()->getRunningTimeSeconds();
+    double time = 0;//PepperGrains::getSingleton()->getRunningTimeSeconds();
     
     const SoundIoChannelLayout& layout = stream->layout;
     

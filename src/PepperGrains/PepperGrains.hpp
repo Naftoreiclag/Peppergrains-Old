@@ -25,43 +25,20 @@
 #include "ResourceManager.hpp"
 
 namespace pgg {
-    
-class BootstrapScriptEval : public ResourceManager::ScriptEvaluator {
-public:
-    void execute(const ResourceManager::Addon* addon, ScriptResource* bootScript);
-};
 
-class PepperGrains {
-public:
-    static PepperGrains* getSingleton();
-public:
-    PepperGrains();
-    ~PepperGrains();
+namespace PepperGrains {
+    extern SoundIo* mSndIo;
+    extern SoundIoDevice* mSndDevice;
     
-private:
-    SoundIo* mSndIo;
-    SoundIoDevice* mSndDevice;
+    extern float mTps;
+    extern float mTpsWeight;
+    extern float mOneSecondTimer;
     
-    BootstrapScriptEval bootstrapScriptEval;
-    
-    float mTps;
-    float mTpsWeight;
-    float mOneSecondTimer;
-    
-public:
-    Sound::Endpoint* mSndEndpoint;
+    extern Sound::Endpoint* mSndEndpoint;
 
-    bool mMainLoopRunning;
-    GameLayerMachine mGameLayerMachine;
-    
-    uint32_t getRunningTimeMilliseconds() const;
-    double getRunningTimeSeconds() const;
-    
-    
-    int run(int argc, char* argv[]);
-    
-    
-};
+    extern bool mMainLoopRunning;
+    extern GameLayerMachine mGameLayerMachine;
+}
 
 }
 

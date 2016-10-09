@@ -361,7 +361,7 @@ void DesignerGameLayer::onBegin() {
     mCollisionWorld = mCollisionPackage[0].mCollisionWorld;
     mManipulatorCollisionWorld = mCollisionPackage[1].mCollisionWorld;
     
-    mSndEndpoint = PepperGrains::getSingleton()->mSndEndpoint;
+    mSndEndpoint = 0;//PepperGrains::mSndEndpoint;
     
     // mPwi = mSndEndpoint->playWaveform(new SineWaveform(440.f));
     
