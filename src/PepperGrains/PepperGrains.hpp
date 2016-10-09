@@ -17,29 +17,29 @@
 #ifndef PGG_PEPPERGRAINS_HPP
 #define PGG_PEPPERGRAINS_HPP
 
-#include "soundio/soundio.h"
-#include "lua.hpp"
+#include <stdint.h>
 
-#include "GameLayerMachine.hpp"
+#include "GamelayerMachine.hpp"
 #include "SoundEndpoint.hpp"
 #include "ResourceManager.hpp"
 
 namespace pgg {
 
-namespace PepperGrains {
-    extern SoundIo* mSndIo;
-    extern SoundIoDevice* mSndDevice;
+namespace Engine {
+    extern Sound::Endpoint soundEndpoint;
+    extern GamelayerMachine gameLayerMachine;
+    extern ResourceManager resMan;
     
-    extern float mTps;
-    extern float mTpsWeight;
-    extern float mOneSecondTimer;
+    void quit();
     
-    extern Sound::Endpoint* mSndEndpoint;
+    double calcRunTimeSeconds();
+    uint64_t calcRunTimeMilliseconds();
+    
+    uint64_t getTotalTickCount();
+    
+    
+} // Engine
 
-    extern bool mMainLoopRunning;
-    extern GameLayerMachine mGameLayerMachine;
-}
-
-}
+} // pgg
 
 #endif // PGG_PEPPERGRAINS_HPP

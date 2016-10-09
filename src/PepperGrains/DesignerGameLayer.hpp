@@ -17,7 +17,7 @@
 #ifndef DesignerGameLayer_HPP
 #define DesignerGameLayer_HPP
 
-#include "GameLayer.hpp" // Base class: pgg::GameLayer
+#include "Gamelayer.hpp" // Base class: pgg::Gamelayer
 
 #include <vector>
 
@@ -36,7 +36,7 @@
 
 namespace pgg {
 
-class DesignerGameLayer : public GameLayer {
+class DesignerGameLayer : public Gamelayer {
 private:
     DeferredRenderer* mRenderer;
 

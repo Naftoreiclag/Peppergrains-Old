@@ -17,12 +17,12 @@
 #ifndef PGG_MISSIONGAMELAYER_HPP
 #define PGG_MISSIONGAMELAYER_HPP
 
-#include "GameLayer.hpp"
+#include "Gamelayer.hpp"
 #include "SmacRenderer.hpp"
 
 namespace pgg {
 
-class MissionGameLayer : public GameLayer {
+class MissionGameLayer : public Gamelayer {
 public:
     MissionGameLayer(uint32_t width, uint32_t height);
     ~MissionGameLayer();

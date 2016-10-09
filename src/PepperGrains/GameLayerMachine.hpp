@@ -23,21 +23,21 @@
 
 namespace pgg {
 
-class GameLayer;
-class GameLayerMachine {
+class Gamelayer;
+class GamelayerMachine {
 public:
-    GameLayerMachine();
-    ~GameLayerMachine();
+    GamelayerMachine();
+    ~GamelayerMachine();
 
 private:
-    std::vector<GameLayer*> mLayers;
+    std::vector<Gamelayer*> mLayers;
     
     static InputState sEmptyInputState;
     
 public:
-    void addAbove(GameLayer* addMe, GameLayer* aboveMe);
-    void addBottom(GameLayer* addMe);
-    void remove(GameLayer* removeMe);
+    void addAbove(Gamelayer* addMe, Gamelayer* aboveMe);
+    void addBottom(Gamelayer* addMe);
+    void remove(Gamelayer* removeMe);
     void removeAll();
     
     // Ticks

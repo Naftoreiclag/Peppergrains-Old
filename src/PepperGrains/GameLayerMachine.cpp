@@ -14,31 +14,31 @@
    limitations under the License.
 */
 
-#include "GameLayerMachine.hpp"
+#include "GamelayerMachine.hpp"
 
 #include <algorithm>
 #include <cassert>
 
-#include "GameLayer.hpp"
+#include "Gamelayer.hpp"
 
 namespace pgg {
     
-InputState GameLayerMachine::sEmptyInputState;
+InputState GamelayerMachine::sEmptyInputState;
 
-GameLayerMachine::GameLayerMachine() { }
+GamelayerMachine::GamelayerMachine() { }
 
-GameLayerMachine::~GameLayerMachine() {}
+GamelayerMachine::~GamelayerMachine() {}
 
-void GameLayerMachine::addBottom(GameLayer* addMe) {
+void GamelayerMachine::addBottom(Gamelayer* addMe) {
     mLayers.insert(mLayers.begin(), addMe);
     addMe->onBegin();
 }
 
-void GameLayerMachine::addAbove(GameLayer* addMe, GameLayer* caller) {
+void GamelayerMachine::addAbove(Gamelayer* addMe, Gamelayer* caller) {
     // Find where the caller is located
-    std::vector<GameLayer*>::iterator location = mLayers.end();
-    for(std::vector<GameLayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
-        GameLayer* layer = *iter;
+    std::vector<Gamelayer*>::iterator location = mLayers.end();
+    for(std::vector<Gamelayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         if(layer == caller) {
             location = iter;
@@ -47,7 +47,7 @@ void GameLayerMachine::addAbove(GameLayer* addMe, GameLayer* caller) {
     }
     
     // The caller is valid
-    assert(location != mLayers.end() && "Adding GameLayer in unknown position");
+    assert(location != mLayers.end() && "Adding Gamelayer in unknown position");
     
     // Insert the new game layer into the next location ("One layer above")
     ++ location;
@@ -55,8 +55,8 @@ void GameLayerMachine::addAbove(GameLayer* addMe, GameLayer* caller) {
     addMe->onBegin();
     
     // Inform all layers "below" this one that a new layer was added above them (this should logically include the caller)
-    for(std::vector<GameLayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
-        GameLayer* layer = *iter;
+    for(std::vector<Gamelayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         if(layer == addMe) {
             break;
@@ -66,11 +66,11 @@ void GameLayerMachine::addAbove(GameLayer* addMe, GameLayer* caller) {
         }
     }
 }
-void GameLayerMachine::remove(GameLayer* removeMe) {
+void GamelayerMachine::remove(Gamelayer* removeMe) {
     // Find the layer to remove
-    std::vector<GameLayer*>::iterator location = mLayers.end();
-    for(std::vector<GameLayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
-        GameLayer* layer = *iter;
+    std::vector<Gamelayer*>::iterator location = mLayers.end();
+    for(std::vector<Gamelayer*>::iterator iter = mLayers.begin(); iter != mLayers.end(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         if(layer == removeMe) {
             location = iter;
@@ -79,14 +79,14 @@ void GameLayerMachine::remove(GameLayer* removeMe) {
     }
     
     // This layer was found
-    assert(location != mLayers.end() && "Removing GameLayer that has not yet been added");
+    assert(location != mLayers.end() && "Removing Gamelayer that has not yet been added");
     
     // Inform layer that it is going to be removed
     removeMe->onEnd();
     
     // Inform all layers "below" this one that a layer above them was removed
-    for(std::vector<GameLayer*>::iterator iter = mLayers.begin(); iter != location; ++ iter) {
-        GameLayer* layer = *iter;
+    for(std::vector<Gamelayer*>::iterator iter = mLayers.begin(); iter != location; ++ iter) {
+        Gamelayer* layer = *iter;
         
         layer->onRemovedAbove(removeMe);
     }
@@ -94,23 +94,23 @@ void GameLayerMachine::remove(GameLayer* removeMe) {
     // Remove layer
     mLayers.erase(location);
 }
-void GameLayerMachine::removeAll() {
-    std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin();
+void GamelayerMachine::removeAll() {
+    std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin();
     while(iter != mLayers.rend()) {
-        GameLayer* layer = *iter;
+        Gamelayer* layer = *iter;
         this->remove(layer);
         ++ iter;
     }
 }
 
 // Ticks
-void GameLayerMachine::onTick(float tpf, const InputState* keys) {
+void GamelayerMachine::onTick(float tpf, const InputState* keys) {
     bool allKeysFiltered = false;
     InputState filteredInputState = *keys;
     
-    std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin();
+    std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin();
     while(iter != mLayers.rend()) {
-        GameLayer* layer = *iter;
+        Gamelayer* layer = *iter;
         
         if(allKeysFiltered) {
             layer->onTick(tpf, &sEmptyInputState);
@@ -131,9 +131,9 @@ void GameLayerMachine::onTick(float tpf, const InputState* keys) {
 }
 
 // Key handling
-void GameLayerMachine::onKeyboardEvent(const KeyboardEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onKeyboardEvent(const KeyboardEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onKeyboardEvent(event)) {
@@ -141,9 +141,9 @@ void GameLayerMachine::onKeyboardEvent(const KeyboardEvent& event) {
         }
     }
 }
-void GameLayerMachine::onTextInput(const TextInputEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onTextInput(const TextInputEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onTextInput(event)) {
@@ -153,9 +153,9 @@ void GameLayerMachine::onTextInput(const TextInputEvent& event) {
 }
 
 // Mouse handling
-void GameLayerMachine::onMouseMove(const MouseMoveEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onMouseMove(const MouseMoveEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onMouseMove(event)) {
@@ -163,9 +163,9 @@ void GameLayerMachine::onMouseMove(const MouseMoveEvent& event) {
         }
     }
 }
-void GameLayerMachine::onMouseButton(const MouseButtonEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onMouseButton(const MouseButtonEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onMouseButton(event)) {
@@ -173,9 +173,9 @@ void GameLayerMachine::onMouseButton(const MouseButtonEvent& event) {
         }
     }
 }
-void GameLayerMachine::onMouseWheel(const MouseWheelMoveEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onMouseWheel(const MouseWheelMoveEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onMouseWheel(event)) {
@@ -183,9 +183,9 @@ void GameLayerMachine::onMouseWheel(const MouseWheelMoveEvent& event) {
         }
     }
 }
-void GameLayerMachine::onWindowSizeUpdate(const WindowResizeEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onWindowSizeUpdate(const WindowResizeEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onWindowSizeUpdate(event)) {
@@ -193,9 +193,9 @@ void GameLayerMachine::onWindowSizeUpdate(const WindowResizeEvent& event) {
         }
     }
 }
-void GameLayerMachine::onQuit(const QuitEvent& event) {
-    for(std::vector<GameLayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
-        GameLayer* layer = *iter;
+void GamelayerMachine::onQuit(const QuitEvent& event) {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
         
         // Blocking
         if(layer->onQuit(event)) {

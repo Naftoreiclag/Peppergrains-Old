@@ -19,14 +19,14 @@
 
 #include "NALEvents.hpp"
 
-#include "GameLayerMachine.hpp"
+#include "GamelayerMachine.hpp"
 
 namespace pgg {
 
-class GameLayer {
+class Gamelayer {
 public:
-    GameLayer();
-    virtual ~GameLayer();
+    Gamelayer();
+    virtual ~Gamelayer();
 public:
     // Lifecycle
     virtual void onBegin();
@@ -43,8 +43,8 @@ public:
     virtual bool filterKeys(InputState* keyStates);
     
     // Layering
-    virtual void onAddedAbove(const GameLayer* layer);
-    virtual void onRemovedAbove(const GameLayer* layer);
+    virtual void onAddedAbove(const Gamelayer* layer);
+    virtual void onRemovedAbove(const Gamelayer* layer);
     
     // Key handling
     virtual bool onKeyboardEvent(const KeyboardEvent& event);

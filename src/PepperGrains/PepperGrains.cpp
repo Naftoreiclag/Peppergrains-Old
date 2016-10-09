@@ -21,6 +21,7 @@
 
 #include "OpenGLStuff.hpp"
 #include "SDL2/SDL.h"
+#include "lua.hpp"
 
 #include "ResourceManager.hpp"
 
@@ -28,7 +29,7 @@
 #include "OverworldGameLayer.hpp"
 #include "OpenGLContextData.hpp"
 #include "SDLRendererData.hpp"
-#include "MissionGameLayer.hpp"
+#include "MissionGamelayer.hpp"
 
 namespace pgg {
     
@@ -39,28 +40,37 @@ public:
     }
 };
 
-namespace PepperGrains {
-
-SoundIo* mSndIo;
-SoundIoDevice* mSndDevice;
+namespace Engine {
 
 BootstrapScriptEval bootstrapScriptEval;
 
-float mTps;
-float mTpsWeight;
-float mOneSecondTimer;
+Sound::Endpoint soundEndpoint;
 
-Sound::Endpoint* mSndEndpoint;
+GamelayerMachine gameLayerMachine;
+uint32_t mTotalTicks;
 
 bool mMainLoopRunning;
-GameLayerMachine mGameLayerMachine;
-    
+void quit() {
+    gameLayerMachine.removeAll();
+    mMainLoopRunning = false;
+}
+
+double calcRunTimeSeconds() {
+    return SDL_GetTicks();
+}
+uint64_t calcRunTimeMilliseconds() {
+    return ((double) SDL_GetTicks()) * 0.001;
+}
 
 int run(int argc, char* argv[]) {
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Could not initalize SDL video" << std::endl;
         return -1;
     }
+    
+    float mTps;
+    float mTpsWeight;
+    float mOneSecondTimer;
     
     mTps = 0.f;
     mTpsWeight = 0.85f;
@@ -69,7 +79,7 @@ int run(int argc, char* argv[]) {
     uint32_t windowHeight = 960;
     
     // Initialize sound system
-    mSndIo = soundio_create();
+    SoundIo* mSndIo = soundio_create();
     
     // Connect to the first available backend
     soundio_connect(mSndIo);
@@ -78,10 +88,9 @@ int run(int argc, char* argv[]) {
     soundio_flush_events(mSndIo);
     
     // Use default device
-    mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo));
+    SoundIoDevice* mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo));
     
-    mSndEndpoint = new Sound::Endpoint();
-    mSndEndpoint->setDevice(mSndDevice);
+    soundEndpoint.setDevice(mSndDevice);
     
     // These attributes must be set before creating any SDL windows
     // Note: the major and minor version are only hints (not guranteed to use 4.3)
@@ -160,7 +169,7 @@ int run(int argc, char* argv[]) {
     resman->bootstrapAddons(*bootstrapScriptEval);
     */
 
-    mGameLayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
+    gameLayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
@@ -175,44 +184,43 @@ int run(int argc, char* argv[]) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT: {
-                    mGameLayerMachine.onQuit(QuitEvent(event.quit));
-                    mGameLayerMachine.removeAll();
-                    mMainLoopRunning = false;
+                    gameLayerMachine.onQuit(QuitEvent(event.quit));
+                    quit();
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    mGameLayerMachine.onTextInput(TextInputEvent(event.text));
+                    gameLayerMachine.onTextInput(TextInputEvent(event.text));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_KEYUP:
                 case SDL_KEYDOWN: {
-                    mGameLayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
+                    gameLayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
                     break;
                 }
                 case SDL_MOUSEMOTION: {
                     MouseMoveEvent mme(event.motion);
                     inputState.setMouseDelta(mme.dx, mme.dy);
-                    mGameLayerMachine.onMouseMove(MouseMoveEvent(event.motion));
+                    gameLayerMachine.onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN: {
-                    mGameLayerMachine.onMouseButton(MouseButtonEvent(event.button));
+                    gameLayerMachine.onMouseButton(MouseButtonEvent(event.button));
                     break;
                 }
                 case SDL_MOUSEWHEEL: {
-                    mGameLayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
+                    gameLayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
                     break;
                 }
                 case SDL_WINDOWEVENT: {
                     switch(event.window.event) {
                         // This also catches resizing due to API calls
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                            mGameLayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
+                            gameLayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
                         }
                     }
                 }
@@ -243,8 +251,8 @@ int run(int argc, char* argv[]) {
             inputState.updateKeysFromSDL();
             inputState.updateMouseFromSDL();
             
-            mGameLayerMachine.onTick(tpf, &inputState);
-            mSndEndpoint->updateSoundThread();
+            gameLayerMachine.onTick(tpf, &inputState);
+            soundEndpoint.updateSoundThread();
 
             // Swap buffers (draw everything onto the screen)
             SDL_GL_SwapWindow(sdlWindow);
@@ -269,5 +277,5 @@ int run(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    return pgg::PepperGrains::run(argc, argv);
+    return pgg::Engine::run(argc, argv);
 }

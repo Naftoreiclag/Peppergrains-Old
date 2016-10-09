@@ -133,10 +133,6 @@
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
-      <File Name="GameLayer.cpp"/>
-      <File Name="GameLayer.hpp"/>
-      <File Name="GameLayerMachine.cpp"/>
-      <File Name="GameLayerMachine.hpp"/>
       <File Name="OpenGLContextData.cpp"/>
       <File Name="OpenGLContextData.hpp"/>
       <File Name="SDLRendererData.cpp"/>
@@ -144,8 +140,6 @@
     </VirtualDirectory>
     <File Name="PepperGrains.hpp"/>
     <File Name="PepperGrains.cpp"/>
-    <File Name="TerrainRenderer.hpp"/>
-    <File Name="TerrainRenderer.cpp"/>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
       <File Name="TerrainResolver.cpp"/>
@@ -196,8 +190,6 @@
         <File Name="SceneNodeESys.hpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <File Name="DesignerGameLayer.cpp"/>
-    <File Name="DesignerGameLayer.hpp"/>
     <VirtualDirectory Name="Abstraction">
       <File Name="NALInputs.hpp"/>
       <File Name="NALEvents.cpp"/>
@@ -210,8 +202,6 @@
       <File Name="Vec3.hpp"/>
       <File Name="NALInputs.cpp"/>
     </VirtualDirectory>
-    <File Name="DesignerParts.hpp"/>
-    <File Name="DesignerParts.cpp"/>
     <VirtualDirectory Name="util">
       <File Name="MathUtil.cpp"/>
       <File Name="MathUtil.hpp"/>
@@ -220,8 +210,6 @@
       <File Name="StreamStuff.cpp"/>
       <File Name="StreamStuff.hpp"/>
     </VirtualDirectory>
-    <File Name="MissionGameLayer.hpp"/>
-    <File Name="MissionGameLayer.cpp"/>
     <VirtualDirectory Name="sound">
       <File Name="SoundEndpoint.hpp"/>
       <File Name="SoundEndpoint.cpp"/>
@@ -243,6 +231,20 @@
         <File Name="SoundWaveform.cpp"/>
         <File Name="SoundWaveform.hpp"/>
       </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="gamelayer">
+      <VirtualDirectory Name="logic">
+        <File Name="DesignerGameLayer.cpp"/>
+        <File Name="DesignerGameLayer.hpp"/>
+        <File Name="DesignerParts.cpp"/>
+        <File Name="DesignerParts.hpp"/>
+        <File Name="MissionGamelayer.cpp"/>
+        <File Name="MissionGamelayer.hpp"/>
+      </VirtualDirectory>
+      <File Name="GamelayerMachine.cpp"/>
+      <File Name="Gamelayer.cpp"/>
+      <File Name="Gamelayer.hpp"/>
+      <File Name="GamelayerMachine.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

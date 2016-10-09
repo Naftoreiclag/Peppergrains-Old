@@ -14,44 +14,44 @@
    limitations under the License.
 */
 
-#include "GameLayer.hpp"
+#include "Gamelayer.hpp"
 
 namespace pgg {
 
-GameLayer::GameLayer() {}
-GameLayer::~GameLayer() {}
+Gamelayer::Gamelayer() {}
+Gamelayer::~Gamelayer() {}
 
 // Lifecycle
-void GameLayer::onBegin() {}
-void GameLayer::onEnd() {}
+void Gamelayer::onBegin() {}
+void Gamelayer::onEnd() {}
 
 // Ticks
-void GameLayer::onTick(float tpf, const InputState* keyStates) {}
+void Gamelayer::onTick(float tpf, const InputState* keyStates) {}
 
 /* Key filtering:
  *  Set whatever keystates to be false before passing them on to the next layers
  *  Return true to set all keys to false
  *  Not guaranteed to be called each tick
  */
-bool GameLayer::filterKeys(InputState* keyStates) { return false; }
+bool Gamelayer::filterKeys(InputState* keyStates) { return false; }
 
 // Layering
-void GameLayer::onAddedAbove(const GameLayer* layer) {}
-void GameLayer::onRemovedAbove(const GameLayer* layer) {}
+void Gamelayer::onAddedAbove(const Gamelayer* layer) {}
+void Gamelayer::onRemovedAbove(const Gamelayer* layer) {}
 
 // Key handling
-bool GameLayer::onKeyboardEvent(const KeyboardEvent& event) { return false; }
-bool GameLayer::onTextInput(const TextInputEvent& event) { return false; }
+bool Gamelayer::onKeyboardEvent(const KeyboardEvent& event) { return false; }
+bool Gamelayer::onTextInput(const TextInputEvent& event) { return false; }
 
 // Mouse handling
-bool GameLayer::onMouseMove(const MouseMoveEvent& event) { return false; }
-bool GameLayer::onMouseButton(const MouseButtonEvent& event) { return false; }
-bool GameLayer::onMouseWheel(const MouseWheelMoveEvent& event) { return false; }
+bool Gamelayer::onMouseMove(const MouseMoveEvent& event) { return false; }
+bool Gamelayer::onMouseButton(const MouseButtonEvent& event) { return false; }
+bool Gamelayer::onMouseWheel(const MouseWheelMoveEvent& event) { return false; }
 
 // Windowing
-bool GameLayer::onWindowSizeUpdate(const WindowResizeEvent& event) { return false; }
+bool Gamelayer::onWindowSizeUpdate(const WindowResizeEvent& event) { return false; }
 
-bool GameLayer::onQuit(const QuitEvent& event) { return false; }
+bool Gamelayer::onQuit(const QuitEvent& event) { return false; }
 
 }
 

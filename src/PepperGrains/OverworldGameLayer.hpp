@@ -17,7 +17,7 @@
 #ifndef OverworldGameLayer_HPP
 #define OverworldGameLayer_HPP
 
-#include "GameLayer.hpp" // Base class: pgg::GameLayer
+#include "Gamelayer.hpp" // Base class: pgg::GameLayer
 
 #include "btBulletDynamicsCommon.h"
 #include "SDL2/SDL.h"
@@ -31,14 +31,13 @@
 #include "SceneNodeESys.hpp"
 #include "SunLightModel.hpp"
 #include "TerrainModel.hpp"
-#include "TerrainRenderer.hpp"
 #include "TextModel.hpp"
 #include "TextureResource.hpp"
 #include "DebugInfiniteCheckerboardModel.hpp"
 
 namespace pgg {
 
-class OverworldGameLayer : public GameLayer {
+class OverworldGameLayer : public Gamelayer {
 private:
     struct GBuffer {
         GLuint gFramebuffer;
