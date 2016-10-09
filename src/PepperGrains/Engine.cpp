@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include "PepperGrains.hpp"
+#include "Engine.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -46,12 +46,12 @@ BootstrapScriptEval bootstrapScriptEval;
 
 Sound::Endpoint soundEndpoint;
 
-GamelayerMachine gameLayerMachine;
+GamelayerMachine gamelayerMachine;
 uint32_t mTotalTicks;
 
 bool mMainLoopRunning;
 void quit() {
-    gameLayerMachine.removeAll();
+    gamelayerMachine.removeAll();
     mMainLoopRunning = false;
 }
 
@@ -169,7 +169,7 @@ int run(int argc, char* argv[]) {
     resman->bootstrapAddons(*bootstrapScriptEval);
     */
 
-    gameLayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
+    gamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
     uint32_t prev = SDL_GetTicks();
     mMainLoopRunning = true;
@@ -184,43 +184,43 @@ int run(int argc, char* argv[]) {
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_QUIT: {
-                    gameLayerMachine.onQuit(QuitEvent(event.quit));
+                    gamelayerMachine.onQuit(QuitEvent(event.quit));
                     quit();
                     break;
                 }
                 case SDL_TEXTINPUT: {
-                    gameLayerMachine.onTextInput(TextInputEvent(event.text));
+                    gamelayerMachine.onTextInput(TextInputEvent(event.text));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_KEYUP:
                 case SDL_KEYDOWN: {
-                    gameLayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
+                    gamelayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
                     break;
                 }
                 case SDL_MOUSEMOTION: {
                     MouseMoveEvent mme(event.motion);
                     inputState.setMouseDelta(mme.dx, mme.dy);
-                    gameLayerMachine.onMouseMove(MouseMoveEvent(event.motion));
+                    gamelayerMachine.onMouseMove(MouseMoveEvent(event.motion));
                     break;
                 }
                 
                 // Both press and release should trigger the same event
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN: {
-                    gameLayerMachine.onMouseButton(MouseButtonEvent(event.button));
+                    gamelayerMachine.onMouseButton(MouseButtonEvent(event.button));
                     break;
                 }
                 case SDL_MOUSEWHEEL: {
-                    gameLayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
+                    gamelayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
                     break;
                 }
                 case SDL_WINDOWEVENT: {
                     switch(event.window.event) {
                         // This also catches resizing due to API calls
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                            gameLayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
+                            gamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
                         }
                     }
                 }
@@ -251,7 +251,7 @@ int run(int argc, char* argv[]) {
             inputState.updateKeysFromSDL();
             inputState.updateMouseFromSDL();
             
-            gameLayerMachine.onTick(tpf, &inputState);
+            gamelayerMachine.onTick(tpf, &inputState);
             soundEndpoint.updateSoundThread();
 
             // Swap buffers (draw everything onto the screen)

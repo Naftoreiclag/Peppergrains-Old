@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef PGG_PEPPERGRAINS_HPP
-#define PGG_PEPPERGRAINS_HPP
+#ifndef PGG_PEPPERGRAINSENGINE_HPP
+#define PGG_PEPPERGRAINSENGINE_HPP
 
 #include <stdint.h>
 
@@ -27,8 +27,8 @@ namespace pgg {
 
 namespace Engine {
     extern Sound::Endpoint soundEndpoint;
-    extern GamelayerMachine gameLayerMachine;
-    extern ResourceManager resMan;
+    extern GamelayerMachine gamelayerMachine;
+    extern ResourceManager resourceManager;
     
     void quit();
     
@@ -37,9 +37,8 @@ namespace Engine {
     
     uint64_t getTotalTickCount();
     
-    
 } // Engine
 
 } // pgg
 
-#endif // PGG_PEPPERGRAINS_HPP
+#endif // PGG_PEPPERGRAINSENGINE_HPP
