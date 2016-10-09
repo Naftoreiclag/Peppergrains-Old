@@ -204,9 +204,7 @@ int PepperGrains::run(int argc, char* argv[]) {
                         }
                     }
                 }
-                default: {
-                    break;
-                }
+                default: break;
             }
         }
         

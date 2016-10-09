@@ -32,6 +32,9 @@ SmacRenderer::~SmacRenderer() {
 void SmacRenderer::load() {
     ResourceManager* resman = ResourceManager::getSingleton();
     
+    mRootNode = new SceneNode();
+    mRootNode->grab();
+    
     // Create renderbuffer/textures for deferred shading
     {
         // Forward mapping
@@ -149,11 +152,17 @@ void SmacRenderer::unload() {
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
+    mRootNode->drop();
+    
     delete this;
     
 }
 
-void SmacRenderer::renderFrame(SceneNode* rootNode) {
+SceneNode* SmacRenderer::getRootNode() {
+    return mRootNode;
+}
+
+void SmacRenderer::renderFrame() {
     // Gather probe data
     {
         
@@ -183,6 +192,16 @@ void SmacRenderer::renderFrame(SceneNode* rootNode) {
         glCullFace(GL_BACK);
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        Model::RenderPass geometryRenderPass(Model::RenderPass::Type::SMAC_GEOMETRY);
+        geometryRenderPass.viewMat = mCamera.viewMat;
+        geometryRenderPass.projMat = mCamera.projMat;
+        geometryRenderPass.camPos = mCamera.position;
+        geometryRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
+        geometryRenderPass.nearPlane = mCamera.nearDepth;
+        geometryRenderPass.farPlane = mCamera.farDepth;
+        geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
+        mRootNode->render(geometryRenderPass);
     }
     
     // Perform post-process

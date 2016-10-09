@@ -35,6 +35,7 @@ private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
+    SceneNode* mRootNode;
 
     struct GBuffer {
         GLuint framebuffer;
@@ -76,7 +77,9 @@ public:
     void load();
     void unload();
     
-    void renderFrame(SceneNode* rootNode);
+    SceneNode* getRootNode();
+    
+    void renderFrame();
 };
 
 }

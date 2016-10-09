@@ -36,6 +36,7 @@ public:
             SHADOW,
             LOCAL_LIGHTS,
             GLOBAL_LIGHTS,
+            SMAC_GEOMETRY,
             SSIPG,
             SCREEN
         };
