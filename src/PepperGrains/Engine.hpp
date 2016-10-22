@@ -24,11 +24,10 @@
 #include "ResourceManager.hpp"
 
 namespace pgg {
-
 namespace Engine {
+    
     extern Sound::Endpoint soundEndpoint;
     extern GamelayerMachine gamelayerMachine;
-    extern ResourceManager resourceManager;
     
     void quit();
     
@@ -38,7 +37,6 @@ namespace Engine {
     uint64_t getTotalTickCount();
     
 } // Engine
-
 } // pgg
 
 #endif // PGG_PEPPERGRAINSENGINE_HPP

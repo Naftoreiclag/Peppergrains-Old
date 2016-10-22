@@ -30,6 +30,7 @@
 #include "OpenGLContextData.hpp"
 #include "SDLRendererData.hpp"
 #include "MissionGamelayer.hpp"
+#include "Video.hpp"
 
 namespace pgg {
     
@@ -148,6 +149,9 @@ int run(int argc, char* argv[]) {
         std::cout << "OpenGL Max draw buffers: " << info.iMaxDrawBuffers << std::endl;
         std::cout << "OpenGL Max color attachments: " << info.iMaxColorAttachments << std::endl;
     }
+    
+    Video::queryDriverData(sdlRenderer);
+    Video::logDriverData();
     
     // Initialize SDL events
     if(SDL_Init(SDL_INIT_EVENTS) < 0) {

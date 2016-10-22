@@ -246,6 +246,10 @@
     </VirtualDirectory>
     <File Name="Engine.cpp"/>
     <File Name="Engine.hpp"/>
+    <File Name="Video.cpp"/>
+    <File Name="Logger.cpp"/>
+    <File Name="Video.hpp"/>
+    <File Name="Logger.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">
