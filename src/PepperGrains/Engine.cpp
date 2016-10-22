@@ -16,7 +16,6 @@
 
 #include "Engine.hpp"
 
-#include <iostream>
 #include <sstream>
 
 #include "OpenGLStuff.hpp"
@@ -27,10 +26,9 @@
 
 #include "DesignerGameLayer.hpp"
 #include "OverworldGameLayer.hpp"
-#include "OpenGLContextData.hpp"
-#include "SDLRendererData.hpp"
 #include "MissionGamelayer.hpp"
 #include "Video.hpp"
+#include "Logger.hpp"
 
 namespace pgg {
     
@@ -118,37 +116,12 @@ int run(int argc, char* argv[]) {
         return -1;
     }
     
-    // Query SDL renderer data
-    {
-        SDLRendererData* rendData = SDLRendererData::getSingleton();
-        rendData->loadData(sdlRenderer);
-        const SDLRendererData::SDLInfo& info = rendData->getData();
-        
-        std::cout << "SDL Renderer name: " << info.name << std::endl;
-        std::cout << "SDL Software fallback: " << info.softwareFallback << std::endl;
-        std::cout << "SDL Hardware accelerated: " << info.hardwareAccelerated << std::endl;
-        std::cout << "SDL Texture renderering: " << info.supportTextureRender << std::endl;
-    }
-    
     // Initialize GLEW, using OpenGL experimental drivers
     glewExperimental = GL_TRUE;
     glewInit();
     
     // Enable OpenGL debug output
     glEnable(GL_DEBUG_OUTPUT);
-    
-    // Query OpenGL context data
-    {
-        OpenGLContextData* context = OpenGLContextData::getSingleton();
-        
-        const OpenGLContextData::OpenGLInfo& info = context->getData();
-        
-        std::cout << "OpenGL Version (Integral): " << info.iMinorVersion << "." << info.iMajorVersion << std::endl;
-        std::cout << "OpenGL Version (String): " << info.sVersion << std::endl;
-        std::cout << "OpenGL Debug output enabled: " << info.bDebugOutput << std::endl;
-        std::cout << "OpenGL Max draw buffers: " << info.iMaxDrawBuffers << std::endl;
-        std::cout << "OpenGL Max color attachments: " << info.iMaxColorAttachments << std::endl;
-    }
     
     Video::queryDriverData(sdlRenderer);
     Video::logDriverData();
@@ -249,7 +222,7 @@ int run(int argc, char* argv[]) {
             mOneSecondTimer += tpf;
             if(mOneSecondTimer > 1.f) {
                 mOneSecondTimer -= 1.f;
-                std::cout << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+                Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "\tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
             }
             
             inputState.updateKeysFromSDL();
@@ -276,9 +249,8 @@ int run(int argc, char* argv[]) {
     return 0;
 }
 
-}
-
-}
+} // Engine
+} // pgg
 
 int main(int argc, char* argv[]) {
     return pgg::Engine::run(argc, argv);

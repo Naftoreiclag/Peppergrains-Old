@@ -133,10 +133,6 @@
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
-      <File Name="OpenGLContextData.cpp"/>
-      <File Name="OpenGLContextData.hpp"/>
-      <File Name="SDLRendererData.cpp"/>
-      <File Name="SDLRendererData.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="WorkInProgress">
       <File Name="TerrainResolver.hpp"/>
