@@ -42,6 +42,8 @@ public:
     ShaderResource(Type type);
     virtual ~ShaderResource();
     
+    static ShaderResource* upcast(Resource* resource);
+    
     void load();
     void unload();
     

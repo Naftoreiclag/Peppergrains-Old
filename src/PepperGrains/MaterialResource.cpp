@@ -83,7 +83,8 @@ MaterialResource::Technique::Type MaterialResource::getTechniqueType() const {
 
 MaterialResource::MaterialResource()
 : mLoaded(false)
-, mIsErrorResource(false) {
+, mIsErrorResource(false)
+, Resource(Resource::Type::MATERIAL) {
     mTechnique.geometryPassProg = nullptr;
     mTechnique.ssipgPassProg = nullptr;
 }

@@ -28,7 +28,8 @@ namespace pgg {
 
 ModelResource::ModelResource()
 : mLoaded(false)
-, mIsErrorResource(false) {
+, mIsErrorResource(false)
+, Resource(Resource::Type::MODEL) {
 }
 
 ModelResource::~ModelResource() {

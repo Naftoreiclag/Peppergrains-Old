@@ -16,7 +16,7 @@
 
 #include "SmacRenderer.hpp"
 
-#include "ResourceManager.hpp"
+#include "Resources.hpp"
 
 namespace pgg {
 
@@ -30,7 +30,6 @@ SmacRenderer::~SmacRenderer() {
 }
 
 void SmacRenderer::load() {
-    ResourceManager* resman = ResourceManager::getSingleton();
     
     mRootNode = new SceneNode();
     mRootNode->grab();
@@ -97,7 +96,7 @@ void SmacRenderer::load() {
     
     // GBuffer shader
     {
-        mScreenShader.shaderProg = resman->findShaderProgram("smac.Tonemapper.shaderProgram");
+        mScreenShader.shaderProg = ShaderProgramResource::upcast(Resources::find("smac.Tonemapper.shaderProgram"));
         mScreenShader.shaderProg->grab();
         const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {

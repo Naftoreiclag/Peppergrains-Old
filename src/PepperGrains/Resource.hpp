@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+// TODO: remove this include, use strings instead
 #include <boost/filesystem.hpp>
 
 #include "ReferenceCounted.hpp"
@@ -27,27 +28,45 @@ namespace pgg {
 
 // Virtual inheritance to avoid diamond conflict with ModelResource
 class Resource : virtual public ReferenceCounted {
+public:
+    enum Type {
+        IMAGE, // Image
+        MATERIAL, // Generic Json
+        MODEL, // Generic Json
+        SHADER,
+        SHADER_PROGRAM, // Generic Json
+        STRING,
+        TEXTURE, // Generic Json
+        GEOMETRY, // Geometry
+        FONT, // Font
+        WAVEFORM, // Waveform
+        SCRIPT,
+        COMPONENT,
+        COMPOSITION,
+        
+        OTHER
+    };
 private:
     uint32_t mFileSize;
     std::string mName;
     uint32_t mEnvironment;
     boost::filesystem::path mFile;
 public:
-    Resource();
+    Resource(Type resourceType);
     virtual ~Resource();
+    
+    const Type mResourceType;
     
     bool isFallback() const;
     
-    // TODO make get's const
-    
-    void setFile(const boost::filesystem::path& file);
-    const boost::filesystem::path& getFile();
+    void setFile(boost::filesystem::path file);
+    boost::filesystem::path getFile() const;
     void setName(std::string name);
-    std::string getName();
+    std::string getName() const;
     void setSize(uint32_t size);
-    uint32_t getSize();
+    uint32_t getSize() const;
     void setEnvironment(uint32_t environment);
-    uint32_t getEnvironment();
+    uint32_t getEnvironment() const;
 };
 
 }

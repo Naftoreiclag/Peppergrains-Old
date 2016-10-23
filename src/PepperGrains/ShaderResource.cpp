@@ -22,14 +22,26 @@
 #include <sstream>
 #include <string>
 
+#include "Logger.hpp"
+
 namespace pgg {
 
 ShaderResource::ShaderResource(ShaderResource::Type type)
 : mType(type)
-, mLoaded(false) {
+, mLoaded(false)
+, Resource(Resource::Type::SHADER) {
 }
 
 ShaderResource::~ShaderResource() {
+}
+
+ShaderResource* ShaderResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::SHADER) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to shader!" << std::endl;
+        return nullptr;
+    } else {
+        return static_cast<ShaderResource*>(resource);
+    }
 }
 
 void ShaderResource::load() {

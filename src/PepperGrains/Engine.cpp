@@ -140,8 +140,10 @@ namespace Engine {
         //int testError = luaL_loadfile(luaState, "test.lua");
         //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
         
+        /*
         ResourceManager* resman = ResourceManager::getSingleton();
         resman->mapAll("core/data.package");
+        */
         /*
         resman->loadCore("core/core.package", *bootstrapScriptEval);
         resman->preloadAddonDirectory("addons");

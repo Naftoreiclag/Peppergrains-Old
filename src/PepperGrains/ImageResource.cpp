@@ -26,7 +26,8 @@ namespace pgg {
 
 ImageResource::ImageResource()
 : mLoaded(false)
-, mIsErrorResource(false) {
+, mIsErrorResource(false)
+, Resource(Resource::Type::IMAGE) {
 }
 
 ImageResource::~ImageResource() {

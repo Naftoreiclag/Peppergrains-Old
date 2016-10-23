@@ -26,7 +26,8 @@
 namespace pgg {
 
 FontResource::FontResource()
-: mLoaded(false) {
+: mLoaded(false)
+, Resource(Resource::Type::FONT) {
 }
 
 FontResource::~FontResource() {

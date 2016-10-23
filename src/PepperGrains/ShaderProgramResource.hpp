@@ -162,6 +162,8 @@ public:
     ShaderProgramResource();
     virtual ~ShaderProgramResource();
     
+    static ShaderProgramResource* upcast(Resource* resource);
+    
     void bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const;
     void bindRenderPass(const Model::RenderPass& rpc, const glm::mat4& modelMat) const;
     

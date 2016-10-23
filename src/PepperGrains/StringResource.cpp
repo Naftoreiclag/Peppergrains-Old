@@ -23,7 +23,8 @@
 namespace pgg {
 
 StringResource::StringResource()
-: mLoaded(false) {
+: mLoaded(false)
+, Resource(Resource::Type::STRING) {
 }
 
 StringResource::~StringResource() {

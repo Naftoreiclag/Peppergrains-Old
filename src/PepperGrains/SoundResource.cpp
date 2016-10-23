@@ -19,7 +19,8 @@
 namespace pgg
 {
 
-SoundResource::SoundResource() { }
+SoundResource::SoundResource()
+: Resource(Resource::Type::WAVEFORM) { }
 SoundResource::~SoundResource() { }
 
 void SoundResource::load() {

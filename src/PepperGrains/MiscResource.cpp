@@ -20,7 +20,8 @@
 
 namespace pgg {
 
-MiscResource::MiscResource() {
+MiscResource::MiscResource()
+: Resource(Resource::Type::OTHER) {
 }
 
 MiscResource::~MiscResource() {

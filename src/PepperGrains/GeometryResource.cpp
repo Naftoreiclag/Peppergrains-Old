@@ -28,7 +28,8 @@ namespace pgg {
 
 GeometryResource::GeometryResource()
 : mLoaded(false)
-, mIsErrorResource(false) {
+, mIsErrorResource(false)
+, Resource(Resource::Type::GEOMETRY) {
 }
 
 GeometryResource::~GeometryResource() {

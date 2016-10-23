@@ -28,7 +28,8 @@
 namespace pgg {
 
 TextureResource::TextureResource()
-: mLoaded(false) {
+: mLoaded(false)
+, Resource(Resource::Type::TEXTURE) {
 }
 
 TextureResource::~TextureResource() {

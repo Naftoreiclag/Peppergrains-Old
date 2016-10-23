@@ -20,36 +20,37 @@
 
 namespace pgg {
 
-Resource::Resource() { }
+Resource::Resource(Type resourceType)
+: mResourceType(resourceType) { }
 Resource::~Resource() { }
 
 bool Resource::isFallback() const {
     return mFile == boost::filesystem::path();
 }
 
-void Resource::setFile(const boost::filesystem::path& file) {
+void Resource::setFile(boost::filesystem::path file) {
     assert(mFile == boost::filesystem::path() && "File loading path is set twice.");
     mFile = file;
 }
-const boost::filesystem::path& Resource::getFile() {
+boost::filesystem::path Resource::getFile() const {
     return mFile;
 }
 void Resource::setName(std::string name) {
     mName = name;
 }
-std::string Resource::getName() {
+std::string Resource::getName() const {
     return mName;
 }
 void Resource::setSize(uint32_t size) {
     mFileSize = size;
 }
-uint32_t Resource::getSize() {
+uint32_t Resource::getSize() const {
     return mFileSize;
 }
 void Resource::setEnvironment(uint32_t environment) {
     mEnvironment = environment;
 }
-uint32_t Resource::getEnvironment() {
+uint32_t Resource::getEnvironment() const {
     return mEnvironment;
 }
 

@@ -23,16 +23,27 @@
 
 #include "json/json.h"
 
-#include "ResourceManager.hpp"
+#include "Logger.hpp"
+#include "Resources.hpp"
 
 namespace pgg {
 
 ShaderProgramResource::ShaderProgramResource()
 : mLoaded(false)
-, mIsErrorResource(false) {
+, mIsErrorResource(false)
+, Resource(Resource::Type::SHADER_PROGRAM) {
 }
 
 ShaderProgramResource::~ShaderProgramResource() {
+}
+
+ShaderProgramResource* ShaderProgramResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::SHADER_PROGRAM) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to shader program!" << std::endl;
+        return nullptr;
+    } else {
+        return static_cast<ShaderProgramResource*>(resource);
+    }
 }
 
 void ShaderProgramResource::loadError() {
@@ -203,15 +214,12 @@ void ShaderProgramResource::load() {
         loader.close();
     }
 
-    // Get pointer to Resource Manager
-    ResourceManager* rmgr = ResourceManager::getSingleton();
-
     // Grab shaders to link
     const Json::Value& links = progData["link"];
     for(Json::Value::const_iterator iter = links.begin(); iter != links.end(); ++ iter) {
         const Json::Value& value = *iter;
         std::string name = value.asString();
-        ShaderResource* shader = rmgr->findShader(name);
+        ShaderResource* shader = ShaderResource::upcast(Resources::find(name));
         mLinkedShaders.push_back(shader);
         shader->grab();
     }

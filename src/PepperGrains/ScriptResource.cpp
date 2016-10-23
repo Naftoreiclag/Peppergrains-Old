@@ -23,7 +23,8 @@
 namespace pgg {
 
 ScriptResource::ScriptResource()
-: mLoaded(false) {
+: mLoaded(false)
+, Resource(Resource::Type::SCRIPT) {
 }
 
 ScriptResource::~ScriptResource() {
