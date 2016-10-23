@@ -37,7 +37,7 @@ const boost::filesystem::path& Resource::getFile() {
 void Resource::setName(std::string name) {
     mName = name;
 }
-const std::string& Resource::getName() {
+std::string Resource::getName() {
     return mName;
 }
 void Resource::setSize(uint32_t size) {

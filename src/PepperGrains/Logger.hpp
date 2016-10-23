@@ -22,52 +22,50 @@
 #include <sstream>
 
 namespace pgg {
-
 namespace Logger {
 
-class Channel;
-class OutBuffer : public std::stringbuf {
-public:
-    OutBuffer(Channel* channel);
-    
-    int sync();
-private:
-    Channel* const mChannel;
-};
+    class Channel;
+    class OutBuffer : public std::stringbuf {
+    public:
+        OutBuffer(Channel* channel);
+        
+        int sync();
+    private:
+        Channel* const mChannel;
+    };
 
-class Out : public std::ostream {
-public:
-    Out(Channel* channel);
-    Out(const Out& copyCtr);
-    ~Out();
-    
-    Channel* const mChannel;
-};
+    class Out : public std::ostream {
+    public:
+        Out(Channel* channel);
+        Out(const Out& copyCtr);
+        ~Out();
+        
+        Channel* const mChannel;
+    };
 
-class Channel {
-public:
-    Channel(std::string id);
-    const std::string mId;
-    
-    int sync(OutBuffer& buffer);
-    
-    void setName(std::string name);
-    std::string getName();
-private:
-    std::string mName;
-};
+    class Channel {
+    public:
+        Channel(std::string id);
+        const std::string mId;
+        
+        int sync(OutBuffer& buffer);
+        
+        void setName(std::string name);
+        std::string getName();
+    private:
+        std::string mName;
+    };
 
-extern Channel* const VERBOSE;
-extern Channel* const INFO;
-extern Channel* const WARN;
-extern Channel* const SEVERE;
+    extern Channel* const VERBOSE;
+    extern Channel* const INFO;
+    extern Channel* const WARN;
+    extern Channel* const SEVERE;
 
-Out log(std::string id);
-Out log(Channel* channel);
-Channel* getChannel(std::string id);
+    Out log(std::string id);
+    Out log(Channel* channel);
+    Channel* getChannel(std::string id);
 
 } // Logger
-
 } // pgg
 
 #endif // PGG_ENGINELOGGER_HPP

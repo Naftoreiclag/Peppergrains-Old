@@ -246,6 +246,12 @@
     <File Name="Logger.cpp"/>
     <File Name="Video.hpp"/>
     <File Name="Logger.hpp"/>
+    <File Name="Resources.hpp"/>
+    <File Name="Resources.cpp"/>
+    <File Name="Addons.hpp"/>
+    <File Name="Addons.cpp"/>
+    <File Name="Scripts.hpp"/>
+    <File Name="Scripts.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

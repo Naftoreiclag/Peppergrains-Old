@@ -43,7 +43,7 @@ public:
     void setFile(const boost::filesystem::path& file);
     const boost::filesystem::path& getFile();
     void setName(std::string name);
-    const std::string& getName();
+    std::string getName();
     void setSize(uint32_t size);
     uint32_t getSize();
     void setEnvironment(uint32_t environment);
