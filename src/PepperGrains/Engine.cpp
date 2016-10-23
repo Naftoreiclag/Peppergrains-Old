@@ -141,8 +141,8 @@ namespace Engine {
         //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
         
         Resources::loadCore("core/data.package");
-        //Addons::preloadAddonDirectory("addons");
-        //Addons::bootstrapAddons();
+        Addons::preloadAddonDirectory("addons");
+        Addons::bootstrapAddons();
 
         gamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
