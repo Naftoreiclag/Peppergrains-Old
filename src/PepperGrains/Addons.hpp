@@ -17,7 +17,10 @@
 #ifndef PGG_ENGINEADDONS_HPP
 #define PGG_ENGINEADDONS_HPP
 
-#include <boost/filesystem.hpp>
+#include <map>
+#include <string>
+
+#include "Resource.hpp"
 
 /* Handles the loading and unloading of addons.
  * 
@@ -26,7 +29,8 @@
 
 namespace pgg {
 namespace Addons {
-    /*
+    
+    struct Addon;
     //
     struct AddonError {
         enum Type {
@@ -82,25 +86,12 @@ namespace Addons {
         std::vector<Addon*> mAccessTo;
         
         // Resources provided by this addon
-        std::map<std::string, MiscResource*> mMiscs;
-        std::map<std::string, StringResource*> mStrings;
-        std::map<std::string, ImageResource*> mImages;
-        std::map<std::string, TextureResource*> mTextures;
-        std::map<std::string, ModelResource*> mModels;
-        std::map<std::string, MaterialResource*> mMaterials;
-        std::map<std::string, GeometryResource*> mGeometries;
-        std::map<std::string, ShaderResource*> mShaders;
-        std::map<std::string, ShaderProgramResource*> mShaderPrograms;
-        std::map<std::string, FontResource*> mFonts;
-        std::map<std::string, ScriptResource*> mScripts;
+        std::map<std::string, Resource*> mResources;
     };
-    */
-    // Loading of core resources which are never unloaded. Constitutes the "original state"
-    void loadCore(boost::filesystem::path package);
 
     // Parse a package and add to the loading list
-    void preloadAddon(boost::filesystem::path package);
-    void preloadAddonDirectory(boost::filesystem::path dir); // Utility; load from directory
+    void preloadAddon(std::string package);
+    void preloadAddonDirectory(std::string dir); // Utility; load from directory
 
     // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
     void bootstrapAddons();

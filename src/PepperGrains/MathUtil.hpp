@@ -21,8 +21,6 @@
 #include "Vec3.hpp"
 #include "Quate.hpp"
 
-#define BAD_IDEA_EPSILON 0.0001f
-
 namespace pgg {
 namespace Math {
 

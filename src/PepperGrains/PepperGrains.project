@@ -203,6 +203,8 @@
       <File Name="OpenGLStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
       <File Name="StreamStuff.hpp"/>
+      <File Name="ResourcesUtil.hpp"/>
+      <File Name="ResourcesUtil.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="sound">
       <File Name="SoundEndpoint.hpp"/>

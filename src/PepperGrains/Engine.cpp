@@ -140,29 +140,9 @@ namespace Engine {
         //int testError = luaL_loadfile(luaState, "test.lua");
         //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
         
-        /*
-        ResourceManager* resman = ResourceManager::getSingleton();
-        resman->mapAll("core/data.package");
-        */
-        /*
-        resman->loadCore("core/core.package", *bootstrapScriptEval);
-        resman->preloadAddonDirectory("addons");
-        resman->bootstrapAddons(*bootstrapScriptEval);
-         * 
-         * 
-        */
         Resources::loadCore("core/data.package");
-        Resource* egg = Resources::find("Hello.string");
-        Logger::log(Logger::INFO) << Resources::getNumCoreResources() << std::endl;
-        Logger::log(Logger::INFO) << "What" << egg << std::endl;
-        StringResource* strres = static_cast<StringResource*>(egg);
-        strres->grab();
-        Logger::log(Logger::VERBOSE) << strres->getString() << std::endl;
-        
-        /*
-        Addons::preloadAddonDirectory();
-        Addons::bootstrapAddons();
-        */
+        //Addons::preloadAddonDirectory("addons");
+        //Addons::bootstrapAddons();
 
         gamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
@@ -240,7 +220,7 @@ namespace Engine {
                 mOneSecondTimer += tpf;
                 if(mOneSecondTimer > 1.f) {
                     mOneSecondTimer -= 1.f;
-                    Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "\tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+                    Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
                 }
                 
                 inputState.updateKeysFromSDL();

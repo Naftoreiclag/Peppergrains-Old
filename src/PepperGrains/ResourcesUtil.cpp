@@ -14,41 +14,26 @@
    limitations under the License.
 */
 
-#include "Resources.hpp"
-
-#include <map>
-
-#include "boost/filesystem.hpp"
-#include "json/json.h"
-
 #include "ResourcesUtil.hpp"
+
+#include "ImageResource.hpp"
+#include "MaterialResource.hpp"
+#include "MiscResource.hpp"
+#include "ModelResource.hpp"
+#include "Resource.hpp"
+#include "StringResource.hpp"
+#include "TextureResource.hpp"
+#include "GeometryResource.hpp"
+#include "ShaderResource.hpp"
+#include "ShaderProgramResource.hpp"
+#include "FontResource.hpp"
+#include "ScriptResource.hpp"
 #include "Logger.hpp"
 
 namespace pgg {
 namespace Resources {
     
-    ResourceMap sResources;
-    
-    uint32_t getNumCoreResources() {
-        return sResources.size();
-    }
-    
-    void loadCore(std::string strDataPackFile) {
-        boost::filesystem::path dataPackFile(strDataPackFile);
-        
-        Json::Value dataPackData;
-        {
-            std::ifstream reader(dataPackFile.string().c_str());
-            reader >> dataPackData;
-            reader.close();
-        }
-    
-        boost::filesystem::path dataPackDir = dataPackFile.parent_path();
-        
-        const Json::Value& resourcesData = dataPackData["resources"];
-        
-        Resources::populateResourceMap(sResources, resourcesData, dataPackDir);
-        /*
+    void populateResourceMap(ResourceMap& sResources, const Json::Value& resourcesData, boost::filesystem::path dataPackDir) {
         for(Json::Value::const_iterator iter = resourcesData.begin(); iter != resourcesData.end(); ++ iter) {
             const Json::Value& resourceData = *iter;
             
@@ -101,35 +86,8 @@ namespace Resources {
                     << "Conficts with " << success.first->second->getName() << std::endl;
             }
         }
-    
         
-        Logger::log(Logger::INFO) << "Successfully loaded resources from: " << strDataPackFile << std::endl;
-         */
-    }
-
-    // Top modlayer can be edited dynamically
-    void setTopModlayer(Modlayer* modlayer) {
-        
-    }
-    void removeTopModlayer() {
-        
-    }
-    void publishTopModlayer() {
-        
-    }
-    void removeAllModlayers() {
-        
-    }
-
-    Resource* find(std::string id) {
-        ResourceMap::iterator iter = sResources.find(id);
-        
-        if(iter == sResources.end()) {
-            Logger::log(Logger::WARN) << "Could not find resource with ID: " << id << std::endl;
-            return nullptr;
-        } else {
-            return iter->second;
-        }
+        Logger::log(Logger::INFO) << "Successfully loaded resources from: " << dataPackDir << std::endl;
     }
 }
 }
