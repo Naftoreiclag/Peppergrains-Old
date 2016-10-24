@@ -98,6 +98,9 @@ namespace Addons {
 
     // Unload all addons, restore core resources to original state.
     void clearAddons();
+    
+    std::vector<Addon*> getFailedAddons();
+    void clearFailedAddons();
 
 }
 }

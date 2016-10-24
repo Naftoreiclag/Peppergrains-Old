@@ -31,6 +31,7 @@
 #include "Logger.hpp"
 #include "Resources.hpp"
 #include "Addons.hpp"
+#include "Scripts.hpp"
 
 namespace pgg {
     
@@ -134,11 +135,11 @@ namespace Engine {
             return -1;
         }
         
-        lua_State* luaState = luaL_newstate();
-        luaL_openlibs(luaState);
+        Scripts::init();
         
-        //int testError = luaL_loadfile(luaState, "test.lua");
-        //testError = lua_pcall(luaState, 0, LUA_MULTRET, 0);
+        Scripts::FuncRef ref = Scripts::loadFile("hello.lua");
+        Scripts::pushFunc(ref);
+        Scripts::callFunc(0, 0);
         
         Resources::loadCore("core/data.package");
         Addons::preloadAddonDirectory("addons");
@@ -234,8 +235,7 @@ namespace Engine {
             }
         }
         
-        
-        lua_close(luaState);
+        Scripts::close();
         
         SDL_GL_DeleteContext(glContext);
         

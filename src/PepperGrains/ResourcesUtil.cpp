@@ -71,6 +71,8 @@ namespace Resources {
                 newRes = new GeometryResource();
             } else if(resType == "font") {
                 newRes = new FontResource();
+            } else if(resType == "script") {
+                newRes = new ScriptResource();
             } else {
                 newRes = new MiscResource();
             }

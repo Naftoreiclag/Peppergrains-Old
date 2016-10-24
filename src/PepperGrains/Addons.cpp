@@ -27,11 +27,9 @@
 namespace pgg {
 namespace Addons {
     
-    std::vector<Addon*> mCores;
-    std::vector<Addon*> mAddons;
-    std::vector<Addon*> mFailedAddons;
-    
-    bool mAddonsLoaded;
+    std::vector<Addon*> mPreloadAddons; // Addons in the preload stage waiting to be bootstrapped
+    std::vector<Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
+    std::vector<Addon*> mFailedAddons; // Addons that encountered a fatal error during bootstrapping
 
     /* To prevent errors occuring due to arbitrary load order, all addons which are eligible to
      * be loaded at any given point in the load process are loaded "together," i.e. as if they
@@ -51,7 +49,7 @@ namespace Addons {
         Logger::Out infoLog = Logger::log(Logger::INFO);
         infoLog << "Boot addons concurrently:";
         for(std::vector<Addon*>::iterator iter = addons.begin(); iter != addons.end(); ++ iter) {
-            infoLog << " " << (*iter)->mName;
+            infoLog << " [" << (*iter)->mName << "]";
         }
         infoLog << std::endl;
     }
@@ -134,7 +132,7 @@ namespace Addons {
         
         const Json::Value& jResources = jPackage["resources"];
         Resources::populateResourceMap(addon->mResources, jResources, packageDir);
-        mAddons.push_back(addon);
+        mPreloadAddons.push_back(addon);
     }
     
     void preloadAddonDirectory(std::string strDir) {
@@ -166,7 +164,6 @@ namespace Addons {
 
     // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
     void bootstrapAddons() {
-        assert(!mAddonsLoaded && "Addons have already been loaded!");
         
         // Check for address naming conflicts
         {
@@ -174,7 +171,7 @@ namespace Addons {
             
             Population populated;
             bool namingConflict = false;
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 
                 if(populated.find(addon->mAddress) == populated.end()) {
@@ -209,7 +206,7 @@ namespace Addons {
         // Check for missing requirements
         {
             std::vector<std::string> nonError;
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 
                 if(addon->mLoadErrors.size() == 0) {
@@ -218,7 +215,7 @@ namespace Addons {
             }
             std::sort(nonError.begin(), nonError.end());
             
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 if(!std::includes(nonError.begin(), nonError.end(), addon->mRequire.begin(), addon->mRequire.end())) {
                     AddonError ae;
@@ -237,12 +234,12 @@ namespace Addons {
         
         // Fail addons
         {
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); /*May erase*/) {
                 Addon* addon = *iter;
                 
                 if(addon->mLoadErrors.size() > 0) {
                     mFailedAddons.push_back(addon);
-                    iter = mAddons.erase(iter);
+                    iter = mPreloadAddons.erase(iter);
                 } else {
                     ++ iter;
                 }
@@ -251,14 +248,13 @@ namespace Addons {
         
         // Determine load order based on "after"
         std::vector<std::vector<Addon*>> loadOrder;
-        
         {
             // First link the "after" set together
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 for(std::vector<std::string>::iterator iter2 = addon->mAfter.begin(); iter2 != addon->mAfter.end(); ++ iter2) {
                     std::string afterName = *iter2;
-                    for(std::vector<Addon*>::iterator iter3 = mAddons.begin(); iter3 != mAddons.end(); ++ iter3) {
+                    for(std::vector<Addon*>::iterator iter3 = mPreloadAddons.begin(); iter3 != mPreloadAddons.end(); ++ iter3) {
                         Addon* other = *iter3;
                         if(other->mAddress == afterName) {
                             addon->mAfterLink.push_back(other);
@@ -272,7 +268,7 @@ namespace Addons {
             std::vector<Addon*> areLoaded;
             
             // Addons that are not sorted yet
-            std::vector<Addon*> yetUnsorted = mAddons;
+            std::vector<Addon*> yetUnsorted = mPreloadAddons;
             
             while(true) {
                 // These addons will be loaded together
@@ -326,8 +322,9 @@ namespace Addons {
                             
                             // Add to fail list, remove from success list
                             mFailedAddons.push_back(addon);
-                            mAddons.erase(std::remove(mAddons.begin(), mAddons.end(), addon), mAddons.end());
+                            mPreloadAddons.erase(std::remove(mPreloadAddons.begin(), mPreloadAddons.end(), addon), mPreloadAddons.end());
                         }
+                        break;
                     }
                     
                     // All is well
@@ -347,25 +344,29 @@ namespace Addons {
         
         // Fail addons that encountered an error during bootstrap
         {
-            for(std::vector<Addon*>::iterator iter = mAddons.begin(); iter != mAddons.end(); /*May erase*/) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); /*May erase*/) {
                 Addon* addon = *iter;
                 
                 if(addon->mLoadErrors.size() > 0) {
                     mFailedAddons.push_back(addon);
-                    iter = mAddons.erase(iter);
+                    iter = mPreloadAddons.erase(iter);
                 } else {
                     ++ iter;
                 }
             }
         }
         
-        mAddonsLoaded = true;
+        mLoadedAddons.insert(mLoadedAddons.end(), mPreloadAddons.begin(), mPreloadAddons.end());
+        mPreloadAddons.clear();
     }
 
     // Unload all addons, restore core resources to original state.
     void clearAddons() {
         
     }
+    
+    std::vector<Addon*> getFailedAddons();
+    void clearFailedAddons();
 
 
 
