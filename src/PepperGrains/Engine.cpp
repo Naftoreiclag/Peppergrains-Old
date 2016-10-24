@@ -137,9 +137,15 @@ namespace Engine {
         
         Scripts::init();
         
-        Scripts::FuncRef ref = Scripts::loadFile("hello.lua");
+        Scripts::RegRef ref = Scripts::loadFile("hello.lua", true);
         Scripts::pushFunc(ref);
         Scripts::callFunc(0, 0);
+        Scripts::unref(ref);
+        
+        ref = Scripts::loadFile("hello.lua", false);
+        Scripts::pushFunc(ref);
+        Scripts::callFunc(0, 0);
+        Scripts::unref(ref);
         
         Resources::loadCore("core/data.package");
         Addons::preloadAddonDirectory("addons");

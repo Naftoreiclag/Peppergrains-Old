@@ -22,15 +22,15 @@
 namespace pgg {
 namespace Scripts {
     
-    typedef int FuncRef;
+    typedef int RegRef;
 
     void init();
     lua_State* getState();
     
-    FuncRef loadFile(const char* filename);
-    void unload(FuncRef reference);
+    RegRef loadFile(const char* filename, bool sandbox = true);
+    void unref(RegRef& ref);
     
-    void pushFunc(FuncRef ref);
+    void pushFunc(RegRef ref);
     
     bool callFunc(int nargs, int nresults = LUA_MULTRET);
     

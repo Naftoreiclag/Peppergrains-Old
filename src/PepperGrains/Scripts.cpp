@@ -25,11 +25,35 @@ namespace Scripts {
 
     lua_State* mL = nullptr;
     
+    RegRef mSandboxEnv = LUA_NOREF;
+    
     void init() {
         assert(!mL && "The Lua state has already been created!");
         
         mL = luaL_newstate();
         luaL_openlibs(mL);
+        
+        // Setup sandboxes
+        assert(mSandboxEnv == LUA_NOREF && "The Lua sandbox has already been created!");
+        lua_newtable(mL);
+        mSandboxEnv = luaL_ref(mL, LUA_REGISTRYINDEX);
+        lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
+        
+        lua_pushstring(mL, "_G");
+        lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
+        lua_settable(mL, -3);
+        
+        lua_pushstring(mL, "print");
+        lua_getglobal(mL, "print");
+        lua_settable(mL, -3);
+        
+        lua_pushstring(mL, "pairs");
+        lua_getglobal(mL, "pairs");
+        lua_settable(mL, -3);
+        
+        lua_pushstring(mL, "ipairs");
+        lua_getglobal(mL, "ipairs");
+        lua_settable(mL, -3);
     }
     
     lua_State* getState() {
@@ -37,7 +61,7 @@ namespace Scripts {
         return mL;
     }
     
-    FuncRef loadFile(const char* filename) {
+    RegRef loadFile(const char* filename, bool sandbox) {
         /* LUA_OK = success
          * LUA_ERRSYNTAX = syntax error
          * LUA_ERRMEM = out of memory
@@ -47,16 +71,23 @@ namespace Scripts {
         int status = luaL_loadfilex(mL, filename, "t"); // -0 +1 m
         
         if(status == LUA_OK) {
+            if(sandbox) {
+                //lua_getglobal(mL, "_G");
+                lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
+                assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
+            }
+            
             return luaL_ref(mL, LUA_REGISTRYINDEX); // -1 +0 -
         }
     }
     
-    void unload(FuncRef ref) {
+    void unref(RegRef& ref) {
         // LUA_NOREF and LUA_REFNIL do nothing
         luaL_unref(mL, LUA_REGISTRYINDEX, ref); // -0 +0 -
+        ref = LUA_NOREF;
     }
     
-    void pushFunc(FuncRef ref) {
+    void pushFunc(RegRef ref) {
         lua_rawgeti(mL, LUA_REGISTRYINDEX, ref); // -0 +1 -
     }
     
@@ -73,7 +104,7 @@ namespace Scripts {
         if(status == LUA_OK) {
             return true;
         } else {
-            Logger::log(Logger::WARN) << "Error running Lua script!" << std::endl;
+            Logger::log(Logger::WARN) << "Error running Lua script!" << std::endl << lua_tostring(mL, -1) << std::endl;
             // TODO error instead
             lua_pop(mL, 1); // -1 +0
             return false;
@@ -82,6 +113,8 @@ namespace Scripts {
     
     void close() {
         assert(mL && "The Lua state cannot be unloaded before creation!");
+        luaL_unref(mL, LUA_REGISTRYINDEX, mSandboxEnv);
+        mSandboxEnv = LUA_NOREF;
         lua_close(mL);
     }
 
