@@ -16,7 +16,9 @@
 
 #include "Scripts.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <vector>
 
 #include "Logger.hpp"
 
@@ -27,6 +29,77 @@ namespace Scripts {
     
     RegRef mSandboxEnv = LUA_NOREF;
     
+    std::vector<std::string> mLuaWhitelist = {
+        "_VERSION",
+        "assert",
+        "coroutine.create",
+        "coroutine.resume",
+        "coroutine.running",
+        "coroutine.status",
+        "coroutine.wrap",
+        "coroutine.yield",
+        "error",
+        "ipairs",
+        "math.abs",
+        "math.acos",
+        "math.asin",
+        "math.atan",
+        "math.atan2",
+        "math.ceil",
+        "math.cos",
+        "math.cosh",
+        "math.deg",
+        "math.exp",
+        "math.floor",
+        "math.fmod",
+        "math.frexp",
+        "math.huge",
+        "math.ldexp",
+        "math.log",
+        "math.log10",
+        "math.max",
+        "math.min",
+        "math.modf",
+        "math.pi",
+        "math.pow",
+        "math.rad",
+        "math.random",
+        "math.sin",
+        "math.sinh",
+        "math.sqrt",
+        "math.tan",
+        "math.tanh",
+        "next",
+        "os.clock",
+        "os.difftime",
+        "os.time",
+        "pairs",
+        "pcall",
+        "print",
+        "select",
+        "string.byte",
+        "string.char",
+        "string.find",
+        "string.format",
+        "string.gmatch",
+        "string.gsub",
+        "string.len",
+        "string.lower",
+        "string.match",
+        "string.reverse",
+        "string.sub",
+        "string.upper",
+        "table.insert",
+        "table.maxn",
+        "table.remove",
+        "table.sort",
+        "tonumber",
+        "tostring",
+        "type",
+        "unpack",
+        "xpcall"
+    };
+    
     void init() {
         assert(!mL && "The Lua state has already been created!");
         
@@ -36,24 +109,70 @@ namespace Scripts {
         // Setup sandboxes
         assert(mSandboxEnv == LUA_NOREF && "The Lua sandbox has already been created!");
         lua_newtable(mL);
+        /* -1 table (_ENV)
+         */
+        
+        std::vector<std::string> createdModules;
+        for(const std::string& wlEntry : mLuaWhitelist) {
+            std::string::size_type dot = wlEntry.find('.');
+            if(dot != std::string::npos) {
+                std::string module = wlEntry.substr(0, dot);
+                std::string func = wlEntry.substr(dot + 1);
+                // Sandboxed module not yet created
+                if(std::find(createdModules.begin(), createdModules.end(), module) == createdModules.end()) {
+                    lua_newtable(mL); // Create a new table
+                    /* -2 table (_ENV)
+                     * -1 table (_ENV.module)
+                     */
+                    lua_setfield(mL, -2, module.c_str()); // Set _ENV.module to the new table
+                    /* -1 table (_ENV)
+                     */
+                    createdModules.push_back(module.c_str()); // Remember this module has been created
+                    Logger::log(Logger::VERBOSE) << "Sandbox added new module: " << module << std::endl;
+                }
+                lua_getfield(mL, -1, module.c_str()); // Push _ENV.module
+                /* -2 table (_ENV)
+                 * -1 table (_ENV.module)
+                 */
+                lua_getglobal(mL, module.c_str()); // Push _G.module
+                /* -3 table (_ENV)
+                 * -2 table (_ENV.module)
+                 * -1 table (_G.module)
+                 */
+                lua_getfield(mL, -1, func.c_str()); // Push _G.module.func
+                /* -4 table (_ENV)
+                 * -3 table (_ENV.module)
+                 * -2 table (_G.module)
+                 * -1 func  (_G.module.func)
+                 */
+                lua_remove(mL, -2); // Pop _G.module
+                /* -3 table (_ENV)
+                 * -2 table (_ENV.module)
+                 * -1 func  (_G.module.func)
+                 */
+                lua_setfield(mL, -2, func.c_str()); // Set _ENV.module.func to _G.module.func
+                /* -2 table (_ENV)
+                 * -1 table (_ENV.module)
+                 */
+                lua_pop(mL, 1); // Pop top value (remove _ENV.module from stack)
+                /* -1 table (_ENV)
+                 */
+                Logger::log(Logger::VERBOSE) << "Sandbox added: " << module << "." << func << std::endl;
+            } else {
+                lua_getglobal(mL, wlEntry.c_str()); // Push _G.wlEntry
+                /* -2 table (_ENV)
+                 * -1 value (_G.wlEntry)
+                 */
+                lua_setfield(mL, -2, wlEntry.c_str()); // Set _ENV.wlEntry to _G.wlEntry
+                /* -1 table (_ENV)
+                 */
+                Logger::log(Logger::VERBOSE) << "Sandbox added: " << wlEntry << std::endl;
+            }
+        }
+        
         mSandboxEnv = luaL_ref(mL, LUA_REGISTRYINDEX);
-        lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
-        
-        lua_pushstring(mL, "_G");
-        lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
-        lua_settable(mL, -3);
-        
-        lua_pushstring(mL, "print");
-        lua_getglobal(mL, "print");
-        lua_settable(mL, -3);
-        
-        lua_pushstring(mL, "pairs");
-        lua_getglobal(mL, "pairs");
-        lua_settable(mL, -3);
-        
-        lua_pushstring(mL, "ipairs");
-        lua_getglobal(mL, "ipairs");
-        lua_settable(mL, -3);
+        /* Lua stack balanced
+         */
     }
     
     lua_State* getState() {
