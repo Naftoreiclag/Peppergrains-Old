@@ -127,7 +127,6 @@ namespace Engine {
         glEnable(GL_DEBUG_OUTPUT);
         
         Video::queryDriverData(sdlRenderer);
-        Video::logDriverData();
         
         // Initialize SDL events
         if(SDL_Init(SDL_INIT_EVENTS) < 0) {

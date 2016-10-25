@@ -70,7 +70,6 @@ namespace Video {
     }
     
     void queryDriverData(SDL_Renderer* renderer);
-    void logDriverData();
     
 } // Video
 } // pgg

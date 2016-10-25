@@ -115,9 +115,7 @@ namespace Video {
         SDL::isSoftwareFallback(flags & SDL_RENDERER_SOFTWARE);
         SDL::isHardwareAccelerated(flags & SDL_RENDERER_ACCELERATED);
         SDL::supportsTextureRender(flags & SDL_RENDERER_TARGETTEXTURE);
-    }
-    
-    void logDriverData() {
+        
         Logger::Out out = Logger::log(Logger::INFO);
         
         out << "SDL Renderer name: " << SDL::getName() << std::endl;
