@@ -101,26 +101,22 @@ namespace Scripts {
     };
     
     // li = Lua Interface
-    int li_print(lua_State* ww) {
-        Logger::Out out = Logger::log(Logger::INFO);
-        out << "print" << std::endl;
-        
-        /*
-        int numArgs = lua_gettop(ww);
+    int li_print(lua_State* mL) {
+        int numArgs = lua_gettop(mL);
         
         Logger::Out out = Logger::log(Logger::INFO);
         
         size_t len;
         for(int i = 1; i <= numArgs; ++ i) {
-            out << std::string(luaL_tolstring(ww, i, &len), len); // equivalent to calling tostring() on that value in the stack
+            const char* str = luaL_tolstring(mL, i, &len); // equivalent to calling tostring() on that value in the stack
+            out << std::string(str, len);
             if(i != numArgs) {
                 out << '\t';
             }
-            lua_pop(ww, 1); // luaL_tolstring also pushes the result onto the stack, but we don't need that
+            lua_pop(mL, 1); // luaL_tolstring also pushes the result onto the stack, but we don't need that
         }
         
         out << std::endl;
-        */
         
         return 0; // print() returns nothing
     }
@@ -212,6 +208,7 @@ namespace Scripts {
         mSandboxEnv = luaL_ref(mL, LUA_REGISTRYINDEX);
         /* Lua stack balanced
          */
+         Logger::log(Logger::INFO) << "Lua successfully loaded" << std::endl;
     }
     
     lua_State* getState() {
