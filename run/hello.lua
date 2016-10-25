@@ -1,17 +1,14 @@
 print("Hello from Lua")
 print("Lua version: ", _VERSION)
 
-for available in pairs(_ENV) do
-    print(tostring(available))
-    --[[
-    if type(available) == "table" do
-        for method in pairs(available) do
-            print(tostring(available) .. "." .. tostring(method))
+for k, v in pairs(_ENV) do
+    if type(v) == "table" then
+        for method in pairs(v) do
+            print(tostring(k) .. "." .. tostring(method))
         end
     else
-        print(tostring(available))
+        print(tostring(k))
     end
-    ]]--
 end
 
 return true
