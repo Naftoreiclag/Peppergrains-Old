@@ -28,8 +28,9 @@ namespace Scripts {
     lua_State* mL = nullptr;
     
     RegRef mSandboxEnv = LUA_NOREF;
+    RegRef mLuaVersion = LUA_NOREF;
     
-    std::vector<std::string> mLuaWhitelist = {
+    std::vector<std::string> mGImport = {
         "_VERSION",
         "assert",
         "coroutine.create",
@@ -75,7 +76,6 @@ namespace Scripts {
         "os.time",
         "pairs",
         "pcall",
-        "print",
         "select",
         "string.byte",
         "string.char",
@@ -100,11 +100,41 @@ namespace Scripts {
         "xpcall"
     };
     
+    // li = Lua Interface
+    int li_print(lua_State* ww) {
+        Logger::Out out = Logger::log(Logger::INFO);
+        out << "print" << std::endl;
+        
+        /*
+        int numArgs = lua_gettop(ww);
+        
+        Logger::Out out = Logger::log(Logger::INFO);
+        
+        size_t len;
+        for(int i = 1; i <= numArgs; ++ i) {
+            out << std::string(luaL_tolstring(ww, i, &len), len); // equivalent to calling tostring() on that value in the stack
+            if(i != numArgs) {
+                out << '\t';
+            }
+            lua_pop(ww, 1); // luaL_tolstring also pushes the result onto the stack, but we don't need that
+        }
+        
+        out << std::endl;
+        */
+        
+        return 0; // print() returns nothing
+    }
+    
     void init() {
         assert(!mL && "The Lua state has already been created!");
         
         mL = luaL_newstate();
         luaL_openlibs(mL);
+        
+        assert(mLuaVersion == LUA_NOREF && "Lua _VERSION already acquired!");
+        assert(lua_getglobal(mL, "_VERSION") == LUA_TSTRING && "Lua _VERSION missing!");
+        Logger::log(Logger::INFO) << "Lua version: " << lua_tostring(mL, -1) << std::endl;
+        mLuaVersion = luaL_ref(mL, LUA_REGISTRYINDEX);
         
         // Setup sandboxes
         assert(mSandboxEnv == LUA_NOREF && "The Lua sandbox has already been created!");
@@ -113,7 +143,7 @@ namespace Scripts {
          */
         
         std::vector<std::string> createdModules;
-        for(const std::string& wlEntry : mLuaWhitelist) {
+        for(const std::string& wlEntry : mGImport) {
             std::string::size_type dot = wlEntry.find('.');
             if(dot != std::string::npos) {
                 std::string module = wlEntry.substr(0, dot);
@@ -169,6 +199,15 @@ namespace Scripts {
                 Logger::log(Logger::VERBOSE) << "Sandbox added: " << wlEntry << std::endl;
             }
         }
+        
+        lua_pushcfunction(mL, li_print);
+        //lua_getglobal(mL, "print");
+        /* -2 table (_ENV)
+         * -1 cfunc (li_print)
+         */
+        lua_setfield(mL, -2, "print");
+        /* -1 table (_ENV)
+         */
         
         mSandboxEnv = luaL_ref(mL, LUA_REGISTRYINDEX);
         /* Lua stack balanced
@@ -234,6 +273,8 @@ namespace Scripts {
         assert(mL && "The Lua state cannot be unloaded before creation!");
         luaL_unref(mL, LUA_REGISTRYINDEX, mSandboxEnv);
         mSandboxEnv = LUA_NOREF;
+        luaL_unref(mL, LUA_REGISTRYINDEX, mLuaVersion);
+        mLuaVersion = LUA_NOREF;
         lua_close(mL);
     }
 
