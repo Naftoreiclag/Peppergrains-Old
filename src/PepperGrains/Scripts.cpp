@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <sstream>
 
 #include "Logger.hpp"
 
@@ -149,6 +150,25 @@ namespace Scripts {
         return 0; // print() returns nothing
     }
     
+    int li_require(lua_State* mL) {
+        if(!lua_isstring(mL, 1)) {
+            std::stringstream ss;
+            ss << "bad argument #1 to 'require' (string expected, got "
+            << lua_typename(mL, lua_type(mL, 1))
+            << ")";
+            lua_pushstring(mL, ss.str().c_str());
+            lua_error(mL);
+            return 0; // May not be needed; lua_error does a long jump
+        }
+        
+        size_t len;
+        const char* strarg = lua_tolstring(mL, 1, &len);
+        std::string modname(strarg, len);
+        Logger::log(Logger::VERBOSE) << "require " << modname << std::endl;
+        
+        return 1; // require() returns the table containing the requested module
+    }
+    
     void init() {
         assert(!mL && "The Lua state has already been created!");
         
@@ -191,7 +211,7 @@ namespace Scripts {
         }
     }
     
-    RegRef createEnvironment() {
+    RegRef newEnvironment() {
         lua_newtable(mL);
         /* -1 table (_ENV)
          */
@@ -255,13 +275,15 @@ namespace Scripts {
         }
         
         lua_pushcfunction(mL, li_print);
-        //lua_getglobal(mL, "print");
         /* -2 table (_ENV)
          * -1 cfunc (li_print)
          */
         lua_setfield(mL, -2, "print");
         /* -1 table (_ENV)
          */
+         
+        lua_pushcfunction(mL, li_require);
+        lua_setfield(mL, -2, "require");
         
         RegRef env = luaL_ref(mL, LUA_REGISTRYINDEX);
         /* Lua stack balanced

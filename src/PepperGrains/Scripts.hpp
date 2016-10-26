@@ -28,7 +28,7 @@ namespace Scripts {
     lua_State* getState();
     
     RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF);
-    RegRef createEnvironment();
+    RegRef newEnvironment();
     
     void pushRef(RegRef ref);
     

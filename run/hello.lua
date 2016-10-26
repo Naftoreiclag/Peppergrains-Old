@@ -1,6 +1,8 @@
 print("Hello from Lua")
 print("Lua version: ", _VERSION)
 
+local mod = require "world"
+
 for k, v in pairs(_ENV) do
     if type(v) == "table" then
         for method in pairs(v) do
