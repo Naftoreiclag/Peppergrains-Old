@@ -27,7 +27,6 @@ namespace Scripts {
 
     lua_State* mL = nullptr;
     
-    RegRef mSandboxEnv = LUA_NOREF;
     RegRef mLuaVersion = LUA_NOREF;
     
     std::vector<std::string> mGImport = {
@@ -161,8 +160,38 @@ namespace Scripts {
         Logger::log(Logger::INFO) << "Lua version: " << lua_tostring(mL, -1) << std::endl;
         mLuaVersion = luaL_ref(mL, LUA_REGISTRYINDEX);
         
-        // Setup sandboxes
-        assert(mSandboxEnv == LUA_NOREF && "The Lua sandbox has already been created!");
+        Logger::log(Logger::INFO) << "Lua successfully loaded" << std::endl;
+    }
+    
+    lua_State* getState() {
+        assert(mL && "The Lua state has not yet been created!");
+        return mL;
+    }
+    
+    // Note to self: environ is taken as a variable name
+    RegRef loadFunc(const char* filename, RegRef env) {
+        /* LUA_OK = success
+         * LUA_ERRSYNTAX = syntax error
+         * LUA_ERRMEM = out of memory
+         * LUA_ERRGCMM = error running __gc metamethod (produced by garbage collector)
+         * LUA_ERRFILE = file cannot be open or read
+         */
+        int status = luaL_loadfilex(mL, filename, "t"); // -0 +1 m
+        
+        if(status == LUA_OK) {
+            if(env != LUA_NOREF) {
+                //lua_getglobal(mL, "_G");
+                pushRef(env);
+                assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
+            }
+            
+            return luaL_ref(mL, LUA_REGISTRYINDEX); // -1 +0 -
+        } else {
+            return LUA_NOREF;
+        }
+    }
+    
+    RegRef createEnvironment() {
         lua_newtable(mL);
         /* -1 table (_ENV)
          */
@@ -234,35 +263,11 @@ namespace Scripts {
         /* -1 table (_ENV)
          */
         
-        mSandboxEnv = luaL_ref(mL, LUA_REGISTRYINDEX);
+        RegRef env = luaL_ref(mL, LUA_REGISTRYINDEX);
         /* Lua stack balanced
          */
-         Logger::log(Logger::INFO) << "Lua successfully loaded" << std::endl;
-    }
-    
-    lua_State* getState() {
-        assert(mL && "The Lua state has not yet been created!");
-        return mL;
-    }
-    
-    RegRef loadFile(const char* filename, bool sandbox) {
-        /* LUA_OK = success
-         * LUA_ERRSYNTAX = syntax error
-         * LUA_ERRMEM = out of memory
-         * LUA_ERRGCMM = error running __gc metamethod (produced by garbage collector)
-         * LUA_ERRFILE = file cannot be open or read
-         */
-        int status = luaL_loadfilex(mL, filename, "t"); // -0 +1 m
         
-        if(status == LUA_OK) {
-            if(sandbox) {
-                //lua_getglobal(mL, "_G");
-                lua_rawgeti(mL, LUA_REGISTRYINDEX, mSandboxEnv);
-                assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
-            }
-            
-            return luaL_ref(mL, LUA_REGISTRYINDEX); // -1 +0 -
-        }
+        return env;
     }
     
     void unref(RegRef& ref) {
@@ -271,7 +276,7 @@ namespace Scripts {
         ref = LUA_NOREF;
     }
     
-    void pushFunc(RegRef ref) {
+    void pushRef(RegRef ref) {
         lua_rawgeti(mL, LUA_REGISTRYINDEX, ref); // -0 +1 -
     }
     
@@ -297,10 +302,7 @@ namespace Scripts {
     
     void close() {
         assert(mL && "The Lua state cannot be unloaded before creation!");
-        luaL_unref(mL, LUA_REGISTRYINDEX, mSandboxEnv);
-        mSandboxEnv = LUA_NOREF;
-        luaL_unref(mL, LUA_REGISTRYINDEX, mLuaVersion);
-        mLuaVersion = LUA_NOREF;
+        unref(mLuaVersion);
         lua_close(mL);
     }
 

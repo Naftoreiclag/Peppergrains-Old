@@ -27,12 +27,14 @@ namespace Scripts {
     void init();
     lua_State* getState();
     
-    RegRef loadFile(const char* filename, bool sandbox = true);
-    void unref(RegRef& ref);
+    RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF);
+    RegRef createEnvironment();
     
-    void pushFunc(RegRef ref);
+    void pushRef(RegRef ref);
     
     bool callFunc(int nargs, int nresults = LUA_MULTRET);
+    
+    void unref(RegRef& ref);
     
     void close();
 
