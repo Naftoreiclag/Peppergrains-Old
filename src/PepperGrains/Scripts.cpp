@@ -347,7 +347,7 @@ namespace Scripts {
         lua_close(mL);
     }
     
-    void enableBootstrap() {
+    void enableBootstrap(bool enable) {
         
     }
 

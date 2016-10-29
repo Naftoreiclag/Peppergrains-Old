@@ -80,10 +80,11 @@ namespace Addons {
         // Bootstrap scripts to run, in order
         std::vector<std::string> mBootstap;
         
-        // Links to addons which determined this addon's load order (discludes errors at that point)
+        // Links to addons which determined this addon's load order (discludes errors at that point) (includes those implied by the "requre" list)
         std::vector<Addon*> mAfterLink;
         
-        // Links to addons which listed this addon as a requirement
+        // Links to addons which listed this addon as a requirement (used to cascade "REQUIREMENT_CRASHED")
+        // TODO: populate this list during bootstrapping
         std::vector<Addon*> mNeededBy;
         
         // Links to addons which have given this addon permission to access protected members

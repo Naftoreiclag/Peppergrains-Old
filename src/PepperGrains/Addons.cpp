@@ -151,7 +151,7 @@ namespace Addons {
             
             Population populated;
             bool namingConflict = false;
-            for(std::vector<Addon*>::iterator stackIter = mPreloadAddons.begin(); stackIter != mPreloadAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 
                 if(populated.find(addon->mAddress) == populated.end()) {
@@ -227,20 +227,22 @@ namespace Addons {
             }
         }
         
-        // Determine load order based on "after"
+        // Determine load order based on "after" and "require"
         std::vector<std::vector<Addon*>> loadOrder;
         {
-            // First link the "after" set together
-            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
-                Addon* addon = *iter;
-                for(std::vector<std::string>::iterator iter2 = addon->mAfter.begin(); iter2 != addon->mAfter.end(); ++ iter2) {
-                    std::string afterName = *iter2;
-                    for(std::vector<Addon*>::iterator iter3 = mPreloadAddons.begin(); iter3 != mPreloadAddons.end(); ++ iter3) {
-                        Addon* other = *iter3;
-                        if(other->mAddress == afterName) {
-                            addon->mAfterLink.push_back(other);
-                            break;
-                        }
+            for(auto addonIter = mPreloadAddons.begin(); addonIter != mPreloadAddons.end(); ++ addonIter) {
+                Addon* addon = *addonIter;
+                for(auto otherIter = mPreloadAddons.begin(); otherIter != mPreloadAddons.end(); ++ otherIter) {
+                    Addon* other = *otherIter;
+                    
+                    // Note: both the "after" and "require" lists are already sorted; using binary_search to take advantage of this
+                    
+                    // This other addon is in the "after" or "require" list
+                    if(
+                        std::binary_search(addon->mAfter.begin(), addon->mAfter.end(), other->mAddress) || 
+                        std::binary_search(addon->mRequire.begin(), addon->mRequire.end(), other->mAddress)) {
+                        
+                        addon->mAfterLink.push_back(other);
                     }
                 }
             }
@@ -326,7 +328,7 @@ namespace Addons {
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
                 dlog << debugStep << ': ';
                 std::vector<Addon*> concurrentAddons = *stackIter;
-                char sep = '('
+                char sep = '(';
                 for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
                     Addon* addon = *addonIter;
                     dlog << sep << addon->mAddress;
@@ -344,6 +346,12 @@ namespace Addons {
                 for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
                     Addon* addon = *addonIter;
                     
+                    // Skip addons that have errored from previous iterations of loadOrder
+                    if(addon->mLoadErrors.size() > 0) {
+                        errorsEncounted = true;
+                        continue;
+                    }
+                    
                     // This should never happen
                     assert(addon->mLuaEnv == LUA_NOREF && "Addon already has a Lua environment!");
                     
@@ -351,7 +359,7 @@ namespace Addons {
                     std::vector<ScriptResource*> runThese;
                     std::vector<std::string> missingScripts;
                     for(auto scrNameIter = addon->mBootstap.begin(); scrNameIter != addon->mBootstap.end(); ++ scrNameIter) {
-                        ScriptResource* sres = Resources::find(*scrNameIter, addon->mLuaEnv);
+                        ScriptResource* sres = ScriptResource::upcast(Resources::find(*scrNameIter, addon->mAddress));
                         if(!sres) {
                             missingScripts.push_back(*scrNameIter);
                         } else {
@@ -408,32 +416,26 @@ namespace Addons {
                 // Fail any error'd addons and also fail any addons later in the load order depending on this one
                 // Note that this does not and should not add to mFailedAddons (That happens later)
                 if(errorsEncounted) {
-                    // Gather errors
-                    // This is not done earlier because multiple errors can occur and this list should not include duplicate elements
-                    std::vector<Addon*> failedAddons;
                     for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
                         Addon* addon = *addonIter;
                         if(addon->mLoadErrors.size() > 0) {
-                            failedAddons.push_back(addon);
-                        }
-                    }
-                    
-                    // Search all later addons
-                    for(auto futureStackIter = stackIter + 1; futureStackIter != loadOrder.end(); ++ futureStackIter) {
-                        std::vector<Addon*> futureConcurrentAddons = *futureStackIter;
-                        for(auto futureAddonIter = futureConcurrentAddons.begin(); futureAddonIter != futureConcurrentAddons.end(); /*May erase*/) {
-                            Addon* futureAddon = *futureAddonIter;
-                            
-                            // Check if this future addon depended on the success of this one
-                            // Note: This is not the same thing as an "after" requirement
-                            if(std::find(futureAddon->m)) {
+                            // Error only one layer; future errors will be caught in future iterations
+                            for(auto dependencyIter = addon->mNeededBy.begin(); dependencyIter != addon->mNeededBy.end(); ++ dependencyIter) {
+                                Addon* dependency = *dependencyIter; // This addon depends on *addonIter
                                 
+                                AddonError ae;
+                                ae.mType = AddonError::Type::REQUIREMENT_CRASHED;
+                                ae.mAddons.push_back(addon);
+                                dependency->mLoadErrors.push_back(ae);
+                                
+                                // TODO: assert that this dependency has not yet been encountered in the loadOrder stack
                             }
                         }
                     }
                 }
             }
         }
+        Scripts::enableBootstrap(false);
         
         {
             for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); /*May erase*/) {

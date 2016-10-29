@@ -57,7 +57,7 @@ namespace Scripts {
     void close();
     
     // Allows scripts to use bootstrap-exclusive functions
-    void enableBootstrap();
+    void enableBootstrap(bool enable = true);
 
 } // Scripts
 } // pgg
