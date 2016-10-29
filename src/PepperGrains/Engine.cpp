@@ -139,7 +139,7 @@ namespace Engine {
         Scripts::RegRef env = Scripts::newEnvironment();
         Scripts::RegRef ref = Scripts::loadFunc("hello.lua", env);
         Scripts::pushRef(ref);
-        Scripts::callFunc(0, 0);
+        Scripts::popCallFuncArgs(0, 0);
         Scripts::unref(ref);
         Scripts::unref(env);
         

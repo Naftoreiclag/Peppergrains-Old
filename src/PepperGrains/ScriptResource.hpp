@@ -18,21 +18,28 @@
 #define PGG_SCRIPTRESOURCE_HPP
 
 #include "Resource.hpp"
+#include "Scripts.hpp"
 
 namespace pgg {
 
 class ScriptResource : public Resource {
 private:
-    std::string mString;
-    bool mLoaded;
+    Scripts::RegRef mFunc = Scripts::REF_EMPTY;
+    Scripts::RegRef mEnv = Scripts::REF_EMPTY;
+    
+    bool mLoaded = false;
+    
 public:
     ScriptResource();
     ~ScriptResource();
+    static ScriptResource* upcast(Resource* resource);
+    
+    void setEnv(Scripts::RegRef env); // This can be called before or after loading the script (before using r->grab())
     
     void load();
     void unload();
     
-    const std::string& getString();
+    Scripts::CallStat run();
 };
 
 }

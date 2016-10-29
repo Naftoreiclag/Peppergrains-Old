@@ -40,7 +40,7 @@ namespace Resources {
 
     void removeAllModlayers();
 
-    Resource* find(std::string id);
+    Resource* find(std::string query, std::string callOrigin = "");
     
 } // Resources
 } // pgg

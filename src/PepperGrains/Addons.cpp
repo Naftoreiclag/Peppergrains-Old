@@ -16,6 +16,7 @@
 
 #include "Addons.hpp"
 
+#include <cassert>
 #include <vector>
 
 #include "json/json.h"
@@ -23,6 +24,7 @@
 
 #include "ResourcesUtil.hpp"
 #include "Logger.hpp"
+#include "ScriptResource.hpp"
 
 namespace pgg {
 namespace Addons {
@@ -30,29 +32,6 @@ namespace Addons {
     std::vector<Addon*> mPreloadAddons; // Addons in the preload stage waiting to be bootstrapped
     std::vector<Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
     std::vector<Addon*> mFailedAddons; // Addons that encountered a fatal error during bootstrapping
-
-    /* To prevent errors occuring due to arbitrary load order, all addons which are eligible to
-     * be loaded at any given point in the load process are loaded "together," i.e. as if they
-     * were all loading at the same time on different threads.
-     * 
-     * This method simulates this effect by loading the addons sequentially, but keeping track of
-     * the resources that they modify. If multiple addons try to modify the same resource in a
-     * single call of this method, both error.
-     * 
-     * Unfortunately, there may still be order-dependency which cannot be checked (e.g. a script
-     * calling another script's function created within the same call cannot be intervened). To
-     * "prevent" this, load order within this call is also randomized.
-     * 
-     * Error checking is also done on all addons before bootstrapping them "individually"
-     */
-    void bootstrapAddonsConcurrently(std::vector<Addon*> addons) {
-        Logger::Out infoLog = Logger::log(Logger::INFO);
-        infoLog << "Boot addons concurrently:";
-        for(std::vector<Addon*>::iterator iter = addons.begin(); iter != addons.end(); ++ iter) {
-            infoLog << " [" << (*iter)->mName << "]";
-        }
-        infoLog << std::endl;
-    }
 
     // Parse a package and add to the loading list
     void preloadAddon(std::string strPackageDir) {
@@ -164,14 +143,15 @@ namespace Addons {
 
     // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
     void bootstrapAddons() {
-        
+        // Debug information
+        Logger::Out dlog = Logger::log(Logger::INFO);
         // Check for address naming conflicts
         {
             typedef std::map<std::string, std::vector<Addon*>> Population;
             
             Population populated;
             bool namingConflict = false;
-            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
+            for(std::vector<Addon*>::iterator stackIter = mPreloadAddons.begin(); stackIter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
                 
                 if(populated.find(addon->mAddress) == populated.end()) {
@@ -217,6 +197,7 @@ namespace Addons {
             
             for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
                 Addon* addon = *iter;
+                // Note: mRequire is already sorted
                 if(!std::includes(nonError.begin(), nonError.end(), addon->mRequire.begin(), addon->mRequire.end())) {
                     AddonError ae;
                     ae.mType = AddonError::Type::REQUIREMENT_MISSING;
@@ -337,12 +318,123 @@ namespace Addons {
         }
         
         // Load order now set, finally can load
-        for(std::vector<std::vector<Addon*>>::iterator iter = loadOrder.begin(); iter != loadOrder.end(); ++ iter) {
-            // Particular step
-            bootstrapAddonsConcurrently(*iter);
+        Scripts::enableBootstrap();
+        if(loadOrder.size() > 0)
+        {
+            dlog << "Addon load order: " << std::endl;
+            uint32_t debugStep = 1; // What step is being processed
+            for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
+                dlog << debugStep << ': ';
+                std::vector<Addon*> concurrentAddons = *stackIter;
+                char sep = '('
+                for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
+                    Addon* addon = *addonIter;
+                    dlog << sep << addon->mAddress;
+                    sep = ' ';
+                }
+                dlog << ")" << std::endl;
+            }
+            
+            for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
+                // These addons will be loaded concurrently
+                std::vector<Addon*> concurrentAddons = *stackIter;
+                
+                // Try to load these addons as normal
+                bool errorsEncounted = false;
+                for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
+                    Addon* addon = *addonIter;
+                    
+                    // This should never happen
+                    assert(addon->mLuaEnv == LUA_NOREF && "Addon already has a Lua environment!");
+                    
+                    // Pre-grab all scripts
+                    std::vector<ScriptResource*> runThese;
+                    std::vector<std::string> missingScripts;
+                    for(auto scrNameIter = addon->mBootstap.begin(); scrNameIter != addon->mBootstap.end(); ++ scrNameIter) {
+                        ScriptResource* sres = Resources::find(*scrNameIter, addon->mLuaEnv);
+                        if(!sres) {
+                            missingScripts.push_back(*scrNameIter);
+                        } else {
+                            sres->grab();
+                            runThese.push_back(sres);
+                        }
+                    }
+                    
+                    // Error for missing scripts
+                    if(missingScripts.size() > 0) {
+                        AddonError ae;
+                        ae.mType = AddonError::Type::BOOTSTRAP_SCRIPT_MISSING;
+                        ae.mStrings = missingScripts;
+                        addon->mLoadErrors.push_back(ae);
+                        errorsEncounted = true;
+                    }
+                    
+                    // Create addon environment
+                    Scripts::RegRef addonEnv = Scripts::newEnvironment();
+                    addon->mLuaEnv = addonEnv;
+                    
+                    // Set environment for all scripts
+                    // TODO: Keep a temporary list of all scripts in the Addon struct
+                    for(auto resIter = addon->mResources.begin(); resIter != addon->mResources.end(); ++ resIter) { // Hooray for auto
+                        Resource* res = resIter->second;
+                        
+                        if(res->mResourceType == Resource::Type::SCRIPT) {
+                            ScriptResource* sres = ScriptResource::upcast(res);
+                            sres->setEnv(addonEnv); // Yes, we can do this before grabbing it
+                        }
+                    }
+                    
+                    // Run all scripts (even if some are missing, just to get more crash data) (also need to drop grabs)
+                    for(auto scriptIter = runThese.begin(); scriptIter != runThese.end(); ++ scriptIter) {
+                        ScriptResource* sres = *scriptIter;
+                        Scripts::CallStat cstat = sres->run();
+                        if(cstat.error != Scripts::ERR_OK) {
+                            // Error
+                            AddonError ae;
+                            ae.mType = AddonError::Type::BOOTSTRAP_SCRIPT_ERROR;
+                            //ae.mStrings.push_back(...);
+                            addon->mLoadErrors.push_back(ae);
+                            errorsEncounted = true;
+                        }
+                        sres->drop();
+                    }
+                }
+                
+                // Check for access racing
+                {
+                    
+                }
+                
+                // Fail any error'd addons and also fail any addons later in the load order depending on this one
+                // Note that this does not and should not add to mFailedAddons (That happens later)
+                if(errorsEncounted) {
+                    // Gather errors
+                    // This is not done earlier because multiple errors can occur and this list should not include duplicate elements
+                    std::vector<Addon*> failedAddons;
+                    for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
+                        Addon* addon = *addonIter;
+                        if(addon->mLoadErrors.size() > 0) {
+                            failedAddons.push_back(addon);
+                        }
+                    }
+                    
+                    // Search all later addons
+                    for(auto futureStackIter = stackIter + 1; futureStackIter != loadOrder.end(); ++ futureStackIter) {
+                        std::vector<Addon*> futureConcurrentAddons = *futureStackIter;
+                        for(auto futureAddonIter = futureConcurrentAddons.begin(); futureAddonIter != futureConcurrentAddons.end(); /*May erase*/) {
+                            Addon* futureAddon = *futureAddonIter;
+                            
+                            // Check if this future addon depended on the success of this one
+                            // Note: This is not the same thing as an "after" requirement
+                            if(std::find(futureAddon->m)) {
+                                
+                            }
+                        }
+                    }
+                }
+            }
         }
         
-        // Fail addons that encountered an error during bootstrap
         {
             for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); /*May erase*/) {
                 Addon* addon = *iter;
@@ -357,7 +449,7 @@ namespace Addons {
         }
         
         mLoadedAddons.insert(mLoadedAddons.end(), mPreloadAddons.begin(), mPreloadAddons.end());
-        mPreloadAddons.clear();
+        assert(mPreloadAddons.size() == 0 && "Addon(s) failed loading for unknown reasons!");
     }
 
     // Unload all addons, restore core resources to original state.
@@ -365,8 +457,10 @@ namespace Addons {
         
     }
     
-    std::vector<Addon*> getFailedAddons();
-    void clearFailedAddons();
+    std::vector<Addon*> getFailedAddons() { return mFailedAddons; }
+    void clearFailedAddons() {
+        // TODO: properly call delete's
+    }
 
 
 

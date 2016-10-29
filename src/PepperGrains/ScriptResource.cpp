@@ -20,33 +20,52 @@
 #include <iostream>
 #include <sstream>
 
+#include "Logger.hpp"
+
 namespace pgg {
 
 ScriptResource::ScriptResource()
-: mLoaded(false)
-, Resource(Resource::Type::SCRIPT) {
+: Resource(Resource::Type::SCRIPT) {
 }
 
 ScriptResource::~ScriptResource() {
 }
 
-void ScriptResource::load() {
-    if(!mLoaded) {
-        std::ifstream loader(this->getFile().string().c_str());
-        std::stringstream ss;
-        ss << loader.rdbuf();
-        loader.close();
-
-        mString = ss.str();
-        mLoaded = true;
+ScriptResource* ScriptResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::SCRIPT) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to script!" << std::endl;
+        return nullptr;
+    } else {
+        return static_cast<ScriptResource*>(resource);
     }
 }
 
-void ScriptResource::unload() {
+void ScriptResource::load() {
+    //assert(this->getAddon() && "Script resource load attempted with no associated addon!");
+    //assert(this->getAddon()->mLuaEnv != Scripts::EMPTY_REF && "Script resource load attempted with no environment!");
+    assert(mFunc == Scripts::REF_EMPTY && "Script resource already has function loaded!");
+    assert(!mLoaded && "Attempted to load script that is already loaded");
+    
+    mFunc = Scripts::loadFunc(this->getFile().string().c_str(), mEnv);
+    mLoaded = true;
 }
-
-const std::string& ScriptResource::getString() {
-    return mString;
+void ScriptResource::unload() {
+    Scripts::unref(mFunc);
+    mLoaded = false;
+}
+Scripts::CallStat ScriptResource::run() {
+    assert(mLoaded && "Attempted to call method before loading");
+    Scripts::pushRef(mFunc);
+    return Scripts::popCallFuncArgs();
+}
+void ScriptResource::setEnv(Scripts::RegRef env) {
+    mEnv = env;
+    
+    if(mLoaded) {
+        Scripts::pushRef(mFunc);
+        Scripts::setEnv(mEnv);
+        Scripts::pop();
+    }
 }
 
 }

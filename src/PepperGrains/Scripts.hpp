@@ -19,10 +19,26 @@
 
 #include "lua.hpp"
 
+/* Functions not beginning with "push" or "pop" are always balanced
+ * 
+ * 
+ * 
+ */
+
 namespace pgg {
 namespace Scripts {
     
     typedef int RegRef;
+    extern const RegRef REF_EMPTY; // TODO? remove this
+    typedef int ErrorCode;
+    extern const ErrorCode ERR_OK; // Success
+    extern const ErrorCode ERR_RUNTIME; // Runtime error
+    extern const ErrorCode ERR_MEMORY; // Out of memory (message handler not called)
+    extern const ErrorCode ERR_ERR; // Error in message handler
+    extern const ErrorCode ERR_GCMETAMETHOD; // Error running __gc metamethod (produced by garbage collector)
+    struct CallStat {
+        ErrorCode error;
+    };
 
     void init();
     lua_State* getState();
@@ -30,13 +46,18 @@ namespace Scripts {
     RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF);
     RegRef newEnvironment();
     
-    void pushRef(RegRef ref);
+    void pushRef(RegRef ref); // Pushes a Lua value onto the stack, referenced in the registry by ref
+    void pop(int n = 1); // Pops a value off the stack
     
-    bool callFunc(int nargs, int nresults = LUA_MULTRET);
+    CallStat popCallFuncArgs(int nargs = 0, int nresults = 0); // Calls function with arguments on top of stack
+    void setEnv(RegRef env); // Sets the environment of the value on the top of stack
     
     void unref(RegRef& ref);
     
     void close();
+    
+    // Allows scripts to use bootstrap-exclusive functions
+    void enableBootstrap();
 
 } // Scripts
 } // pgg

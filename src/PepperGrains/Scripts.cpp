@@ -28,8 +28,16 @@ namespace Scripts {
 
     lua_State* mL = nullptr;
     
+    const RegRef REF_EMPTY = LUA_NOREF;
+    const ErrorCode ERR_OK = LUA_OK;
+    const ErrorCode ERR_RUNTIME = LUA_ERRRUN;
+    const ErrorCode ERR_MEMORY = LUA_ERRMEM;
+    const ErrorCode ERR_ERR = LUA_ERRERR;
+    const ErrorCode ERR_GCMETAMETHOD = LUA_ERRGCMM;
+    
     RegRef mLuaVersion = LUA_NOREF;
     
+    // TODO: write safety wrappers for the setmetatable/getmetatable functions
     std::vector<std::string> mGImport = {
         "_VERSION",
         "assert",
@@ -204,7 +212,6 @@ namespace Scripts {
                 pushRef(env);
                 assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
             }
-            
             return luaL_ref(mL, LUA_REGISTRYINDEX); // -1 +0 -
         } else {
             return LUA_NOREF;
@@ -218,7 +225,7 @@ namespace Scripts {
         
         std::vector<std::string> createdModules;
         for(const std::string& wlEntry : mGImport) {
-            std::string::size_type dot = wlEntry.find('.');
+            auto dot = wlEntry.find('.');
             if(dot != std::string::npos) {
                 std::string module = wlEntry.substr(0, dot);
                 std::string func = wlEntry.substr(dot + 1);
@@ -232,7 +239,6 @@ namespace Scripts {
                     /* -1 table (_ENV)
                      */
                     createdModules.push_back(module.c_str()); // Remember this module has been created
-                    Logger::log(Logger::VERBOSE) << "Sandbox added new module: " << module << std::endl;
                 }
                 lua_getfield(mL, -1, module.c_str()); // Push _ENV.module
                 /* -2 table (_ENV)
@@ -261,7 +267,6 @@ namespace Scripts {
                 lua_pop(mL, 1); // Pop top value (remove _ENV.module from stack)
                 /* -1 table (_ENV)
                  */
-                Logger::log(Logger::VERBOSE) << "Sandbox added: " << module << "." << func << std::endl;
             } else {
                 lua_getglobal(mL, wlEntry.c_str()); // Push _G.wlEntry
                 /* -2 table (_ENV)
@@ -270,7 +275,6 @@ namespace Scripts {
                 lua_setfield(mL, -2, wlEntry.c_str()); // Set _ENV.wlEntry to _G.wlEntry
                 /* -1 table (_ENV)
                  */
-                Logger::log(Logger::VERBOSE) << "Sandbox added: " << wlEntry << std::endl;
             }
         }
         
@@ -302,30 +306,49 @@ namespace Scripts {
         lua_rawgeti(mL, LUA_REGISTRYINDEX, ref); // -0 +1 -
     }
     
-    bool callFunc(int nargs, int nresults) {
+    void pop(int n) {
+        lua_pop(mL, n);
+    }
+    
+    CallStat popCallFuncArgs(int nargs, int nresults) {
         /* LUA_OK = success
          * LUA_ERRRUN = runtime error
          * LUA_ERRMEM = out of memory (message handler not called)
          * LUA_ERRERR = error in message handler
          * LUA_ERRGCMM = error running __gc metamethod (produced by garbage collector)
          */
+        nresults = nresults < 0 ? LUA_MULTRET : nresults;
         
-        int status = lua_pcall(mL, nargs, nresults, 0); // -(nargs+1) +(nresults|1) -
+        CallStat callStat;
         
-        if(status == LUA_OK) {
-            return true;
+        // This will pop both the function and its arguments
+        callStat.error = lua_pcall(mL, nargs, nresults, 0); // -(nargs+1) +(nresults|1)
+        
+        if(callStat.error == LUA_OK) {
+            // Process results
         } else {
             Logger::log(Logger::WARN) << "Error running Lua script!" << std::endl << lua_tostring(mL, -1) << std::endl;
             // TODO error instead
             lua_pop(mL, 1); // -1 +0
-            return false;
         }
+        return callStat;
+    }
+    
+    void setEnv(RegRef env) {
+        if(env == LUA_NOREF) return;
+        
+        pushRef(env);
+        assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
     }
     
     void close() {
         assert(mL && "The Lua state cannot be unloaded before creation!");
         unref(mLuaVersion);
         lua_close(mL);
+    }
+    
+    void enableBootstrap() {
+        
     }
 
 } // Scripts

@@ -26,6 +26,10 @@
 
 namespace pgg {
 
+namespace Addons {
+    struct Addon;
+}
+
 // Virtual inheritance to avoid diamond conflict with ModelResource
 class Resource : virtual public ReferenceCounted {
 public:
@@ -49,8 +53,8 @@ public:
 private:
     uint32_t mFileSize;
     std::string mName;
-    uint32_t mEnvironment;
     boost::filesystem::path mFile;
+    Addons::Addon* mAddon;
 public:
     Resource(Type resourceType);
     virtual ~Resource();
@@ -65,8 +69,8 @@ public:
     std::string getName() const;
     void setSize(uint32_t size);
     uint32_t getSize() const;
-    void setEnvironment(uint32_t environment);
-    uint32_t getEnvironment() const;
+    void setAddon(Addons::Addon* addon);
+    Addons::Addon* getAddon() const;
 };
 
 }

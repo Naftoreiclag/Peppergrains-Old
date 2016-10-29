@@ -18,6 +18,8 @@
 
 #include <cassert>
 
+#include "Addons.hpp"
+
 namespace pgg {
 
 Resource::Resource(Type resourceType)
@@ -47,11 +49,11 @@ void Resource::setSize(uint32_t size) {
 uint32_t Resource::getSize() const {
     return mFileSize;
 }
-void Resource::setEnvironment(uint32_t environment) {
-    mEnvironment = environment;
+void Resource::setAddon(Addons::Addon* addon) {
+    mAddon = addon;
 }
-uint32_t Resource::getEnvironment() const {
-    return mEnvironment;
+Addons::Addon* Resource::getAddon() const {
+    return mAddon;
 }
 
 }

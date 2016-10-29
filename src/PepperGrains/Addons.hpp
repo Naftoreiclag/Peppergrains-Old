@@ -21,6 +21,7 @@
 #include <string>
 
 #include "Resource.hpp"
+#include "Scripts.hpp"
 
 /* Handles the loading and unloading of addons.
  * 
@@ -66,6 +67,9 @@ namespace Addons {
         std::string mDesc;
         std::string mAuthor;
         std::string mLicense;
+        
+        // Lua env
+        Scripts::RegRef mLuaEnv = LUA_NOREF;
         
         // Requested properties
         std::string mAddress;
