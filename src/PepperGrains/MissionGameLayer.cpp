@@ -33,18 +33,18 @@ MissionGameLayer::~MissionGameLayer()
 
 // Lifecycle
 void MissionGameLayer::onBegin() {
-    mSmac = new SmacRenderer(mScreenWidth, mScreenHeight);
-    mSmac->grab();
+    mRenderer = new ForwardRenderer(mScreenWidth, mScreenHeight);
+    mRenderer->grab();
 }
 void MissionGameLayer::onEnd() {
-    mSmac->drop();
+    mRenderer->drop();
 }
 
 // Ticks
 void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     
-    mSmac->renderFrame();
+    mRenderer->renderFrame();
 }
 
 }

@@ -14,22 +14,22 @@
    limitations under the License.
 */
 
-#ifndef PGG_SMACRENDERER_HPP
-#define PGG_SMACRENDERER_HPP
+#ifndef PGG_FORWARDRENDERER_HPP
+#define PGG_FORWARDRENDERER_HPP
 
 #include <stdint.h>
 
 #include "OpenGLStuff.hpp"
 #include "ReferenceCounted.hpp"
 #include "ShaderProgramResource.hpp"
+#include "Model.hpp"
 
 namespace pgg {
 
-// smac = Silly MAtCap Renderer
-class SmacRenderer : public ReferenceCounted {
+class ForwardRenderer : public ReferenceCounted {
 public:
-    SmacRenderer(uint32_t screenWidth, uint32_t screenHeight);
-    ~SmacRenderer();
+    ForwardRenderer(uint32_t screenWidth, uint32_t screenHeight);
+    ~ForwardRenderer();
 private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
@@ -38,8 +38,6 @@ private:
         GLuint framebuffer;
         
         GLuint forwardTexture;
-        GLuint normalTexture;
-        GLuint matpropTexture;
         GLuint depthStencilTexture;
     };
     GBuffer mGBuff;
@@ -70,16 +68,18 @@ private:
     };
     Camera mCamera;
     
+    std::vector<Model*> mRenderables;
+    
 public:
     void load();
     void unload();
     
     void renderFrame();
     
-    void addRenderable();
-    void removeRenderable();
+    Model* addRenderable(Model* model);
+    bool removeRenderable(Model* model);
 };
 
 }
 
-#endif // PGG_SMACRENDERER_HPP
+#endif // PGG_FORWARDRENDERER_HPP

@@ -41,6 +41,12 @@ namespace Scripts {
     struct CallStat {
         ErrorCode mError;
         std::string mErrorMsg;
+        
+        /*
+        int numReturns();
+        bool isNil(int i);
+        bool isNumber(int i);
+        */
     };
 
     void init();

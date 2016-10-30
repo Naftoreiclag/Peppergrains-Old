@@ -14,22 +14,22 @@
    limitations under the License.
 */
 
-#include "SmacRenderer.hpp"
+#include "ForwardRenderer.hpp"
 
 #include "Resources.hpp"
 
 namespace pgg {
 
-SmacRenderer::SmacRenderer(uint32_t width, uint32_t height)
+ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
 , mScreenHeight(height) {
 }
 
-SmacRenderer::~SmacRenderer() {
+ForwardRenderer::~ForwardRenderer() {
     
 }
 
-void SmacRenderer::load() {
+void ForwardRenderer::load() {
     
     // mRootNode = new SceneNode();
     // mRootNode->grab();
@@ -40,24 +40,6 @@ void SmacRenderer::load() {
         glGenTextures(1, &mGBuff.forwardTexture);
         glBindTexture(GL_TEXTURE_2D, mGBuff.forwardTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        
-        // Normal mapping
-        glGenTextures(1, &mGBuff.normalTexture);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.normalTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        
-        // Matprop mapping
-        glGenTextures(1, &mGBuff.matpropTexture);
-        glBindTexture(GL_TEXTURE_2D, mGBuff.matpropTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreenWidth, mScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -80,16 +62,12 @@ void SmacRenderer::load() {
         glGenFramebuffers(1, &mGBuff.framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, mGBuff.framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuff.forwardTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mGBuff.normalTexture, 0);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mGBuff.matpropTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mGBuff.depthStencilTexture, 0);
         
         GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0,
-            GL_COLOR_ATTACHMENT1,
-            GL_COLOR_ATTACHMENT2
+            GL_COLOR_ATTACHMENT0
         };
-        glDrawBuffers(3, colorAttachments);
+        glDrawBuffers(1, colorAttachments);
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -144,10 +122,8 @@ void SmacRenderer::load() {
     }
 }
 
-void SmacRenderer::unload() {
+void ForwardRenderer::unload() {
     glDeleteTextures(1, &mGBuff.forwardTexture);
-    glDeleteTextures(1, &mGBuff.normalTexture);
-    glDeleteTextures(1, &mGBuff.matpropTexture);
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
@@ -157,27 +133,14 @@ void SmacRenderer::unload() {
     
 }
 
-void SmacRenderer::renderFrame() {
-    // Gather probe data
-    {
-        
-    }
-    
-    // Populate probe array
-    {
-        
-    }
-    
-    // Render gbuffer, passing in probe data
+void ForwardRenderer::renderFrame() {
     {
         glViewport(0, 0, mScreenWidth, mScreenHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
         GLuint colorAttachments[] = {
-            GL_COLOR_ATTACHMENT0,
-            GL_COLOR_ATTACHMENT1,
-            GL_COLOR_ATTACHMENT2
+            GL_COLOR_ATTACHMENT0
         };
-        glDrawBuffers(3, colorAttachments);
+        glDrawBuffers(1, colorAttachments);
         glClearColor(1.f, 1.f, 0.f, 1.f);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);

@@ -129,6 +129,8 @@
       <File Name="ShaderResource.hpp"/>
       <File Name="SmacRenderer.cpp"/>
       <File Name="SmacRenderer.hpp"/>
+      <File Name="ForwardRenderer.cpp"/>
+      <File Name="ForwardRenderer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
