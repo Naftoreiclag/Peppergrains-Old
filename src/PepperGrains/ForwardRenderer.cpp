@@ -31,9 +31,6 @@ ForwardRenderer::~ForwardRenderer() {
 
 void ForwardRenderer::load() {
     
-    // mRootNode = new SceneNode();
-    // mRootNode->grab();
-    
     // Create renderbuffer/textures for deferred shading
     {
         // Forward mapping
@@ -127,6 +124,7 @@ void ForwardRenderer::unload() {
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
+    mScreenShader.shaderProg->drop();
     // mRootNode->drop();
     
     delete this;
@@ -151,7 +149,6 @@ void ForwardRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        /*
         Model::RenderPass geometryRenderPass(Model::RenderPass::Type::SMAC_GEOMETRY);
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
@@ -160,8 +157,10 @@ void ForwardRenderer::renderFrame() {
         geometryRenderPass.nearPlane = mCamera.nearDepth;
         geometryRenderPass.farPlane = mCamera.farDepth;
         geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
-        mRootNode->render(geometryRenderPass);
-        */
+        
+        for(auto iter = mRenderables.begin(); iter != mRenderables.end(); ++ iter) {
+            //(*iter)->render(geometryRenderPass);
+        }
     }
     
     // Perform post-process
