@@ -18,7 +18,6 @@
 
 #include <cassert>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -91,43 +90,44 @@ void ShaderResource::load() {
     GLint compileStatus;
     glGetShaderiv(mHandle, GL_COMPILE_STATUS, &compileStatus);
     if(compileStatus == GL_FALSE) {
-        std::cout << "Error while compiling ";
+        Logger::Out wlog = Logger::log(Logger::WARN);
+        wlog << "Error while compiling ";
         switch(mType) {
             case COMPUTE: {
-                std::cout << "COMPUTE";
+                wlog << "COMPUTE";
                 break;
             }
             case VERTEX: {
-                std::cout << "VERTEX";
+                wlog << "VERTEX";
                 break;
             }
             case TESS_CONTROL: {
-                std::cout << "TESS CONTROL";
+                wlog << "TESS CONTROL";
                 break;
             }
             case TESS_EVALUATION: {
-                std::cout << "TESS EVALUATION";
+                wlog << "TESS EVALUATION";
                 break;
             }
             case GEOMETRY: {
-                std::cout << "GEOMETRY";
+                wlog << "GEOMETRY";
                 break;
             }
             case FRAGMENT: {
-                std::cout << "FRAGMENT";
+                wlog << "FRAGMENT";
                 break;
             }
             default: {
                 break; // what
             }
         }
-        std::cout << " shader " << this->getName() << std::endl;
+        wlog << " shader " << this->getName() << std::endl;
         char infoLog[512];
         glGetShaderInfoLog(mHandle, 512, 0, infoLog);
-        std::cout << infoLog;
-        std::cout << shaderSrcStr;
+        wlog << infoLog;
+        wlog << shaderSrcStr;
     } else {
-        std::cout << "Compiled shader " << this->getName() << std::endl;
+        Logger::log(Logger::VERBOSE) << "Compiled shader " << this->getName() << std::endl;
     }
 
     mLoaded = true;
