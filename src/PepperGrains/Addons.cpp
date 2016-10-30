@@ -575,10 +575,11 @@ namespace Addons {
     
     std::vector<Addon*> getFailedAddons() { return mFailedAddons; }
     void clearFailedAddons() {
-        // TODO: properly call delete's
+        for(auto failIter = mFailedAddons.begin(); failIter != mFailedAddons.end(); ++ failIter) {
+            Addon* addon = *failIter;
+            delete addon;
+        }
     }
-
-
 
 } // Addons
 } // pgg
