@@ -84,6 +84,7 @@ namespace Resources {
                 return nullptr;
             }
             
+            Logger::log(Logger::VERBOSE) << "Found resource: [:" << id << ']' << std::endl;
             return iter->second;
         } else {
             Addons::Addon* addon = Addons::getTempAddon();
@@ -101,6 +102,7 @@ namespace Resources {
                 Logger::log(Logger::WARN) << "Could not find resource: [" << address << ':' << id << ']' << std::endl;
                 return nullptr;
             } else {
+                Logger::log(Logger::VERBOSE) << "Found resource: [" << address << ':' << id << ']' << std::endl;
                 return iter->second;
             }
         }
