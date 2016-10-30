@@ -25,22 +25,29 @@ namespace pgg {
 namespace Logger {
 
     class Channel;
-    class OutBuffer : public std::stringbuf {
-    public:
-        OutBuffer(Channel* channel);
-        
-        int sync();
-    private:
-        Channel* const mChannel;
-    };
-
+    class OutBuffer;
     class Out : public std::ostream {
     public:
         Out(Channel* channel);
         Out(const Out& copyCtr);
         ~Out();
         
+        void indent();
+        void unindent();
+    private:
+        OutBuffer* mOutBuf;
         Channel* const mChannel;
+    };
+    
+    class OutBuffer : public std::stringbuf {
+    public:
+        OutBuffer(Channel* channel);
+        
+        int sync();
+    private:
+        uint16_t mIndent;
+        Channel* const mChannel;
+        friend class Out;
     };
 
     class Channel {
@@ -48,7 +55,7 @@ namespace Logger {
         Channel(std::string id);
         const std::string mId;
         
-        int sync(OutBuffer& buffer);
+        int sync(OutBuffer& buffer, uint16_t indent);
         
         void setName(std::string name);
         std::string getName();

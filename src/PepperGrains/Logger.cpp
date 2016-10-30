@@ -24,29 +24,42 @@ namespace Logger {
 
     Out::Out(Channel* channel)
     : mChannel(channel)
-    , std::ostream(new OutBuffer(channel)) { }
+    , std::ostream(new OutBuffer(channel)) {
+        mOutBuf = static_cast<OutBuffer*>(rdbuf());
+    }
 
     Out::Out(const Out& copyCtr)
     : mChannel(copyCtr.mChannel)
-    , std::ostream(new OutBuffer(copyCtr.mChannel)) { }
+    , std::ostream(new OutBuffer(copyCtr.mChannel)) {
+        mOutBuf = static_cast<OutBuffer*>(rdbuf());
+    }
 
     Out::~Out() {
-        delete rdbuf();
+        delete mOutBuf;//rdbuf();
+    }
+    
+    void Out::indent() {
+        ++ mOutBuf->mIndent;
+    }
+    
+    void Out::unindent() {
+        if(mOutBuf->mIndent > 0) -- mOutBuf->mIndent;
     }
 
     OutBuffer::OutBuffer(Channel* channel)
-    : mChannel(channel) { }
+    : mIndent(0)
+    , mChannel(channel) { }
 
     int OutBuffer::sync() {
-        return mChannel->sync(*this);
+        return mChannel->sync(*this, mIndent);
     }
 
     Channel::Channel(std::string id)
     : mId(id)
     , mName(id) { }
 
-    int Channel::sync(OutBuffer& buffer) {
-        std::cout << mName << "\t" << buffer.str();
+    int Channel::sync(OutBuffer& buffer, uint16_t indent) {
+        std::cout << mName << std::string(indent + 1, '\t') << buffer.str();
         buffer.str("");
         return std::cout ? 0 : -1;
     }
