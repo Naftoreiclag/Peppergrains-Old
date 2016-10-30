@@ -59,7 +59,7 @@ namespace Logger {
     , mName(id) { }
 
     int Channel::sync(OutBuffer& buffer, uint16_t indent) {
-        std::cout << mName << std::string(indent + 1, '\t') << buffer.str();
+        std::cout << mName << '\t' << std::string(indent * 2, ' ') << buffer.str();
         buffer.str("");
         return std::cout ? 0 : -1;
     }
