@@ -197,7 +197,7 @@ namespace Scripts {
     }
     
     // Note to self: environ is taken as a variable name
-    RegRef loadFunc(const char* filename, RegRef env) {
+    RegRef loadFunc(const char* filename, RegRef env, std::string debugPath) {
         /* LUA_OK = success
          * LUA_ERRSYNTAX = syntax error
          * LUA_ERRMEM = out of memory
@@ -322,13 +322,13 @@ namespace Scripts {
         CallStat callStat;
         
         // This will pop both the function and its arguments
-        callStat.error = lua_pcall(mL, nargs, nresults, 0); // -(nargs+1) +(nresults|1)
+        callStat.mError = lua_pcall(mL, nargs, nresults, 0); // -(nargs+1) +(nresults|1)
         
-        if(callStat.error == LUA_OK) {
+        if(callStat.mError == LUA_OK) {
             // Process results
         } else {
-            Logger::log(Logger::WARN) << "Error running Lua script!" << std::endl << lua_tostring(mL, -1) << std::endl;
-            // TODO error instead
+            //Logger::log(Logger::WARN) << "Error running Lua script!" << std::endl << lua_tostring(mL, -1) << std::endl;
+            callStat.mErrorMsg = lua_tostring(mL, -1);
             lua_pop(mL, 1); // -1 +0
         }
         return callStat;

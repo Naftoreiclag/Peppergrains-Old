@@ -17,6 +17,8 @@
 #ifndef PGG_ENGINESCRIPTS_HPP
 #define PGG_ENGINESCRIPTS_HPP
 
+#include <string>
+
 #include "lua.hpp"
 
 /* Functions not beginning with "push" or "pop" are always balanced
@@ -37,13 +39,14 @@ namespace Scripts {
     extern const ErrorCode ERR_ERR; // Error in message handler
     extern const ErrorCode ERR_GCMETAMETHOD; // Error running __gc metamethod (produced by garbage collector)
     struct CallStat {
-        ErrorCode error;
+        ErrorCode mError;
+        std::string mErrorMsg;
     };
 
     void init();
     lua_State* getState();
     
-    RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF);
+    RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF, std::string debugPath = "");
     RegRef newEnvironment();
     
     void pushRef(RegRef ref); // Pushes a Lua value onto the stack, referenced in the registry by ref

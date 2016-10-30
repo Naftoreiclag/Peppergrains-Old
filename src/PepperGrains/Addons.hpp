@@ -99,6 +99,9 @@ namespace Addons {
 
     // Load all preloaded addons, running bootstrap scripts. Populates mFailedAddons.
     void bootstrapAddons();
+    
+    Addon* getAddon(std::string address);
+    Addon* getTempAddon();
 
     // Unload all addons, restore core resources to original state.
     void clearAddons();

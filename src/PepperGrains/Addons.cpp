@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <vector>
+#include <map>
 
 #include "json/json.h"
 #include "boost/filesystem.hpp"
@@ -30,8 +31,12 @@ namespace pgg {
 namespace Addons {
     
     std::vector<Addon*> mPreloadAddons; // Addons in the preload stage waiting to be bootstrapped
-    std::vector<Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
+    std::map<std::string, Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
     std::vector<Addon*> mFailedAddons; // Addons that encountered a fatal error during bootstrapping
+    
+    // Addon which is treated as if it were loaded, but really it is not.
+    // (used during bootstrapping to allow an addon to access its own resources, even though it technically is not loaded yet.)
+    Addon* mTempAddon = nullptr;
 
     // Parse a package and add to the loading list
     void preloadAddon(std::string strPackageDir) {
@@ -364,8 +369,8 @@ namespace Addons {
                         continue;
                     }
                     
-                    // This should never happen
-                    assert(addon->mLuaEnv == LUA_NOREF && "Addon already has a Lua environment!");
+                    // Allow future operations to treat this addon as if it were already loaded
+                    mTempAddon = addon;
                     
                     // Pre-grab all scripts
                     std::vector<ScriptResource*> runThese;
@@ -389,6 +394,9 @@ namespace Addons {
                         errorsEncounted = true;
                     }
                     
+                    // This should never happen
+                    assert(addon->mLuaEnv == LUA_NOREF && "Addon already has a Lua environment!");
+                    
                     // Create addon environment
                     Scripts::RegRef addonEnv = Scripts::newEnvironment();
                     addon->mLuaEnv = addonEnv;
@@ -404,21 +412,24 @@ namespace Addons {
                         }
                     }
                     
+                    
                     // Run all scripts (even if some are missing, just to get more crash data) (also need to drop grabs)
                     for(auto scriptIter = runThese.begin(); scriptIter != runThese.end(); ++ scriptIter) {
                         ScriptResource* sres = *scriptIter;
                         Scripts::CallStat cstat = sres->run();
-                        if(cstat.error != Scripts::ERR_OK) {
+                        if(cstat.mError != Scripts::ERR_OK) {
                             // Error
                             AddonError ae;
                             ae.mType = AddonError::Type::BOOTSTRAP_SCRIPT_ERROR;
-                            //ae.mStrings.push_back(...);
+                            ae.mStrings.push_back(cstat.mErrorMsg);
                             addon->mLoadErrors.push_back(ae);
                             errorsEncounted = true;
                         }
                         sres->drop();
                     }
                 }
+                
+                mTempAddon = nullptr;
                 
                 // Check for access racing
                 {
@@ -470,9 +481,26 @@ namespace Addons {
             }
         }
         
-        mLoadedAddons.insert(mLoadedAddons.end(), mPreloadAddons.begin(), mPreloadAddons.end());
-        mPreloadAddons.clear();
+        {
+            for(auto iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
+                Addon* addon = *iter;
+                mLoadedAddons[addon->mAddress] = addon;
+            }
+            mPreloadAddons.clear();
+        }
     }
+    
+    Addon* getAddon(std::string address) {
+        auto iter = mLoadedAddons.find(address);
+        if(iter == mLoadedAddons.end()) {
+            Logger::log(Logger::WARN) << "Could not addon with address: " << address << std::endl;
+            return nullptr;
+        } else {
+            return iter->second;
+        }
+    }
+    
+    Addon* getTempAddon() { return mTempAddon; }
 
     // Unload all addons, restore core resources to original state.
     void clearAddons() {

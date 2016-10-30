@@ -22,6 +22,7 @@
 #include "boost/filesystem.hpp"
 #include "json/json.h"
 
+#include "Addons.hpp"
 #include "ResourcesUtil.hpp"
 #include "Logger.hpp"
 
@@ -74,15 +75,34 @@ namespace Resources {
         } else {
             address = callOrigin;
         }
-        
         // address:id
-        ResourceMap::iterator iter = sResources.find(id);
         
-        if(iter == sResources.end()) {
-            Logger::log(Logger::WARN) << "Could not find resource with ID: " << id << std::endl;
-            return nullptr;
-        } else {
+        if(address == "") {
+            ResourceMap::iterator iter = sResources.find(id);
+            if(iter == sResources.end()) {
+                Logger::log(Logger::WARN) << "Could not find resource: [:" << id << ']' << std::endl;
+                return nullptr;
+            }
+            
             return iter->second;
+        } else {
+            Addons::Addon* addon = Addons::getTempAddon();
+            
+            if(!addon) {
+                addon = Addons::getAddon(address);
+                if(!addon) {
+                    Logger::log(Logger::WARN) << "Could not find address: [" << address << ']' << std::endl;
+                    return nullptr;
+                }
+            }
+            
+            auto iter = addon->mResources.find(id);
+            if(iter == addon->mResources.end()) {
+                Logger::log(Logger::WARN) << "Could not find resource: [" << address << ':' << id << ']' << std::endl;
+                return nullptr;
+            } else {
+                return iter->second;
+            }
         }
     }
 }
