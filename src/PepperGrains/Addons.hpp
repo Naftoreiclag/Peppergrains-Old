@@ -83,9 +83,8 @@ namespace Addons {
         // Links to addons which determined this addon's load order (discludes errors at that point) (includes those implied by the "requre" list)
         std::vector<Addon*> mAfterLink;
         
-        // Links to addons which listed this addon as a requirement (used to cascade "REQUIREMENT_CRASHED")
-        // TODO: populate this list during bootstrapping
-        std::vector<Addon*> mNeededBy;
+        // Links to addons which this addon requires (better than "neededBy" because that needs more complicated error checking)
+        std::vector<Addon*> mRequireLink;
         
         // Links to addons which have given this addon permission to access protected members
         std::vector<Addon*> mAccessTo;
@@ -103,6 +102,8 @@ namespace Addons {
 
     // Unload all addons, restore core resources to original state.
     void clearAddons();
+    
+    void logAddonFailures();
     
     std::vector<Addon*> getFailedAddons();
     void clearFailedAddons();

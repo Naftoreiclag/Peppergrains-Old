@@ -185,29 +185,40 @@ namespace Addons {
         
         // Check for missing requirements
         {
-            std::vector<std::string> nonError;
-            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
-                Addon* addon = *iter;
+            for(auto addonIter = mPreloadAddons.begin(); addonIter != mPreloadAddons.end(); ++ addonIter) {
+                Addon* addon = *addonIter;
                 
-                if(addon->mLoadErrors.size() == 0) {
-                    nonError.push_back(addon->mAddress);
-                }
-            }
-            std::sort(nonError.begin(), nonError.end());
-            
-            for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); ++ iter) {
-                Addon* addon = *iter;
-                // Note: mRequire is already sorted
-                if(!std::includes(nonError.begin(), nonError.end(), addon->mRequire.begin(), addon->mRequire.end())) {
-                    AddonError ae;
-                    ae.mType = AddonError::Type::REQUIREMENT_MISSING;
-                    for(std::vector<std::string>::iterator iter2 = addon->mRequire.begin(); iter2 != addon->mRequire.end(); ++ iter2) {
-                        std::string requirement = *iter2;
-                        if(std::find(nonError.begin(), nonError.end(), requirement) == nonError.end()) {
-                            ae.mStrings.push_back(requirement);
+                std::vector<std::string> missingRequirements;
+                std::vector<Addon*> brokenRequirements;
+                
+                for(auto strIter = addon->mRequire.begin(); strIter != addon->mRequire.end(); ++ strIter) {
+                    std::string otherAddress = *strIter;
+                    bool found = false;
+                    for(auto otherIter = mPreloadAddons.begin(); otherIter != mPreloadAddons.end(); ++ otherIter) {
+                        Addon* other = *otherIter;
+                        if(other->mAddress == otherAddress) {
+                            if(other->mLoadErrors.size() > 0) {
+                                brokenRequirements.push_back(other);
+                            }
+                            found = true;
+                            break;
                         }
                     }
-                    
+                    if(!found) {
+                        missingRequirements.push_back(otherAddress);
+                    }
+                }
+                
+                if(missingRequirements.size() > 0) {
+                    AddonError ae;
+                    ae.mType = AddonError::Type::REQUIREMENT_MISSING;
+                    ae.mStrings = missingRequirements;
+                    addon->mLoadErrors.push_back(ae);
+                }
+                if(brokenRequirements.size() > 0) {
+                    AddonError ae;
+                    ae.mType = AddonError::Type::REQUIREMENT_CRASHED;
+                    ae.mAddons = brokenRequirements;
                     addon->mLoadErrors.push_back(ae);
                 }
             }
@@ -326,15 +337,16 @@ namespace Addons {
             dlog << "Addon load order: " << std::endl;
             uint32_t debugStep = 1; // What step is being processed
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
-                dlog << debugStep << ': ';
+                dlog << debugStep << ": ";
                 std::vector<Addon*> concurrentAddons = *stackIter;
-                char sep = '(';
+                std::string sep = "{[";
                 for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
                     Addon* addon = *addonIter;
-                    dlog << sep << addon->mAddress;
-                    sep = ' ';
+                    dlog << sep << addon->mAddress << ']';
+                    sep = " [";
                 }
-                dlog << ")" << std::endl;
+                dlog << '}' << std::endl;
+                ++ debugStep;
             }
             
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
@@ -419,16 +431,23 @@ namespace Addons {
                     for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
                         Addon* addon = *addonIter;
                         if(addon->mLoadErrors.size() > 0) {
+                            // Search all later steps and addons within those steps
                             // Error only one layer; future errors will be caught in future iterations
-                            for(auto dependencyIter = addon->mNeededBy.begin(); dependencyIter != addon->mNeededBy.end(); ++ dependencyIter) {
-                                Addon* dependency = *dependencyIter; // This addon depends on *addonIter
-                                
-                                AddonError ae;
-                                ae.mType = AddonError::Type::REQUIREMENT_CRASHED;
-                                ae.mAddons.push_back(addon);
-                                dependency->mLoadErrors.push_back(ae);
-                                
-                                // TODO: assert that this dependency has not yet been encountered in the loadOrder stack
+                            for(auto futureStackIter = stackIter + 1; futureStackIter != loadOrder.end(); ++ futureStackIter) {
+                                std::vector<Addon*> futureConcurrentAddons = *futureStackIter;
+                                for(auto futureAddonIter = futureConcurrentAddons.begin(); futureAddonIter != futureConcurrentAddons.end(); ++ futureAddonIter) {
+                                    Addon* futureAddon = *futureAddonIter;
+                                    
+                                    // This addon requierd *addonIter
+                                    if(std::find(futureAddon->mRequireLink.begin(), futureAddon->mRequireLink.end(), addon) != futureAddon->mRequireLink.end()) {
+                                        AddonError ae;
+                                        ae.mType = AddonError::Type::REQUIREMENT_CRASHED;
+                                        ae.mAddons.push_back(addon);
+                                        futureAddon->mLoadErrors.push_back(ae);
+                                        
+                                        // TODO: assert that this dependency has not yet been encountered in the loadOrder stack
+                                    }
+                                }
                             }
                         }
                     }
@@ -437,6 +456,7 @@ namespace Addons {
         }
         Scripts::enableBootstrap(false);
         
+        // Fail all broken addons
         {
             for(std::vector<Addon*>::iterator iter = mPreloadAddons.begin(); iter != mPreloadAddons.end(); /*May erase*/) {
                 Addon* addon = *iter;
@@ -451,12 +471,78 @@ namespace Addons {
         }
         
         mLoadedAddons.insert(mLoadedAddons.end(), mPreloadAddons.begin(), mPreloadAddons.end());
-        assert(mPreloadAddons.size() == 0 && "Addon(s) failed loading for unknown reasons!");
+        mPreloadAddons.clear();
     }
 
     // Unload all addons, restore core resources to original state.
     void clearAddons() {
         
+    }
+    
+    void logAddonFailures() {
+        if(mFailedAddons.size() == 0) {
+            Logger::log(Logger::INFO) << "All addons loaded successfully" << std::endl;
+            return;
+        }
+        
+        Logger::Out wlog = Logger::log(Logger::WARN);
+        
+        for(auto failIter = mFailedAddons.begin(); failIter != mFailedAddons.end(); ++ failIter) {
+            Addon* addon = *failIter;
+            
+            assert(addon->mLoadErrors.size() > 0 && "Addon in mFailedAddons with no errors!");
+            wlog << "[" << addon->mName << "] failed to load:" << std::endl;
+            wlog.indent();
+            for(auto error = addon->mLoadErrors.begin(); error != addon->mLoadErrors.end(); ++ error) {
+                AddonError& ae = *error;
+                
+                switch(ae.mType) {
+                    case AddonError::Type::ADDRESS_CONFLICT: {
+                        wlog << "Address conflict:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::BOOTSTRAP_SCRIPT_ERROR: {
+                        wlog << "Bootstrap script error:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::BOOTSTRAP_SCRIPT_MISSING: {
+                        wlog << "Missing named boostrap script:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::CIRCULAR_AFTER: {
+                        wlog << "Circular \"after\" declarations:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::CONCURRENT_MODIFICATION: {
+                        wlog << "Access racing:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::CORRUPT_MISING_RESOURCE: {
+                        wlog << "Corrupt or missing resource:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::REQUIREMENT_CRASHED: {
+                        wlog << "Required addon(s) failed to load:" << std::endl;
+                        break;
+                    }
+                    case AddonError::Type::REQUIREMENT_MISSING: {
+                        wlog << "Missing required addons:" << std::endl;
+                        break;
+                    }
+                }
+                
+                wlog.indent();
+                for(auto iter = ae.mStrings.begin(); iter != ae.mStrings.end(); ++ iter) {
+                    wlog << *iter << std::endl;
+                }
+                for(auto iter = ae.mAddons.begin(); iter != ae.mAddons.end(); ++ iter) {
+                    Addon* a = *iter;
+                    wlog << '[' << a->mName << ']' << std::endl;
+                }
+                wlog.unindent();
+            }
+            wlog.unindent();
+        }
     }
     
     std::vector<Addon*> getFailedAddons() { return mFailedAddons; }

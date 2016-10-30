@@ -34,17 +34,7 @@
 #include "Scripts.hpp"
 
 namespace pgg {
-    
-class BootstrapScriptEval : public ResourceManager::ScriptEvaluator {
-public:
-    void execute(const ResourceManager::Addon* addon, ScriptResource* bootScript) {
-        
-    }
-};
-
 namespace Engine {
-
-    BootstrapScriptEval bootstrapScriptEval;
 
     Sound::Endpoint soundEndpoint;
 
@@ -153,6 +143,7 @@ namespace Engine {
         Resources::loadCore("core/data.package");
         Addons::preloadAddonDirectory("addons");
         Addons::bootstrapAddons();
+        Addons::logAddonFailures();
 
         gamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
 
