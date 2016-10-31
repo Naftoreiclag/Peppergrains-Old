@@ -53,6 +53,12 @@ private:
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
     
+public:
+    void load();
+    void unload();
+    
+    void renderFrame();
+    
     struct Camera {
         float fov;
         float aspect;
@@ -63,15 +69,9 @@ private:
         glm::mat4 projMat;
         glm::vec3 position;
     };
-    Camera mCamera;
     
     Renderable* mRenderable;
-    
-public:
-    void load();
-    void unload();
-    
-    void renderFrame();
+    Camera mCamera;
 };
 
 }

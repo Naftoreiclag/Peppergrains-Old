@@ -152,7 +152,7 @@ void ForwardRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        Renderable::Pass geometryRenderPass(Renderable::Pass::Type::SMAC_GEOMETRY);
+        Renderable::Pass geometryRenderPass(Renderable::Pass::Type::GEOMETRY);
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
