@@ -71,7 +71,7 @@ void ForwardRenderer::load() {
     
     // GBuffer shader
     {
-        mScreenShader.shaderProg = ShaderProgramResource::upcast(Resources::find("smac.Tonemapper.shaderProgram"));
+        mScreenShader.shaderProg = ShaderProgramResource::upcast(Resources::find("forward.Tonemapper.shaderProgram"));
         mScreenShader.shaderProg->grab();
         const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
