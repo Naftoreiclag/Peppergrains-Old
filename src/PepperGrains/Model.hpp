@@ -28,7 +28,7 @@ public:
     Model();
     virtual ~Model();
 
-    virtual void render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) = 0;
+    virtual void render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) = 0;
 };
 
 }

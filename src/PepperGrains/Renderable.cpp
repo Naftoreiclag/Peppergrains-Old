@@ -18,18 +18,18 @@
 
 namespace pgg {
 
-Renderable::RenderPass::RenderPass(RenderPass::Type renderPassType)
+Renderable::Pass::Pass(Pass::Type renderPassType)
 : type(renderPassType)
 , availableFustrumAABB(false) {
 }
 
-void Renderable::RenderPass::setScreenSize(uint32_t width, uint32_t height) {
+void Renderable::Pass::setScreenSize(uint32_t width, uint32_t height) {
     screenSize = glm::vec2((float) width, (float) height);
     invScreenSize = glm::vec2(1.f / ((float) width), 1.f / ((float) height));
 }
 
-Renderable::RenderPass::~RenderPass() { }
-void Renderable::RenderPass::calculateFustrumAABB() {
+Renderable::Pass::~Pass() { }
+void Renderable::Pass::calculateFustrumAABB() {
     glm::mat4 invVPMatrix = glm::inverse(projMat * viewMat);
 
     for(uint8_t j = 0; j < 8; ++ j) {

@@ -24,7 +24,7 @@ namespace pgg {
 class Renderable {
 public:
     // Might someday have different configs for different renderables
-    struct RenderPass {
+    struct Pass {
         enum Type {
             GEOMETRY,
             SHADOW,
@@ -62,8 +62,8 @@ public:
         
         Type type;
         
-        RenderPass(RenderPass::Type renderPassType);
-        ~RenderPass();
+        Pass(Pass::Type renderPassType);
+        ~Pass();
         
         bool availableFustrumAABB;
         glm::vec3 minBB;
@@ -72,7 +72,7 @@ public:
         void calculateFustrumAABB();
     };
     
-    virtual void render(const Renderable::RenderPass& rendPass) = 0;
+    virtual void render(const Renderable::Pass& rendPass) = 0;
 };
 }
 

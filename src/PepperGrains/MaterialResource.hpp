@@ -102,8 +102,8 @@ public:
     void unload();
     
     void enableVertexAttributesFor(GeometryResource* geometry) const;
-    bool isVisible(const Renderable::RenderPass& rpc) const;
-    void use(const Renderable::RenderPass& rpc, const glm::mat4& mMat) const;
+    bool isVisible(const Renderable::Pass& rpc) const;
+    void use(const Renderable::Pass& rpc, const glm::mat4& mMat) const;
     
     
     Technique::Type getTechniqueType() const;

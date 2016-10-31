@@ -146,8 +146,8 @@ void SSAOModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mScreenVao);
 }
 
-void SSAOModel::SharedResources::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Renderable::RenderPass::Type::GLOBAL_LIGHTS) {
+void SSAOModel::SharedResources::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
+    if(rendPass.type != Renderable::Pass::Type::GLOBAL_LIGHTS) {
         return;
     }
 
@@ -199,7 +199,7 @@ void SSAOModel::unload() {
     mSharedRes->drop();
 }
 
-void SSAOModel::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) {
+void SSAOModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
     mSharedRes->render(rendPass, modelMat, mColor);
 }
 

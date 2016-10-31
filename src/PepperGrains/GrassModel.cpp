@@ -155,9 +155,9 @@ void GrassModel::unload() {
 
     delete this;
 }
-void GrassModel::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) {
+void GrassModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != Renderable::RenderPass::Type::GEOMETRY) {
+    if(rendPass.type != Renderable::Pass::Type::GEOMETRY) {
         return;
     }
     

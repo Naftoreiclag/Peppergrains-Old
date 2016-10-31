@@ -113,9 +113,9 @@ void InstancedModel::unload() {
 
     delete this;
 }
-void InstancedModel::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) {
+void InstancedModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != Renderable::RenderPass::Type::GEOMETRY && rendPass.type != Renderable::RenderPass::Type::SHADOW) {
+    if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
         return;
     }
     

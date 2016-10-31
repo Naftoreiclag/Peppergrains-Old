@@ -65,7 +65,7 @@ public:
         
         void load();
         void unload();
-        void render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& color);
+        void render(const Renderable::Pass& rendPass, const glm::mat4& modelMat, const glm::vec3& color);
     };
 private:
     SharedResources* mSharedRes;
@@ -78,7 +78,7 @@ public:
     void load();
     void unload();
 
-    void render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat);
+    void render(const Renderable::Pass& rendPass, const glm::mat4& modelMat);
     
     void setColor(const glm::vec3& color);
 };
