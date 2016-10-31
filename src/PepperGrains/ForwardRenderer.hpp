@@ -20,15 +20,14 @@
 #include <stdint.h>
 
 #include "OpenGLStuff.hpp"
-#include "ReferenceCounted.hpp"
 #include "ShaderProgramResource.hpp"
-#include "Model.hpp"
+#include "Renderable.hpp"
 
 namespace pgg {
 
-class ForwardRenderer : public ReferenceCounted {
+class ForwardRenderer {
 public:
-    ForwardRenderer(uint32_t screenWidth, uint32_t screenHeight);
+    ForwardRenderer(uint32_t screenWidth, uint32_t screenHeight, Renderable* renderable = nullptr);
     ~ForwardRenderer();
 private:
     uint32_t mScreenWidth;
@@ -60,24 +59,19 @@ private:
         float nearDepth;
         float farDepth;
         
-        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
-        
         glm::mat4 viewMat;
         glm::mat4 projMat;
         glm::vec3 position;
     };
     Camera mCamera;
     
-    std::vector<Model*> mRenderables;
+    Renderable* mRenderable;
     
 public:
     void load();
     void unload();
     
     void renderFrame();
-    
-    Model* addRenderable(Model* model);
-    bool removeRenderable(Model* model);
 };
 
 }

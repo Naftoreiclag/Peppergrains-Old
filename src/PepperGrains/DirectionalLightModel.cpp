@@ -92,8 +92,8 @@ void DirectionalLightModel::SharedResources::unload() {
     glDeleteBuffers(1, &mDLightVbo);
     glDeleteVertexArrays(1, &mDLightVao);
 }
-void DirectionalLightModel::SharedResources::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Model::RenderPass::Type::GLOBAL_LIGHTS) {
+void DirectionalLightModel::SharedResources::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
+    if(rendPass.type != Renderable::RenderPass::Type::GLOBAL_LIGHTS) {
         return;
     }
     
@@ -132,7 +132,7 @@ void DirectionalLightModel::unload() {
     mSharedRes->drop();
 }
 
-void DirectionalLightModel::render(const Model::RenderPass& rendPass, const glm::mat4& modelMat) {
+void DirectionalLightModel::render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) {
     mSharedRes->render(rendPass, modelMat, mColor);
 }
 

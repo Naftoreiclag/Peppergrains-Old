@@ -258,7 +258,7 @@ SceneNode* SceneNode::setVisible(const bool& visibility) {
     mVisible = visibility;
 }
 
-void SceneNode::render(const Model::RenderPass& rendPass) {
+void SceneNode::render(const Renderable::RenderPass& rendPass) {
     if(!mVisible) {
         return;
     }

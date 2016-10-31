@@ -234,9 +234,9 @@ void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) con
         geometry->enableBitangentAttrib(mTechnique.geometryPassProg->getBitangentAttrib());
     }
 }
-void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) const {
+void MaterialResource::use(const Renderable::RenderPass& rpc, const glm::mat4& mMat) const {
     
-    if(rpc.type == Model::RenderPass::Type::GEOMETRY || rpc.type == Model::RenderPass::Type::SHADOW) {
+    if(rpc.type == Renderable::RenderPass::Type::GEOMETRY || rpc.type == Renderable::RenderPass::Type::SHADOW) {
         // Tell OpenGL to use that shader program
         glUseProgram(mTechnique.geometryPassProg->getHandle());
 
@@ -264,7 +264,7 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
             }
         }
     }
-    else if(rpc.type == Model::RenderPass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
+    else if(rpc.type == Renderable::RenderPass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
         glUseProgram(mTechnique.ssipgPassProg->getHandle());
         
         mTechnique.ssipgPassProg->bindRenderPass(rpc, mMat);
@@ -282,16 +282,16 @@ void MaterialResource::use(const Model::RenderPass& rpc, const glm::mat4& mMat) 
         }
     }
 }
-bool MaterialResource::isVisible(const Model::RenderPass& rpc) const {
-    if(rpc.type == Model::RenderPass::Type::GEOMETRY) {
+bool MaterialResource::isVisible(const Renderable::RenderPass& rpc) const {
+    if(rpc.type == Renderable::RenderPass::Type::GEOMETRY) {
         return mTechnique.geometryPassProg != nullptr;
     }
     
-    if(rpc.type == Model::RenderPass::Type::SHADOW) {
+    if(rpc.type == Renderable::RenderPass::Type::SHADOW) {
         return mTechnique.geometryPassProg != nullptr;
     }
     
-    if(rpc.type == Model::RenderPass::Type::SSIPG) {
+    if(rpc.type == Renderable::RenderPass::Type::SSIPG) {
         return mTechnique.ssipgPassProg != nullptr;
     }
 }

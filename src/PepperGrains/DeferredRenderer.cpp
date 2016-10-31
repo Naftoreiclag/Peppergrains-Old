@@ -545,7 +545,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glDisable(GL_BLEND);
             glClear(GL_DEPTH_BUFFER_BIT);
             
-            Model::RenderPass sunRPC(Model::RenderPass::Type::SHADOW);
+            Renderable::RenderPass sunRPC(Renderable::RenderPass::Type::SHADOW);
             sunRPC.viewMat = mSun.viewMatrix;
             sunRPC.projMat = mSun.projectionMatrices[i];
             sunRPC.camPos = mSun.direction * 100000.f;
@@ -574,7 +574,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glDisable(GL_BLEND);
         glClear(GL_DEPTH_BUFFER_BIT);
         
-        Model::RenderPass ssipgRenderPass(Model::RenderPass::Type::SSIPG);
+        Renderable::RenderPass ssipgRenderPass(Renderable::RenderPass::Type::SSIPG);
         ssipgRenderPass.viewMat = mCamera.viewMat;
         ssipgRenderPass.projMat = mCamera.projMat;
         ssipgRenderPass.camPos = mCamera.position;
@@ -637,7 +637,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         
-        Model::RenderPass geometryRenderPass(Model::RenderPass::Type::GEOMETRY);
+        Renderable::RenderPass geometryRenderPass(Renderable::RenderPass::Type::GEOMETRY);
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
@@ -706,7 +706,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         // glm::mat4 sunViewProjMat = mSky.sunBasicProjectionMatrix * mSky.sunBasicViewMatrix;
         
         // Render pass config
-        Model::RenderPass brightRPC(Model::RenderPass::Type::LOCAL_LIGHTS);
+        Renderable::RenderPass brightRPC(Renderable::RenderPass::Type::LOCAL_LIGHTS);
         brightRPC.viewMat = mCamera.viewMat;
         brightRPC.projMat = mCamera.projMat;
         brightRPC.camPos = mCamera.position;
@@ -775,7 +775,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             
             // Actual rendering
             {    
-                brightRPC.type = Model::RenderPass::Type::GLOBAL_LIGHTS;
+                brightRPC.type = Renderable::RenderPass::Type::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
                 if(mSun.shadowsEnabled) {
                     mSun.sunModel->render(brightRPC, glm::inverse(mSun.viewMatrix));

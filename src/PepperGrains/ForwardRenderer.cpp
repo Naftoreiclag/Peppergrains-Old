@@ -20,9 +20,10 @@
 
 namespace pgg {
 
-ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height)
+ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height, Renderable* renderable)
 : mScreenWidth(width)
-, mScreenHeight(height) {
+, mScreenHeight(height)
+, mRenderable(renderable) {
 }
 
 ForwardRenderer::~ForwardRenderer() {
@@ -120,18 +121,20 @@ void ForwardRenderer::load() {
 }
 
 void ForwardRenderer::unload() {
+    glDeleteBuffers(1, &mFullscreenIbo);
+    glDeleteBuffers(1, &mFullscreenVbo);
+    glDeleteVertexArrays(1, &mFullscreenVao);
+    
     glDeleteTextures(1, &mGBuff.forwardTexture);
     glDeleteTextures(1, &mGBuff.depthStencilTexture);
     glDeleteFramebuffers(1, &mGBuff.framebuffer);
     
     mScreenShader.shaderProg->drop();
-    // mRootNode->drop();
-    
-    delete this;
-    
 }
 
 void ForwardRenderer::renderFrame() {
+    if(!mRenderable) return;
+    
     {
         glViewport(0, 0, mScreenWidth, mScreenHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mGBuff.framebuffer);
@@ -149,7 +152,7 @@ void ForwardRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        Model::RenderPass geometryRenderPass(Model::RenderPass::Type::SMAC_GEOMETRY);
+        Renderable::RenderPass geometryRenderPass(Renderable::RenderPass::Type::SMAC_GEOMETRY);
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
@@ -158,9 +161,7 @@ void ForwardRenderer::renderFrame() {
         geometryRenderPass.farPlane = mCamera.farDepth;
         geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
         
-        for(auto iter = mRenderables.begin(); iter != mRenderables.end(); ++ iter) {
-            //(*iter)->render(geometryRenderPass);
-        }
+        mRenderable->render(geometryRenderPass);
     }
     
     // Perform post-process

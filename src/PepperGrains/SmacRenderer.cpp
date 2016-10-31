@@ -189,7 +189,7 @@ void SmacRenderer::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         /*
-        Model::RenderPass geometryRenderPass(Model::RenderPass::Type::SMAC_GEOMETRY);
+        Renderable::RenderPass geometryRenderPass(Renderable::RenderPass::Type::SMAC_GEOMETRY);
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;

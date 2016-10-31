@@ -18,8 +18,7 @@
 #define PGG_MODEL_HPP
 
 #include "ReferenceCounted.hpp"
-#include "OpenGLStuff.hpp"
-#include "HardValueStuff.hpp"
+#include "Renderable.hpp"
 
 namespace pgg {
 
@@ -28,57 +27,8 @@ class Model : virtual public ReferenceCounted {
 public:
     Model();
     virtual ~Model();
-    
-    // Might someday have different configs for different renderables
-    struct RenderPass {
-        enum Type {
-            GEOMETRY,
-            SHADOW,
-            LOCAL_LIGHTS,
-            GLOBAL_LIGHTS,
-            SMAC_GEOMETRY,
-            SSIPG,
-            SCREEN
-        };
-        
-        glm::mat4 viewMat;
-        glm::mat4 projMat;
-        
-        glm::vec3 camPos;
-        glm::vec3 camDir;
-        
-        float nearPlane;
-        float farPlane;
-        
-        glm::vec2 screenSize;
-        glm::vec2 invScreenSize;
-        
-        void setScreenSize(uint32_t width, uint32_t height);
-        
-        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
-        
-        GLuint framebuffer;
-        GLuint diffuseTexture;
-        GLuint normalTexture;
-        GLuint brightTexture;
-        GLuint depthStencilTexture;
-        
-        GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
-        glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];
-        
-        Type type;
-        
-        RenderPass(RenderPass::Type renderPassType);
-        ~RenderPass();
-        
-        bool availableFustrumAABB;
-        glm::vec3 minBB;
-        glm::vec3 maxBB;
-    
-        void calculateFustrumAABB();
-    };
 
-    virtual void render(const RenderPass& rendPass, const glm::mat4& modelMat) = 0;
+    virtual void render(const Renderable::RenderPass& rendPass, const glm::mat4& modelMat) = 0;
 };
 
 }

@@ -131,6 +131,8 @@
       <File Name="SmacRenderer.hpp"/>
       <File Name="ForwardRenderer.cpp"/>
       <File Name="ForwardRenderer.hpp"/>
+      <File Name="Renderable.hpp"/>
+      <File Name="Renderable.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
