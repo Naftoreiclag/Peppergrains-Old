@@ -26,10 +26,11 @@
 
 #include "Model.hpp"
 #include "ReferenceCounted.hpp"
+#include "Renderable.hpp"
 
 namespace pgg {
 
-class SceneNode : public ReferenceCounted {
+class SceneNode : public ReferenceCounted, public Renderable {
 public:
     SceneNode();
     ~SceneNode();
