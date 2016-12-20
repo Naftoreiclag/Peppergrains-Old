@@ -20,17 +20,19 @@
 #include <stdint.h>
 
 #include "OpenGLStuff.hpp"
-#include "ReferenceCounted.hpp"
 #include "ShaderProgramResource.hpp"
+#include "Renderable.hpp"
 
 namespace pgg {
 
 // sho = Spherical Harmonic per-Object renderer
-class ShoRenderer : public ReferenceCounted {
+class ShoRenderer {
 public:
     ShoRenderer(uint32_t screenWidth, uint32_t screenHeight);
     ~ShoRenderer();
 private:
+    Renderable* mRenderable;
+    
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
 
@@ -43,12 +45,18 @@ private:
     GLuint mFramebufferSunlightIrradiance;
     GLuint mFramebufferForward;
 
-    struct ScreenShader {
-        ShaderProgramResource* shaderProg;
-        
-        GLuint forwardHandle;
-    };
-    ScreenShader mScreenShader;
+    uint32_t mSunlightShadowMapResolution;
+    glm::vec3 mSunlightDirection;
+    GLuint mSunlightFramebuffers[PGG_NUM_SUN_CASCADES];
+    GLuint mSunlightDepthTextures[PGG_NUM_SUN_CASCADES];
+    glm::mat4 mSunlightProjectionMatrices[PGG_NUM_SUN_CASCADES];
+    glm::mat4 mSunlightViewMatrix;
+
+    ShaderProgramResource* mSunlightIrradianceShaderProg;
+    GLuint mPostProcessShaderHandle;
+    
+    ShaderProgramResource* mPostProcessShaderProg;
+    GLuint mPostProcessShaderForwardHandle;
     
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
@@ -71,6 +79,10 @@ private:
 public:
     void load();
     void unload();
+    
+    void resize(uint32_t width, uint32_t height);
+    
+    void setRenderable(Renderable* renderable);
     
     void renderFrame();
     

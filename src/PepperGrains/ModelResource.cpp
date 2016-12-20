@@ -161,7 +161,7 @@ void ModelResource::unload() {
     mLoaded = false;
 }
 
-void ModelResource::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
+void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
     if(!mMaterial->isVisible(rendPass)) {
         return;

@@ -234,7 +234,7 @@ void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) con
         geometry->enableBitangentAttrib(mTechnique.geometryPassProg->getBitangentAttrib());
     }
 }
-void MaterialResource::use(const Renderable::Pass& rpc, const glm::mat4& mMat) const {
+void MaterialResource::use(Renderable::Pass rpc, const glm::mat4& mMat) const {
     
     if(rpc.type == Renderable::Pass::Type::GEOMETRY || rpc.type == Renderable::Pass::Type::SHADOW) {
         // Tell OpenGL to use that shader program
@@ -282,7 +282,7 @@ void MaterialResource::use(const Renderable::Pass& rpc, const glm::mat4& mMat) c
         }
     }
 }
-bool MaterialResource::isVisible(const Renderable::Pass& rpc) const {
+bool MaterialResource::isVisible(Renderable::Pass rpc) const {
     if(rpc.type == Renderable::Pass::Type::GEOMETRY) {
         return mTechnique.geometryPassProg != nullptr;
     }

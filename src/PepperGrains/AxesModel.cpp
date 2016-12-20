@@ -219,7 +219,7 @@ void AxesModel::unload() {
 
     delete this;
 }
-void AxesModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
+void AxesModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
 
     if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
         return;

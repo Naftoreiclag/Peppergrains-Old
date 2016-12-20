@@ -26,6 +26,10 @@ public:
     // Might someday have different configs for different renderables
     struct Pass {
         enum Type {
+            SHO_DEPTHPREPASS,
+            SHO_SUNLIGHTIRRADIANCE,
+            SHO_FORWARD,
+            
             GEOMETRY,
             SHADOW,
             LOCAL_LIGHTS,
@@ -72,7 +76,7 @@ public:
         void calculateFustrumAABB();
     };
     
-    virtual void render(const Renderable::Pass& rendPass) = 0;
+    virtual void render(Renderable::Pass rendPass) = 0;
 };
 }
 

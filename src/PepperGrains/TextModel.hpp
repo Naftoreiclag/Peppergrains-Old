@@ -42,7 +42,7 @@ public:
     void load();
     void unload();
 
-    void render(const Renderable::Pass& rendPass, const glm::mat4& modelMat);
+    void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
 
 };
 

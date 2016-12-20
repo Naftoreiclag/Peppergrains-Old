@@ -129,7 +129,7 @@ void TextModel::unload() {
     delete this;
 }
 
-void TextModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
+void TextModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
 
     glUseProgram(mShaderProg->getHandle());
     

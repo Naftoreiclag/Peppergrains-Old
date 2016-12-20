@@ -34,10 +34,9 @@ MissionGameLayer::~MissionGameLayer()
 // Lifecycle
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
-    mRenderer->load();
 }
 void MissionGameLayer::onEnd() {
-    mRenderer->unload();
+    delete mRenderer;
 }
 
 // Ticks

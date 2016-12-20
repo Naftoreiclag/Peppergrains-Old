@@ -149,7 +149,7 @@ void InfiniteCheckerboardModel::unload() {
 InfiniteCheckerboardModel::~InfiniteCheckerboardModel() {
 }
 
-void InfiniteCheckerboardModel::render(const Renderable::Pass& rendPass, const glm::mat4& unused) {
+void InfiniteCheckerboardModel::render(Renderable::Pass rendPass, const glm::mat4& unused) {
 
     if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
         return;

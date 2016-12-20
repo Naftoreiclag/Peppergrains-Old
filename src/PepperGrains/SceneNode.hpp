@@ -111,7 +111,7 @@ public:
     SceneNode* setVisible(const bool& visibility);
 
     // Calculates world transform (which becomes the model matrix) and then renders
-    void render(const Renderable::Pass& rendPass);
+    void render(Renderable::Pass rendPass);
 
 private:
     void markWorldTransformDirty();

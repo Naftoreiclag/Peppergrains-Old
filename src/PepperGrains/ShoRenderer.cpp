@@ -24,14 +24,10 @@ namespace pgg {
 
 ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
-, mScreenHeight(height) {
-}
-
-ShoRenderer::~ShoRenderer() {
+, mScreenHeight(height)
+, mRenderable(nullptr) {
+    Logger::log(Logger::VERBOSE) << "Constructing Sho Renderer..." << std::endl;
     
-}
-
-void ShoRenderer::load() {
     // Generate texture render targets
     {
         // Depth-stencil mapping
@@ -94,14 +90,14 @@ void ShoRenderer::load() {
     
     // GBuffer shader
     {
-        mScreenShader.shaderProg = ShaderProgramResource::upcast(Resources::find("smac.Tonemapper.shaderProgram"));
-        mScreenShader.shaderProg->grab();
-        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mScreenShader.shaderProg->getUniformSampler2Ds();
+        mPostProcessShaderProg = ShaderProgramResource::upcast(Resources::find("smac.Tonemapper.shaderProgram"));
+        mPostProcessShaderProg->grab();
+        const std::vector<ShaderProgramResource::Control>& sampler2DControls = mPostProcessShaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
             const ShaderProgramResource::Control& entry = *iter;
             
             if(entry.name == "forward") {
-                mScreenShader.forwardHandle = entry.handle;
+                mPostProcessShaderForwardHandle = entry.handle;
             }
         }
     }
@@ -135,15 +131,15 @@ void ShoRenderer::load() {
         glBindBuffer(GL_ARRAY_BUFFER, mFullscreenVbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mFullscreenIbo);
 
-        glEnableVertexAttribArray(mScreenShader.shaderProg->getPosAttrib());
-        glVertexAttribPointer(mScreenShader.shaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(mPostProcessShaderProg->getPosAttrib());
+        glVertexAttribPointer(mPostProcessShaderProg->getPosAttrib(), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*) (0 * sizeof(GLfloat)));
 
         glBindVertexArray(0);
     }
 }
 
-void ShoRenderer::unload() {
-    Logger::log(Logger::VERBOSE) << "Unloading Sho Renderer..." << std::endl;
+ShoRenderer::~ShoRenderer() {
+    Logger::log(Logger::VERBOSE) << "Deleting Sho Renderer..." << std::endl;
     
     glDeleteTextures(1, &mTextureForward);
     glDeleteTextures(1, &mTextureDepthStencil);
@@ -152,14 +148,43 @@ void ShoRenderer::unload() {
     glDeleteFramebuffers(1, &mFramebufferDepthPrepass);
     glDeleteFramebuffers(1, &mFramebufferForward);
     glDeleteFramebuffers(1, &mFramebufferSunlightIrradiance);
-    
-    delete this;
+}
+
+void ShoRenderer::resize(uint32_t width, uint32_t height) {
+    Logger::log(Logger::VERBOSE) << "Resizing Sho Renderer to " << width << "x" << height << std::endl;
+}
+
+void ShoRenderer::setRenderable(Renderable* renderable) {
+    mRenderable = renderable;
 }
 
 void ShoRenderer::renderFrame() {
+    if(!mRenderable) {
+        return;
+    }
+    
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
+    
     // Depth prepass / Sunlight bias material information
     {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferDepthPrepass);
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        glClearColor(0.f, 0.f, 0.f, 0.f);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_STENCIL_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        Renderable::Pass rendPass(Renderable::Pass::Type::SHO_DEPTHPREPASS);
+        rendPass.setScreenSize(mScreenWidth, mScreenHeight);
+        mRenderable->render(rendPass);
     }
     
     // Cascaded shadow map generation
@@ -169,17 +194,45 @@ void ShoRenderer::renderFrame() {
     
     // Sunlight irradiance calculation
     {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferSunlightIrradiance);
+        GLuint colorAttachments[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(1, colorAttachments);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDepthFunc(GL_EQUAL);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
+        // Temporary
+        glClearColor(0.f, 0.f, 0.f, 0.f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        /*
+        glUseProgram(mSunlightIrradianceShaderProg->getHandle());
+    
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, mTextureForward);
+        glUniform1i(mPostProcessShaderForwardHandle, 0);
+        
+        glBindVertexArray(mFullscreenVao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        
+        glUseProgram(0);
+        */
     }
     
     // Geometry pass
     {
-        glViewport(0, 0, mScreenWidth, mScreenHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferForward);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0
         };
-        glDrawBuffers(3, colorAttachments);
+        glDrawBuffers(1, colorAttachments);
         glClearColor(0.f, 1.f, 1.f, 1.f);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
@@ -208,7 +261,6 @@ void ShoRenderer::renderFrame() {
     
     // Post-process and render to screen
     {
-        glViewport(0, 0, mScreenWidth, mScreenHeight);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
@@ -218,11 +270,11 @@ void ShoRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
-        glUseProgram(mScreenShader.shaderProg->getHandle());
+        glUseProgram(mPostProcessShaderProg->getHandle());
     
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, mTextureForward);
-        glUniform1i(mScreenShader.forwardHandle, 0);
+        glUniform1i(mPostProcessShaderForwardHandle, 0);
         
         glBindVertexArray(mFullscreenVao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

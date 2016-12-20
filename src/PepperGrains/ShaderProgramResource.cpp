@@ -722,7 +722,7 @@ void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, con
         glUniformMatrix4fv(mIMVPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat * vMat * mMat)));
     }
 }
-void ShaderProgramResource::bindRenderPass(const Renderable::Pass& rpc, const glm::mat4& modelMat) const {
+void ShaderProgramResource::bindRenderPass(Renderable::Pass rpc, const glm::mat4& modelMat) const {
     bindModelViewProjMatrices(modelMat, rpc.viewMat, rpc.projMat);
     
     if(mUseScreenSize) {

@@ -109,7 +109,7 @@ void PointLightModel::SharedResources::unload() {
     
     glDeleteVertexArrays(1, &mVertexArrayObject);
 }
-void PointLightModel::SharedResources::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor, const GLfloat& lightRad, const GLfloat& lightVolRad) {
+void PointLightModel::SharedResources::render(Renderable::Pass rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor, const GLfloat& lightRad, const GLfloat& lightVolRad) {
     if(rendPass.type != Renderable::Pass::Type::LOCAL_LIGHTS) {
         return;
     }
@@ -211,7 +211,7 @@ void PointLightModel::unload() {
     mSharedRes->drop();
 }
 
-void PointLightModel::render(const Renderable::Pass& rendPass, const glm::mat4& modelMat) {
+void PointLightModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     mSharedRes->render(rendPass, modelMat, mColor, mRadius, mVolumeRadius);
 }
 
