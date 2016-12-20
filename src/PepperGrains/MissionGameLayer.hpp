@@ -18,7 +18,7 @@
 #define PGG_MISSIONGAMELAYER_HPP
 
 #include "Gamelayer.hpp"
-#include "ForwardRenderer.hpp"
+#include "ShoRenderer.hpp"
 
 namespace pgg {
 
@@ -30,7 +30,7 @@ private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     
-    ForwardRenderer* mRenderer;
+    ShoRenderer* mRenderer;
 
 public:
     // Lifecycle

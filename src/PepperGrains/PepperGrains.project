@@ -133,6 +133,8 @@
       <File Name="ForwardRenderer.hpp"/>
       <File Name="Renderable.hpp"/>
       <File Name="Renderable.cpp"/>
+      <File Name="ShoRenderer.cpp"/>
+      <File Name="ShoRenderer.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
