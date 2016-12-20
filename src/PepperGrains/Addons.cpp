@@ -335,10 +335,20 @@ namespace Addons {
             
         }
         
-        // Load order now set, finally can load
+        // -- Load order now set, finally can load --
+        
+        // Enable bootstrap-specific permissions
         Scripts::enableBootstrap();
-        if(loadOrder.size() > 0)
+        
+        // There is nothing to do 
+        if(loadOrder.size() == 0) {
+            dlog << "No addons available for loading" << std::endl;
+        }
+        
+        // There are actually addons to load
+        else
         {
+            // Output debug information
             dlog << "Addon load order: " << std::endl;
             uint32_t debugStep = 1; // What step is being processed
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
@@ -354,6 +364,7 @@ namespace Addons {
                 ++ debugStep;
             }
             
+            // Process the load stack
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
                 // These addons will be loaded concurrently
                 std::vector<Addon*> concurrentAddons = *stackIter;
@@ -465,6 +476,8 @@ namespace Addons {
                 }
             }
         }
+        
+        // Disable bootstrap-specific permissions
         Scripts::enableBootstrap(false);
         
         // Fail all broken addons
@@ -493,7 +506,7 @@ namespace Addons {
     Addon* getAddon(std::string address) {
         auto iter = mLoadedAddons.find(address);
         if(iter == mLoadedAddons.end()) {
-            Logger::log(Logger::WARN) << "Could not addon with address: " << address << std::endl;
+            Logger::log(Logger::WARN) << "Could not find addon with address: " << address << std::endl;
             return nullptr;
         } else {
             return iter->second;
@@ -504,7 +517,7 @@ namespace Addons {
 
     // Unload all addons, restore core resources to original state.
     void clearAddons() {
-        
+        // mTempAddons should always be nullptr when calling this function, so no need to check/modify it
     }
     
     void logAddonFailures() {

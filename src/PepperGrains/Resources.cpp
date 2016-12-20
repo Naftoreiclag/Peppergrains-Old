@@ -77,6 +77,7 @@ namespace Resources {
         }
         // address:id
         
+        // Empty addresses search in the "core" resources (i.e. sResources)
         if(address == "") {
             ResourceMap::iterator iter = sResources.find(id);
             if(iter == sResources.end()) {
@@ -86,13 +87,16 @@ namespace Resources {
             
             Logger::log(Logger::VERBOSE) << "Found resource: [:" << id << ']' << std::endl;
             return iter->second;
-        } else {
+        }
+        
+        // Explicit addresses search in addons
+        else {
             Addons::Addon* addon = Addons::getTempAddon();
             
             if(!addon) {
                 addon = Addons::getAddon(address);
                 if(!addon) {
-                    Logger::log(Logger::WARN) << "Could not find address: [" << address << ']' << std::endl;
+                    Logger::log(Logger::WARN) << "Could not resolve address: [" << address << ']' << std::endl;
                     return nullptr;
                 }
             }

@@ -30,6 +30,8 @@
 
 namespace pgg {
 
+// TODO: fix circular references
+
 class SceneNode : public ReferenceCounted, public Renderable {
 public:
     SceneNode();

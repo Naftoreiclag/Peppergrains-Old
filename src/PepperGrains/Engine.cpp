@@ -43,7 +43,6 @@ namespace Engine {
 
     bool mMainLoopRunning;
     void quit() {
-        gamelayerMachine.removeAll();
         mMainLoopRunning = false;
     }
 
@@ -221,6 +220,7 @@ namespace Engine {
                 SDL_GL_SwapWindow(sdlWindow);
             }
         }
+        gamelayerMachine.removeAll();
         
         Scripts::close();
         
