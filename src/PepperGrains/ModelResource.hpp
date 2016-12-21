@@ -38,7 +38,9 @@ private:
 public:
     ModelResource();
     virtual ~ModelResource();
-
+    
+    static ModelResource* upcast(Resource* resource);
+    static ModelResource* getFallback();
 public:
     void load();
     void unload();

@@ -23,6 +23,8 @@
 
 #include "json/json.h"
 
+#include "Logger.hpp"
+#include "Resources.hpp"
 #include "ResourceManager.hpp"
 
 namespace pgg {
@@ -33,6 +35,18 @@ TextureResource::TextureResource()
 }
 
 TextureResource::~TextureResource() {
+}
+
+TextureResource* TextureResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::TEXTURE) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to texture!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<TextureResource*>(resource);
+    }
+}
+TextureResource* TextureResource::getFallback() {
+    return nullptr;
 }
 
 GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {

@@ -37,6 +37,9 @@ public:
     TextureResource();
     virtual ~TextureResource();
     
+    static TextureResource* upcast(Resource* resource);
+    static TextureResource* getFallback();
+    
     void load();
     void unload();
     

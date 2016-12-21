@@ -32,6 +32,8 @@ namespace pgg {
 
 class MaterialResource : public Resource {
 public:
+
+    // TODO: make this a primitive-ish type (replace pointers in Technique with actual objects)
     struct MaterialInput {
         enum Type {
             NOTHING,
@@ -79,8 +81,10 @@ public:
         MaterialInput* ssipgSpots;
         MaterialInput* ssipgFlow;
         
-        ShaderProgramResource* geometryPassProg;
+        ShaderProgramResource* deferredGeometryProg;
         ShaderProgramResource* ssipgPassProg;
+        ShaderProgramResource* shoDepthPrepassProg;
+        ShaderProgramResource* shoForwardProg;
     };
     
 private:
@@ -96,6 +100,9 @@ private:
 public:
     MaterialResource();
     virtual ~MaterialResource();
+    
+    static MaterialResource* upcast(Resource* resource);
+    static MaterialResource* getFallback();
 
 public:
     void load();

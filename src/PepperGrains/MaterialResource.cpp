@@ -24,6 +24,8 @@
 
 #include "ResourceManager.hpp"
 #include "ShaderProgramResource.hpp"
+#include "Logger.hpp"
+#include "Resources.hpp"
 
 namespace pgg {
 
@@ -85,18 +87,30 @@ MaterialResource::MaterialResource()
 : mLoaded(false)
 , mIsErrorResource(false)
 , Resource(Resource::Type::MATERIAL) {
-    mTechnique.geometryPassProg = nullptr;
+    mTechnique.deferredGeometryProg = nullptr;
     mTechnique.ssipgPassProg = nullptr;
 }
 
 MaterialResource::~MaterialResource() {
 }
 
+MaterialResource* MaterialResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to material!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<MaterialResource*>(resource);
+    }
+}
+
+MaterialResource* MaterialResource::getFallback() {
+    return nullptr;
+}
+
 void MaterialResource::grabNeededHLVShaders() {
-    ResourceManager* resman = ResourceManager::getSingleton();
-    if(mTechnique.geometryPassProg) {
-        mTechnique.geometryPassProg->drop();
-        mTechnique.geometryPassProg = nullptr;
+    if(mTechnique.deferredGeometryProg) {
+        mTechnique.deferredGeometryProg->drop();
+        mTechnique.deferredGeometryProg = nullptr;
     }
     if(mTechnique.ssipgPassProg) {
         mTechnique.ssipgPassProg->drop();
@@ -105,14 +119,18 @@ void MaterialResource::grabNeededHLVShaders() {
     
     if(mTechnique.type == Technique::Type::HIGH_LEVEL_VALUES) {
         if(mTechnique.normals->specified()) {
-            mTechnique.geometryPassProg = resman->findShaderProgram("HLVSDiffuseTexNormalTex.shaderProgram");
-            mTechnique.geometryPassProg->grab();
+            mTechnique.deferredGeometryProg = ShaderProgramResource::upcast(Resources::find("HLVSDiffuseTexNormalTex.shaderProgram"));
+            mTechnique.deferredGeometryProg->grab();
         } else {
-            mTechnique.geometryPassProg = resman->findShaderProgram("HLVSDiffuseTex.shaderProgram");
-            mTechnique.geometryPassProg->grab();
+            mTechnique.deferredGeometryProg = ShaderProgramResource::upcast(Resources::find("HLVSDiffuseTex.shaderProgram"));
+            mTechnique.deferredGeometryProg->grab();
         }
+        
+        mTechnique.shoForwardProg = ShaderProgramResource::upcast(Resources::find("HLVSShoForwardDiffuseTex.shaderProgram"));
+        mTechnique.shoForwardProg->grab();
+        
         if(mTechnique.ssipgSpots->specified()) {
-            mTechnique.ssipgPassProg = resman->findShaderProgram("SSIPG.shaderProgram");
+            mTechnique.ssipgPassProg = ShaderProgramResource::upcast(Resources::find("SSIPG.shaderProgram"));
             mTechnique.ssipgPassProg->grab();
         }
     }
@@ -121,10 +139,8 @@ void MaterialResource::grabNeededHLVShaders() {
 void MaterialResource::loadError() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
     
-    ResourceManager* resman = ResourceManager::getSingleton();
-    
     mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
-    mTechnique.diffuse = new MaterialInput(resman->getFallbackTexture());
+    mTechnique.diffuse = new MaterialInput(TextureResource::getFallback());
     mTechnique.specular = new MaterialInput();
     mTechnique.normals = new MaterialInput();
     mTechnique.ssipgSpots = new MaterialInput();
@@ -145,8 +161,6 @@ void MaterialResource::load() {
         return;
     }
 
-    ResourceManager* resman = ResourceManager::getSingleton();
-
     Json::Value matData;
     {
         std::ifstream loader(this->getFile().string().c_str());
@@ -165,7 +179,7 @@ void MaterialResource::load() {
             
             if(typeData.asString() == "glsl-shader") {
                 mTechnique.type = Technique::Type::GLSL_SHADER;
-                // ???
+                // TODO: implement me
                 
                 if(false) {
                     break;
@@ -201,8 +215,14 @@ void MaterialResource::unload() {
             delete mTechnique.ssipgSpots;
             delete mTechnique.ssipgFlow;
             
-            mTechnique.geometryPassProg->drop();
-            mTechnique.geometryPassProg = nullptr;
+            mTechnique.deferredGeometryProg->drop();
+            mTechnique.deferredGeometryProg = nullptr;
+            if(mTechnique.ssipgPassProg) {
+                mTechnique.ssipgPassProg->drop();
+                mTechnique.ssipgPassProg = nullptr;
+            }
+            mTechnique.shoForwardProg->drop();
+            mTechnique.shoForwardProg = nullptr;
             
             break;
         }
@@ -215,41 +235,68 @@ void MaterialResource::unload() {
 }
 
 void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) const {
-    if(mTechnique.geometryPassProg->needsPosAttrib()) {
-        geometry->enablePositionAttrib(mTechnique.geometryPassProg->getPosAttrib());
+    if(mTechnique.deferredGeometryProg->needsPosAttrib()) {
+        geometry->enablePositionAttrib(mTechnique.deferredGeometryProg->getPosAttrib());
     }
-    if(mTechnique.geometryPassProg->needsColorAttrib()) {
-        geometry->enableColorAttrib(mTechnique.geometryPassProg->getColorAttrib());
+    if(mTechnique.deferredGeometryProg->needsColorAttrib()) {
+        geometry->enableColorAttrib(mTechnique.deferredGeometryProg->getColorAttrib());
     }
-    if(mTechnique.geometryPassProg->needsUVAttrib()) {
-        geometry->enableUVAttrib(mTechnique.geometryPassProg->getUVAttrib());
+    if(mTechnique.deferredGeometryProg->needsUVAttrib()) {
+        geometry->enableUVAttrib(mTechnique.deferredGeometryProg->getUVAttrib());
     }
-    if(mTechnique.geometryPassProg->needsNormalAttrib()) {
-        geometry->enableNormalAttrib(mTechnique.geometryPassProg->getNormalAttrib());
+    if(mTechnique.deferredGeometryProg->needsNormalAttrib()) {
+        geometry->enableNormalAttrib(mTechnique.deferredGeometryProg->getNormalAttrib());
     }
-    if(mTechnique.geometryPassProg->needsTangentAttrib()) {
-        geometry->enableTangentAttrib(mTechnique.geometryPassProg->getTangentAttrib());
+    if(mTechnique.deferredGeometryProg->needsTangentAttrib()) {
+        geometry->enableTangentAttrib(mTechnique.deferredGeometryProg->getTangentAttrib());
     }
-    if(mTechnique.geometryPassProg->needsBitangentAttrib()) {
-        geometry->enableBitangentAttrib(mTechnique.geometryPassProg->getBitangentAttrib());
+    if(mTechnique.deferredGeometryProg->needsBitangentAttrib()) {
+        geometry->enableBitangentAttrib(mTechnique.deferredGeometryProg->getBitangentAttrib());
     }
 }
-void MaterialResource::use(Renderable::Pass rpc, const glm::mat4& mMat) const {
+void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatrix) const {
     
-    if(rpc.type == Renderable::Pass::Type::GEOMETRY || rpc.type == Renderable::Pass::Type::SHADOW) {
+    if(rendPass.type == Renderable::Pass::Type::SHO_FORWARD) {
         // Tell OpenGL to use that shader program
-        glUseProgram(mTechnique.geometryPassProg->getHandle());
+        glUseProgram(mTechnique.shoForwardProg->getHandle());
 
         // Tell OpenGL to use the provided matrices
-        mTechnique.geometryPassProg->bindRenderPass(rpc, mMat);
+        mTechnique.shoForwardProg->bindRenderPass(rendPass, modelMatrix);
+        
+        // Bind the textures specified by the material
+        unsigned int index = 0;
+        
+        // TODO pre-calculate this somewhere
+        for(const ShaderProgramResource::Control& control : mTechnique.shoForwardProg->getUniformSampler2Ds()) {
+            if(control.name == "diffuse" && mTechnique.diffuse->specified()) {
+                glActiveTexture(GL_TEXTURE0 + index);
+                glBindTexture(GL_TEXTURE_2D, mTechnique.diffuse->textureValue->getHandle());
+                glUniform1i(control.handle, index);
+                ++ index;
+            }
+            if(control.name == "normals" && mTechnique.normals->specified()) {
+                glActiveTexture(GL_TEXTURE0 + index);
+                glBindTexture(GL_TEXTURE_2D, mTechnique.normals->textureValue->getHandle());
+                glUniform1i(control.handle, index);
+                ++ index;
+            }
+        }
+        
+        
+        
+    }
+    else if(rendPass.type == Renderable::Pass::Type::GEOMETRY || rendPass.type == Renderable::Pass::Type::SHADOW) {
+        // Tell OpenGL to use that shader program
+        glUseProgram(mTechnique.deferredGeometryProg->getHandle());
+
+        // Tell OpenGL to use the provided matrices
+        mTechnique.deferredGeometryProg->bindRenderPass(rendPass, modelMatrix);
 
         // Bind the textures specified by the material
         unsigned int index = 0;
         
         // TODO pre-calculate this somewhere
-        for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mTechnique.geometryPassProg->getUniformSampler2Ds().begin(); iter != mTechnique.geometryPassProg->getUniformSampler2Ds().end(); ++ iter) {
-            const ShaderProgramResource::Control& control = *iter;
-            
+        for(const ShaderProgramResource::Control& control : mTechnique.deferredGeometryProg->getUniformSampler2Ds()) {
             if(control.name == "diffuse" && mTechnique.diffuse->specified()) {
                 glActiveTexture(GL_TEXTURE0 + index);
                 glBindTexture(GL_TEXTURE_2D, mTechnique.diffuse->textureValue->getHandle());
@@ -264,10 +311,10 @@ void MaterialResource::use(Renderable::Pass rpc, const glm::mat4& mMat) const {
             }
         }
     }
-    else if(rpc.type == Renderable::Pass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
+    else if(rendPass.type == Renderable::Pass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
         glUseProgram(mTechnique.ssipgPassProg->getHandle());
         
-        mTechnique.ssipgPassProg->bindRenderPass(rpc, mMat);
+        mTechnique.ssipgPassProg->bindRenderPass(rendPass, modelMatrix);
         
         unsigned int index = 0;
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = mTechnique.ssipgPassProg->getUniformSampler2Ds().begin(); iter != mTechnique.ssipgPassProg->getUniformSampler2Ds().end(); ++ iter) {
@@ -284,11 +331,11 @@ void MaterialResource::use(Renderable::Pass rpc, const glm::mat4& mMat) const {
 }
 bool MaterialResource::isVisible(Renderable::Pass rpc) const {
     if(rpc.type == Renderable::Pass::Type::GEOMETRY) {
-        return mTechnique.geometryPassProg != nullptr;
+        return mTechnique.deferredGeometryProg != nullptr;
     }
     
     if(rpc.type == Renderable::Pass::Type::SHADOW) {
-        return mTechnique.geometryPassProg != nullptr;
+        return mTechnique.deferredGeometryProg != nullptr;
     }
     
     if(rpc.type == Renderable::Pass::Type::SSIPG) {
@@ -297,7 +344,7 @@ bool MaterialResource::isVisible(Renderable::Pass rpc) const {
 }
 
 const ShaderProgramResource* MaterialResource::getShaderProg() const {
-    return mTechnique.geometryPassProg;
+    return mTechnique.deferredGeometryProg;
 }
 
 }

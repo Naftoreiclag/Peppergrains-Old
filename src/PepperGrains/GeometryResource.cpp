@@ -20,9 +20,9 @@
 #include <fstream>
 #include <iostream>
 
-#include <OpenGLStuff.hpp>
-
+#include "OpenGLStuff.hpp"
 #include "StreamStuff.hpp"
+#include "Logger.hpp"
 
 namespace pgg {
 
@@ -33,6 +33,18 @@ GeometryResource::GeometryResource()
 }
 
 GeometryResource::~GeometryResource() {
+}
+
+GeometryResource* GeometryResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to geometry!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<GeometryResource*>(resource);
+    }
+}
+GeometryResource* GeometryResource::getFallback() {
+    return nullptr;
 }
 
 void GeometryResource::loadError() {

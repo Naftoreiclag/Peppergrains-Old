@@ -163,6 +163,7 @@ public:
     virtual ~ShaderProgramResource();
     
     static ShaderProgramResource* upcast(Resource* resource);
+    static ShaderProgramResource* getFallback();
     
     void bindModelViewProjMatrices(const glm::mat4& modelMat, const glm::mat4& viewMat, const glm::mat4& projMat) const;
     void bindRenderPass(Renderable::Pass rpc, const glm::mat4& modelMat) const;

@@ -110,6 +110,9 @@ private:
 public:
     GeometryResource();
     virtual ~GeometryResource();
+    
+    static GeometryResource* upcast(Resource* resource);
+    static GeometryResource* getFallback();
 
     void load();
     void unload();

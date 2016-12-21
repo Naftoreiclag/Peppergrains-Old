@@ -22,7 +22,8 @@
 
 #include "json/json.h"
 
-#include "ResourceManager.hpp"
+#include "Logger.hpp"
+#include "Resources.hpp"
 
 namespace pgg {
 
@@ -34,14 +35,23 @@ ModelResource::ModelResource()
 
 ModelResource::~ModelResource() {
 }
+ModelResource* ModelResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::MODEL) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to model!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<ModelResource*>(resource);
+    }
+}
+ModelResource* ModelResource::getFallback() {
+    return nullptr;
+}
 
 void ModelResource::loadError() {
     assert(!mLoaded && "Attempted to load model that has already been loaded");
     
-    ResourceManager* rmgr = ResourceManager::getSingleton();
-    
-    mGeometry = rmgr->getFallbackGeometry();
-    mMaterial = rmgr->getFallbackMaterial();
+    mGeometry = GeometryResource::getFallback();
+    mMaterial = MaterialResource::getFallback();
     
     mGeometry->grab();
     mMaterial->grab();
@@ -103,8 +113,6 @@ void ModelResource::load() {
         return;
     }
 
-    ResourceManager* rmgr = ResourceManager::getSingleton();
-
     Json::Value mdlData;
     {
         std::ifstream loader(this->getFile().string().c_str());
@@ -117,8 +125,8 @@ void ModelResource::load() {
     for(Json::Value::const_iterator iter = solidsData.begin(); iter != solidsData.end(); ++ iter) {
         const Json::Value& solidData = *iter;
 
-        mGeometry = rmgr->findGeometry(solidData["geometry"].asString());
-        mMaterial = rmgr->findMaterial(solidData["material"].asString());
+        mGeometry = GeometryResource::upcast(Resources::find(solidData["geometry"].asString()));
+        mMaterial = MaterialResource::upcast(Resources::find(solidData["material"].asString()));
 
         break;
     }
