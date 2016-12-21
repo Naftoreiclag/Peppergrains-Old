@@ -25,7 +25,7 @@ namespace pgg {
 class DummyRenderable : public Renderable {
 public:
     DummyRenderable();
-    ~DummyRenderable();
+    virtual ~DummyRenderable();
     
     Model* mModel;
     

@@ -38,9 +38,11 @@ MissionGameLayer::~MissionGameLayer()
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
     mRootNode = new DummyRenderable();
-    mRootNode->mModel = ModelResource::upcast(Resources::find("JellyUFO.model"));
+    mRootNode->mModel = ModelResource::upcast(Resources::find("JellySmoothTorus.model"));
     mRootNode->mModel->grab();
     mRenderer->setRenderable(mRootNode);
+    mRenderer->setCameraProjection(glm::radians(50.f), 0.2f, 200.f);
+    mRenderer->setCameraViewMatrix(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f)));
 }
 void MissionGameLayer::onEnd() {
     mRootNode->mModel->drop();

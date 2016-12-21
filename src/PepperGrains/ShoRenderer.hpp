@@ -85,6 +85,16 @@ public:
     void setRenderable(Renderable* renderable);
     
     void renderFrame();
+    
+    void setCameraProjection(float fov, float nearDepth, float farDepth);
+    void setCameraViewMatrix(const glm::mat4& camViewMatrix);
+    const glm::mat4& getCameraProjectionMatrix() const;
+    const glm::mat4& getCameraViewMatrix() const;
+    const float& getCameraFarDepth() const;
+    const float& getCameraNearDepth() const;
+    const float& getCameraFOV() const;
+    
+    const glm::vec3& getCameraLocation() const;
 };
 
 }

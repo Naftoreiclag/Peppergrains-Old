@@ -24,7 +24,7 @@ DummyRenderable::~DummyRenderable() { }
 
 void DummyRenderable::render(Renderable::Pass rendPass) {
     if(mModel) {
-        mModel->render(rendPass, glm::mat4());
+        mModel->render(rendPass, glm::mat4(1.f));
     }
 }
 
