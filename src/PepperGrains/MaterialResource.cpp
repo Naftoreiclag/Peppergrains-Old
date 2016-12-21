@@ -254,6 +254,8 @@ void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) con
 void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatrix) const {
     
     if(rendPass.type == Renderable::Pass::Type::SHO_FORWARD) {
+        
+        Logger::log(Logger::VERBOSE) << "a" << std::endl;
         // Tell OpenGL to use that shader program
         glUseProgram(mTechnique.shoForwardProg->getHandle());
 
@@ -337,6 +339,10 @@ bool MaterialResource::isVisible(Renderable::Pass rpc) const {
     
     if(rpc.type == Renderable::Pass::Type::SSIPG) {
         return mTechnique.ssipgPassProg != nullptr;
+    }
+    
+    if(rpc.type == Renderable::Pass::Type::SHO_FORWARD) {
+        return true;
     }
 }
 
