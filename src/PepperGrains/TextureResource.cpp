@@ -25,7 +25,6 @@
 
 #include "Logger.hpp"
 #include "Resources.hpp"
-#include "ResourceManager.hpp"
 
 namespace pgg {
 
@@ -105,9 +104,7 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
 void TextureResource::loadError() {
     assert(!mLoaded && "Attempted to load texture that has already been loaded");
     
-    ResourceManager* rmgr = ResourceManager::getSingleton();
-    
-    mImage = rmgr->getFallbackImage();
+    mImage = ImageResource::getFallback();
     mImage->grab();
     
     glGenTextures(1, &mHandle);
@@ -138,10 +135,8 @@ void TextureResource::load() {
         loader >> textureData;
         loader.close();
     }
-
-    ResourceManager* rmgr = ResourceManager::getSingleton();
     
-    mImage = rmgr->findImage(textureData["image"].asString());
+    mImage = ImageResource::upcast(Resources::find(textureData["image"].asString()));
     mImage->grab();
 
     glGenTextures(1, &mHandle);

@@ -135,6 +135,8 @@
       <File Name="Renderable.cpp"/>
       <File Name="ShoRenderer.cpp"/>
       <File Name="ShoRenderer.hpp"/>
+      <File Name="DummyRenderable.hpp"/>
+      <File Name="DummyRenderable.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>

@@ -85,9 +85,6 @@ public:
     void setRenderable(Renderable* renderable);
     
     void renderFrame();
-    
-    void addRenderable();
-    void removeRenderable();
 };
 
 }

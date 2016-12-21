@@ -22,7 +22,6 @@
 
 #include "json/json.h"
 
-#include "ResourceManager.hpp"
 #include "ShaderProgramResource.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
@@ -38,12 +37,10 @@ MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
         
         if(!typeData.isNull()) {
             
-            ResourceManager* resman = ResourceManager::getSingleton();
-            
             if(typeData.asString() == "texture") {
                 type = Type::TEXTURE;
                 
-                textureValue = resman->findTexture(inputData["value"].asString());
+                textureValue = TextureResource::upcast(Resources::find(inputData["value"].asString()));
                 textureValue->grab();
             } else if(typeData.asString() == "constant") {
                 

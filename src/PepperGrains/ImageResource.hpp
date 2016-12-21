@@ -38,6 +38,9 @@ public:
     ImageResource();
     virtual ~ImageResource();
     
+    static ImageResource* upcast(Resource* resource);
+    static ImageResource* getFallback();
+    
     void load();
     void unload();
     

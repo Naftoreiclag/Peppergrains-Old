@@ -22,6 +22,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "Logger.hpp"
+
 namespace pgg {
 
 ImageResource::ImageResource()
@@ -32,6 +34,19 @@ ImageResource::ImageResource()
 
 ImageResource::~ImageResource() {
 }
+
+ImageResource* ImageResource::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::IMAGE) {
+        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to image!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<ImageResource*>(resource);
+    }
+}
+ImageResource* ImageResource::getFallback() {
+    return nullptr;
+}
+
 void ImageResource::loadError() {
     mWidth = 8;
     mHeight = 8;

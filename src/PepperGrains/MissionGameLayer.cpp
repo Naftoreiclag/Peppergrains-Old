@@ -19,6 +19,9 @@
 #include <chrono>
 #include <thread>
 
+#include "ModelResource.hpp"
+#include "Resources.hpp"
+
 namespace pgg
 {
 
@@ -34,8 +37,14 @@ MissionGameLayer::~MissionGameLayer()
 // Lifecycle
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
+    mRootNode = new DummyRenderable();
+    mRootNode->mModel = ModelResource::upcast(Resources::find("JellyUFO.model"));
+    mRootNode->mModel->grab();
+    mRenderer->setRenderable(mRootNode);
 }
 void MissionGameLayer::onEnd() {
+    mRootNode->mModel->drop();
+    delete mRootNode;
     delete mRenderer;
 }
 
