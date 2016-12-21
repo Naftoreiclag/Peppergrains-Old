@@ -33,7 +33,7 @@ ScriptResource::~ScriptResource() {
 
 ScriptResource* ScriptResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SCRIPT) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to script!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to script!" << std::endl;
         return nullptr;
     } else {
         return static_cast<ScriptResource*>(resource);

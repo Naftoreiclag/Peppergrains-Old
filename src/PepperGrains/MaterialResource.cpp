@@ -93,7 +93,7 @@ MaterialResource::~MaterialResource() {
 
 MaterialResource* MaterialResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to material!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
         return getFallback();
     } else {
         return static_cast<MaterialResource*>(resource);
@@ -255,7 +255,6 @@ void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatr
     
     if(rendPass.type == Renderable::Pass::Type::SHO_FORWARD) {
         
-        Logger::log(Logger::VERBOSE) << "a" << std::endl;
         // Tell OpenGL to use that shader program
         glUseProgram(mTechnique.shoForwardProg->getHandle());
 

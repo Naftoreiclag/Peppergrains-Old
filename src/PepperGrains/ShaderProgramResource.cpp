@@ -39,7 +39,7 @@ ShaderProgramResource::~ShaderProgramResource() {
 
 ShaderProgramResource* ShaderProgramResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SHADER_PROGRAM) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to shader program!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to shader program!" << std::endl;
         return getFallback();
     } else {
         return static_cast<ShaderProgramResource*>(resource);

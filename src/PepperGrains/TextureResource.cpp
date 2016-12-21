@@ -38,7 +38,7 @@ TextureResource::~TextureResource() {
 
 TextureResource* TextureResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::TEXTURE) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to texture!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to texture!" << std::endl;
         return getFallback();
     } else {
         return static_cast<TextureResource*>(resource);

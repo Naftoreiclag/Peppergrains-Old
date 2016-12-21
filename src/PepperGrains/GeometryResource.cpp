@@ -37,7 +37,7 @@ GeometryResource::~GeometryResource() {
 
 GeometryResource* GeometryResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to geometry!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
         return getFallback();
     } else {
         return static_cast<GeometryResource*>(resource);

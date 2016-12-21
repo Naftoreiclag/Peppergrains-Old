@@ -37,7 +37,7 @@ ModelResource::~ModelResource() {
 }
 ModelResource* ModelResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::MODEL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to model!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
         return getFallback();
     } else {
         return static_cast<ModelResource*>(resource);

@@ -36,7 +36,7 @@ ShaderResource::~ShaderResource() {
 
 ShaderResource* ShaderResource::upcast(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SHADER) {
-        Logger::log(Logger::WARN) << "Failed to cast " << resource->getName() << " to shader!" << std::endl;
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to shader!" << std::endl;
         return nullptr;
     } else {
         return static_cast<ShaderResource*>(resource);
