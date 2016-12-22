@@ -33,10 +33,9 @@ public:
     ~ShoRenderer();
     
     Camera mCamera;
-    
-private:
     Renderable* mRenderable;
     
+private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
 
@@ -70,8 +69,6 @@ public:
     void unload();
     
     void resize(uint32_t width, uint32_t height);
-    
-    void setRenderable(Renderable* renderable);
     
     void renderFrame();
 };

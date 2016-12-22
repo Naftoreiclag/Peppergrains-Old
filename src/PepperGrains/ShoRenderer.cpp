@@ -25,7 +25,8 @@ namespace pgg {
 ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
 , mScreenHeight(height)
-, mRenderable(nullptr) {
+, mRenderable(nullptr)
+, mCamera(Camera(glm::radians(45.f), 1.f, 0.1f, 10.f)) {
     Logger::log(Logger::VERBOSE) << "Constructing Sho Renderer..." << std::endl;
     
     // Generate texture render targets
@@ -152,10 +153,6 @@ ShoRenderer::~ShoRenderer() {
 
 void ShoRenderer::resize(uint32_t width, uint32_t height) {
     Logger::log(Logger::VERBOSE) << "Resizing Sho Renderer to " << width << "x" << height << std::endl;
-}
-
-void ShoRenderer::setRenderable(Renderable* renderable) {
-    mRenderable = renderable;
 }
 
 void ShoRenderer::renderFrame() {

@@ -39,15 +39,18 @@ void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
     
     mRootNode = new DummyRenderable();
+    mRenderer->mRenderable = mRootNode;
+    
     mRootNode->mModel = ModelResource::upcast(Resources::find("WrinkledPlane.model"));
     mRootNode->mModel->grab();
     
-    mRenderer->setRenderable(mRootNode);
+    
     mRenderer->mCamera.setProjMatrix(glm::radians(50.f), (float) mScreenWidth / (float) mScreenWidth, 0.2f, 200.f);
-    mRenderer->mCamera.setViewMatrix(glm::vec3(0.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    mRenderer->mCamera.setViewMatrix(glm::vec3(4.f, 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {
     mRootNode->mModel->drop();
+    
     delete mRootNode;
     delete mRenderer;
 }
