@@ -147,28 +147,30 @@ void SSAOModel::SharedResources::unload() {
 }
 
 void SSAOModel::SharedResources::render(Renderable::Pass rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Renderable::Pass::Type::GLOBAL_LIGHTS) {
+    if(rendPass.mType != Renderable::Pass::Type::GLOBAL_LIGHTS) {
         return;
     }
 
     glUseProgram(mShaderProg->getHandle());
     
-    mShaderProg->bindModelViewProjMatrices(glm::mat4(), rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(glm::mat4(), rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     
     glUniform3fv(mSSAOKernelHandle, 64, mKernels.ssao);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     // TODO fix this
     glUniform2fv(mNoiseRatioHandle, 1, glm::value_ptr(glm::vec2(1280.f / 8.f, 720.f / 8.f)));
     
-    glUniform1fv(mNearHandle, 1, &rendPass.nearPlane);
-    glUniform1fv(mFarHandle, 1, &rendPass.farPlane);
+    float near = rendPass.mCamera.getNearDepth();
+    float far = rendPass.mCamera.getFarDepth();
+    glUniform1fv(mNearHandle, 1, &near);
+    glUniform1fv(mFarHandle, 1, &far);
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mNormalTexture);
     glUniform1i(mNormalHandle, 0);
     
     glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mDepthStencilTexture);
     glUniform1i(mDepthHandle, 1);
     
     glActiveTexture(GL_TEXTURE0 + 2);

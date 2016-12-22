@@ -253,7 +253,7 @@ void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) con
 }
 void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatrix) const {
     
-    if(rendPass.type == Renderable::Pass::Type::SHO_FORWARD) {
+    if(rendPass.mType == Renderable::Pass::Type::SHO_FORWARD) {
         
         // Tell OpenGL to use that shader program
         glUseProgram(mTechnique.shoForwardProg->getHandle());
@@ -283,7 +283,7 @@ void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatr
         
         
     }
-    else if(rendPass.type == Renderable::Pass::Type::GEOMETRY || rendPass.type == Renderable::Pass::Type::SHADOW) {
+    else if(rendPass.mType == Renderable::Pass::Type::GEOMETRY || rendPass.mType == Renderable::Pass::Type::SHADOW) {
         // Tell OpenGL to use that shader program
         glUseProgram(mTechnique.deferredGeometryProg->getHandle());
 
@@ -309,7 +309,7 @@ void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatr
             }
         }
     }
-    else if(rendPass.type == Renderable::Pass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
+    else if(rendPass.mType == Renderable::Pass::Type::SSIPG && mTechnique.ssipgPassProg != nullptr) {
         glUseProgram(mTechnique.ssipgPassProg->getHandle());
         
         mTechnique.ssipgPassProg->bindRenderPass(rendPass, modelMatrix);
@@ -328,19 +328,19 @@ void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatr
     }
 }
 bool MaterialResource::isVisible(Renderable::Pass rpc) const {
-    if(rpc.type == Renderable::Pass::Type::GEOMETRY) {
+    if(rpc.mType == Renderable::Pass::Type::GEOMETRY) {
         return mTechnique.deferredGeometryProg != nullptr;
     }
     
-    if(rpc.type == Renderable::Pass::Type::SHADOW) {
+    if(rpc.mType == Renderable::Pass::Type::SHADOW) {
         return mTechnique.deferredGeometryProg != nullptr;
     }
     
-    if(rpc.type == Renderable::Pass::Type::SSIPG) {
+    if(rpc.mType == Renderable::Pass::Type::SSIPG) {
         return mTechnique.ssipgPassProg != nullptr;
     }
     
-    if(rpc.type == Renderable::Pass::Type::SHO_FORWARD) {
+    if(rpc.mType == Renderable::Pass::Type::SHO_FORWARD) {
         return true;
     }
 }

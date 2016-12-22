@@ -183,7 +183,9 @@ void ShoRenderer::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         Renderable::Pass rendPass(Renderable::Pass::Type::SHO_DEPTHPREPASS);
-        rendPass.setScreenSize(mScreenWidth, mScreenHeight);
+        rendPass.mScreenWidth = mScreenWidth;
+        rendPass.mScreenHeight = mScreenHeight;
+        rendPass.mCamera = mCamera;
         mRenderable->render(rendPass);
     }
     
@@ -249,14 +251,9 @@ void ShoRenderer::renderFrame() {
         // Opaque geometry
         {
             Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
-            rendPass.setScreenSize(mScreenWidth, mScreenHeight);
-            rendPass.viewMat = mCamera.viewMat;
-            rendPass.projMat = mCamera.projMat;
-            rendPass.camPos = mCamera.position;
-            rendPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
-            rendPass.nearPlane = mCamera.nearDepth;
-            rendPass.farPlane = mCamera.farDepth;
-            
+            rendPass.mScreenWidth = mScreenWidth;
+            rendPass.mScreenHeight = mScreenHeight;
+            rendPass.mCamera = mCamera;
             mRenderable->render(rendPass);
         }
         
@@ -296,46 +293,6 @@ void ShoRenderer::renderFrame() {
     }
     
     // TODO: disable double buffering; we already have our own "other" buffer
-}
-
-void ShoRenderer::setCameraViewMatrix(const glm::mat4& camViewMatrix) {
-    mCamera.viewMat = camViewMatrix;
-    glm::vec4 asdf(0.f, 0.f, 0.f, 1.f);
-    asdf = glm::inverse(camViewMatrix) * asdf;
-    mCamera.position = glm::vec3(asdf);
-}
-const glm::vec3& ShoRenderer::getCameraLocation() const {
-    return mCamera.position;
-}
-const float& ShoRenderer::getCameraFarDepth() const {
-    return mCamera.farDepth;
-}
-const float& ShoRenderer::getCameraNearDepth() const {
-    return mCamera.nearDepth;
-}
-const float& ShoRenderer::getCameraFOV() const {
-    return mCamera.fov;
-}
-void ShoRenderer::setCameraProjection(float fov, float nearDepth, float farDepth) {
-    mCamera.fov = fov;
-    mCamera.aspect = ((float) mScreenWidth) / ((float) mScreenHeight);
-    mCamera.nearDepth = nearDepth;
-    mCamera.farDepth = farDepth;
-    mCamera.cascadeBorders[0] = mCamera.nearDepth;
-    mCamera.cascadeBorders[PGG_NUM_SUN_CASCADES] = mCamera.farDepth;
-    for(uint8_t i = 1; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        // TODO: replace + 1.f with something more meaningful
-        float near = mCamera.nearDepth + 1.f;
-        float far = mCamera.farDepth;
-        mCamera.cascadeBorders[i] = near * std::pow(far / near, ((float) i) / ((float) PGG_NUM_SUN_CASCADES));
-    }
-    mCamera.projMat = glm::perspective(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
-}
-const glm::mat4& ShoRenderer::getCameraProjectionMatrix() const {
-    return mCamera.projMat;
-}
-const glm::mat4& ShoRenderer::getCameraViewMatrix() const {
-    return mCamera.viewMat;
 }
 
 }

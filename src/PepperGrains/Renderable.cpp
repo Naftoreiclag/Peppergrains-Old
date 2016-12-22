@@ -19,17 +19,21 @@
 namespace pgg {
 
 Renderable::Pass::Pass(Pass::Type renderPassType)
-: type(renderPassType)
-, availableFustrumAABB(false) {
+: mType(renderPassType)
+, mAvailableFustrumAABB(false) {
 }
-
-void Renderable::Pass::setScreenSize(uint32_t width, uint32_t height) {
-    screenSize = glm::vec2((float) width, (float) height);
-    invScreenSize = glm::vec2(1.f / ((float) width), 1.f / ((float) height));
-}
-
 Renderable::Pass::~Pass() { }
-void Renderable::Pass::calculateFustrumAABB() {
+
+glm::vec2 Renderable::Pass::calcScreenSize() {
+    return glm::vec2((float) mScreenWidth, (float) mScreenHeight);
+}
+
+glm::vec2 Renderable::Pass::calcInvScreenSize() {
+    return glm::vec2(1.f / (float) mScreenWidth, 1.f / (float) mScreenHeight);
+}
+
+void Renderable::Pass::calcFustrumAABB() {
+    /*
     glm::mat4 invVPMatrix = glm::inverse(projMat * viewMat);
 
     for(uint8_t j = 0; j < 8; ++ j) {
@@ -57,8 +61,8 @@ void Renderable::Pass::calculateFustrumAABB() {
             if(cornerWorldSpace.z > maxBB.z) { maxBB.z = cornerWorldSpace.z; }
         }
     }
-    
-    availableFustrumAABB = true;
+    */
+    mAvailableFustrumAABB = true;
 }
 
 }

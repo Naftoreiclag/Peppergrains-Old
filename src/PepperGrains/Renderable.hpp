@@ -19,12 +19,14 @@
 
 #include "OpenGLStuff.hpp"
 #include "HardValueStuff.hpp"
+#include "Camera.hpp"
 
 namespace pgg {
 class Renderable {
 public:
     // Might someday have different configs for different renderables
-    struct Pass {
+    class Pass {
+    public:
         enum Type {
             SHO_DEPTHPREPASS,
             SHO_SUNLIGHTIRRADIANCE,
@@ -38,42 +40,35 @@ public:
             SSIPG,
             SCREEN
         };
-        
-        glm::mat4 viewMat;
-        glm::mat4 projMat;
-        
-        glm::vec3 camPos;
-        glm::vec3 camDir;
-        
-        float nearPlane;
-        float farPlane;
-        
-        glm::vec2 screenSize;
-        glm::vec2 invScreenSize;
-        
-        void setScreenSize(uint32_t width, uint32_t height);
-        
-        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
-        
-        GLuint framebuffer;
-        GLuint diffuseTexture;
-        GLuint normalTexture;
-        GLuint brightTexture;
-        GLuint depthStencilTexture;
-        
-        GLuint sunDepthTexture[PGG_NUM_SUN_CASCADES];
-        glm::mat4 sunViewProjMatr[PGG_NUM_SUN_CASCADES];
-        
-        Type type;
+        Type mType;
         
         Pass(Pass::Type renderPassType);
-        ~Pass();
+        virtual ~Pass();
         
-        bool availableFustrumAABB;
-        glm::vec3 minBB;
-        glm::vec3 maxBB;
-    
-        void calculateFustrumAABB();
+        Camera mCamera;
+        
+        void calcFustrumAABB();
+        
+        glm::vec2 calcScreenSize();
+        glm::vec2 calcInvScreenSize();
+        
+        uint32_t mScreenWidth;
+        uint32_t mScreenHeight;
+        
+        float mCascadeBorders[PGG_NUM_SUN_CASCADES + 1];
+        
+        GLuint mFramebuffer;
+        GLuint mDiffuseTexture;
+        GLuint mNormalTexture;
+        GLuint mBrightTexture;
+        GLuint mDepthStencilTexture;
+        
+        GLuint mSunDepthTexture[PGG_NUM_SUN_CASCADES];
+        glm::mat4 mSunViewProjMatr[PGG_NUM_SUN_CASCADES];
+        
+        bool mAvailableFustrumAABB;
+        glm::vec3 mMinBB;
+        glm::vec3 mMaxBB;
     };
     
     virtual void render(Renderable::Pass rendPass) = 0;

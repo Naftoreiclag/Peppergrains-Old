@@ -67,7 +67,7 @@ public:
         
         glm::mat4 viewMat;
         glm::mat4 projMat;
-        glm::vec3 position;
+        glm::vec3 location;
     };
     
     Renderable* mRenderable;

@@ -151,7 +151,7 @@ InfiniteCheckerboardModel::~InfiniteCheckerboardModel() {
 
 void InfiniteCheckerboardModel::render(Renderable::Pass rendPass, const glm::mat4& unused) {
 
-    if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
+    if(rendPass.mType != Renderable::Pass::Type::GEOMETRY && rendPass.mType != Renderable::Pass::Type::SHADOW) {
         return;
     }
     
@@ -162,7 +162,7 @@ void InfiniteCheckerboardModel::render(Renderable::Pass rendPass, const glm::mat
 
     glm::mat4 modelMat = glm::translate(glm::mat4(1.f), glm::vec3(offsetX, 0, offsetZ));
 
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
 
     glBindVertexArray(mVertexArrayObject);
 

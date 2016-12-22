@@ -153,6 +153,7 @@ void ForwardRenderer::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         Renderable::Pass geometryRenderPass(Renderable::Pass::Type::GEOMETRY);
+        /*
         geometryRenderPass.viewMat = mCamera.viewMat;
         geometryRenderPass.projMat = mCamera.projMat;
         geometryRenderPass.camPos = mCamera.position;
@@ -160,6 +161,7 @@ void ForwardRenderer::renderFrame() {
         geometryRenderPass.nearPlane = mCamera.nearDepth;
         geometryRenderPass.farPlane = mCamera.farDepth;
         geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
+        */
         
         mRenderable->render(geometryRenderPass);
     }

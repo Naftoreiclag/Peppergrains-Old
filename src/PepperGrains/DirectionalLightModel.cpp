@@ -93,7 +93,7 @@ void DirectionalLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mDLightVao);
 }
 void DirectionalLightModel::SharedResources::render(Renderable::Pass rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Renderable::Pass::Type::GLOBAL_LIGHTS) {
+    if(rendPass.mType != Renderable::Pass::Type::GLOBAL_LIGHTS) {
         return;
     }
     
@@ -105,7 +105,7 @@ void DirectionalLightModel::SharedResources::render(Renderable::Pass rendPass, c
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mNormalTexture);
     glUniform1i(mNormalHandle, 0);
 
     glBindVertexArray(mDLightVao);

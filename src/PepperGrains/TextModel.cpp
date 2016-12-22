@@ -133,7 +133,7 @@ void TextModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
 
     glUseProgram(mShaderProg->getHandle());
     
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
 
     mFont->bindTextures();
 

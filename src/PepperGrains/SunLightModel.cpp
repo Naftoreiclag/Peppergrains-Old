@@ -179,7 +179,7 @@ void SunLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mDLightVao);
 }
 void SunLightModel::SharedResources::render(Renderable::Pass rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor) {
-    if(rendPass.type != Renderable::Pass::Type::GLOBAL_LIGHTS) {
+    if(rendPass.mType != Renderable::Pass::Type::GLOBAL_LIGHTS) {
         return;
     }
     
@@ -187,34 +187,34 @@ void SunLightModel::SharedResources::render(Renderable::Pass rendPass, const glm
     
     glUseProgram(mShaderProg->getHandle());
     
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     
     glUniform2fv(mDiskHandle, 64, mKernels.disk);
-    glUniform1fv(mNearPlaneHandle, 1, rendPass.cascadeBorders);
+    glUniform1fv(mNearPlaneHandle, 1, rendPass.mCascadeBorders);
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mDirectionHandle, 1, glm::value_ptr(lightDirection));
-    glUniform3fv(mCameraLocHandle, 1, glm::value_ptr(rendPass.camPos));
+    glUniform3fv(mCameraLocHandle, 1, glm::value_ptr(rendPass.mCamera.calcLocation()));
     glUniform4fv(mCascadeFarsHandle, 1, glm::value_ptr(glm::vec4(
-        rendPass.cascadeBorders[1], 
-        rendPass.cascadeBorders[2], 
-        rendPass.cascadeBorders[3], 
-        rendPass.cascadeBorders[4])));
+        rendPass.mCascadeBorders[1], 
+        rendPass.mCascadeBorders[2], 
+        rendPass.mCascadeBorders[3], 
+        rendPass.mCascadeBorders[4])));
     glUniform2fv(mNoiseScaleHandle, 1, glm::value_ptr(glm::vec2(1280.f / 8.f, 720.f / 8.f)));
     
     for(uint32_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-        glUniformMatrix4fv(mSunViewProjHandle[i], 1, GL_FALSE, glm::value_ptr(rendPass.sunViewProjMatr[i]));
+        glUniformMatrix4fv(mSunViewProjHandle[i], 1, GL_FALSE, glm::value_ptr(rendPass.mSunViewProjMatr[i]));
     
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, rendPass.sunDepthTexture[i]);
+        glBindTexture(GL_TEXTURE_2D, rendPass.mSunDepthTexture[i]);
         glUniform1i(mSunDepthHandle[i], i);
     }
     
     glActiveTexture(GL_TEXTURE0 + 4);
-    glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mNormalTexture);
     glUniform1i(mNormalHandle, 4);
     
     glActiveTexture(GL_TEXTURE0 + 5);
-    glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mDepthStencilTexture);
     glUniform1i(mDepthHandle, 5);
     
     glActiveTexture(GL_TEXTURE0 + 6);

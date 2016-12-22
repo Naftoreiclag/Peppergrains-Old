@@ -546,9 +546,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glClear(GL_DEPTH_BUFFER_BIT);
             
             Renderable::Pass sunRPC(Renderable::Pass::Type::SHADOW);
-            sunRPC.viewMat = mSun.viewMatrix;
-            sunRPC.projMat = mSun.projectionMatrices[i];
-            sunRPC.camPos = mSun.direction * 100000.f;
+            sunRPC.mCamera.setViewMatrix(mSun.viewMatrix);
+            sunRPC.mCamera.setProjMatrix(mSun.projectionMatrices[i]);
             mRootNode->render(sunRPC);
         }
     }
@@ -575,13 +574,10 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         glClear(GL_DEPTH_BUFFER_BIT);
         
         Renderable::Pass ssipgRenderPass(Renderable::Pass::Type::SSIPG);
-        ssipgRenderPass.viewMat = mCamera.viewMat;
-        ssipgRenderPass.projMat = mCamera.projMat;
-        ssipgRenderPass.camPos = mCamera.position;
-        ssipgRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
-        ssipgRenderPass.nearPlane = mCamera.nearDepth;
-        ssipgRenderPass.farPlane = mCamera.farDepth;
-        ssipgRenderPass.setScreenSize(mSSIPG.textureWidth, mSSIPG.textureHeight);
+        ssipgRenderPass.mCamera.setViewMatrix(mCamera.viewMat);
+        ssipgRenderPass.mCamera.setProjMatrix(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
+        ssipgRenderPass.mScreenWidth = mSSIPG.textureWidth;
+        ssipgRenderPass.mScreenHeight = mSSIPG.textureHeight;
         mRootNode->render(ssipgRenderPass);
         
         // Reset counter
@@ -593,7 +589,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         //
         glUseProgram(mSSIPG.comp.prog);
         
-        glUniform2fv(mSSIPG.comp.pixelSizeHandle, 1, glm::value_ptr(glm::vec2(1.f / ssipgRenderPass.screenSize.x, 1.f / ssipgRenderPass.screenSize.y)));
+        glUniform2fv(mSSIPG.comp.pixelSizeHandle, 1, glm::value_ptr(glm::vec2(1.f / (float) mSSIPG.textureWidth, 1.f / (float) mSSIPG.textureHeight)));
         
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mSSIPG.counterBuffer);
         glBindImageTexture(mSSIPG.partDepthImageIndex, mSSIPG.partDepthImageTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
@@ -638,13 +634,10 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         }
         
         Renderable::Pass geometryRenderPass(Renderable::Pass::Type::GEOMETRY);
-        geometryRenderPass.viewMat = mCamera.viewMat;
-        geometryRenderPass.projMat = mCamera.projMat;
-        geometryRenderPass.camPos = mCamera.position;
-        geometryRenderPass.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
-        geometryRenderPass.nearPlane = mCamera.nearDepth;
-        geometryRenderPass.farPlane = mCamera.farDepth;
-        geometryRenderPass.setScreenSize(mScreenWidth, mScreenHeight);
+        geometryRenderPass.mCamera.setViewMatrix(mCamera.viewMat);
+        geometryRenderPass.mCamera.setProjMatrix(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
+        geometryRenderPass.mScreenWidth = mScreenWidth;
+        geometryRenderPass.mScreenHeight = mScreenHeight;
         mRootNode->render(geometryRenderPass);
         
         
@@ -664,8 +657,8 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
         }
         glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-        geometryRenderPass.setScreenSize(mSSIPG.textureWidth, mSSIPG.textureHeight);
-        
+        geometryRenderPass.mScreenWidth = mSSIPG.textureWidth;
+        geometryRenderPass.mScreenHeight = mSSIPG.textureHeight;
         
         glDisable(GL_CULL_FACE);
         glUseProgram(mSSIPG.inst.shaderProg->getHandle());
@@ -707,22 +700,19 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
         
         // Render pass config
         Renderable::Pass brightRPC(Renderable::Pass::Type::LOCAL_LIGHTS);
-        brightRPC.viewMat = mCamera.viewMat;
-        brightRPC.projMat = mCamera.projMat;
-        brightRPC.camPos = mCamera.position;
-        brightRPC.camDir = glm::vec3(glm::inverse(mCamera.viewMat) * glm::vec4(0.0, 0.0, -1.0, 0.0));
+        brightRPC.mCamera.setViewMatrix(mCamera.viewMat);
+        brightRPC.mCamera.setProjMatrix(mCamera.fov, mCamera.aspect, mCamera.nearDepth, mCamera.farDepth);
         // TODO: something else
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES + 1; ++ i) {
-            brightRPC.cascadeBorders[i] = mCamera.cascadeBorders[i];
+            brightRPC.mCascadeBorders[i] = mCamera.cascadeBorders[i];
         }
-        brightRPC.nearPlane = mCamera.nearDepth;
-        brightRPC.farPlane = mCamera.farDepth;
-        brightRPC.setScreenSize(mScreenWidth, mScreenHeight);
-        brightRPC.depthStencilTexture = mGBuff.depthStencilTexture;
-        brightRPC.normalTexture = mGBuff.normalTexture;
+        brightRPC.mScreenWidth = mScreenWidth;
+        brightRPC.mScreenHeight = mScreenHeight;
+        brightRPC.mDepthStencilTexture = mGBuff.depthStencilTexture;
+        brightRPC.mNormalTexture = mGBuff.normalTexture;
         for(uint8_t i = 0; i < PGG_NUM_SUN_CASCADES; ++ i) {
-            brightRPC.sunViewProjMatr[i] = mSun.projectionMatrices[i] * mSun.viewMatrix;
-            brightRPC.sunDepthTexture[i] = mSun.depthTextures[i];
+            brightRPC.mSunViewProjMatr[i] = mSun.projectionMatrices[i] * mSun.viewMatrix;
+            brightRPC.mSunDepthTexture[i] = mSun.depthTextures[i];
         }
         
         // Render local lights (This must come before global lights because the stencil buffer is not preserved)
@@ -775,7 +765,7 @@ void DeferredRenderer::renderFrame(SceneNode* mRootNode, glm::vec4 debugShow, bo
             
             // Actual rendering
             {    
-                brightRPC.type = Renderable::Pass::Type::GLOBAL_LIGHTS;
+                brightRPC.mType = Renderable::Pass::Type::GLOBAL_LIGHTS;
                 mRootNode->render(brightRPC);
                 if(mSun.shadowsEnabled) {
                     mSun.sunModel->render(brightRPC, glm::inverse(mSun.viewMatrix));

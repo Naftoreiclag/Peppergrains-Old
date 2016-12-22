@@ -144,19 +144,19 @@ void TessModel::unload() {
 }
 void TessModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
+    if(rendPass.mType != Renderable::Pass::Type::GEOMETRY && rendPass.mType != Renderable::Pass::Type::SHADOW) {
         return;
     }
     
     glUseProgram(mShaderProg->getHandle());
 
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mHeightTexture->getHandle());
     glUniform1i(mHeightMap, 0);
 
-    glUniform3fv(mCamPos, 1, glm::value_ptr(rendPass.camPos));
+    glUniform3fv(mCamPos, 1, glm::value_ptr(rendPass.mCamera.calcLocation()));
     glUniform1f(mMinTess, 1.f);
     glUniform1f(mMaxTess, 32.f);
     glUniform1f(mMinDist, 0.5f);

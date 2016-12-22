@@ -157,7 +157,7 @@ void GrassModel::unload() {
 }
 void GrassModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
-    if(rendPass.type != Renderable::Pass::Type::GEOMETRY) {
+    if(rendPass.mType != Renderable::Pass::Type::GEOMETRY) {
         return;
     }
     
@@ -165,7 +165,7 @@ void GrassModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
     glUseProgram(mShaderProg->getHandle());
 
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, mDiffuseTexture->getHandle());

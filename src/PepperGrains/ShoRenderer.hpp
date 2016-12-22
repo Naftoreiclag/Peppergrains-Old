@@ -22,6 +22,7 @@
 #include "OpenGLStuff.hpp"
 #include "ShaderProgramResource.hpp"
 #include "Renderable.hpp"
+#include "Camera.hpp"
 
 namespace pgg {
 
@@ -30,6 +31,9 @@ class ShoRenderer {
 public:
     ShoRenderer(uint32_t screenWidth, uint32_t screenHeight);
     ~ShoRenderer();
+    
+    Camera mCamera;
+    
 private:
     Renderable* mRenderable;
     
@@ -61,21 +65,6 @@ private:
     GLuint mFullscreenVao;
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
-    
-    struct Camera {
-        float fov;
-        float aspect;
-        float nearDepth;
-        float farDepth;
-        
-        float cascadeBorders[PGG_NUM_SUN_CASCADES + 1];
-        
-        glm::mat4 viewMat;
-        glm::mat4 projMat;
-        glm::vec3 position;
-    };
-    Camera mCamera;
-    
 public:
     void load();
     void unload();
@@ -85,16 +74,6 @@ public:
     void setRenderable(Renderable* renderable);
     
     void renderFrame();
-    
-    void setCameraProjection(float fov, float nearDepth, float farDepth);
-    void setCameraViewMatrix(const glm::mat4& camViewMatrix);
-    const glm::mat4& getCameraProjectionMatrix() const;
-    const glm::mat4& getCameraViewMatrix() const;
-    const float& getCameraFarDepth() const;
-    const float& getCameraNearDepth() const;
-    const float& getCameraFOV() const;
-    
-    const glm::vec3& getCameraLocation() const;
 };
 
 }

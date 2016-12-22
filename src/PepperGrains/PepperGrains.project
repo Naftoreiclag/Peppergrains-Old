@@ -87,8 +87,6 @@
       <File Name="SceneNode.hpp"/>
       <File Name="TextModel.hpp"/>
       <File Name="TextModel.cpp"/>
-      <File Name="AxesModel.hpp"/>
-      <File Name="AxesModel.cpp"/>
       <File Name="TerrainModel.hpp"/>
       <File Name="TerrainModel.cpp"/>
       <File Name="InstancedModel.hpp"/>
@@ -107,8 +105,6 @@
       </VirtualDirectory>
       <File Name="TessModel.hpp"/>
       <File Name="TessModel.cpp"/>
-      <File Name="DebugInfiniteCheckerboardModel.hpp"/>
-      <File Name="DebugInfiniteCheckerboardModel.cpp"/>
       <File Name="ModelResource.cpp"/>
       <File Name="ModelResource.hpp"/>
       <File Name="DeferredRenderer.cpp"/>
@@ -127,8 +123,6 @@
       <File Name="ShaderProgramResource.hpp"/>
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
-      <File Name="SmacRenderer.cpp"/>
-      <File Name="SmacRenderer.hpp"/>
       <File Name="ForwardRenderer.cpp"/>
       <File Name="ForwardRenderer.hpp"/>
       <File Name="Renderable.hpp"/>
@@ -137,6 +131,8 @@
       <File Name="ShoRenderer.hpp"/>
       <File Name="DummyRenderable.hpp"/>
       <File Name="DummyRenderable.cpp"/>
+      <File Name="Camera.hpp"/>
+      <File Name="Camera.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
@@ -238,10 +234,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="gamelayer">
       <VirtualDirectory Name="logic">
-        <File Name="DesignerGameLayer.cpp"/>
-        <File Name="DesignerGameLayer.hpp"/>
-        <File Name="DesignerParts.cpp"/>
-        <File Name="DesignerParts.hpp"/>
         <File Name="MissionGamelayer.cpp"/>
         <File Name="MissionGamelayer.hpp"/>
       </VirtualDirectory>
@@ -262,6 +254,18 @@
     <File Name="Addons.cpp"/>
     <File Name="Scripts.hpp"/>
     <File Name="Scripts.cpp"/>
+    <VirtualDirectory Name="old">
+      <File Name="DesignerGameLayer.cpp"/>
+      <File Name="DesignerGameLayer.hpp"/>
+      <File Name="DesignerParts.cpp"/>
+      <File Name="DesignerParts.hpp"/>
+      <File Name="AxesModel.cpp"/>
+      <File Name="AxesModel.hpp"/>
+      <File Name="DebugInfiniteCheckerboardModel.cpp"/>
+      <File Name="DebugInfiniteCheckerboardModel.hpp"/>
+      <File Name="SmacRenderer.cpp"/>
+      <File Name="SmacRenderer.hpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
     <VirtualDirectory Name="jsoncpp">

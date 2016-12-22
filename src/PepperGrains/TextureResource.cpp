@@ -45,7 +45,7 @@ TextureResource* TextureResource::upcast(Resource* resource) {
     }
 }
 TextureResource* TextureResource::getFallback() {
-    return nullptr;
+    return static_cast<TextureResource*>(Resources::find("Error.texture"));
 }
 
 GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {

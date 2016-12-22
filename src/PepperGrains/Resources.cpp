@@ -50,6 +50,16 @@ namespace Resources {
         const Json::Value& resourcesData = dataPackData["resources"];
         
         Resources::populateResourceMap(sResources, resourcesData, dataPackDir);
+        
+        std::string criticalResources[] = {
+            ":Error.image",
+            ":Error.texture"
+        };
+        for(std::string resName : criticalResources) {
+            if(!Resources::find(resName)) {
+                Logger::log(Logger::SEVERE) << "Missing critical resource: [" << resName << "]!" << std::endl;
+            }
+        }
     }
 
     // Top modlayer can be edited dynamically

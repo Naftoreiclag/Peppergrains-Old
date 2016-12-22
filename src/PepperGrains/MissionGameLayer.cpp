@@ -37,12 +37,14 @@ MissionGameLayer::~MissionGameLayer()
 // Lifecycle
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
+    
     mRootNode = new DummyRenderable();
     mRootNode->mModel = ModelResource::upcast(Resources::find("WrinkledPlane.model"));
     mRootNode->mModel->grab();
+    
     mRenderer->setRenderable(mRootNode);
-    mRenderer->setCameraProjection(glm::radians(50.f), 0.2f, 200.f);
-    mRenderer->setCameraViewMatrix(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f)));
+    mRenderer->mCamera.setProjMatrix(glm::radians(50.f), (float) mScreenWidth / (float) mScreenWidth, 0.2f, 200.f);
+    mRenderer->mCamera.setViewMatrix(glm::vec3(0.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {
     mRootNode->mModel->drop();
@@ -52,7 +54,9 @@ void MissionGameLayer::onEnd() {
 
 // Ticks
 void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
+    mRootNode->update(tpf);
     
     mRenderer->renderFrame();
 }

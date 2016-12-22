@@ -221,13 +221,13 @@ void AxesModel::unload() {
 }
 void AxesModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
 
-    if(rendPass.type != Renderable::Pass::Type::GEOMETRY && rendPass.type != Renderable::Pass::Type::SHADOW) {
+    if(rendPass.mType != Renderable::Pass::Type::GEOMETRY && rendPass.mType != Renderable::Pass::Type::SHADOW) {
         return;
     }
     
     glUseProgram(mShaderProg->getHandle());
 
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
 
     glBindVertexArray(mVertexArrayObject);
 

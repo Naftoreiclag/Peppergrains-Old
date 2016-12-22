@@ -726,19 +726,19 @@ void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, con
     }
 }
 void ShaderProgramResource::bindRenderPass(Renderable::Pass rpc, const glm::mat4& modelMat) const {
-    bindModelViewProjMatrices(modelMat, rpc.viewMat, rpc.projMat);
+    bindModelViewProjMatrices(modelMat, rpc.mCamera.getViewMatrix(), rpc.mCamera.getProjMatrix());
     
     if(mUseScreenSize) {
-        glUniform2fv(mScreenSizeUnif, 1, glm::value_ptr(rpc.screenSize));
+        glUniform2fv(mScreenSizeUnif, 1, glm::value_ptr(rpc.calcScreenSize()));
     }
     if(mUseIScreenSize) {
-        glUniform2fv(mIScreenSizeUnif, 1, glm::value_ptr(rpc.invScreenSize));
+        glUniform2fv(mIScreenSizeUnif, 1, glm::value_ptr(rpc.calcInvScreenSize()));
     }
     if(mUseCameraLoc) {
-        glUniform3fv(mCameraLocUnif, 1, glm::value_ptr(rpc.camPos));
+        glUniform3fv(mCameraLocUnif, 1, glm::value_ptr(rpc.mCamera.calcLocation()));
     }
     if(mUseCameraDir) {
-        glUniform3fv(mCameraDirUnif, 1, glm::value_ptr(rpc.camDir));
+        glUniform3fv(mCameraDirUnif, 1, glm::value_ptr(rpc.mCamera.calcDirection()));
     }
 }
 

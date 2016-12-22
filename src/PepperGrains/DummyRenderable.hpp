@@ -17,6 +17,8 @@
 #ifndef PGG_DUMMYRENDERABLE_HPP
 #define PGG_DUMMYRENDERABLE_HPP
 
+#include "OpenGLStuff.hpp"
+
 #include "Renderable.hpp"
 #include "Model.hpp"
 
@@ -27,9 +29,13 @@ public:
     DummyRenderable();
     virtual ~DummyRenderable();
     
+    glm::mat4 mModelMatr;
     Model* mModel;
+    float mPeriod;
     
     virtual void render(Renderable::Pass rendPass);
+    
+    void update(float tpf);
 };
 
 }

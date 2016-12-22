@@ -110,7 +110,7 @@ void PointLightModel::SharedResources::unload() {
     glDeleteVertexArrays(1, &mVertexArrayObject);
 }
 void PointLightModel::SharedResources::render(Renderable::Pass rendPass, const glm::mat4& modelMat, const glm::vec3& lightColor, const GLfloat& lightRad, const GLfloat& lightVolRad) {
-    if(rendPass.type != Renderable::Pass::Type::LOCAL_LIGHTS) {
+    if(rendPass.mType != Renderable::Pass::Type::LOCAL_LIGHTS) {
         return;
     }
     
@@ -131,7 +131,7 @@ void PointLightModel::SharedResources::render(Renderable::Pass rendPass, const g
     glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR, GL_KEEP);
     
     glUseProgram(mMinimalShader->getHandle());
-    mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mMinimalShader->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     glUniform3fv(mStencilPositionHandle, 1, glm::value_ptr(lightPosition));
     glUniform1f(mStencilVolumeRadiusHandle, lightVolRad * lightScale);
     glBindVertexArray(mVertexArrayObject);
@@ -155,7 +155,7 @@ void PointLightModel::SharedResources::render(Renderable::Pass rendPass, const g
     
     glUseProgram(mShaderProg->getHandle());
     
-    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.viewMat, rendPass.projMat);
+    mShaderProg->bindModelViewProjMatrices(modelMat, rendPass.mCamera.getViewMatrix(), rendPass.mCamera.getProjMatrix());
     glUniform3fv(mColorHandle, 1, glm::value_ptr(lightColor));
     glUniform3fv(mPositionHandle, 1, glm::value_ptr(lightPosition));
 
@@ -163,11 +163,11 @@ void PointLightModel::SharedResources::render(Renderable::Pass rendPass, const g
     glUniform1f(mVolumeRadiusHandle, lightVolRad * lightScale);
     
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, rendPass.normalTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mNormalTexture);
     glUniform1i(mNormalHandle, 0);
 
     glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, rendPass.depthStencilTexture);
+    glBindTexture(GL_TEXTURE_2D, rendPass.mDepthStencilTexture);
     glUniform1i(mDepthHandle, 1);
 
     glBindVertexArray(mVertexArrayObject);
