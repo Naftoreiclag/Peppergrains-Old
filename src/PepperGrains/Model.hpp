@@ -18,6 +18,7 @@
 #define PGG_MODEL_HPP
 
 #include "ReferenceCounted.hpp"
+#include "Resource.hpp"
 #include "Renderable.hpp"
 
 namespace pgg {
@@ -29,6 +30,9 @@ public:
     virtual ~Model();
 
     virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
+    
+    static Model* upcast(Resource* resource);
+    static Model* getFallback();
 };
 
 }

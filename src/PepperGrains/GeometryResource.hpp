@@ -19,67 +19,22 @@
 
 #include <stdint.h>
 
-#include <OpenGLStuff.hpp>
-
+#include "OpenGLStuff.hpp"
+#include "Geometry.hpp"
 #include "Resource.hpp"
 
 namespace pgg {
 
-class GeometryResource : public Resource {
+/* A purely mathematical description of the properties of a 3D object related to rendering, including:
+ *      Surface data:
+ *          Vertex groups:
+ *              Per-vertex position, color, uv, normal, tangent, bitangent, bone weights, light receiver weights
+ *          Flex data 
+ *      Armature: Bone heiarchy, intial transform matrices
+ *      Light receiver: per-receiver position, bone weights
+ */
+class GeometryResource : public Geometry, public Resource {
 private:
-    struct Vertex {
-        // Position
-        float x;
-        float y;
-        float z;
-
-        // Color
-        float r;
-        float g;
-        float b;
-        float a;
-
-        // Texture
-        float u;
-        float v;
-
-        // Normal
-        float nx;
-        float ny;
-        float nz;
-        
-        // Tangent
-        float tx;
-        float ty;
-        float tz;
-        float btx;
-        float bty;
-        float btz;
-
-        Vertex()
-        : x(0.f)
-        , y(0.f)
-        , z(0.f)
-        , r(1.f)
-        , g(1.f)
-        , b(1.f)
-        , a(1.f)
-        , u(0.f)
-        , v(0.f)
-        , nx(1.f)
-        , ny(0.f)
-        , nz(0.f) {}
-    };
-
-    struct Triangle {
-        uint32_t a;
-        uint32_t b;
-        uint32_t c;
-    };
-
-    typedef std::vector<Vertex> VertexBuffer;
-    typedef std::vector<Triangle> TriangleBuffer;
-
     bool mUsePosition;
     bool mUseColor;
     bool mUseUV;
@@ -103,16 +58,9 @@ private:
     GLuint mIndexBufferObject;
 
     bool mLoaded;
-    
-    void loadError();
-    void unloadError();
-    bool mIsErrorResource;
 public:
     GeometryResource();
     virtual ~GeometryResource();
-    
-    static GeometryResource* upcast(Resource* resource);
-    static GeometryResource* getFallback();
 
     void load();
     void unload();
@@ -132,7 +80,6 @@ public:
     void enableNormalAttrib(GLuint normalAttrib);
     void enableTangentAttrib(GLuint tangentAttrib);
     void enableBitangentAttrib(GLuint bitangentAttrib);
-    //void enableTangentAttrib(GLuint tangentAttrib, GLuint bitangentAttrib);
 
     const GLuint& getVertexBufferObjectHandle() const;
     const GLuint& getIndexBufferObjectHandle() const;

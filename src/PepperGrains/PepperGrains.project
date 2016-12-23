@@ -65,50 +65,13 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <VirtualDirectory Name="Resources">
-      <File Name="MiscResource.cpp"/>
-      <File Name="MiscResource.hpp"/>
-      <File Name="Resource.cpp"/>
-      <File Name="Resource.hpp"/>
-      <File Name="ResourceManager.cpp"/>
-      <File Name="ResourceManager.hpp"/>
-      <File Name="StringResource.cpp"/>
-      <File Name="StringResource.hpp"/>
-      <VirtualDirectory Name="Shaders"/>
-      <File Name="ScriptResource.cpp"/>
-      <File Name="ScriptResource.hpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="Rendering">
-      <File Name="ManualModel.hpp"/>
-      <File Name="ManualModel.cpp"/>
+    <VirtualDirectory Name="render">
       <File Name="Model.hpp"/>
       <File Name="Model.cpp"/>
-      <File Name="SceneNode.cpp"/>
-      <File Name="SceneNode.hpp"/>
-      <File Name="TextModel.hpp"/>
-      <File Name="TextModel.cpp"/>
       <File Name="TerrainModel.hpp"/>
       <File Name="TerrainModel.cpp"/>
-      <File Name="InstancedModel.hpp"/>
-      <File Name="InstancedModel.cpp"/>
-      <File Name="GrassModel.hpp"/>
-      <File Name="GrassModel.cpp"/>
-      <VirtualDirectory Name="Light">
-        <File Name="PointLightModel.cpp"/>
-        <File Name="PointLightModel.hpp"/>
-        <File Name="DirectionalLightModel.hpp"/>
-        <File Name="DirectionalLightModel.cpp"/>
-        <File Name="SunLightModel.hpp"/>
-        <File Name="SunLightModel.cpp"/>
-        <File Name="SSAOModel.cpp"/>
-        <File Name="SSAOModel.hpp"/>
-      </VirtualDirectory>
-      <File Name="TessModel.hpp"/>
-      <File Name="TessModel.cpp"/>
       <File Name="ModelResource.cpp"/>
       <File Name="ModelResource.hpp"/>
-      <File Name="DeferredRenderer.cpp"/>
-      <File Name="DeferredRenderer.hpp"/>
       <File Name="FontResource.cpp"/>
       <File Name="FontResource.hpp"/>
       <File Name="GeometryResource.cpp"/>
@@ -123,8 +86,6 @@
       <File Name="ShaderProgramResource.hpp"/>
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
-      <File Name="ForwardRenderer.cpp"/>
-      <File Name="ForwardRenderer.hpp"/>
       <File Name="Renderable.hpp"/>
       <File Name="Renderable.cpp"/>
       <File Name="ShoRenderer.cpp"/>
@@ -133,18 +94,36 @@
       <File Name="DummyRenderable.cpp"/>
       <File Name="Camera.hpp"/>
       <File Name="Camera.cpp"/>
+      <File Name="Geometry.hpp"/>
+      <File Name="Geometry.cpp"/>
+      <File Name="Material.hpp"/>
+      <File Name="Material.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
+      <File Name="HardValueStuff.hpp"/>
+      <File Name="OpenGLStuff.hpp"/>
+      <File Name="StreamStuff.cpp"/>
+      <File Name="StreamStuff.hpp"/>
+      <File Name="NALEvents.cpp"/>
+      <File Name="NALEvents.hpp"/>
+      <File Name="NALInputs.cpp"/>
+      <File Name="NALInputs.hpp"/>
+      <File Name="MiscResource.cpp"/>
+      <File Name="MiscResource.hpp"/>
+      <File Name="Resource.cpp"/>
+      <File Name="Resource.hpp"/>
+      <File Name="ResourceManager.cpp"/>
+      <File Name="ResourceManager.hpp"/>
+      <File Name="ScriptResource.cpp"/>
+      <File Name="ScriptResource.hpp"/>
+      <File Name="StringResource.cpp"/>
+      <File Name="StringResource.hpp"/>
+      <File Name="ResourcesUtil.cpp"/>
+      <File Name="ResourcesUtil.hpp"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="WorkInProgress">
-      <File Name="TerrainResolver.hpp"/>
-      <File Name="TerrainResolver.cpp"/>
-      <File Name="CubeRotationsSolver.hpp"/>
-      <File Name="CubeRotationsSolver.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="Entity System">
+    <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">
         <File Name="NRES.hpp"/>
         <File Name="nresComponent.cpp"/>
@@ -184,33 +163,9 @@
       <VirtualDirectory Name="systems">
         <File Name="RigidBodyESys.cpp"/>
         <File Name="RigidBodyESys.hpp"/>
-        <File Name="SceneNodeESys.cpp"/>
-        <File Name="SceneNodeESys.hpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
-    <VirtualDirectory Name="Abstraction">
-      <File Name="NALInputs.hpp"/>
-      <File Name="NALEvents.cpp"/>
-      <File Name="NALEvents.hpp"/>
-      <File Name="Quate.cpp"/>
-      <File Name="Quate.hpp"/>
-      <File Name="Vec2.cpp"/>
-      <File Name="Vec2.hpp"/>
-      <File Name="Vec3.cpp"/>
-      <File Name="Vec3.hpp"/>
-      <File Name="NALInputs.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="util">
-      <File Name="MathUtil.cpp"/>
-      <File Name="MathUtil.hpp"/>
-      <File Name="HardValueStuff.hpp"/>
-      <File Name="OpenGLStuff.hpp"/>
-      <File Name="StreamStuff.cpp"/>
-      <File Name="StreamStuff.hpp"/>
-      <File Name="ResourcesUtil.hpp"/>
-      <File Name="ResourcesUtil.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="sound">
+    <VirtualDirectory Name="audio">
       <File Name="SoundEndpoint.hpp"/>
       <File Name="SoundEndpoint.cpp"/>
       <VirtualDirectory Name="soundgraph">
@@ -254,17 +209,15 @@
     <File Name="Addons.cpp"/>
     <File Name="Scripts.hpp"/>
     <File Name="Scripts.cpp"/>
-    <VirtualDirectory Name="old">
-      <File Name="DesignerGameLayer.cpp"/>
-      <File Name="DesignerGameLayer.hpp"/>
-      <File Name="DesignerParts.cpp"/>
-      <File Name="DesignerParts.hpp"/>
-      <File Name="AxesModel.cpp"/>
-      <File Name="AxesModel.hpp"/>
-      <File Name="DebugInfiniteCheckerboardModel.cpp"/>
-      <File Name="DebugInfiniteCheckerboardModel.hpp"/>
-      <File Name="SmacRenderer.cpp"/>
-      <File Name="SmacRenderer.hpp"/>
+    <VirtualDirectory Name="math">
+      <File Name="Quate.cpp"/>
+      <File Name="Quate.hpp"/>
+      <File Name="Vec2.cpp"/>
+      <File Name="Vec2.hpp"/>
+      <File Name="Vec3.cpp"/>
+      <File Name="Vec3.hpp"/>
+      <File Name="MathUtil.cpp"/>
+      <File Name="MathUtil.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">

@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,26 +14,28 @@
    limitations under the License.
 */
 
-#include "Model.hpp"
+#include "Material.hpp"
 
 #include "Logger.hpp"
-#include "ModelResource.hpp"
+#include "MaterialResource.hpp"
 
 namespace pgg {
-Model::Model() { }
-Model::~Model() { }
 
-Model* Model::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::MODEL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
+Material::Material() { }
+Material::~Material() { }
+
+Material* Material::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
         return getFallback();
     } else {
-        return static_cast<ModelResource*>(resource);
+        return static_cast<MaterialResource*>(resource);
     }
 }
 
-Model* Model::getFallback() {
+Material* Material::getFallback() {
     return nullptr;
 }
 
 }
+

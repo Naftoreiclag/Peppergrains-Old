@@ -28,187 +28,23 @@ namespace pgg {
 
 GeometryResource::GeometryResource()
 : mLoaded(false)
-, mIsErrorResource(false)
 , Resource(Resource::Type::GEOMETRY) {
 }
 
 GeometryResource::~GeometryResource() {
 }
 
-GeometryResource* GeometryResource::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
-        return getFallback();
-    } else {
-        return static_cast<GeometryResource*>(resource);
-    }
-}
-GeometryResource* GeometryResource::getFallback() {
-    return nullptr;
-}
-
-void GeometryResource::loadError() {
-    assert(!mLoaded && "Attempted to load geometry that is already loaded");
-    
-    std::cout << "Error data" << std::endl;
-    
-    mUsePosition = true;
-    mUseColor = true;
-    mUseUV = true;
-    mUseNormal = true;
-    
-    mNumVertices = 8;
-    mNumTriangles = 12;
-    
-    // pppcccttnnn
-    mPositionOff = 0;
-    mColorOff = 3;
-    mUVOff = 6;
-    mNormalOff = 8;
-    mVertexSize = 11;
-    
-    GLfloat vertices[mNumVertices * mVertexSize];
-    GLuint indices[mNumTriangles * 3];
-    
-    // Generate cube
-    {
-        /*                ^
-         *                y
-         * 
-         *                2---------3
-         *               /|        /|
-         *              6---------7 |
-         *              | |       | | 
-         *              | 0-------|-1   x >
-         *              |/        |/
-         *              4---------5
-         *             
-         *            z
-         *           L
-         * 
-         *  X+ face = left
-         *  X- face = right
-         *  Y+ face = top
-         *  Y- face = bottom
-         *  Z+ face = front
-         *  Z- face = back
-         * 
-         */
-        
-        // Indices
-        {
-            uint32_t io = 0;
-            
-            indices[io ++] = 0;
-            indices[io ++] = 2;
-            indices[io ++] = 1;
-            indices[io ++] = 2; // Back
-            indices[io ++] = 3;
-            indices[io ++] = 1;
-            
-            indices[io ++] = 4;
-            indices[io ++] = 5;
-            indices[io ++] = 6;
-            indices[io ++] = 5; // Font
-            indices[io ++] = 7;
-            indices[io ++] = 6;
-            
-            indices[io ++] = 6;
-            indices[io ++] = 7;
-            indices[io ++] = 2;
-            indices[io ++] = 7; // Top
-            indices[io ++] = 3;
-            indices[io ++] = 2;
-             
-            indices[io ++] = 1;
-            indices[io ++] = 5;
-            indices[io ++] = 0;
-            indices[io ++] = 5; // Bottom
-            indices[io ++] = 4;
-            indices[io ++] = 0;
-            
-            indices[io ++] = 4;
-            indices[io ++] = 6;
-            indices[io ++] = 0;
-            indices[io ++] = 6; // Right
-            indices[io ++] = 2;
-            indices[io ++] = 0;
-            
-            indices[io ++] = 5;
-            indices[io ++] = 1;
-            indices[io ++] = 7;
-            indices[io ++] = 1; // Left
-            indices[io ++] = 3;
-            indices[io ++] = 7;
-        }
-        
-        // Vertices
-        {
-            float size = 1.f;
-            uint32_t vert = 0;
-            float dylan = 0.57735f; // 1 / sqrt(3)
-            for(uint32_t z = 0; z < 2; ++ z) {
-                for(uint32_t y = 0; y < 2; ++ y) {
-                    for(uint32_t x = 0; x < 2; ++ x) {
-                        // Position
-                        vertices[vert ++] = x == 0 ? -size : size;
-                        vertices[vert ++] = y == 0 ? -size : size;
-                        vertices[vert ++] = z == 0 ? -size : size;
-                        
-                        // Color
-                        vertices[vert ++] = x == 0 ? -size : size;
-                        vertices[vert ++] = y == 0 ? -size : size;
-                        vertices[vert ++] = z == 0 ? -size : size;
-                        
-                        // Texture
-                        vertices[vert ++] = x;
-                        vertices[vert ++] = y;
-                        
-                        // Normal
-                        vertices[vert ++] = x == 0 ? -dylan : dylan;
-                        vertices[vert ++] = y == 0 ? -dylan : dylan;
-                        vertices[vert ++] = z == 0 ? -dylan : dylan;
-                    }
-                }
-            }
-            
-            std::cout << vert << std::endl;
-        }
-    }
-
-    glGenBuffers(1, &mVertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &mIndexBufferObject);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    
-    mLoaded = true;
-    mIsErrorResource = true;
-}
-void GeometryResource::unloadError() {
-    assert(mLoaded && "Attempted to unload geometry before loading it");
-    
-    glDeleteBuffers(1, &mIndexBufferObject);
-    glDeleteBuffers(1, &mVertexBufferObject);
-    
-    mLoaded = false;
-    mIsErrorResource = false;
-}
 void GeometryResource::load() {
     assert(!mLoaded && "Attempted to load geometry that is already loaded");
 
     if(this->isFallback()) {
-        loadError();
+        //loadError();
         return;
     }
 
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
     if(input.fail()) {
-        loadError();
+        //loadError();
         return;
     }
 
@@ -290,10 +126,12 @@ void GeometryResource::load() {
 void GeometryResource::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
     
+    /*
     if(mIsErrorResource) {
         unloadError();
         return;
     }
+    */
     
     glDeleteBuffers(1, &mIndexBufferObject);
     glDeleteBuffers(1, &mVertexBufferObject);

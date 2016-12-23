@@ -235,12 +235,10 @@ void ShoRenderer::renderFrame() {
         glDrawBuffers(1, colorAttachments);
         glClearColor(0.f, 1.f, 1.f, 1.f);
         glDepthMask(GL_TRUE);
-        glDisable(GL_DEPTH_TEST);
-        //glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_STENCIL_TEST);
-        glDisable(GL_CULL_FACE);
-        //glEnable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

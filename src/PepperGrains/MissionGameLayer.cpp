@@ -22,8 +22,7 @@
 #include "ModelResource.hpp"
 #include "Resources.hpp"
 
-namespace pgg
-{
+namespace pgg {
 
 MissionGameLayer::MissionGameLayer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
@@ -41,7 +40,7 @@ void MissionGameLayer::onBegin() {
     mRootNode = new DummyRenderable();
     mRenderer->mRenderable = mRootNode;
     
-    mRootNode->mModel = ModelResource::upcast(Resources::find("WrinkledPlane.model"));
+    mRootNode->mModel = ModelResource::upcast(Resources::find("JellyCube.model"));
     mRootNode->mModel->grab();
     
     

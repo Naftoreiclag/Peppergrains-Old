@@ -91,19 +91,6 @@ MaterialResource::MaterialResource()
 MaterialResource::~MaterialResource() {
 }
 
-MaterialResource* MaterialResource::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
-        return getFallback();
-    } else {
-        return static_cast<MaterialResource*>(resource);
-    }
-}
-
-MaterialResource* MaterialResource::getFallback() {
-    return nullptr;
-}
-
 void MaterialResource::grabNeededHLVShaders() {
     if(mTechnique.deferredGeometryProg) {
         mTechnique.deferredGeometryProg->drop();
@@ -231,7 +218,7 @@ void MaterialResource::unload() {
     mIsErrorResource = false;
 }
 
-void MaterialResource::enableVertexAttributesFor(GeometryResource* geometry) const {
+void MaterialResource::enableVertexAttributesFor(Geometry* geometry) const {
     if(mTechnique.deferredGeometryProg->needsPosAttrib()) {
         geometry->enablePositionAttrib(mTechnique.deferredGeometryProg->getPosAttrib());
     }

@@ -17,8 +17,8 @@
 #ifndef PGG_MODELRESOURCE_HPP
 #define PGG_MODELRESOURCE_HPP
 
-#include "GeometryResource.hpp"
-#include "MaterialResource.hpp"
+#include "Geometry.hpp"
+#include "Material.hpp"
 #include "Model.hpp"
 #include "Resource.hpp"
 
@@ -28,8 +28,8 @@ class ModelResource : public Resource, public Model {
 private:
     bool mLoaded;
 
-    GeometryResource* mGeometry;
-    MaterialResource* mMaterial;
+    Geometry* mGeometry;
+    Material* mMaterial;
     GLuint mVertexArrayObject;
     
     void loadError();
@@ -38,9 +38,6 @@ private:
 public:
     ModelResource();
     virtual ~ModelResource();
-    
-    static ModelResource* upcast(Resource* resource);
-    static ModelResource* getFallback();
 public:
     void load();
     void unload();

@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,26 +14,35 @@
    limitations under the License.
 */
 
-#include "Model.hpp"
+#include "Geometry.hpp"
 
 #include "Logger.hpp"
-#include "ModelResource.hpp"
+#include "GeometryResource.hpp"
 
-namespace pgg {
-Model::Model() { }
-Model::~Model() { }
+namespace pgg
+{
 
-Model* Model::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::MODEL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
+Geometry::Geometry()
+{
+}
+
+Geometry::~Geometry()
+{
+}
+
+Geometry* Geometry::upcast(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
         return getFallback();
     } else {
-        return static_cast<ModelResource*>(resource);
+        return static_cast<GeometryResource*>(resource);
     }
 }
 
-Model* Model::getFallback() {
+Geometry* Geometry::getFallback() {
     return nullptr;
 }
 
+
 }
+

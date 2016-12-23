@@ -25,12 +25,11 @@
 #include "ShaderProgramResource.hpp"
 #include "TextureResource.hpp"
 #include "Model.hpp"
-
-#include "GeometryResource.hpp"
+#include "Material.hpp"
 
 namespace pgg {
 
-class MaterialResource : public Resource {
+class MaterialResource : public Material, public Resource {
 public:
 
     // TODO: make this a primitive-ish type (replace pointers in Technique with actual objects)
@@ -100,18 +99,14 @@ private:
 public:
     MaterialResource();
     virtual ~MaterialResource();
-    
-    static MaterialResource* upcast(Resource* resource);
-    static MaterialResource* getFallback();
 
 public:
     void load();
     void unload();
     
-    void enableVertexAttributesFor(GeometryResource* geometry) const;
+    void enableVertexAttributesFor(Geometry* geometry) const;
     bool isVisible(Renderable::Pass rpc) const;
     void use(Renderable::Pass rpc, const glm::mat4& mMat) const;
-    
     
     Technique::Type getTechniqueType() const;
 

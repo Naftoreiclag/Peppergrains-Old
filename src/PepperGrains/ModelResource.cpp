@@ -35,83 +35,16 @@ ModelResource::ModelResource()
 
 ModelResource::~ModelResource() {
 }
-ModelResource* ModelResource::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::MODEL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
-        return getFallback();
-    } else {
-        return static_cast<ModelResource*>(resource);
-    }
-}
-ModelResource* ModelResource::getFallback() {
-    return nullptr;
-}
-
-void ModelResource::loadError() {
-    assert(!mLoaded && "Attempted to load model that has already been loaded");
-    
-    mGeometry = GeometryResource::getFallback();
-    mMaterial = MaterialResource::getFallback();
-    
-    mGeometry->grab();
-    mMaterial->grab();
-    
-    // Create a new vertex array object
-    // This will be needed to quickly bind/unbind shader attributes and geometry buffers
-    glGenVertexArrays(1, &mVertexArrayObject);
-    glBindVertexArray(mVertexArrayObject);
-
-    // Bind geometry buffers
-    mGeometry->bindBuffers();
-
-    // Tell OpenGL which attributes to read, how to read them, and where to send them
-    const ShaderProgramResource* shaderProg = mMaterial->getShaderProg();
-    if(shaderProg->needsPosAttrib()) {
-        mGeometry->enablePositionAttrib(shaderProg->getPosAttrib());
-    }
-    if(shaderProg->needsColorAttrib()) {
-        mGeometry->enableColorAttrib(shaderProg->getColorAttrib());
-    }
-    if(shaderProg->needsUVAttrib()) {
-        mGeometry->enableUVAttrib(shaderProg->getUVAttrib());
-    }
-    if(shaderProg->needsNormalAttrib()) {
-        mGeometry->enableNormalAttrib(shaderProg->getNormalAttrib());
-    }
-    if(shaderProg->needsTangentAttrib()) {
-        mGeometry->enableTangentAttrib(shaderProg->getTangentAttrib());
-    }
-    if(shaderProg->needsBitangentAttrib()) {
-        mGeometry->enableBitangentAttrib(shaderProg->getBitangentAttrib());
-    }
-
-    // Finished initalizing vertex array object, so unbind
-    glBindVertexArray(0);
-    
-    mLoaded = true;
-    mIsErrorResource = true;
-}
-
-void ModelResource::unloadError() {
-    assert(mLoaded && "Attempted to unload model before loading it");
-    
-    mGeometry->drop();
-    mMaterial->drop();
-
-    // Tell OpenGL to free up the memory allocated during loading
-    glDeleteVertexArrays(1, &mVertexArrayObject);
-    
-    mLoaded = false;
-    mIsErrorResource = false;
-}
 
 void ModelResource::load() {
     assert(!mLoaded && "Attempted to load model that has already been loaded");
     
+    /*
     if(this->isFallback()) {
         loadError();
         return;
     }
+    */
 
     Json::Value mdlData;
     {
@@ -125,8 +58,8 @@ void ModelResource::load() {
     for(Json::Value::const_iterator iter = solidsData.begin(); iter != solidsData.end(); ++ iter) {
         const Json::Value& solidData = *iter;
 
-        mGeometry = GeometryResource::upcast(Resources::find(solidData["geometry"].asString()));
-        mMaterial = MaterialResource::upcast(Resources::find(solidData["material"].asString()));
+        mGeometry = Geometry::upcast(Resources::find(solidData["geometry"].asString()));
+        mMaterial = Material::upcast(Resources::find(solidData["material"].asString()));
 
         break;
     }
@@ -154,10 +87,12 @@ void ModelResource::load() {
 void ModelResource::unload() {
     assert(mLoaded && "Attempted to unload model before loading it");
     
+    /*
     if(mIsErrorResource) {
         unloadError();
         return;
     }
+    */
     
     mGeometry->drop();
     mMaterial->drop();
@@ -174,22 +109,6 @@ void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat)
     if(!mMaterial->isVisible(rendPass)) {
         return;
     }
-    
-    // Debug visibility check
-    /*
-    glm::vec4 ndc = rendPass.projMat * rendPass.viewMat * modelMat * glm::vec4(0.f, 0.f, 0.f, 1.f);
-    ndc /= ndc.w;
-    if(ndc.x < -1 || ndc.x > 1 || ndc.y < -1 || ndc.y > -1 || ndc.z < -1 || ndc.z > -1) {
-        return;
-    }
-    
-    if(rendPass.availableFustrumAABB) {
-        glm::vec3 center = glm::vec3(modelMat * glm::vec4(0.f, 0.f, 0.f, 1.f));
-        if(center.x > rendPass.maxBB.x || center.y > rendPass.maxBB.y || center.z > rendPass.maxBB.z || center.x < rendPass.minBB.x || center.y < rendPass.minBB.y || center.z < rendPass.minBB.z) {
-            return;
-        }
-    }
-    */
     
     mMaterial->use(rendPass, modelMat);
 
