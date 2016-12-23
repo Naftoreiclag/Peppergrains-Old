@@ -28,8 +28,14 @@ Image::Image() { }
 Image::~Image() { }
 
 Image* Image::getFallback() {
-    static FallbackImage fallbackImage;
-    return &fallbackImage;
+    Resource* lookup = Resources::find("Error.image");
+    
+    if(lookup && lookup->mResourceType == Resource::Type::IMAGE) {
+        return static_cast<ImageResource*>(lookup);
+    } else {
+        static FallbackImage fallbackImage;
+        return &fallbackImage;
+    }
 }
 
 FallbackImage::FallbackImage() { }

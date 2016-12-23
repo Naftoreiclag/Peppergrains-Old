@@ -51,13 +51,13 @@ namespace Resources {
         
         Resources::populateResourceMap(sResources, resourcesData, dataPackDir);
         
-        std::string criticalResources[] = {
+        std::string importantResources[] = {
             ":Error.image",
             ":Error.texture"
         };
-        for(std::string resName : criticalResources) {
+        for(std::string resName : importantResources) {
             if(!Resources::find(resName)) {
-                Logger::log(Logger::SEVERE) << "Missing critical resource: [" << resName << "]!" << std::endl;
+                Logger::log(Logger::WARN) << "Missing resource: [" << resName << "]!" << std::endl;
             }
         }
     }
