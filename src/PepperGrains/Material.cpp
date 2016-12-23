@@ -17,21 +17,11 @@
 #include "Material.hpp"
 
 #include "Logger.hpp"
-#include "MaterialResource.hpp"
 
 namespace pgg {
 
 Material::Material() { }
 Material::~Material() { }
-
-Material* Material::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
-        return getFallback();
-    } else {
-        return static_cast<MaterialResource*>(resource);
-    }
-}
 
 Material* Material::getFallback() {
     return nullptr;

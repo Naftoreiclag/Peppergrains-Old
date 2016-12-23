@@ -40,7 +40,7 @@ void MissionGameLayer::onBegin() {
     mRootNode = new DummyRenderable();
     mRenderer->mRenderable = mRootNode;
     
-    mRootNode->mModel = ModelResource::upcast(Resources::find("JellyCube.model"));
+    mRootNode->mModel = ModelResource::gallop(Resources::find("JellyCube.model"));
     mRootNode->mModel->grab();
     
     

@@ -42,7 +42,7 @@ public:
     ShaderResource(Type type);
     virtual ~ShaderResource();
     
-    static ShaderResource* upcast(Resource* resource);
+    static ShaderResource* gallop(Resource* resource);
     
     void load();
     void unload();

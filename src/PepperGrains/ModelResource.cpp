@@ -25,6 +25,9 @@
 #include "Logger.hpp"
 #include "Resources.hpp"
 
+#include "MaterialResource.hpp"
+#include "GeometryResource.hpp"
+
 namespace pgg {
 
 ModelResource::ModelResource()
@@ -36,15 +39,17 @@ ModelResource::ModelResource()
 ModelResource::~ModelResource() {
 }
 
+Model* ModelResource::gallop(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::MODEL) {
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<ModelResource*>(resource);
+    }
+}
+
 void ModelResource::load() {
     assert(!mLoaded && "Attempted to load model that has already been loaded");
-    
-    /*
-    if(this->isFallback()) {
-        loadError();
-        return;
-    }
-    */
 
     Json::Value mdlData;
     {
@@ -58,8 +63,8 @@ void ModelResource::load() {
     for(Json::Value::const_iterator iter = solidsData.begin(); iter != solidsData.end(); ++ iter) {
         const Json::Value& solidData = *iter;
 
-        mGeometry = Geometry::upcast(Resources::find(solidData["geometry"].asString()));
-        mMaterial = Material::upcast(Resources::find(solidData["material"].asString()));
+        mGeometry = GeometryResource::gallop(Resources::find(solidData["geometry"].asString()));
+        mMaterial = MaterialResource::gallop(Resources::find(solidData["material"].asString()));
 
         break;
     }

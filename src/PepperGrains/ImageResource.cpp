@@ -36,7 +36,7 @@ ImageResource::ImageResource()
 ImageResource::~ImageResource() {
 }
 
-ImageResource* ImageResource::upcast(Resource* resource) {
+ImageResource* ImageResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::IMAGE) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to image!" << std::endl;
         return getFallback();

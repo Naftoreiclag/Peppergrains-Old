@@ -34,6 +34,15 @@ GeometryResource::GeometryResource()
 GeometryResource::~GeometryResource() {
 }
 
+Geometry* GeometryResource::gallop(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<GeometryResource*>(resource);
+    }
+}
+
 void GeometryResource::load() {
     assert(!mLoaded && "Attempted to load geometry that is already loaded");
 

@@ -99,6 +99,8 @@ private:
 public:
     MaterialResource();
     virtual ~MaterialResource();
+    
+    static Material* gallop(Resource* resource);
 
 public:
     void load();

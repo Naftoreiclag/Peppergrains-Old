@@ -22,6 +22,7 @@
 #include "Camera.hpp"
 
 namespace pgg {
+
 class Renderable {
 public:
     // Might someday have different configs for different renderables

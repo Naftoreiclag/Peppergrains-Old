@@ -61,6 +61,8 @@ private:
 public:
     GeometryResource();
     virtual ~GeometryResource();
+    
+    static Geometry* gallop(Resource* resource);
 
     void load();
     void unload();

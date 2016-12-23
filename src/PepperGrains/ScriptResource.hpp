@@ -32,7 +32,7 @@ private:
 public:
     ScriptResource();
     ~ScriptResource();
-    static ScriptResource* upcast(Resource* resource);
+    static ScriptResource* gallop(Resource* resource);
     
     void setEnv(Scripts::RegRef env); // This can be called before or after loading the script (before using r->grab())
     

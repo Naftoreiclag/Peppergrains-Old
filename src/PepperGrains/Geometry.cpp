@@ -19,25 +19,10 @@
 #include "Logger.hpp"
 #include "GeometryResource.hpp"
 
-namespace pgg
-{
+namespace pgg {
 
-Geometry::Geometry()
-{
-}
-
-Geometry::~Geometry()
-{
-}
-
-Geometry* Geometry::upcast(Resource* resource) {
-    if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
-        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
-        return getFallback();
-    } else {
-        return static_cast<GeometryResource*>(resource);
-    }
-}
+Geometry::Geometry() { } 
+Geometry::~Geometry() { }
 
 Geometry* Geometry::getFallback() {
     return nullptr;

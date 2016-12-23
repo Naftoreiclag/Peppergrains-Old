@@ -91,7 +91,7 @@ ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
     
     // GBuffer shader
     {
-        mPostProcessShaderProg = ShaderProgramResource::upcast(Resources::find("smac.Tonemapper.shaderProgram"));
+        mPostProcessShaderProg = ShaderProgramResource::gallop(Resources::find("smac.Tonemapper.shaderProgram"));
         mPostProcessShaderProg->grab();
         const std::vector<ShaderProgramResource::Control>& sampler2DControls = mPostProcessShaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {

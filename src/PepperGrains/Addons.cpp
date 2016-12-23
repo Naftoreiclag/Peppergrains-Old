@@ -387,7 +387,7 @@ namespace Addons {
                     std::vector<ScriptResource*> runThese;
                     std::vector<std::string> missingScripts;
                     for(auto scrNameIter = addon->mBootstap.begin(); scrNameIter != addon->mBootstap.end(); ++ scrNameIter) {
-                        ScriptResource* sres = ScriptResource::upcast(Resources::find(*scrNameIter, addon->mAddress));
+                        ScriptResource* sres = ScriptResource::gallop(Resources::find(*scrNameIter, addon->mAddress));
                         if(!sres) {
                             missingScripts.push_back(*scrNameIter);
                         } else {
@@ -418,7 +418,7 @@ namespace Addons {
                         Resource* res = resIter->second;
                         
                         if(res->mResourceType == Resource::Type::SCRIPT) {
-                            ScriptResource* sres = ScriptResource::upcast(res);
+                            ScriptResource* sres = ScriptResource::gallop(res);
                             sres->setEnv(addonEnv); // Yes, we can do this before grabbing it
                         }
                     }

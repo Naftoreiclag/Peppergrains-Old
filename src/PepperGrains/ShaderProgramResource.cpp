@@ -37,7 +37,7 @@ ShaderProgramResource::ShaderProgramResource()
 ShaderProgramResource::~ShaderProgramResource() {
 }
 
-ShaderProgramResource* ShaderProgramResource::upcast(Resource* resource) {
+ShaderProgramResource* ShaderProgramResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SHADER_PROGRAM) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to shader program!" << std::endl;
         return getFallback();
@@ -222,7 +222,7 @@ void ShaderProgramResource::load() {
     for(Json::Value::const_iterator iter = links.begin(); iter != links.end(); ++ iter) {
         const Json::Value& value = *iter;
         std::string name = value.asString();
-        ShaderResource* shader = ShaderResource::upcast(Resources::find(name));
+        ShaderResource* shader = ShaderResource::gallop(Resources::find(name));
         mLinkedShaders.push_back(shader);
         shader->grab();
     }

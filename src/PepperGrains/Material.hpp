@@ -31,7 +31,6 @@ public:
     Material();
     ~Material();
     
-    static Material* upcast(Resource* resource);
     static Material* getFallback();
     
     virtual void enableVertexAttributesFor(Geometry* geometry) const = 0;

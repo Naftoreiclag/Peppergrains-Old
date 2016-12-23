@@ -28,7 +28,6 @@ public:
     Geometry();
     ~Geometry();
     
-    static Geometry* upcast(Resource* resource);
     static Geometry* getFallback();
 
     virtual void drawElements() const = 0;

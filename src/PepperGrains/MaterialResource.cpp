@@ -40,7 +40,7 @@ MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
             if(typeData.asString() == "texture") {
                 type = Type::TEXTURE;
                 
-                textureValue = TextureResource::upcast(Resources::find(inputData["value"].asString()));
+                textureValue = TextureResource::gallop(Resources::find(inputData["value"].asString()));
                 textureValue->grab();
             } else if(typeData.asString() == "constant") {
                 
@@ -91,6 +91,15 @@ MaterialResource::MaterialResource()
 MaterialResource::~MaterialResource() {
 }
 
+Material* MaterialResource::gallop(Resource* resource) {
+    if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
+        Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
+        return getFallback();
+    } else {
+        return static_cast<MaterialResource*>(resource);
+    }
+}
+
 void MaterialResource::grabNeededHLVShaders() {
     if(mTechnique.deferredGeometryProg) {
         mTechnique.deferredGeometryProg->drop();
@@ -103,18 +112,18 @@ void MaterialResource::grabNeededHLVShaders() {
     
     if(mTechnique.type == Technique::Type::HIGH_LEVEL_VALUES) {
         if(mTechnique.normals->specified()) {
-            mTechnique.deferredGeometryProg = ShaderProgramResource::upcast(Resources::find("HLVSDiffuseTexNormalTex.shaderProgram"));
+            mTechnique.deferredGeometryProg = ShaderProgramResource::gallop(Resources::find("HLVSDiffuseTexNormalTex.shaderProgram"));
             mTechnique.deferredGeometryProg->grab();
         } else {
-            mTechnique.deferredGeometryProg = ShaderProgramResource::upcast(Resources::find("HLVSDiffuseTex.shaderProgram"));
+            mTechnique.deferredGeometryProg = ShaderProgramResource::gallop(Resources::find("HLVSDiffuseTex.shaderProgram"));
             mTechnique.deferredGeometryProg->grab();
         }
         
-        mTechnique.shoForwardProg = ShaderProgramResource::upcast(Resources::find("HLVSShoForwardDiffuseTex.shaderProgram"));
+        mTechnique.shoForwardProg = ShaderProgramResource::gallop(Resources::find("HLVSShoForwardDiffuseTex.shaderProgram"));
         mTechnique.shoForwardProg->grab();
         
         if(mTechnique.ssipgSpots->specified()) {
-            mTechnique.ssipgPassProg = ShaderProgramResource::upcast(Resources::find("SSIPG.shaderProgram"));
+            mTechnique.ssipgPassProg = ShaderProgramResource::gallop(Resources::find("SSIPG.shaderProgram"));
             mTechnique.ssipgPassProg->grab();
         }
     }

@@ -34,7 +34,7 @@ ShaderResource::ShaderResource(ShaderResource::Type type)
 ShaderResource::~ShaderResource() {
 }
 
-ShaderResource* ShaderResource::upcast(Resource* resource) {
+ShaderResource* ShaderResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SHADER) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to shader!" << std::endl;
         return nullptr;

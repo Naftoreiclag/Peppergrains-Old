@@ -36,7 +36,7 @@ TextureResource::TextureResource()
 TextureResource::~TextureResource() {
 }
 
-TextureResource* TextureResource::upcast(Resource* resource) {
+TextureResource* TextureResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::TEXTURE) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to texture!" << std::endl;
         return getFallback();
@@ -136,7 +136,7 @@ void TextureResource::load() {
         loader.close();
     }
     
-    mImage = ImageResource::upcast(Resources::find(textureData["image"].asString()));
+    mImage = ImageResource::gallop(Resources::find(textureData["image"].asString()));
     mImage->grab();
 
     glGenTextures(1, &mHandle);
