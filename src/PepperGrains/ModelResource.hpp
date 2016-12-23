@@ -42,7 +42,8 @@ public:
     void load();
     void unload();
     
-    // Attempts to convert a resource into a model. On failure, return a fallback model. Type not guaranteed to be ModelResource
+    // Attempts to convert a resource into a model. On failure, return a fallback model.
+    // Return type not guaranteed to be ModelResource.
     static Model* gallop(Resource* resource);
 
     // Render this model with the provided matrices

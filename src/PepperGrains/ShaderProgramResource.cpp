@@ -30,7 +30,6 @@ namespace pgg {
 
 ShaderProgramResource::ShaderProgramResource()
 : mLoaded(false)
-, mIsErrorResource(false)
 , Resource(Resource::Type::SHADER_PROGRAM) {
 }
 
@@ -49,6 +48,7 @@ ShaderProgramResource* ShaderProgramResource::getFallback() {
     return nullptr;
 }
 
+/*
 void ShaderProgramResource::loadError() {
     assert(!mLoaded && "Attempted to load shader program that has already been loaded");
     
@@ -200,14 +200,10 @@ void ShaderProgramResource::unloadError() {
     mIsErrorResource = false;
     
 }
+*/
 
 void ShaderProgramResource::load() {
     assert(!mLoaded && "Attempted to load shader program that has already been loaded");
-
-    if(this->isFallback()) {
-        loadError();
-        return;
-    }
 
     // Load json data
     Json::Value progData;
@@ -670,10 +666,12 @@ void ShaderProgramResource::load() {
 void ShaderProgramResource::unload() {
     assert(mLoaded && "Attempted to unload shader program before loading it");
     
+    /*
     if(mIsErrorResource) {
         unloadError();
         return;
     }
+    */
     
     // Free OpenGL shader program
     glDeleteProgram(mShaderProg);

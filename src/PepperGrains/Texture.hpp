@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,41 +14,44 @@
    limitations under the License.
 */
 
-#ifndef PGG_TEXTURERESOURCE_HPP
-#define PGG_TEXTURERESOURCE_HPP
+#ifndef PGG_TEXTURE_HPP
+#define PGG_TEXTURE_HPP
+
+#include <stdint.h>
 
 #include "OpenGLStuff.hpp"
-#include "Resource.hpp"
+#include "ReferenceCounted.hpp"
 #include "Image.hpp"
-#include "Texture.hpp"
 
 namespace pgg {
 
-class TextureResource : public Texture, public Resource {
-private:
-    GLuint mHandle;
-    bool mLoaded;
-
-    // (Not actually required to keep the image loaded)
-    Image* mImage;
-    
-    void loadError();
+// Virtual inheritance to avoid diamond conflict with TextureResource
+class Texture : virtual public ReferenceCounted {
 public:
-    TextureResource();
-    ~TextureResource();
+    Texture();
+    virtual ~Texture();
     
-    static Texture* gallop(Resource* resource);
+    static Texture* getFallback();
+    
+    virtual GLuint getHandle() const = 0;
+};
+
+class FallbackTexture : public Texture {
+private:
+    bool mLoaded;
+    Image* mImage;
+    GLuint mHandle;
+    
+public:
+    FallbackTexture();
+    ~FallbackTexture();
     
     void load();
     void unload();
     
     GLuint getHandle() const;
-
-    static GLenum toEnum(const std::string& val, GLenum errorVal);
-    static GLenum toEnumPF(const std::string& val, GLenum errorVal);
-
 };
 
 }
 
-#endif // TEXTURERESOURCE_HPP
+#endif // PGG_TEXTURE_HPP

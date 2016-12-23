@@ -152,9 +152,9 @@ private:
     bool mUseBitangentAttrib;
     GLuint mBitangentAttrib;
     
-    void loadError();
-    void unloadError();
-    bool mIsErrorResource;
+    //void loadError();
+    //void unloadError();
+    //bool mIsErrorResource;
     GLuint mErrorFragShaderHandle;
     GLuint mErrorVertShaderHandle;
 

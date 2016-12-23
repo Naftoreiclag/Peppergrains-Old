@@ -25,6 +25,7 @@
 #include "ShaderProgramResource.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
+#include "TextureResource.hpp"
 
 namespace pgg {
 
@@ -48,7 +49,7 @@ MaterialResource::MaterialInput::MaterialInput(const Json::Value& inputData) {
         }
     }
 }
-MaterialResource::MaterialInput::MaterialInput(TextureResource* textureRes) {
+MaterialResource::MaterialInput::MaterialInput(Texture* textureRes) {
     type = Type::TEXTURE;
     textureValue = textureRes;
     textureValue->grab();
@@ -82,7 +83,6 @@ MaterialResource::Technique::Type MaterialResource::getTechniqueType() const {
 
 MaterialResource::MaterialResource()
 : mLoaded(false)
-, mIsErrorResource(false)
 , Resource(Resource::Type::MATERIAL) {
     mTechnique.deferredGeometryProg = nullptr;
     mTechnique.ssipgPassProg = nullptr;
@@ -94,7 +94,7 @@ MaterialResource::~MaterialResource() {
 Material* MaterialResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::MATERIAL) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to material!" << std::endl;
-        return getFallback();
+        return Material::getFallback();
     } else {
         return static_cast<MaterialResource*>(resource);
     }
@@ -129,6 +129,7 @@ void MaterialResource::grabNeededHLVShaders() {
     }
 }
 
+/*
 void MaterialResource::loadError() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
     
@@ -145,14 +146,10 @@ void MaterialResource::loadError() {
     
     std::cout << "Material error: " << this->getName() << std::endl;
 }
+*/
 
 void MaterialResource::load() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
-
-    if(this->isFallback()) {
-        loadError();
-        return;
-    }
 
     Json::Value matData;
     {
@@ -224,7 +221,6 @@ void MaterialResource::unload() {
     mTechnique.type = Technique::Type::NONE;
 
     mLoaded = false;
-    mIsErrorResource = false;
 }
 
 void MaterialResource::enableVertexAttributesFor(Geometry* geometry) const {

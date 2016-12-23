@@ -19,12 +19,12 @@
 #include <cassert>
 #include <fstream>
 
-#include <OpenGLStuff.hpp>
-
 #include "json/json.h"
 
+#include "OpenGLStuff.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
+#include "ImageResource.hpp"
 
 namespace pgg {
 
@@ -36,16 +36,13 @@ TextureResource::TextureResource()
 TextureResource::~TextureResource() {
 }
 
-TextureResource* TextureResource::gallop(Resource* resource) {
+Texture* TextureResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::TEXTURE) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to texture!" << std::endl;
-        return getFallback();
+        return Texture::getFallback();
     } else {
         return static_cast<TextureResource*>(resource);
     }
-}
-TextureResource* TextureResource::getFallback() {
-    return static_cast<TextureResource*>(Resources::find("Error.texture"));
 }
 
 GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {
@@ -101,34 +98,9 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
         return errorVal;
     }
 }
-void TextureResource::loadError() {
-    assert(!mLoaded && "Attempted to load texture that has already been loaded");
-    
-    mImage = ImageResource::getFallback();
-    mImage->grab();
-    
-    glGenTextures(1, &mHandle);
-    glBindTexture(GL_TEXTURE_2D, mHandle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    mLoaded = true;
-}
 
 void TextureResource::load() {
     assert(!mLoaded && "Attempted to load texture that has already been loaded");
-
-    if(this->isFallback()) {
-        loadError();
-        return;
-    }
-
     Json::Value textureData;
     {
         std::ifstream loader(this->getFile().string().c_str());

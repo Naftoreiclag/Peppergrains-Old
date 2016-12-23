@@ -42,7 +42,7 @@ ModelResource::~ModelResource() {
 Model* ModelResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::MODEL) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to model!" << std::endl;
-        return getFallback();
+        return Model::getFallback();
     } else {
         return static_cast<ModelResource*>(resource);
     }
@@ -91,13 +91,6 @@ void ModelResource::load() {
 }
 void ModelResource::unload() {
     assert(mLoaded && "Attempted to unload model before loading it");
-    
-    /*
-    if(mIsErrorResource) {
-        unloadError();
-        return;
-    }
-    */
     
     mGeometry->drop();
     mMaterial->drop();

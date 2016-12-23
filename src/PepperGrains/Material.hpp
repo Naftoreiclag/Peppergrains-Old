@@ -29,7 +29,7 @@ namespace pgg {
 class Material : virtual public ReferenceCounted {
 public:
     Material();
-    ~Material();
+    virtual ~Material();
     
     static Material* getFallback();
     

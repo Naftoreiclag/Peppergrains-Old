@@ -23,7 +23,7 @@
 
 #include "Resource.hpp" // Base class: Resource
 #include "ShaderProgramResource.hpp"
-#include "TextureResource.hpp"
+#include "Texture.hpp"
 #include "Model.hpp"
 #include "Material.hpp"
 
@@ -42,11 +42,11 @@ public:
         Type type;
         
         MaterialInput(const Json::Value& input);
-        MaterialInput(TextureResource* textureRes);
+        MaterialInput(Texture* textureRes);
         MaterialInput();
         ~MaterialInput();
         
-        TextureResource* textureValue;
+        Texture* textureValue;
         
         bool specified() const;
     };
@@ -91,8 +91,8 @@ private:
 
     bool mLoaded;
     
-    void loadError();
-    bool mIsErrorResource;
+    //void loadError();
+    //bool mIsErrorResource;
     
     void grabNeededHLVShaders();
 

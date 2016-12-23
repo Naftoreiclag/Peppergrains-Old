@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2016 James Fong
+   Copyright 2016 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,28 +14,37 @@
    limitations under the License.
 */
 
-#ifndef PGG_IMAGERESOURCE_HPP
-#define PGG_IMAGERESOURCE_HPP
+#ifndef PGG_IMAGE_HPP
+#define PGG_IMAGE_HPP
 
 #include <stdint.h>
 
-#include "Resource.hpp"
-#include "Image.hpp"
+#include "ReferenceCounted.hpp"
 
 namespace pgg {
 
-class ImageResource : public Image, public Resource {
-private:
-    uint8_t* mImage;
-    uint32_t mWidth;
-    uint32_t mHeight;
-    uint32_t mComponents;
-    bool mLoaded;
+// Virtual inheritance to avoid diamond conflict with ImageResource
+class Image : virtual public ReferenceCounted {
 public:
-    ImageResource();
-    ~ImageResource();
+    Image();
+    virtual ~Image();
     
-    static Image* gallop(Resource* resource);
+    static Image* getFallback();
+    
+    virtual const uint8_t* getImage() const = 0;
+    virtual uint32_t getWidth() const = 0;
+    virtual uint32_t getHeight() const = 0;
+    virtual uint32_t getNumComponents() const = 0;
+};
+
+class FallbackImage : public Image {
+private:
+    bool mLoaded;
+    uint8_t* mImage;
+    
+public:
+    FallbackImage();
+    ~FallbackImage();
     
     void load();
     void unload();
@@ -48,4 +57,4 @@ public:
 
 }
 
-#endif // IMAGERESOURCE_HPP
+#endif // PGG_IMAGE_HPP

@@ -26,7 +26,7 @@ namespace pgg {
 class Geometry : virtual public ReferenceCounted {
 public:
     Geometry();
-    ~Geometry();
+    virtual ~Geometry();
     
     static Geometry* getFallback();
 

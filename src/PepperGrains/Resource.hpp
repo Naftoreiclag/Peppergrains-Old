@@ -61,8 +61,6 @@ public:
     
     const Type mResourceType;
     
-    bool isFallback() const;
-    
     void setFile(boost::filesystem::path file);
     boost::filesystem::path getFile() const;
     void setName(std::string name);

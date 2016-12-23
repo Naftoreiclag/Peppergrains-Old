@@ -18,7 +18,7 @@
 #define PGG_FONTRESOURCE_HPP
 
 #include "Resource.hpp"
-#include "TextureResource.hpp"
+#include "Texture.hpp"
 #include "ShaderProgramResource.hpp"
 
 namespace pgg {
@@ -32,7 +32,7 @@ public:
 private:
     bool mLoaded;
 
-    TextureResource* mTexture;
+    Texture* mTexture;
     ShaderProgramResource* mShaderProg;
     GLuint mTextureHandle;
 

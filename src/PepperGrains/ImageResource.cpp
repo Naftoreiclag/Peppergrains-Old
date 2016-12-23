@@ -29,63 +29,23 @@ namespace pgg {
 
 ImageResource::ImageResource()
 : mLoaded(false)
-, mIsErrorResource(false)
 , Resource(Resource::Type::IMAGE) {
 }
 
 ImageResource::~ImageResource() {
 }
 
-ImageResource* ImageResource::gallop(Resource* resource) {
+Image* ImageResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::IMAGE) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to image!" << std::endl;
-        return getFallback();
+        return Image::getFallback();
     } else {
         return static_cast<ImageResource*>(resource);
     }
 }
-ImageResource* ImageResource::getFallback() {
-    return static_cast<ImageResource*>(Resources::find("Error.image"));
-}
-
-void ImageResource::loadError() {
-    mWidth = 8;
-    mHeight = 8;
-    mComponents = 3;
-    mImage = new uint8_t[mWidth * mHeight * mComponents];
-    
-    float amt = 255.f / ((float) mWidth);
-    
-    for(uint32_t y = 0; y < mHeight; ++ y) {
-        for(uint32_t x = 0; x < mWidth; ++ x) {
-            float fx = x;
-            float fy = y;
-            
-            mImage[((y * mWidth) + x) * mComponents + 0] = ((x + y) % 2 ) == 0 ? fx * amt : fx * amt;
-            mImage[((y * mWidth) + x) * mComponents + 1] = ((x + y) % 2 ) == 0 ? fy * amt : fy * amt;
-            mImage[((y * mWidth) + x) * mComponents + 2] = ((x + y) % 2 ) == 0 ? 0 : 255;
-        }
-    }
-    mLoaded = true;
-    mIsErrorResource = true;
-    
-    std::cout << "Image error: [" << this->getName() << "]" << std::endl;
-}
-
-void ImageResource::unloadError() {
-    assert(mLoaded && "Attempted to unload image before loading it");
-    delete[] mImage;
-    mLoaded = false;
-    mIsErrorResource = false;
-}
 
 void ImageResource::load() {
     assert(!mLoaded && "Attempted to load image that has already been loaded");
-    
-    if(this->isFallback()) {
-        loadError();
-        return;
-    }
     
     int width;
     int height;
@@ -99,11 +59,6 @@ void ImageResource::load() {
 
 void ImageResource::unload() {
     assert(mLoaded && "Attempted to unload image before loading it");
-    
-    if(mIsErrorResource) {
-        unloadError();
-        return;
-    }
     
     stbi_image_free(mImage);
     mLoaded = false;

@@ -46,11 +46,6 @@ Geometry* GeometryResource::gallop(Resource* resource) {
 void GeometryResource::load() {
     assert(!mLoaded && "Attempted to load geometry that is already loaded");
 
-    if(this->isFallback()) {
-        //loadError();
-        return;
-    }
-
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
     if(input.fail()) {
         //loadError();

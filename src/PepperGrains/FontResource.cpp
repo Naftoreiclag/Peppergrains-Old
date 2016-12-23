@@ -20,8 +20,10 @@
 #include <fstream>
 #include <vector>
 
-#include "ResourceManager.hpp"
 #include "StreamStuff.hpp"
+#include "Resources.hpp"
+#include "ShaderProgramResource.hpp"
+#include "TextureResource.hpp"
 
 namespace pgg {
 
@@ -50,9 +52,7 @@ void FontResource::load() {
         mGlyphs[i].startX = readF32(input);
     }
 
-    ResourceManager* rmgr = ResourceManager::getSingleton();
-
-    mShaderProg = rmgr->findShaderProgram("Font.shaderProgram");
+    mShaderProg = ShaderProgramResource::gallop(Resources::find("Font.shaderProgram"));
     mShaderProg->grab();
 
     const std::vector<ShaderProgramResource::Control>& sampler2DControls = mShaderProg->getUniformSampler2Ds();
@@ -66,7 +66,7 @@ void FontResource::load() {
         break;
     }
 
-    mTexture = rmgr->findTexture(textureName);
+    mTexture = TextureResource::gallop(Resources::find(textureName));
     mTexture->grab();
 
     mLoaded = true;

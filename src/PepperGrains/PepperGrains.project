@@ -68,22 +68,6 @@
     <VirtualDirectory Name="render">
       <File Name="Model.hpp"/>
       <File Name="Model.cpp"/>
-      <File Name="TerrainModel.hpp"/>
-      <File Name="TerrainModel.cpp"/>
-      <File Name="ModelResource.cpp"/>
-      <File Name="ModelResource.hpp"/>
-      <File Name="FontResource.cpp"/>
-      <File Name="FontResource.hpp"/>
-      <File Name="GeometryResource.cpp"/>
-      <File Name="GeometryResource.hpp"/>
-      <File Name="ImageResource.cpp"/>
-      <File Name="ImageResource.hpp"/>
-      <File Name="MaterialResource.cpp"/>
-      <File Name="MaterialResource.hpp"/>
-      <File Name="TextureResource.cpp"/>
-      <File Name="TextureResource.hpp"/>
-      <File Name="ShaderProgramResource.cpp"/>
-      <File Name="ShaderProgramResource.hpp"/>
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
       <File Name="Renderable.hpp"/>
@@ -98,6 +82,10 @@
       <File Name="Geometry.cpp"/>
       <File Name="Material.hpp"/>
       <File Name="Material.cpp"/>
+      <File Name="Image.cpp"/>
+      <File Name="Image.hpp"/>
+      <File Name="Texture.cpp"/>
+      <File Name="Texture.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">
       <File Name="ReferenceCounted.cpp"/>
@@ -110,18 +98,6 @@
       <File Name="NALEvents.hpp"/>
       <File Name="NALInputs.cpp"/>
       <File Name="NALInputs.hpp"/>
-      <File Name="MiscResource.cpp"/>
-      <File Name="MiscResource.hpp"/>
-      <File Name="Resource.cpp"/>
-      <File Name="Resource.hpp"/>
-      <File Name="ResourceManager.cpp"/>
-      <File Name="ResourceManager.hpp"/>
-      <File Name="ScriptResource.cpp"/>
-      <File Name="ScriptResource.hpp"/>
-      <File Name="StringResource.cpp"/>
-      <File Name="StringResource.hpp"/>
-      <File Name="ResourcesUtil.cpp"/>
-      <File Name="ResourcesUtil.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">
@@ -218,6 +194,32 @@
       <File Name="Vec3.hpp"/>
       <File Name="MathUtil.cpp"/>
       <File Name="MathUtil.hpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="resources">
+      <File Name="GeometryResource.cpp"/>
+      <File Name="GeometryResource.hpp"/>
+      <File Name="ImageResource.cpp"/>
+      <File Name="ImageResource.hpp"/>
+      <File Name="MaterialResource.cpp"/>
+      <File Name="MaterialResource.hpp"/>
+      <File Name="ModelResource.cpp"/>
+      <File Name="ModelResource.hpp"/>
+      <File Name="MiscResource.cpp"/>
+      <File Name="MiscResource.hpp"/>
+      <File Name="Resource.cpp"/>
+      <File Name="Resource.hpp"/>
+      <File Name="ResourcesUtil.cpp"/>
+      <File Name="ResourcesUtil.hpp"/>
+      <File Name="ScriptResource.cpp"/>
+      <File Name="ScriptResource.hpp"/>
+      <File Name="StringResource.cpp"/>
+      <File Name="StringResource.hpp"/>
+      <File Name="ShaderProgramResource.cpp"/>
+      <File Name="ShaderProgramResource.hpp"/>
+      <File Name="TextureResource.cpp"/>
+      <File Name="TextureResource.hpp"/>
+      <File Name="FontResource.cpp"/>
+      <File Name="FontResource.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
