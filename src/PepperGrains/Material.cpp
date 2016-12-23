@@ -17,6 +17,7 @@
 #include "Material.hpp"
 
 #include "Logger.hpp"
+#include "MaterialResource.hpp"
 
 namespace pgg {
 
@@ -24,7 +25,10 @@ Material::Material() { }
 Material::~Material() { }
 
 Material* Material::getFallback() {
-    return nullptr;
+    // Not giving a file name results in the special error type resource, in the case of material resources
+    
+    static MaterialResource fallbackMaterial;
+    return &fallbackMaterial;
 }
 
 }

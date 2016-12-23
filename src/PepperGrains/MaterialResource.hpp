@@ -91,9 +91,6 @@ private:
 
     bool mLoaded;
     
-    //void loadError();
-    //bool mIsErrorResource;
-    
     void grabNeededHLVShaders();
 
 public:

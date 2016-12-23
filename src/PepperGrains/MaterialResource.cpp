@@ -129,27 +129,23 @@ void MaterialResource::grabNeededHLVShaders() {
     }
 }
 
-/*
-void MaterialResource::loadError() {
-    assert(!mLoaded && "Attempted to load material that has already been loaded");
-    
-    mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
-    mTechnique.diffuse = new MaterialInput(TextureResource::getFallback());
-    mTechnique.specular = new MaterialInput();
-    mTechnique.normals = new MaterialInput();
-    mTechnique.ssipgSpots = new MaterialInput();
-    mTechnique.ssipgFlow = new MaterialInput();
-    grabNeededHLVShaders();
-    
-    mLoaded = true;
-    mIsErrorResource = true;
-    
-    std::cout << "Material error: " << this->getName() << std::endl;
-}
-*/
-
 void MaterialResource::load() {
     assert(!mLoaded && "Attempted to load material that has already been loaded");
+
+    // Fallback is a special resource
+    if(this->isFallback()) {
+        mTechnique.type = Technique::Type::HIGH_LEVEL_VALUES;
+        mTechnique.diffuse = new MaterialInput(TextureResource::getFallback());
+        mTechnique.specular = new MaterialInput();
+        mTechnique.normals = new MaterialInput();
+        mTechnique.ssipgSpots = new MaterialInput();
+        mTechnique.ssipgFlow = new MaterialInput();
+        grabNeededHLVShaders();
+        
+        mLoaded = true;
+        
+        return;
+    }
 
     Json::Value matData;
     {

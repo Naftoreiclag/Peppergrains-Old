@@ -26,6 +26,10 @@ Resource::Resource(Type resourceType)
 : mResourceType(resourceType) { }
 Resource::~Resource() { }
 
+bool Resource::isFallback() const {
+    return mFile == boost::filesystem::path();
+}
+
 void Resource::setFile(boost::filesystem::path file) {
     assert(mFile == boost::filesystem::path() && "File loading path is set twice.");
     mFile = file;
