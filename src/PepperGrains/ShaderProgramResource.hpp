@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 
-#include <OpenGLStuff.hpp>
+#include "OpenGLStuff.hpp"
 
+#include "Renderable.hpp"
 #include "Resource.hpp"
 #include "ShaderResource.hpp"
-#include "Model.hpp"
 
 namespace pgg {
 
