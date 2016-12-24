@@ -247,7 +247,7 @@ void ShoRenderer::renderFrame() {
         
         // Opaque geometry
         {
-            mScenegraph->render(std::bind(&ShoRenderer::modelmapOpaque, this, std::placeholders::_1));
+            mScenegraph->render(std::bind(&ShoRenderer::modelimapOpaque, this, std::placeholders::_1));
             
             /*
             Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
@@ -296,20 +296,41 @@ void ShoRenderer::renderFrame() {
     // TODO: disable double buffering; we already have our own "other" buffer
 }
 
-void ShoRenderer::modelmapLightprobe(ModelInstance model) {
+void ShoRenderer::modelimapLightprobe(ModelInstance model) {
     
 }
-void ShoRenderer::modelmapOpaque(ModelInstance model) {
-    
+void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
     Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
     rendPass.mScreenWidth = mScreenWidth;
     rendPass.mScreenHeight = mScreenHeight;
     rendPass.mCamera = mCamera;
-    model.getModel()->render(rendPass, model.mModelMatr);
+    //modeli.getModel()->render(rendPass, modeli.mModelMatr);
+    
+    Model* model = modeli.getModel();
+    Material* material = model->getMaterial();
+    Geometry* geometry = model->getGeometry();
+    
+    if(!material->isVisible(rendPass)) {
+        return;
+    }
+    
+    material->use(rendPass, modeli.mModelMatr);
+
+    // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
+    model->bindVertexArray();
+
+    // Draw elements as specified by the geometry
+    geometry->drawElements();
+
+    // Unbind vertex array object
+    glBindVertexArray(0);
+
+    // Unbind shader program
+    glUseProgram(0);
 }
-void ShoRenderer::modelmapDepthPass(ModelInstance model) {
+void ShoRenderer::modelimapDepthPass(ModelInstance model) {
 }
-void ShoRenderer::modelmapTransparent(ModelInstance model) {
+void ShoRenderer::modelimapTransparent(ModelInstance model) {
     
 }
 

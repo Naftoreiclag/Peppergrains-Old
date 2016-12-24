@@ -34,4 +34,16 @@ void FallbackModel::unload() {
     
 }
 
+Geometry* FallbackModel::getGeometry() const {
+    return Geometry::getFallback();
+}
+
+Material* FallbackModel::getMaterial() const {
+    return Material::getFallback();
+}
+
+void FallbackModel::bindVertexArray() {
+    
+}
+
 }

@@ -48,6 +48,11 @@ public:
 
     // Render this model with the provided matrices
     void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
+    
+    Geometry* getGeometry() const;
+    Material* getMaterial() const;
+    
+    void bindVertexArray();
 };
 
 }

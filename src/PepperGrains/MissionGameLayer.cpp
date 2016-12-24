@@ -28,7 +28,8 @@ namespace pgg {
 
 MissionGameLayer::MissionGameLayer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
-, mScreenHeight(height) {
+, mScreenHeight(height)
+, mPeriod(0.f) {
 }
 
 MissionGameLayer::~MissionGameLayer()
@@ -61,6 +62,7 @@ void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     
     mPeriod += tpf;
     mRootNode->mModelInst.mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
+    mRenderer->mCamera.setViewMatrix(glm::vec3(0.f, std::sin(mPeriod / 5) + 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     
     mRenderer->renderFrame();
 }

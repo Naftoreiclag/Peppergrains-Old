@@ -20,6 +20,7 @@
 #include "ReferenceCounted.hpp"
 #include "Resource.hpp"
 #include "Renderable.hpp"
+#include "Material.hpp"
 
 namespace pgg {
 
@@ -29,6 +30,11 @@ public:
     static Model* getFallback();
 
     virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
+    
+    virtual Geometry* getGeometry() const = 0;
+    virtual Material* getMaterial() const = 0;
+    
+    virtual void bindVertexArray() = 0;
 };
 
 class FallbackModel : public Model {
@@ -37,6 +43,11 @@ public:
     
     void load();
     void unload();
+    
+    Geometry* getGeometry() const;
+    Material* getMaterial() const;
+    
+    void bindVertexArray();
     
 };
 

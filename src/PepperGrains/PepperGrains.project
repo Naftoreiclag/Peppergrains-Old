@@ -89,8 +89,6 @@
           <File Name="Material.hpp"/>
           <File Name="Model.cpp"/>
           <File Name="Model.hpp"/>
-          <File Name="ShaderResource.cpp"/>
-          <File Name="ShaderResource.hpp"/>
           <File Name="Texture.cpp"/>
           <File Name="Texture.hpp"/>
         </VirtualDirectory>
@@ -235,6 +233,8 @@
       <File Name="TextureResource.hpp"/>
       <File Name="FontResource.cpp"/>
       <File Name="FontResource.hpp"/>
+      <File Name="ShaderResource.cpp"/>
+      <File Name="ShaderResource.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="libraries">
