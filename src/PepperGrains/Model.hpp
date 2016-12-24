@@ -26,12 +26,18 @@ namespace pgg {
 // Virtual inheritance to avoid diamond conflict with ModelResource
 class Model : virtual public ReferenceCounted {
 public:
-    Model();
-    virtual ~Model();
-    
     static Model* getFallback();
 
     virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
+};
+
+class FallbackModel : public Model {
+public:
+    void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
+    
+    void load();
+    void unload();
+    
 };
 
 }

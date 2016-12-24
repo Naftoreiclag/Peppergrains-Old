@@ -19,11 +19,19 @@
 #include "Logger.hpp"
 
 namespace pgg {
-Model::Model() { }
-Model::~Model() { }
-
 Model* Model::getFallback() {
-    return nullptr;
+    static FallbackModel fallbackModel;
+    return &fallbackModel;
+}
+
+void FallbackModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
+    
+}
+void FallbackModel::load() {
+    
+}
+void FallbackModel::unload() {
+    
 }
 
 }
