@@ -146,7 +146,7 @@ void GeometryResource::unload() {
 void GeometryResource::drawElements() const {
     glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
 }
-void GeometryResource::drawElementsInstanced(const uint32_t& num) const {
+void GeometryResource::drawElementsInstanced(uint32_t num) const {
     glDrawElementsInstanced(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0, num);
 }
 

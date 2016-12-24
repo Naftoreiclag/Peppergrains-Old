@@ -31,7 +31,7 @@ public:
     static Geometry* getFallback();
 
     virtual void drawElements() const = 0;
-    virtual void drawElementsInstanced(const uint32_t& num) const = 0;
+    virtual void drawElementsInstanced(uint32_t num) const = 0;
 
     // Bind vertex and index buffers to the underlying vertex array object
     virtual void bindBuffers() = 0;

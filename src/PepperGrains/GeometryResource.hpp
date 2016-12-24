@@ -33,6 +33,7 @@ namespace pgg {
  *      Armature: Bone heiarchy, intial transform matrices
  *      Light receiver: per-receiver position, bone weights
  */
+
 class GeometryResource : public Geometry, public Resource {
 private:
     bool mUsePosition;
@@ -68,7 +69,7 @@ public:
     void unload();
 
     void drawElements() const;
-    void drawElementsInstanced(const uint32_t& num) const;
+    void drawElementsInstanced(uint32_t num) const;
 
     // Bind vertex and index buffers to the underlying vertex array object
     void bindBuffers();
