@@ -247,7 +247,7 @@ void ShoRenderer::renderFrame() {
         
         // Opaque geometry
         {
-            mScenegraph->render(std::bind(&ShoRenderer::modelmapDepthPass, this, std::placeholders::_1));
+            mScenegraph->render(std::bind(&ShoRenderer::modelmapOpaque, this, std::placeholders::_1));
             
             /*
             Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
@@ -296,16 +296,20 @@ void ShoRenderer::renderFrame() {
     // TODO: disable double buffering; we already have our own "other" buffer
 }
 
-void ShoRenderer::modelmapLightprobe(Model* model) {
+void ShoRenderer::modelmapLightprobe(ModelInstance model) {
     
 }
-void ShoRenderer::modelmapOpaque(Model* model) {
+void ShoRenderer::modelmapOpaque(ModelInstance model) {
     
+    Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
+    rendPass.mScreenWidth = mScreenWidth;
+    rendPass.mScreenHeight = mScreenHeight;
+    rendPass.mCamera = mCamera;
+    model.getModel()->render(rendPass, model.mModelMatr);
 }
-void ShoRenderer::modelmapDepthPass(Model* model) {
-    Logger::log(Logger::VERBOSE) << "aaa" << std::endl;
+void ShoRenderer::modelmapDepthPass(ModelInstance model) {
 }
-void ShoRenderer::modelmapTransparent(Model* model) {
+void ShoRenderer::modelmapTransparent(ModelInstance model) {
     
 }
 

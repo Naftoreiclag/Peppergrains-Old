@@ -66,24 +66,10 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <VirtualDirectory Name="render">
-      <File Name="Model.hpp"/>
-      <File Name="Model.cpp"/>
-      <File Name="ShaderResource.cpp"/>
-      <File Name="ShaderResource.hpp"/>
       <File Name="Renderable.hpp"/>
       <File Name="Renderable.cpp"/>
       <File Name="DummyRenderable.hpp"/>
       <File Name="DummyRenderable.cpp"/>
-      <File Name="Camera.hpp"/>
-      <File Name="Camera.cpp"/>
-      <File Name="Geometry.hpp"/>
-      <File Name="Geometry.cpp"/>
-      <File Name="Material.hpp"/>
-      <File Name="Material.cpp"/>
-      <File Name="Image.cpp"/>
-      <File Name="Image.hpp"/>
-      <File Name="Texture.cpp"/>
-      <File Name="Texture.hpp"/>
       <VirtualDirectory Name="renderer">
         <File Name="ShoRenderer.cpp"/>
         <File Name="ShoRenderer.hpp"/>
@@ -92,6 +78,28 @@
         <File Name="DummyScenegraph.cpp"/>
         <File Name="DummyScenegraph.hpp"/>
         <File Name="Scenegraph.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="data">
+        <VirtualDirectory Name="macro">
+          <File Name="Geometry.cpp"/>
+          <File Name="Geometry.hpp"/>
+          <File Name="Image.cpp"/>
+          <File Name="Image.hpp"/>
+          <File Name="Material.cpp"/>
+          <File Name="Material.hpp"/>
+          <File Name="Model.cpp"/>
+          <File Name="Model.hpp"/>
+          <File Name="ShaderResource.cpp"/>
+          <File Name="ShaderResource.hpp"/>
+          <File Name="Texture.cpp"/>
+          <File Name="Texture.hpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="micro">
+          <File Name="Camera.cpp"/>
+          <File Name="Camera.hpp"/>
+          <File Name="ModelInstance.cpp"/>
+          <File Name="ModelInstance.hpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="misc">

@@ -18,7 +18,9 @@
 
 #include <chrono>
 #include <thread>
+#include <math.h>
 
+#include "ModelInstance.hpp"
 #include "ModelResource.hpp"
 #include "Resources.hpp"
 
@@ -40,15 +42,12 @@ void MissionGameLayer::onBegin() {
     mRootNode = new DummyScenegraph();
     mRenderer->mScenegraph = mRootNode;
     
-    mRootNode->mModel = ModelResource::gallop(Resources::find("JellyCube.model"));
-    mRootNode->mModel->grab();
-    
+    mRootNode->mModelInst = ModelInstance(ModelResource::gallop(Resources::find("JellyCube.model")));
     
     mRenderer->mCamera.setProjMatrix(glm::radians(50.f), (float) mScreenWidth / (float) mScreenWidth, 0.2f, 200.f);
     mRenderer->mCamera.setViewMatrix(glm::vec3(4.f, 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {
-    mRootNode->mModel->drop();
     
     delete mRootNode;
     delete mRenderer;
@@ -59,6 +58,9 @@ void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     //std::this_thread::sleep_for(std::chrono::milliseconds(10));
     
     //mRootNode->update(tpf);
+    
+    mPeriod += tpf;
+    mRootNode->mModelInst.mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
     
     mRenderer->renderFrame();
 }

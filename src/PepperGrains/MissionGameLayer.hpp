@@ -33,6 +33,8 @@ private:
     
     ShoRenderer* mRenderer;
     DummyScenegraph* mRootNode;
+    
+    float mPeriod;
 
 public:
     // Lifecycle

@@ -14,11 +14,30 @@
    limitations under the License.
 */
 
-#include "DummyScenegraph.hpp"
+#ifndef PGG_MODELINSTANCE_HPP
+#define PGG_MODELINSTANCE_HPP
+
+#include "Model.hpp"
+#include "OpenGLStuff.hpp"
 
 namespace pgg {
-void DummyScenegraph::render(std::function<void(ModelInstance)> modelMapper) {
-    modelMapper(mModelInst);
-}
+class ModelInstance {
+private:
+    Model* mModel;
+public:
+    ModelInstance(Model* model);
+    ModelInstance();
+    
+    // Rule of three
+    ModelInstance(const ModelInstance& other);
+    ModelInstance& operator=(const ModelInstance& other);
+    ~ModelInstance();
+    
+    glm::mat4 mModelMatr;
+    
+    Model* getModel() const;
+    
+};
 }
 
+#endif // PGG_MODELINSTANCE_HPP

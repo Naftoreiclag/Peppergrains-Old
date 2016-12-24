@@ -14,11 +14,38 @@
    limitations under the License.
 */
 
-#include "DummyScenegraph.hpp"
+#include "ModelInstance.hpp"
 
 namespace pgg {
-void DummyScenegraph::render(std::function<void(ModelInstance)> modelMapper) {
-    modelMapper(mModelInst);
+
+ModelInstance::ModelInstance(Model* model)
+: mModel(model) {
+    mModel->grab();
 }
+
+ModelInstance::ModelInstance()
+: mModel(Model::getFallback()) {
+    mModel->grab();
+}
+
+ModelInstance::ModelInstance(const ModelInstance& other)
+: mModel(other.mModel) {
+    mModel->grab();
+}
+
+ModelInstance& ModelInstance::operator=(const ModelInstance& other) {
+    mModel->drop();
+    mModel = other.mModel;
+    mModel->grab();
+}
+
+ModelInstance::~ModelInstance() {
+    mModel->drop();
+}
+
+Model* ModelInstance::getModel() const {
+    return mModel;
+}
+
 }
 

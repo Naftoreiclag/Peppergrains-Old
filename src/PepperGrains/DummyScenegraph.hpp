@@ -22,8 +22,8 @@
 namespace pgg {
 class DummyScenegraph : public Scenegraph {
 public:
-    Model* mModel;
-    void render(std::function<void(Model*)> modelMapper);
+    ModelInstance mModelInst;
+    void render(std::function<void(ModelInstance)> modelMapper);
 };
 
 }

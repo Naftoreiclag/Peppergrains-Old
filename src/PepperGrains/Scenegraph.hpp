@@ -19,12 +19,12 @@
 
 #include <functional>
 
-#include "Model.hpp"
+#include "ModelInstance.hpp"
 
 namespace pgg {
 class Scenegraph {
 public:
-    virtual void render(std::function<void(Model*)> modelMapper) = 0;
+    virtual void render(std::function<void(ModelInstance)> modelMapper) = 0;
 };
 }
 
