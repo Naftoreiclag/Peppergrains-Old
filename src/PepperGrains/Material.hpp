@@ -35,7 +35,7 @@ public:
     
     virtual void enableVertexAttributesFor(Geometry* geometry) const = 0;
     virtual bool isVisible(Renderable::Pass rpc) const = 0;
-    virtual void use(Renderable::Pass rpc, const glm::mat4& mMat) const = 0;
+    virtual void useProgram(Renderable::Pass rpc, const glm::mat4& mMat) const = 0;
     virtual const ShaderProgramResource* getShaderProg() const = 0;
 };
 

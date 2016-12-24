@@ -239,7 +239,7 @@ void MaterialResource::enableVertexAttributesFor(Geometry* geometry) const {
         geometry->enableBitangentAttrib(mTechnique.deferredGeometryProg->getBitangentAttrib());
     }
 }
-void MaterialResource::use(Renderable::Pass rendPass, const glm::mat4& modelMatrix) const {
+void MaterialResource::useProgram(Renderable::Pass rendPass, const glm::mat4& modelMatrix) const {
     
     if(rendPass.mType == Renderable::Pass::Type::SHO_FORWARD) {
         

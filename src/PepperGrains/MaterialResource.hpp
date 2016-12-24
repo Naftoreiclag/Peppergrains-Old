@@ -105,7 +105,7 @@ public:
     
     void enableVertexAttributesFor(Geometry* geometry) const;
     bool isVisible(Renderable::Pass rpc) const;
-    void use(Renderable::Pass rpc, const glm::mat4& mMat) const;
+    void useProgram(Renderable::Pass rpc, const glm::mat4& mMat) const;
     
     Technique::Type getTechniqueType() const;
 

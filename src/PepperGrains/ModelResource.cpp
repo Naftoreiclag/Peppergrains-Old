@@ -108,7 +108,7 @@ void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat)
         return;
     }
     
-    mMaterial->use(rendPass, modelMat);
+    mMaterial->useProgram(rendPass, modelMat);
 
     // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     glBindVertexArray(mVertexArrayObject);

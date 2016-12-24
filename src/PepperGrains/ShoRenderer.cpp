@@ -304,7 +304,6 @@ void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
     rendPass.mScreenWidth = mScreenWidth;
     rendPass.mScreenHeight = mScreenHeight;
     rendPass.mCamera = mCamera;
-    //modeli.getModel()->render(rendPass, modeli.mModelMatr);
     
     Model* model = modeli.getModel();
     Material* material = model->getMaterial();
@@ -314,7 +313,7 @@ void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
         return;
     }
     
-    material->use(rendPass, modeli.mModelMatr);
+    material->useProgram(rendPass, modeli.mModelMatr);
 
     // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     model->bindVertexArray();
