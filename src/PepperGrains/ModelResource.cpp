@@ -122,5 +122,15 @@ void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat)
     // Unbind shader program
     glUseProgram(0);
 }
+Geometry* ModelResource::getGeometry() const {
+    return mGeometry;
+}
+Material* ModelResource::getMaterial() const {
+    return mMaterial;
+}
+
+void ModelResource::bindVertexArray() {
+    glBindVertexArray(mVertexArrayObject);
+}
 
 }

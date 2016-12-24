@@ -29,7 +29,8 @@ ModelInstance::ModelInstance()
 }
 
 ModelInstance::ModelInstance(const ModelInstance& other)
-: mModel(other.mModel) {
+: mModel(other.mModel)
+, mModelMatr(other.mModelMatr) {
     mModel->grab();
 }
 
@@ -37,6 +38,7 @@ ModelInstance& ModelInstance::operator=(const ModelInstance& other) {
     mModel->drop();
     mModel = other.mModel;
     mModel->grab();
+    mModelMatr = other.mModelMatr;
 }
 
 ModelInstance::~ModelInstance() {
