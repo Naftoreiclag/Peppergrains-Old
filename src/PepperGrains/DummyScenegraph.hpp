@@ -14,36 +14,18 @@
    limitations under the License.
 */
 
-#ifndef PGG_MISSIONGAMELAYER_HPP
-#define PGG_MISSIONGAMELAYER_HPP
+#ifndef PGG_DUMMYSCENEGRAPH_HPP
+#define PGG_DUMMYSCENEGRAPH_HPP
 
-#include "Gamelayer.hpp"
-#include "ShoRenderer.hpp"
-#include "DummyScenegraph.hpp"
+#include "Scenegraph.hpp"
 
 namespace pgg {
-
-class MissionGameLayer : public Gamelayer {
+class DummyScenegraph : public Scenegraph {
 public:
-    MissionGameLayer(uint32_t width, uint32_t height);
-    ~MissionGameLayer();
-private:
-    uint32_t mScreenWidth;
-    uint32_t mScreenHeight;
-    
-    ShoRenderer* mRenderer;
-    DummyScenegraph* mRootNode;
-
-public:
-    // Lifecycle
-    void onBegin();
-    void onEnd();
-    
-    // Ticks
-    void onTick(float tpf, const InputState* keyStates);
-
+    Model* mModel;
+    void render(std::function<void(Model*)> modelMapper);
 };
 
 }
 
-#endif // PGG_MISSIONGAMELAYER_HPP
+#endif // PGG_DUMMYSCENEGRAPH_HPP

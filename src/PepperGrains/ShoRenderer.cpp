@@ -25,7 +25,7 @@ namespace pgg {
 ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
 : mScreenWidth(width)
 , mScreenHeight(height)
-, mRenderable(nullptr)
+, mScenegraph(nullptr)
 , mCamera(Camera(glm::radians(45.f), 1.f, 0.1f, 10.f)) {
     Logger::log(Logger::VERBOSE) << "Constructing Sho Renderer..." << std::endl;
     
@@ -156,7 +156,7 @@ void ShoRenderer::resize(uint32_t width, uint32_t height) {
 }
 
 void ShoRenderer::renderFrame() {
-    if(!mRenderable) {
+    if(!mScenegraph) {
         return;
     }
     
@@ -179,11 +179,13 @@ void ShoRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        /*
         Renderable::Pass rendPass(Renderable::Pass::Type::SHO_DEPTHPREPASS);
         rendPass.mScreenWidth = mScreenWidth;
         rendPass.mScreenHeight = mScreenHeight;
         rendPass.mCamera = mCamera;
         mRenderable->render(rendPass);
+        */
     }
     
     // Cascaded shadow map generation
@@ -245,11 +247,15 @@ void ShoRenderer::renderFrame() {
         
         // Opaque geometry
         {
+            mScenegraph->render(std::bind(&ShoRenderer::modelmapDepthPass, this, std::placeholders::_1));
+            
+            /*
             Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
             rendPass.mScreenWidth = mScreenWidth;
             rendPass.mScreenHeight = mScreenHeight;
             rendPass.mCamera = mCamera;
-            mRenderable->render(rendPass);
+            mScenegraph->render(rendPass);
+             */
         }
         
         // Transparent
@@ -288,6 +294,19 @@ void ShoRenderer::renderFrame() {
     }
     
     // TODO: disable double buffering; we already have our own "other" buffer
+}
+
+void ShoRenderer::modelmapLightprobe(Model* model) {
+    
+}
+void ShoRenderer::modelmapOpaque(Model* model) {
+    
+}
+void ShoRenderer::modelmapDepthPass(Model* model) {
+    Logger::log(Logger::VERBOSE) << "aaa" << std::endl;
+}
+void ShoRenderer::modelmapTransparent(Model* model) {
+    
 }
 
 }

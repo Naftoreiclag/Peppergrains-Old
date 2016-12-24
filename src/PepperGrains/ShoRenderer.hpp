@@ -21,7 +21,7 @@
 
 #include "OpenGLStuff.hpp"
 #include "ShaderProgramResource.hpp"
-#include "Renderable.hpp"
+#include "Scenegraph.hpp"
 #include "Camera.hpp"
 
 namespace pgg {
@@ -33,7 +33,7 @@ public:
     ~ShoRenderer();
     
     Camera mCamera;
-    Renderable* mRenderable;
+    Scenegraph* mScenegraph;
     
 private:
     uint32_t mScreenWidth;
@@ -71,6 +71,11 @@ public:
     void resize(uint32_t width, uint32_t height);
     
     void renderFrame();
+    
+    void modelmapLightprobe(Model* model);
+    void modelmapOpaque(Model* model);
+    void modelmapDepthPass(Model* model);
+    void modelmapTransparent(Model* model);
 };
 
 }

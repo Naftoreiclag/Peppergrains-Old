@@ -37,8 +37,8 @@ MissionGameLayer::~MissionGameLayer()
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
     
-    mRootNode = new DummyRenderable();
-    mRenderer->mRenderable = mRootNode;
+    mRootNode = new DummyScenegraph();
+    mRenderer->mScenegraph = mRootNode;
     
     mRootNode->mModel = ModelResource::gallop(Resources::find("JellyCube.model"));
     mRootNode->mModel->grab();
@@ -58,7 +58,7 @@ void MissionGameLayer::onEnd() {
 void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     //std::this_thread::sleep_for(std::chrono::milliseconds(10));
     
-    mRootNode->update(tpf);
+    //mRootNode->update(tpf);
     
     mRenderer->renderFrame();
 }

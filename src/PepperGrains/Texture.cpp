@@ -28,8 +28,14 @@ Texture::Texture() { }
 Texture::~Texture() { }
 
 Texture* Texture::getFallback() {
-    static FallbackTexture fallbackTexture;
-    return &fallbackTexture;
+    Resource* lookup = Resources::find("Error.texture");
+    
+    if(lookup && lookup->mResourceType == Resource::Type::TEXTURE) {
+        return static_cast<TextureResource*>(lookup);
+    } else {
+        static FallbackTexture fallbackTexture;
+        return &fallbackTexture;
+    }
 }
 
 FallbackTexture::FallbackTexture() { }
