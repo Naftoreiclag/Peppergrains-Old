@@ -88,8 +88,8 @@ namespace Logger {
 
     extern Channel* const VERBOSE = new Channel("VERB");
     extern Channel* const INFO = new Channel("INFO");
-    extern Channel* const WARN = new Channel("WARN");
-    extern Channel* const SEVERE = new Channel("SEVR");
+    extern Channel* const WARN = new Channel("WARN!");
+    extern Channel* const SEVERE = new Channel("SEVR!!");
 
 } // Logger
 } // pgg
