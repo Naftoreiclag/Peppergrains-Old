@@ -18,38 +18,104 @@
 
 namespace pgg {
 
+
+ModelInstance::Pose::Pose(glm::mat4 localTransform, glm::mat4 transform)
+: mLocalTransform(localTransform)
+, mTransform(transform)
+, mDirty(false) { }
+
 ModelInstance::ModelInstance(Model* model)
 : mModel(model) {
     mModel->grab();
-    mLightprobeData.resize(mModel->getGeometry()->getLightprobes().size());
+    const Geometry* geom = mModel->getGeometry();
+    mLightprobeData.resize(geom->getLightprobes().size());
+    mBonePose.resize(geom->getArmature().mBones.size());
 }
 
 ModelInstance::ModelInstance()
 : mModel(Model::getFallback()) {
     mModel->grab();
+    mBonePose = nullptr;
 }
 
+// Copy constructor
 ModelInstance::ModelInstance(const ModelInstance& other)
 : mModel(other.mModel)
 , mModelMatr(other.mModelMatr)
-, mLightprobeData(other.mLightprobeData) {
+, mLightprobeData(other.mLightprobeData)
+, mBonePose(other.mBonePose) {
     mModel->grab();
 }
 
+// Copy assignment
 ModelInstance& ModelInstance::operator=(const ModelInstance& other) {
-    mModel->drop();
-    mModel = other.mModel;
-    mModel->grab();
+    if(other.mModel != mModel) {
+        mModel->drop();
+        mModel = other.mModel;
+        mModel->grab();
+    }
     mModelMatr = other.mModelMatr;
     mLightprobeData = other.mLightprobeData;
 }
 
+// Deconstructor
 ModelInstance::~ModelInstance() {
     mModel->drop();
 }
 
 Model* ModelInstance::getModel() const {
     return mModel;
+}
+
+void ModelInstance::setBonePose(uint16_t thisId, glm::mat4 transform) {
+    // TODO: range check
+    const std::vector<Geometry::Armature::Bone>& bones = mModel->getGeometry()->getArmature().mBones;
+    
+    Pose& thisPose = mBonePose.at(thisId);
+    Geometry::Armature::Bone& thisBone = bones.at(thisId);
+    
+    // Set this local transform
+    thisPose.mLocalTransform = transform;
+    
+    // Mark all children as dirty ----
+    // If a bone is dirty, then all of its descendants are also dirty, so no need to iterate
+    // (Likewise, if a node is clean, then all of its ancestors are also clean)
+    // Therefore only if a bone is clean (!mDirty) should there be iteration over its children
+    if(!thisPose.mDirty) {
+        thisPose.mDirty = true;
+        std::vector<uint16_t> markList = thisBone.mChildren;
+        while(markList.size() > 0) {
+            std::vector<uint16_t> nextList;
+            for(uint16_t childId : markList) {
+                Pose& childPose = mBonePose.at(childId);
+                
+                if(!childPose.mDirty) {
+                    childPose.mDirty = true;
+                    Geometry::Armature::Bone& childBone = bones.at(childId);
+                    nextList.insert(nextList.end(), childBone.mChildren.begin(), childBone.mChildren.end());
+                }
+            }
+            markList = nextList;
+        }
+    }
+}
+
+glm::mat4 ModelInstance::getBonePose(uint16_t id) {
+    Pose& pose = mBonePose.at(id);
+    if(pose.mDirty) {
+        Geometry::Armature::Bone& bone = mModel->getGeometry()->getArmature().mBones.at(id);
+        if(bone.mParent == PGG_BONE_NO_PARENT) {
+            pose.mTransform = pose.mLocalTransform;
+        } else {
+            pose.mTransform = getBonePose(bone.mParent) * pose.mLocalTransform;
+        }
+    }
+    
+    return pose.mTransform;
+}
+
+void ModelInstance::uploadPose() {
+    
 }
 
 }

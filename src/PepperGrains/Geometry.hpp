@@ -24,6 +24,8 @@
 #include "Resource.hpp"
 #include "Vec3.hpp"
 
+#define PGG_BONE_NO_PARENT 0xFF
+
 namespace pgg {
 
 /* A purely mathematical description of the properties of a 3D object related to rendering, including:
@@ -40,6 +42,20 @@ public:
     struct Lightprobe {
         Vec3 mLocation;
         // TODO: bone weights also
+    };
+    struct Armature {
+        struct Bone {
+            std::string mName;
+            glm::mat4 mLocalTransform;
+            glm::mat4 mTransform;
+            
+            uint8_t mParent; // PGG_BONE_NO_PARENT for no parent. (There can be multiple roots in one armature)
+            std::vector<uint8_t> mChildren;
+        };
+        std::vector<Bone> mBones;
+        
+        Armature();
+        ~Armature();
     };
 public:
     static Geometry* getFallback();
@@ -65,6 +81,7 @@ public:
     
     // Default returns a (static) empty vector
     virtual const std::vector<Lightprobe>& getLightprobes() const;
+    virtual const Armature& getArmature() const;
 };
 
 }

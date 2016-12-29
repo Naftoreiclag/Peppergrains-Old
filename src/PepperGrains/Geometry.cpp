@@ -28,6 +28,10 @@ const std::vector<Geometry::Lightprobe>& Geometry::getLightprobes() const {
     static std::vector<Lightprobe> dummy;
     return dummy;
 }
+const Armature& getArmature() const {
+    static Armature dummy;
+    return dummy;
+}
 
 
 }

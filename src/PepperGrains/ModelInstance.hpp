@@ -17,14 +17,29 @@
 #ifndef PGG_MODELINSTANCE_HPP
 #define PGG_MODELINSTANCE_HPP
 
+#include <stdint.h>
+
 #include "Model.hpp"
 #include "OpenGLStuff.hpp"
 #include "Spharm.hpp"
+
+// Perhaps all models should be instances, and instead there should just be geometryinstance
+// The only problem with this is managing opengl vertex array objects
 
 namespace pgg {
 class ModelInstance {
 private:
     Model* mModel;
+    
+    struct Pose {
+        Pose(glm::mat4 localTransform, glm::mat4 transform);
+        
+        glm::mat4 mLocalTransform;
+        glm::mat4 mTransform;
+        bool mDirty; // if true, then recaculate mTransform as parent->mTransform x this->mLocalTransform
+        // Root bones should never be marked as dirty
+    };
+    std::vector<Pose> mBonePose;
     
 public:
     ModelInstance(Model* model);
@@ -38,8 +53,13 @@ public:
     // Settable render data
     glm::mat4 mModelMatr;
     std::vector<Spharm> mLightprobeData;
+    // mFlexWeights;
     
     Model* getModel() const;
+    
+    void setBonePose(uint16_t id, glm::mat4 transform);
+    glm::mat4 getBonePose(uint16_t id);
+    void uploadPose();
     
 };
 }
