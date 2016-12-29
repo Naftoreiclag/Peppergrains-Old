@@ -40,7 +40,7 @@ MissionGameLayer::~MissionGameLayer()
 void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
     
-    mRootNode = new DummyScenegraph();
+    mRootNode = new SimpleScenegraph();
     mRenderer->mScenegraph = mRootNode;
     
     mRootNode->mModelInst = new ModelInstance(ModelResource::gallop(Resources::find("JellyCube.model")));

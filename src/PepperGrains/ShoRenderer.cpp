@@ -179,7 +179,7 @@ void ShoRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        mScenegraph->render(std::bind(&ShoRenderer::modelimapDepthPrepass, this, std::placeholders::_1));
+        mScenegraph->render(std::bind(&ShoRenderer::modelimapDepthPass, this, std::placeholders::_1));
     }
     
     // Cascaded shadow map generation
@@ -281,12 +281,6 @@ void ShoRenderer::renderFrame() {
 }
 
 void ShoRenderer::modelimapDepthPass(ModelInstance* modeli) {
-    
-    Model* model = modeli->getModel();
-    Geometry geom = model->getGeometry();
-    
-    model->bindVertexArray();
-    geom->drawElements();
 }
 
 void ShoRenderer::modelimapLightprobe(ModelInstance* modeli) {

@@ -32,7 +32,7 @@ private:
     uint32_t mScreenHeight;
     
     ShoRenderer* mRenderer;
-    DummyScenegraph* mRootNode;
+    SimpleScenegraph* mRootNode;
     
     float mPeriod;
 
