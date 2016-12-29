@@ -17,17 +17,31 @@
 #ifndef PGG_GEOMETRY_HPP
 #define PGG_GEOMETRY_HPP
 
+#include <vector>
+
 #include "OpenGLStuff.hpp"
-#include "Resource.hpp"
 #include "ReferenceCounted.hpp"
+#include "Resource.hpp"
+#include "Vec3.hpp"
 
 namespace pgg {
 
+/* A purely mathematical description of the properties of a 3D object related to rendering, including:
+ *      Surface data:
+ *          Vertex groups:
+ *              Per-vertex position, color, uv, normal, tangent, bitangent, bone weights, light receiver weights
+ *          Flex data 
+ *      Armature: Bone heiarchy, intial transform matrices
+ *      Light probe: per-probe position and bone weights
+ */
+
 class Geometry : virtual public ReferenceCounted {
 public:
-    Geometry();
-    virtual ~Geometry();
-    
+    struct Lightprobe {
+        Vec3 mLocation;
+        // TODO: bone weights also
+    };
+public:
     static Geometry* getFallback();
 
     virtual void drawElements() const = 0;
@@ -48,6 +62,9 @@ public:
 
     virtual const GLuint& getVertexBufferObjectHandle() const = 0;
     virtual const GLuint& getIndexBufferObjectHandle() const = 0;
+    
+    // Default returns a (static) empty vector
+    virtual const std::vector<Lightprobe>& getLightprobes() const;
 };
 
 }

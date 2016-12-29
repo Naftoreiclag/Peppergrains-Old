@@ -14,28 +14,11 @@
    limitations under the License.
 */
 
-#include "DummyRenderable.hpp"
-
-#include <math.h>
+#include "SimpleScenegraph.hpp"
 
 namespace pgg {
-
-DummyRenderable::DummyRenderable()
-: mModel(nullptr)
-, mModelMatr(glm::mat4(1.f))
-, mPeriod(0.f) { }
-DummyRenderable::~DummyRenderable() { }
-
-void DummyRenderable::render(Renderable::Pass rendPass) {
-    if(mModel) {
-        mModel->render(rendPass, mModelMatr);
-    }
+void SimpleScenegraph::render(std::function<void(ModelInstance*)> modelMapper) {
+    modelMapper(mModelInst);
 }
-
-void DummyRenderable::update(float tpf) {
-    mPeriod += tpf;
-    mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
-}
-
 }
 

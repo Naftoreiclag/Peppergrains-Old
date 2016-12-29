@@ -25,15 +25,6 @@
 
 namespace pgg {
 
-/* A purely mathematical description of the properties of a 3D object related to rendering, including:
- *      Surface data:
- *          Vertex groups:
- *              Per-vertex position, color, uv, normal, tangent, bitangent, bone weights, light receiver weights
- *          Flex data 
- *      Armature: Bone heiarchy, intial transform matrices
- *      Light receiver: per-receiver position, bone weights
- */
-
 class GeometryResource : public Geometry, public Resource {
 private:
     bool mUsePosition;

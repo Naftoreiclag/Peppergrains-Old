@@ -72,10 +72,10 @@ public:
     
     void renderFrame();
     
-    void modelimapLightprobe(ModelInstance modeli);
-    void modelimapOpaque(ModelInstance modeli);
-    void modelimapDepthPass(ModelInstance modeli);
-    void modelimapTransparent(ModelInstance modeli);
+    void modelimapDepthPass(ModelInstance* modeli);
+    void modelimapLightprobe(ModelInstance* modeli);
+    void modelimapOpaque(ModelInstance* modeli);
+    void modelimapTransparent(ModelInstance* modeli);
 };
 
 }

@@ -14,18 +14,19 @@
    limitations under the License.
 */
 
-#ifndef PGG_DUMMYSCENEGRAPH_HPP
-#define PGG_DUMMYSCENEGRAPH_HPP
+#include "Spharm.hpp"
 
-#include "Scenegraph.hpp"
+namespace pgg
+{
 
-namespace pgg {
-class DummyScenegraph : public Scenegraph {
-public:
-    ModelInstance mModelInst;
-    void render(std::function<void(ModelInstance)> modelMapper);
-};
+Spharm::Spharm()
+{
+}
+
+Spharm::~Spharm()
+{
+}
+
 
 }
 
-#endif // PGG_DUMMYSCENEGRAPH_HPP

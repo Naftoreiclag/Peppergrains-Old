@@ -19,11 +19,13 @@
 
 #include "Model.hpp"
 #include "OpenGLStuff.hpp"
+#include "Spharm.hpp"
 
 namespace pgg {
 class ModelInstance {
 private:
     Model* mModel;
+    
 public:
     ModelInstance(Model* model);
     ModelInstance();
@@ -33,7 +35,9 @@ public:
     ModelInstance& operator=(const ModelInstance& other);
     ~ModelInstance();
     
+    // Settable render data
     glm::mat4 mModelMatr;
+    std::vector<Spharm> mLightprobeData;
     
     Model* getModel() const;
     

@@ -91,7 +91,7 @@ ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
     
     // GBuffer shader
     {
-        mPostProcessShaderProg = ShaderProgramResource::gallop(Resources::find("smac.Tonemapper.shaderProgram"));
+        mPostProcessShaderProg = ShaderProgramResource::gallop(Resources::find("sho.Postprocess.shaderProgram"));
         mPostProcessShaderProg->grab();
         const std::vector<ShaderProgramResource::Control>& sampler2DControls = mPostProcessShaderProg->getUniformSampler2Ds();
         for(std::vector<ShaderProgramResource::Control>::const_iterator iter = sampler2DControls.begin(); iter != sampler2DControls.end(); ++ iter) {
@@ -179,13 +179,7 @@ void ShoRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        /*
-        Renderable::Pass rendPass(Renderable::Pass::Type::SHO_DEPTHPREPASS);
-        rendPass.mScreenWidth = mScreenWidth;
-        rendPass.mScreenHeight = mScreenHeight;
-        rendPass.mCamera = mCamera;
-        mRenderable->render(rendPass);
-        */
+        mScenegraph->render(std::bind(&ShoRenderer::modelimapDepthPrepass, this, std::placeholders::_1));
     }
     
     // Cascaded shadow map generation
@@ -212,7 +206,6 @@ void ShoRenderer::renderFrame() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        
         /*
         glUseProgram(mSunlightIrradianceShaderProg->getHandle());
     
@@ -230,6 +223,9 @@ void ShoRenderer::renderFrame() {
     
     // Geometry pass
     {
+        // Populate per-object lightprobe data
+        mScenegraph->render(std::bind(&ShoRenderer::modelimapLightprobe, this, std::placeholders::_1));
+        
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferForward);
         GLuint colorAttachments[] = {
             GL_COLOR_ATTACHMENT0
@@ -246,22 +242,10 @@ void ShoRenderer::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // Opaque geometry
-        {
-            mScenegraph->render(std::bind(&ShoRenderer::modelimapOpaque, this, std::placeholders::_1));
-            
-            /*
-            Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
-            rendPass.mScreenWidth = mScreenWidth;
-            rendPass.mScreenHeight = mScreenHeight;
-            rendPass.mCamera = mCamera;
-            mScenegraph->render(rendPass);
-             */
-        }
+        mScenegraph->render(std::bind(&ShoRenderer::modelimapOpaque, this, std::placeholders::_1));
         
         // Transparent
-        {
-            
-        }
+        mScenegraph->render(std::bind(&ShoRenderer::modelimapTransparent, this, std::placeholders::_1));
     }
     
     // Skybox
@@ -296,16 +280,37 @@ void ShoRenderer::renderFrame() {
     // TODO: disable double buffering; we already have our own "other" buffer
 }
 
-void ShoRenderer::modelimapLightprobe(ModelInstance model) {
+void ShoRenderer::modelimapDepthPass(ModelInstance* modeli) {
     
+    Model* model = modeli->getModel();
+    Geometry geom = model->getGeometry();
+    
+    model->bindVertexArray();
+    geom->drawElements();
 }
-void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
+
+void ShoRenderer::modelimapLightprobe(ModelInstance* modeli) {
+    const std::vector<Geometry::Lightprobe>& lightprobes = modeli->getModel()->getGeometry()->getLightprobes();
+    
+    std::vector<Geometry::Lightprobe>::const_iterator liter = lightprobes.begin();
+    std::vector<Spharm>::iterator siter = modeli->mLightprobeData.begin();
+    
+    // TODO: remove one of these
+    while(liter != lightprobes.end() || siter != modeli->mLightprobeData.end()) {
+        Spharm& spharm = *siter;
+        const Geometry::Lightprobe& lprobe = *liter;
+        
+        // ...
+    }
+}
+
+void ShoRenderer::modelimapOpaque(ModelInstance* modeli) {
     Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
     rendPass.mScreenWidth = mScreenWidth;
     rendPass.mScreenHeight = mScreenHeight;
     rendPass.mCamera = mCamera;
     
-    Model* model = modeli.getModel();
+    Model* model = modeli->getModel();
     Material* material = model->getMaterial();
     Geometry* geometry = model->getGeometry();
     
@@ -313,7 +318,7 @@ void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
         return;
     }
     
-    material->useProgram(rendPass, modeli.mModelMatr);
+    material->useProgram(rendPass, modeli->mModelMatr);
 
     // Bind the vertex array object from earlier (i.e. vertex attribute and geometry buffer info)
     model->bindVertexArray();
@@ -322,14 +327,12 @@ void ShoRenderer::modelimapOpaque(ModelInstance modeli) {
     geometry->drawElements();
 
     // Unbind vertex array object
-    glBindVertexArray(0);
+    //glBindVertexArray(0);
 
     // Unbind shader program
-    glUseProgram(0);
+    //glUseProgram(0);
 }
-void ShoRenderer::modelimapDepthPass(ModelInstance model) {
-}
-void ShoRenderer::modelimapTransparent(ModelInstance model) {
+void ShoRenderer::modelimapTransparent(ModelInstance* modeli) {
     
 }
 

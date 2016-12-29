@@ -66,18 +66,14 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <VirtualDirectory Name="render">
-      <File Name="Renderable.hpp"/>
-      <File Name="Renderable.cpp"/>
-      <File Name="DummyRenderable.hpp"/>
-      <File Name="DummyRenderable.cpp"/>
       <VirtualDirectory Name="renderer">
         <File Name="ShoRenderer.cpp"/>
         <File Name="ShoRenderer.hpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="scenegraph">
-        <File Name="DummyScenegraph.cpp"/>
-        <File Name="DummyScenegraph.hpp"/>
         <File Name="Scenegraph.hpp"/>
+        <File Name="SimpleScenegraph.cpp"/>
+        <File Name="SimpleScenegraph.hpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="data">
         <VirtualDirectory Name="macro">
@@ -91,12 +87,14 @@
           <File Name="Model.hpp"/>
           <File Name="Texture.cpp"/>
           <File Name="Texture.hpp"/>
+          <File Name="ModelInstance.cpp"/>
+          <File Name="ModelInstance.hpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="micro">
           <File Name="Camera.cpp"/>
           <File Name="Camera.hpp"/>
-          <File Name="ModelInstance.cpp"/>
-          <File Name="ModelInstance.hpp"/>
+          <File Name="Renderable.cpp"/>
+          <File Name="Renderable.hpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -207,6 +205,8 @@
       <File Name="Vec3.hpp"/>
       <File Name="MathUtil.cpp"/>
       <File Name="MathUtil.hpp"/>
+      <File Name="Spharm.hpp"/>
+      <File Name="Spharm.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resources">
       <File Name="GeometryResource.cpp"/>

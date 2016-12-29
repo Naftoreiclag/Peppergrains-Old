@@ -14,11 +14,28 @@
    limitations under the License.
 */
 
-#include "DummyScenegraph.hpp"
+#ifndef PGG_SPHERICALHARMONICS_HPP
+#define PGG_SPHERICALHARMONICS_HPP
+
+#include <stdint.h>
+
+// Spharm: SPherical HARMonics
+// low order L = 3 (16 coefficients)
 
 namespace pgg {
-void DummyScenegraph::render(std::function<void(ModelInstance)> modelMapper) {
-    modelMapper(mModelInst);
-}
+
+class Spharm {
+public:
+    Spharm();
+    ~Spharm();
+    
+    float coeff[16];
+    
+    static float yml(uint8_t l, uint8_t m, float phi, float theta);
+    float eval(float phi, float theta) const;
+
+};
+
 }
 
+#endif // PGG_SPHERICALHARMONICS_HPP

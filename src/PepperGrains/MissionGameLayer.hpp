@@ -19,7 +19,7 @@
 
 #include "Gamelayer.hpp"
 #include "ShoRenderer.hpp"
-#include "DummyScenegraph.hpp"
+#include "SimpleScenegraph.hpp"
 
 namespace pgg {
 

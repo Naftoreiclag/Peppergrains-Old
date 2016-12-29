@@ -21,6 +21,7 @@ namespace pgg {
 ModelInstance::ModelInstance(Model* model)
 : mModel(model) {
     mModel->grab();
+    mLightprobeData.resize(mModel->getGeometry()->getLightprobes().size());
 }
 
 ModelInstance::ModelInstance()
@@ -30,7 +31,8 @@ ModelInstance::ModelInstance()
 
 ModelInstance::ModelInstance(const ModelInstance& other)
 : mModel(other.mModel)
-, mModelMatr(other.mModelMatr) {
+, mModelMatr(other.mModelMatr)
+, mLightprobeData(other.mLightprobeData) {
     mModel->grab();
 }
 
@@ -39,6 +41,7 @@ ModelInstance& ModelInstance::operator=(const ModelInstance& other) {
     mModel = other.mModel;
     mModel->grab();
     mModelMatr = other.mModelMatr;
+    mLightprobeData = other.mLightprobeData;
 }
 
 ModelInstance::~ModelInstance() {

@@ -24,7 +24,7 @@
 namespace pgg {
 class Scenegraph {
 public:
-    virtual void render(std::function<void(ModelInstance)> modelMapper) = 0;
+    virtual void render(std::function<void(ModelInstance*)> modelMapper) = 0;
 };
 }
 

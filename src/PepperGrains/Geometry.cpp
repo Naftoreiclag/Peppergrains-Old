@@ -16,16 +16,17 @@
 
 #include "Geometry.hpp"
 
-#include "Logger.hpp"
 #include "GeometryResource.hpp"
+#include "Logger.hpp"
 
 namespace pgg {
 
-Geometry::Geometry() { } 
-Geometry::~Geometry() { }
-
 Geometry* Geometry::getFallback() {
     return nullptr;
+}
+const std::vector<Geometry::Lightprobe>& Geometry::getLightprobes() const {
+    static std::vector<Lightprobe> dummy;
+    return dummy;
 }
 
 

@@ -43,13 +43,14 @@ void MissionGameLayer::onBegin() {
     mRootNode = new DummyScenegraph();
     mRenderer->mScenegraph = mRootNode;
     
-    mRootNode->mModelInst = ModelInstance(ModelResource::gallop(Resources::find("JellyCube.model")));
+    mRootNode->mModelInst = new ModelInstance(ModelResource::gallop(Resources::find("JellyCube.model")));
     
     mRenderer->mCamera.setProjMatrix(glm::radians(50.f), (float) mScreenWidth / (float) mScreenWidth, 0.2f, 200.f);
     mRenderer->mCamera.setViewMatrix(glm::vec3(4.f, 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {
     
+    delete mRootNode->mModelInst;
     delete mRootNode;
     delete mRenderer;
 }
@@ -61,7 +62,7 @@ void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
     //mRootNode->update(tpf);
     
     mPeriod += tpf;
-    mRootNode->mModelInst.mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
+    mRootNode->mModelInst->mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
     mRenderer->mCamera.setViewMatrix(glm::vec3(0.f, std::sin(mPeriod / 5) + 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     
     mRenderer->renderFrame();

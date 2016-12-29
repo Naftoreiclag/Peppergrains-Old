@@ -14,30 +14,18 @@
    limitations under the License.
 */
 
-#ifndef PGG_DUMMYRENDERABLE_HPP
-#define PGG_DUMMYRENDERABLE_HPP
+#ifndef PGG_SIMPLESCENEGRAPH_HPP
+#define PGG_SIMPLESCENEGRAPH_HPP
 
-#include "OpenGLStuff.hpp"
-
-#include "Renderable.hpp"
-#include "Model.hpp"
+#include "Scenegraph.hpp"
 
 namespace pgg {
-
-class DummyRenderable : public Renderable {
+class SimpleScenegraph : public Scenegraph {
 public:
-    DummyRenderable();
-    virtual ~DummyRenderable();
-    
-    glm::mat4 mModelMatr;
-    Model* mModel;
-    float mPeriod;
-    
-    virtual void render(Renderable::Pass rendPass);
-    
-    void update(float tpf);
+    ModelInstance* mModelInst;
+    void render(std::function<void(ModelInstance*)> modelMapper);
 };
 
 }
 
-#endif // PGG_DUMMYRENDERABLE_HPP
+#endif // PGG_SIMPLESCENEGRAPH_HPP

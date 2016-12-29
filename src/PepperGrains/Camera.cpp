@@ -62,6 +62,7 @@ float Camera::getNearDepth() const {
 }
 
 glm::vec3 Camera::calcLocation() const {
+    // TODO: use transpose instead? assuming the view matrix is orthogonal
     return glm::vec3(glm::inverse(mViewMatr) * glm::vec4(0.f, 0.f, 0.f, 1.f));
 }
 glm::vec3 Camera::calcDirection() const {
