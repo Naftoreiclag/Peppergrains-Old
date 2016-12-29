@@ -29,13 +29,16 @@ ModelInstance::ModelInstance(Model* model)
     mModel->grab();
     const Geometry* geom = mModel->getGeometry();
     mLightprobeData.resize(geom->getLightprobes().size());
-    mBonePose.resize(geom->getArmature().mBones.size());
+    const std::vector<Geometry::Armature::Bone>& boneList = geom->getArmature().mBones;
+    mBonePose.reserve(boneList.size());
+    for(const Geometry::Armature::Bone& bone : boneList) {
+        mBonePose.push_back(Pose(bone.mLocalTransform, bone.mTransform));
+    }
 }
 
 ModelInstance::ModelInstance()
 : mModel(Model::getFallback()) {
     mModel->grab();
-    mBonePose = nullptr;
 }
 
 // Copy constructor
@@ -67,12 +70,12 @@ Model* ModelInstance::getModel() const {
     return mModel;
 }
 
-void ModelInstance::setBonePose(uint16_t thisId, glm::mat4 transform) {
+void ModelInstance::setBonePose(uint8_t thisId, glm::mat4 transform) {
     // TODO: range check
     const std::vector<Geometry::Armature::Bone>& bones = mModel->getGeometry()->getArmature().mBones;
     
     Pose& thisPose = mBonePose.at(thisId);
-    Geometry::Armature::Bone& thisBone = bones.at(thisId);
+    const Geometry::Armature::Bone& thisBone = bones.at(thisId);
     
     // Set this local transform
     thisPose.mLocalTransform = transform;
@@ -83,15 +86,15 @@ void ModelInstance::setBonePose(uint16_t thisId, glm::mat4 transform) {
     // Therefore only if a bone is clean (!mDirty) should there be iteration over its children
     if(!thisPose.mDirty) {
         thisPose.mDirty = true;
-        std::vector<uint16_t> markList = thisBone.mChildren;
+        std::vector<uint8_t> markList = thisBone.mChildren;
         while(markList.size() > 0) {
-            std::vector<uint16_t> nextList;
-            for(uint16_t childId : markList) {
+            std::vector<uint8_t> nextList;
+            for(uint8_t childId : markList) {
                 Pose& childPose = mBonePose.at(childId);
                 
                 if(!childPose.mDirty) {
                     childPose.mDirty = true;
-                    Geometry::Armature::Bone& childBone = bones.at(childId);
+                    const Geometry::Armature::Bone& childBone = bones.at(childId);
                     nextList.insert(nextList.end(), childBone.mChildren.begin(), childBone.mChildren.end());
                 }
             }
@@ -100,10 +103,10 @@ void ModelInstance::setBonePose(uint16_t thisId, glm::mat4 transform) {
     }
 }
 
-glm::mat4 ModelInstance::getBonePose(uint16_t id) {
+glm::mat4 ModelInstance::getBonePose(uint8_t id) {
     Pose& pose = mBonePose.at(id);
     if(pose.mDirty) {
-        Geometry::Armature::Bone& bone = mModel->getGeometry()->getArmature().mBones.at(id);
+        const Geometry::Armature::Bone& bone = mModel->getGeometry()->getArmature().mBones.at(id);
         if(bone.mParent == PGG_BONE_NO_PARENT) {
             pose.mTransform = pose.mLocalTransform;
         } else {

@@ -53,9 +53,6 @@ public:
             std::vector<uint8_t> mChildren;
         };
         std::vector<Bone> mBones;
-        
-        Armature();
-        ~Armature();
     };
 public:
     static Geometry* getFallback();

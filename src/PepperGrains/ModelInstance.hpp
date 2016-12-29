@@ -57,8 +57,8 @@ public:
     
     Model* getModel() const;
     
-    void setBonePose(uint16_t id, glm::mat4 transform);
-    glm::mat4 getBonePose(uint16_t id);
+    void setBonePose(uint8_t id, glm::mat4 transform);
+    glm::mat4 getBonePose(uint8_t id);
     void uploadPose();
     
 };
