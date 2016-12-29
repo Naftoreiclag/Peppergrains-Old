@@ -59,6 +59,8 @@ ModelInstance& ModelInstance::operator=(const ModelInstance& other) {
     }
     mModelMatr = other.mModelMatr;
     mLightprobeData = other.mLightprobeData;
+    
+    return *this;
 }
 
 // Deconstructor
@@ -107,7 +109,7 @@ glm::mat4 ModelInstance::getBonePose(uint8_t id) {
     Pose& pose = mBonePose.at(id);
     if(pose.mDirty) {
         const Geometry::Armature::Bone& bone = mModel->getGeometry()->getArmature().mBones.at(id);
-        if(bone.mParent == PGG_BONE_NO_PARENT) {
+        if(bone.mParent == PGG_BONE_NONE) {
             pose.mTransform = pose.mLocalTransform;
         } else {
             pose.mTransform = getBonePose(bone.mParent) * pose.mLocalTransform;
@@ -118,7 +120,11 @@ glm::mat4 ModelInstance::getBonePose(uint8_t id) {
 }
 
 void ModelInstance::uploadPose() {
+    if(mModel->getGeometry()->getArmature().mBones.size() == 0) {
+        return;
+    }
     
+    // ...
 }
 
 }

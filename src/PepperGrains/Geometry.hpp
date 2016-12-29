@@ -24,7 +24,7 @@
 #include "Resource.hpp"
 #include "Vec3.hpp"
 
-#define PGG_BONE_NO_PARENT 0xFF
+#define PGG_BONE_NONE 0xFF
 
 namespace pgg {
 
@@ -41,7 +41,7 @@ class Geometry : virtual public ReferenceCounted {
 public:
     struct Lightprobe {
         Vec3 mLocation;
-        // TODO: bone weights also
+        uint8_t mBone;
     };
     struct Armature {
         struct Bone {
@@ -49,7 +49,7 @@ public:
             glm::mat4 mLocalTransform;
             glm::mat4 mTransform;
             
-            uint8_t mParent; // PGG_BONE_NO_PARENT for no parent. (There can be multiple roots in one armature)
+            uint8_t mParent; // PGG_BONE_NONE for no parent. (There can be multiple roots in one armature)
             std::vector<uint8_t> mChildren;
         };
         std::vector<Bone> mBones;
@@ -76,7 +76,6 @@ public:
     virtual const GLuint& getVertexBufferObjectHandle() const = 0;
     virtual const GLuint& getIndexBufferObjectHandle() const = 0;
     
-    // Default returns a (static) empty vector
     virtual const std::vector<Lightprobe>& getLightprobes() const;
     virtual const Armature& getArmature() const;
 };
