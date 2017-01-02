@@ -52,15 +52,19 @@ void GeometryResource::load() {
         return;
     }
 
-    mUsePosition = readBool(input);
-    mUseColor = readBool(input);
-    mUseUV = readBool(input);
-    mUseNormal = readBool(input);
-    mUseTangent = readBool(input);
-    mUseBitangent = readBool(input);
+    uint8_t vertexBitfield = readU8(input);
+    mUsePosition = vertexBitfield & 1;
+    mUseColor = (vertexBitfield >> 1) & 1;
+    mUseUV = (vertexBitfield >> 2) & 1;
+    mUseNormal = (vertexBitfield >> 3) & 1;
+    mUseTangent = (vertexBitfield >> 4) & 1;
+    mUseBitangent = (vertexBitfield >> 5) & 1;
+    mUseBoneWeights = (vertexBitfield >> 6) & 1;
+
+    // Skinning technique
+    readU8(input);
 
     mNumVertices = readU32(input);
-    mNumTriangles = readU32(input);
 
     mPositionOff = 0;
     mColorOff = mPositionOff + (mUsePosition ? 3 : 0);
@@ -68,46 +72,59 @@ void GeometryResource::load() {
     mNormalOff = mUVOff + (mUseUV ? 2 : 0);
     mTangentOff = mNormalOff + (mUseNormal ? 3 : 0);
     mBitangentOff = mTangentOff + (mUseTangent ? 3 : 0);
+    mBoneWeightOff = mBitangentOff + (mUseBitangent ? 3 : 0);
     
-    mVertexSize = mBitangentOff + (mUseBitangent ? 3 : 0);
+    mVertexSize = mBoneWeightOff + (mUseBoneWeights ? 4 : 0);
 
     GLfloat vertices[mNumVertices * mVertexSize];
 
     for(uint32_t i = 0; i < mNumVertices; ++ i) {
         if(mUsePosition) {
-            vertices[(i * mVertexSize) + mPositionOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mPositionOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mPositionOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mPositionOff + 2] = readF32(input);
         }
         if(mUseColor) {
-            vertices[(i * mVertexSize) + mColorOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mColorOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mColorOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mColorOff + 2] = readF32(input);
         }
         if(mUseUV) {
-            vertices[(i * mVertexSize) + mUVOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mUVOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mUVOff + 1] = readF32(input);
         }
         if(mUseNormal) {
-            vertices[(i * mVertexSize) + mNormalOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mNormalOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mNormalOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mNormalOff + 2] = readF32(input);
         }
         if(mUseTangent) {
-            vertices[(i * mVertexSize) + mTangentOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mTangentOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mTangentOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mTangentOff + 2] = readF32(input);
         }
         if(mUseBitangent) {
-            vertices[(i * mVertexSize) + mBitangentOff + 0] = readF32(input);
+            vertices[(i * mVertexSize) + mBitangentOff    ] = readF32(input);
             vertices[(i * mVertexSize) + mBitangentOff + 1] = readF32(input);
             vertices[(i * mVertexSize) + mBitangentOff + 2] = readF32(input);
         }
+        if(mUseBoneWeights) {
+            readU8(input);
+            vertices[(i * mVertexSize) + mBoneWeightOff    ] = readF32(input);
+            readU8(input);
+            vertices[(i * mVertexSize) + mBoneWeightOff + 1] = readF32(input);
+            readU8(input);
+            vertices[(i * mVertexSize) + mBoneWeightOff + 2] = readF32(input);
+            readU8(input);
+            vertices[(i * mVertexSize) + mBoneWeightOff + 3] = readF32(input);
+        }
     }
+    
+    mNumTriangles = readU32(input);
 
     GLuint indices[mNumTriangles * 3];
     for(uint32_t i = 0; i < mNumTriangles; ++ i) {
-        indices[(i * 3) + 0] = readU32(input);
+        indices[(i * 3)    ] = readU32(input);
         indices[(i * 3) + 1] = readU32(input);
         indices[(i * 3) + 2] = readU32(input);
     }

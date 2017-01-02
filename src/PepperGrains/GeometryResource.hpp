@@ -33,6 +33,7 @@ private:
     bool mUseNormal;
     bool mUseTangent;
     bool mUseBitangent;
+    bool mUseBoneWeights;
 
     uint32_t mPositionOff;
     uint32_t mColorOff;
@@ -40,6 +41,7 @@ private:
     uint32_t mNormalOff;
     uint32_t mTangentOff;
     uint32_t mBitangentOff;
+    uint32_t mBoneWeightOff;
     
     uint32_t mVertexSize;
 
