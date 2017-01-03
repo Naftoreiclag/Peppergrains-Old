@@ -24,8 +24,6 @@
 #include "Resource.hpp"
 #include "Vec3.hpp"
 
-#define PGG_BONE_NONE 0xFF
-
 namespace pgg {
 
 /* A purely mathematical description of the properties of a 3D object related to rendering, including:
@@ -49,7 +47,8 @@ public:
             glm::mat4 mLocalTransform;
             glm::mat4 mTransform;
             
-            uint8_t mParent; // PGG_BONE_NONE for no parent. (There can be multiple roots in one armature)
+            bool mHasParent = false;
+            uint8_t mParent;
             std::vector<uint8_t> mChildren;
         };
         std::vector<Bone> mBones;
@@ -66,17 +65,17 @@ public:
     // These methods are used during vertex array object intialization
     // They tell OpenGL how to read attribute data from the buffers
     // If the geometry lacks a specific attribute, these methods will skip
-    virtual void enablePositionAttrib(GLuint posAttrib) = 0;
-    virtual void enableColorAttrib(GLuint colorAttrib) = 0;
-    virtual void enableUVAttrib(GLuint textureAttrib) = 0;
-    virtual void enableNormalAttrib(GLuint normalAttrib) = 0;
-    virtual void enableTangentAttrib(GLuint tangentAttrib) = 0;
-    virtual void enableBitangentAttrib(GLuint bitangentAttrib) = 0;
-
-    virtual const GLuint& getVertexBufferObjectHandle() const = 0;
-    virtual const GLuint& getIndexBufferObjectHandle() const = 0;
+    virtual void enablePositionAttrib(GLuint posAttrib);
+    virtual void enableColorAttrib(GLuint colorAttrib);
+    virtual void enableUVAttrib(GLuint textureAttrib);
+    virtual void enableNormalAttrib(GLuint normalAttrib);
+    virtual void enableTangentAttrib(GLuint tangentAttrib);
+    virtual void enableBitangentAttrib(GLuint bitangentAttrib);
+    virtual void enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib);
     
+    virtual bool hasLightprobes() const;
     virtual const std::vector<Lightprobe>& getLightprobes() const;
+    virtual bool hasArmature() const;
     virtual const Armature& getArmature() const;
 };
 

@@ -24,15 +24,24 @@ namespace pgg {
 Geometry* Geometry::getFallback() {
     return nullptr;
 }
+bool Geometry::hasLightprobes() const { return false; }
 const std::vector<Geometry::Lightprobe>& Geometry::getLightprobes() const {
     static std::vector<Lightprobe> dummy;
     return dummy;
 }
+bool Geometry::hasArmature() const { return false; }
 const Geometry::Armature& Geometry::getArmature() const {
     static Armature dummy;
     return dummy;
 }
 
+void Geometry::enablePositionAttrib(GLuint posAttrib) { }
+void Geometry::enableColorAttrib(GLuint colorAttrib) { }
+void Geometry::enableUVAttrib(GLuint textureAttrib) { }
+void Geometry::enableNormalAttrib(GLuint normalAttrib) { }
+void Geometry::enableTangentAttrib(GLuint tangentAttrib) { }
+void Geometry::enableBitangentAttrib(GLuint bitangentAttrib) { }
+void Geometry::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) { }
 
 }
 

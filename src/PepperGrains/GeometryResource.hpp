@@ -27,14 +27,18 @@ namespace pgg {
 
 class GeometryResource : public Geometry, public Resource {
 private:
+    bool mHasArmature;
+    bool mHasLightprobes;
+    
     bool mUsePosition;
     bool mUseColor;
     bool mUseUV;
     bool mUseNormal;
     bool mUseTangent;
     bool mUseBitangent;
-    bool mUseBoneWeights;
+    bool mUseBoneWeights; // Also for bone indices
 
+    // Offsets in float array
     uint32_t mPositionOff;
     uint32_t mColorOff;
     uint32_t mUVOff;
@@ -42,16 +46,24 @@ private:
     uint32_t mTangentOff;
     uint32_t mBitangentOff;
     uint32_t mBoneWeightOff;
+    uint32_t mFloatVertexSize;
     
-    uint32_t mVertexSize;
+    // Offsets in byte array
+    uint32_t mBoneIndexOff;
+    uint32_t mByteVertexSize;
 
     uint32_t mNumVertices;
     uint32_t mNumTriangles;
+    
+    Geometry::Armature mArmature;
+    std::vector<Geometry::Lightprobe> mLightprobes;
 
-    GLuint mVertexBufferObject;
+    GLuint mFloatVertexBufferObject;
+    GLuint mByteVertexBufferObject;
     GLuint mIndexBufferObject;
 
     bool mLoaded;
+    
 public:
     GeometryResource();
     virtual ~GeometryResource();
@@ -76,9 +88,13 @@ public:
     void enableNormalAttrib(GLuint normalAttrib);
     void enableTangentAttrib(GLuint tangentAttrib);
     void enableBitangentAttrib(GLuint bitangentAttrib);
+    void enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib);
 
-    const GLuint& getVertexBufferObjectHandle() const;
-    const GLuint& getIndexBufferObjectHandle() const;
+    GLuint getFloatVertexBufferObjectHandle() const;
+    GLuint getByteVertexBufferObjectHandle() const;
+    GLuint getIndexBufferObjectHandle() const;
+    
+    bool usesByteVBO() const;
 };
 
 }

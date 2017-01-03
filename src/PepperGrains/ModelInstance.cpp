@@ -109,10 +109,10 @@ glm::mat4 ModelInstance::getBonePose(uint8_t id) {
     Pose& pose = mBonePose.at(id);
     if(pose.mDirty) {
         const Geometry::Armature::Bone& bone = mModel->getGeometry()->getArmature().mBones.at(id);
-        if(bone.mParent == PGG_BONE_NONE) {
-            pose.mTransform = pose.mLocalTransform;
-        } else {
+        if(bone.mHasParent) {
             pose.mTransform = getBonePose(bone.mParent) * pose.mLocalTransform;
+        } else {
+            pose.mTransform = pose.mLocalTransform;
         }
     }
     
