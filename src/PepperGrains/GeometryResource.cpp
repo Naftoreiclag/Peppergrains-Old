@@ -123,10 +123,26 @@ void GeometryResource::load() {
     mNumTriangles = readU32(input);
 
     GLuint indices[mNumTriangles * 3];
-    for(uint32_t i = 0; i < mNumTriangles; ++ i) {
-        indices[(i * 3)    ] = readU32(input);
-        indices[(i * 3) + 1] = readU32(input);
-        indices[(i * 3) + 2] = readU32(input);
+    if(mNumVertices <= 1 << 8) {
+        for(uint32_t i = 0; i < mNumTriangles; ++ i) {
+            indices[(i * 3)    ] = readU8(input);
+            indices[(i * 3) + 1] = readU8(input);
+            indices[(i * 3) + 2] = readU8(input);
+        }
+    }
+    else if(mNumVertices <= 1 << 16) {
+        for(uint32_t i = 0; i < mNumTriangles; ++ i) {
+            indices[(i * 3)    ] = readU16(input);
+            indices[(i * 3) + 1] = readU16(input);
+            indices[(i * 3) + 2] = readU16(input);
+        }
+    }
+    else {
+        for(uint32_t i = 0; i < mNumTriangles; ++ i) {
+            indices[(i * 3)    ] = readU32(input);
+            indices[(i * 3) + 1] = readU32(input);
+            indices[(i * 3) + 2] = readU32(input);
+        }
     }
 
     input.close();
