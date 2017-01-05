@@ -21,7 +21,7 @@
 
 #include "btBulletDynamicsCommon.h"
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 
 namespace pgg {
 

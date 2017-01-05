@@ -21,7 +21,7 @@
 
 #include "json/json.h"
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
 #include "ImageResource.hpp"

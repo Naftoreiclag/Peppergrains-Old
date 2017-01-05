@@ -19,7 +19,7 @@
 
 
 #include "json/json.h"
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 
 #include "Resource.hpp" // Base class: Resource
 #include "ShaderProgramResource.hpp"

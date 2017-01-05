@@ -20,7 +20,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 #include "StreamStuff.hpp"
 #include "Logger.hpp"
 

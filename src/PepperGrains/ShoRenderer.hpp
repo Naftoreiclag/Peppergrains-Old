@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 #include "ShaderProgramResource.hpp"
 #include "Scenegraph.hpp"
 #include "Camera.hpp"

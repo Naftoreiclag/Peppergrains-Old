@@ -18,24 +18,11 @@
 
 #include <sstream>
 
-#ifdef PGG_SDL
-#include <SDL2/SDL.h>
-#endif
-
-#ifdef PGG_GLFW
-#include <GLFW/glfw3.h>
-#endif
-
-#ifdef PGG_OPENGL
-#include <OpenGLStuff.hpp>
-#endif
-
-#ifdef PGG_VULKAN
-#include <vulkan/vulkan.h>
-#endif
-
+#include <GraphicsApiStuff.hpp>
+#include <WindowInputSystemStuff.hpp>
 #include <lua.hpp>
 
+#include "Events.hpp"
 #include "MissionGamelayer.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
@@ -98,7 +85,7 @@ namespace Engine {
             Logger::log(Logger::SEVERE) << "Could not create SDL renderer" << std::endl;
             return false;
         }
-        Video::queryDriverData(mSdlRenderer);
+        Video::querySDL(mSdlRenderer);
         
         if(SDL_Init(SDL_INIT_EVENTS) < 0) {
             std::cout << "Could not initialize SDL events" << std::endl;
@@ -177,12 +164,17 @@ namespace Engine {
     #ifdef PGG_GLFW
     GLFWwindow* mGlfwWindow;
     
-    void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifierFlags) {
-        KeyboardEvent event;
-        
-        mGamelayerMachine.onKeyboardEvent(event);
+    void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
+        mGamelayerMachine.onKeyboardEvent(KeyboardEvent(key, action));
     }
-    
+    void glfwCursorPositionCallback(GLFWwindow* window, double x, double y) {
+        double width = Video::getWindowWidth();
+        double height = Video::getWindowHeight();
+        mGamelayerMachine.onMouseMove(MouseMoveEvent(x * width, y * height, mInputState.getMouseDX(), mInputState.getMouseDY()));
+    }
+    void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int heldKeys) {
+        mGamelayerMachine.onMouseButton(MouseButtonEvent(button, action, mInputState.getMouseX(), mInputState.getMouseY()));
+    }
     bool wisInitialize() {
         if(!glfwInit()) {
             Logger::log(Logger::SEVERE) << "Could not initialize GLFW" << std::endl;
@@ -197,6 +189,8 @@ namespace Engine {
         }
         glfwMakeContextCurrent(mGlfwWindow);
         glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
+        glfwSetCursorPosCallback(mGlfwWindow, glfwCursorPositionCallback);
+        glfwSetMouseButtonCallback(mGlfwWindow, glfwMouseButtonCallback);
         return true;
     }
     inline void wisPollEvents() {
@@ -220,6 +214,9 @@ namespace Engine {
         
         // Enable OpenGL debug output
         glEnable(GL_DEBUG_OUTPUT);
+        
+        Video::queryOpenGL();
+        
         return true;
     }
     bool gapiCleanup() {
@@ -292,10 +289,10 @@ namespace Engine {
         
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
+            wisPollEvents();
             
             soundio_flush_events(mSndIo);
             
-            wisPollEvents();
             
             // It is possible that an event triggered the loop to end
             if(!mMainLoopRunning) {

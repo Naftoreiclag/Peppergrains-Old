@@ -14,21 +14,13 @@
    limitations under the License.
 */
 
-#ifndef PGG_NALEVENTS_HPP
-#define PGG_NALEVENTS_HPP
-
-// NAL = Naftoreiclag's Abstraction Layer
+#ifndef PGG_EVENTS_HPP
+#define PGG_EVENTS_HPP
 
 #include <stdint.h>
 #include <string>
 
-#ifdef PGG_SDL
-#include <SDL2/SDL.h>
-#endif
-
-#ifdef PGG_GLFW
-#include <GLFW/glfw3.h>
-#endif
+#include <WindowInputSystemStuff.hpp>
 
 #include "Input.hpp"
 
@@ -73,13 +65,13 @@ struct MouseMoveEvent {
     MouseMoveEvent(SDL_MouseMotionEvent e);
     #endif
     #ifdef PGG_GLFW
-    MouseMoveEvent(int32_t x, int32_t y, int32_t dx, int32_t dy);
+    MouseMoveEvent(double x, double y, double dx, double dy);
     #endif
     
-    int32_t x;
-    int32_t y;
-    int32_t dx;
-    int32_t dy;
+    double x;
+    double y;
+    double dx;
+    double dy;
 };
 
 struct MouseButtonEvent {
@@ -87,14 +79,13 @@ struct MouseButtonEvent {
     MouseButtonEvent(SDL_MouseButtonEvent e);
     #endif
     #ifdef PGG_GLFW
-    MouseButtonEvent(int key, int status, int32_t x, int32_t, y);
+    MouseButtonEvent(int button, int status, double x, double y);
     #endif
     
     Input::Scancode button;
     bool pressed;
-    int32_t x;
-    int32_t y;
-    uint8_t clicks;
+    double x;
+    double y;
 };
 
 struct MouseWheelMoveEvent {
@@ -102,11 +93,11 @@ struct MouseWheelMoveEvent {
     MouseWheelMoveEvent(SDL_MouseWheelEvent e);
     #endif
     #ifdef PGG_GLFW
+    MouseWheelMoveEvent(double dx, double dy);
     #endif
     
-    int32_t x;
-    int32_t y;
-    bool flipped;
+    double x;
+    double y;
 };
 
 struct WindowResizeEvent {
@@ -123,4 +114,4 @@ struct WindowResizeEvent {
 
 }
 
-#endif // PGG_NALEVENTS_HPP
+#endif // PGG_EVENTS_HPP

@@ -102,11 +102,10 @@
       <File Name="ReferenceCounted.cpp"/>
       <File Name="ReferenceCounted.hpp"/>
       <File Name="HardValueStuff.hpp"/>
-      <File Name="OpenGLStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
       <File Name="StreamStuff.hpp"/>
-      <File Name="NALEvents.cpp"/>
-      <File Name="NALEvents.hpp"/>
+      <File Name="GraphicsApiStuff.hpp"/>
+      <File Name="WindowInputSystemStuff.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">
@@ -236,6 +235,8 @@
     </VirtualDirectory>
     <File Name="Input.cpp"/>
     <File Name="Input.hpp"/>
+    <File Name="Events.cpp"/>
+    <File Name="Events.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="lib">
     <File Name="../../lib/src/jsoncpp/dist/jsoncpp.cpp"/>
@@ -351,6 +352,7 @@
         <IncludePath Value="../../lib/src/jsoncpp/dist"/>
         <IncludePath Value="../../lib/src/stb"/>
         <IncludePath Value="$(BOOST_HOME)"/>
+        <IncludePath Value="$(VULKAN_HOME)/Include"/>
         <IncludePath Value="$(GLEW_HOME)/include"/>
         <IncludePath Value="$(GLFW_HOME)/include"/>
         <IncludePath Value="$(GLM_HOME)/include"/>
@@ -362,6 +364,7 @@
         <Preprocessor Value="PGG_SDL"/>
       </Compiler>
       <Linker Options="" Required="yes">
+        <LibraryPath Value="$(VULKAN_HOME)/Bin"/>
         <LibraryPath Value="$(GLEW_HOME)/lib"/>
         <LibraryPath Value="$(GLFW_HOME)/lib"/>
         <LibraryPath Value="$(SDL2_HOME)/lib"/>
@@ -369,6 +372,7 @@
         <LibraryPath Value="$(BULLET_HOME)/lib"/>
         <LibraryPath Value="$(LSIO_HOME)/lib"/>
         <LibraryPath Value="$(LUA_HOME)/lib"/>
+        <Library Value="vulkan-1"/>
         <Library Value="mingw32"/>
         <Library Value="SDL2main"/>
         <Library Value="SDL2"/>
@@ -387,6 +391,7 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="&quot;../built/PepperGrains/WinDebug/$(ProjectName)&quot;" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./../../run" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[BOOST_HOME=C:/boost
+VULKAN_HOME=C:/VulkanSDK/1.0.37.0
 SDL2_HOME=../../lib/mingw-w64/SDL2
 GLEW_HOME=../../lib/mingw-w64/GLEW
 GLFW_HOME=../../lib/mingw-w64/glfw-3.2.1

@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 #include "ReferenceCounted.hpp"
 #include "Resource.hpp"
 #include "Vec3.hpp"

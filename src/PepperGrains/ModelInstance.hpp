@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include "Model.hpp"
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 #include "Spharm.hpp"
 
 // Perhaps all models should be instances, and instead there should just be geometryinstance

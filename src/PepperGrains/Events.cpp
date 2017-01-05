@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include "NALEvents.hpp"
+#include "Events.hpp"
 
 namespace pgg {
 
@@ -39,13 +39,18 @@ MouseButtonEvent::MouseButtonEvent(SDL_MouseButtonEvent e)
 : button(Input::scancodeFromSDLMouse(e.button))
 , pressed(e.state == SDL_PRESSED)
 , x(e.x)
-, y(e.y)
-, clicks(e.clicks) { }
+, y(e.y) { }
+//, clicks(e.clicks) 
 
-MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
-: x(e.x)
-, y(e.y)
-, flipped(e.direction == SDL_MOUSEWHEEL_FLIPPED) { }
+MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e) {
+    if(e.direction == SDL_MOUSEWHEEL_FLIPPED) {
+        x = -e.x;
+        y = -e.y;
+    } else {
+        x = e.x;
+        y = e.y;
+    }
+}
 
 WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
 : width(e.data1 < 1 ? 1 : e.data1)
@@ -66,27 +71,27 @@ KeyboardEvent::KeyboardEvent(int key, int action)
 , repeat(action == GLFW_REPEAT)
 , key(Input::scancodeFromGLFWKey(key)) { }
 
-MouseMoveEvent::MouseMoveEvent(int32_t x, int32_t y, int32_t dx, int32_t dy)
+MouseMoveEvent::MouseMoveEvent(double x, double y, double dx, double dy)
 : x(x)
 , y(y)
 , dx(dx)
 , dy(dy) { }
 
-MouseButtonEvent::MouseButtonEvent(int button, int action, int32_t x, int32_t y)
+MouseButtonEvent::MouseButtonEvent(int button, int status, double x, double y)
 : button(Input::scancodeFromGLFWMouse(button))
-, pressed(action == GLFW_PRESS)
+, pressed(status == GLFW_PRESS)
 , x(x)
-, y(y)
-, clicks(1) { }
+, y(y) { }
 
-MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
-: x(e.x)
-, y(e.y)
-, flipped(e.direction == SDL_MOUSEWHEEL_FLIPPED) { }
+MouseWheelMoveEvent::MouseWheelMoveEvent(double dx, double dy)
+: x(dx)
+, y(dy) { }
 
+/*
 WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
 : width(e.data1 < 1 ? 1 : e.data1)
 , height(e.data2 < 1 ? 1 : e.data2) { }
+*/
 #endif
 
 

@@ -20,11 +20,13 @@
 #include <stdint.h>
 #include <string>
 
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include <GraphicsApiStuff.hpp>
+#include <WindowInputSystemStuff.hpp>
 
 namespace pgg {
 namespace Video {
+    
+    #ifdef PGG_OPENGL
     namespace OpenGL {
         // Initial is used to set value
         
@@ -61,7 +63,9 @@ namespace Video {
         bool supportsGeometryShaders();
         bool supportsTessellationShaders();
     }
+    #endif
     
+    #ifdef PGG_SDL
     namespace SDL {
         std::string getName(std::string initial = "");
         bool isSoftwareFallback(bool initial = false);
@@ -69,13 +73,20 @@ namespace Video {
         
         bool supportsTextureRender(bool initial = false);
     }
+    #endif
     
     uint32_t getWindowWidth();
     uint32_t getWindowHeight();
     
     void resizeWindow(uint32_t width, uint32_t height);
     
-    void queryDriverData(SDL_Renderer* renderer);
+    #ifdef PGG_OPENGL
+    void queryOpenGL();
+    #endif
+    
+    #ifdef PGG_SDL
+    void querySDL(SDL_Renderer* renderer);
+    #endif
     
 } // Video
 } // pgg

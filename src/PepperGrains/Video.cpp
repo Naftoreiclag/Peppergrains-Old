@@ -20,6 +20,7 @@
 
 namespace pgg {
 namespace Video {
+    #ifdef PGG_OPENGL
     namespace OpenGL {
         GLint getMajorVersion(GLint x) { static GLint y = x; return y; }
         GLint getMinorVersion(GLint x) { static GLint y = x; return y; }
@@ -64,7 +65,9 @@ namespace Video {
             return getMajorVersion() >= 4;
         }
     }
+    #endif
     
+    #ifdef PGG_SDL
     namespace SDL {
         std::string getName(std::string x) { static std::string y = x; return y; }
         bool isSoftwareFallback(bool x) { static bool y = x; return y; }
@@ -72,8 +75,10 @@ namespace Video {
         
         bool supportsTextureRender(bool x) { static bool y = x; return y; }
     }
+    #endif
     
-    void queryDriverData(SDL_Renderer* renderer) {
+    #ifdef PGG_OPENGL
+    void queryOpenGL() {
         GLint gi;
         
         glGetIntegerv(GL_MAJOR_VERSION, &gi); OpenGL::getMajorVersion(gi);
@@ -106,6 +111,18 @@ namespace Video {
         OpenGL::getRenderer(std::string((const char*) glGetString(GL_RENDERER)));
         OpenGL::getShadingLanguageVersion(std::string((const char*) glGetString(GL_SHADING_LANGUAGE_VERSION)));
         
+        Logger::Out out = Logger::log(Logger::INFO);
+        
+        out << "OpenGL Version (Integral): " << OpenGL::getMajorVersion() << "." << OpenGL::getMinorVersion() << std::endl;
+        out << "OpenGL Version (String): " << OpenGL::getVersion() << std::endl;
+        out << "OpenGL Debug output enabled: " << OpenGL::isDebugOutputEnabled() << std::endl;
+        out << "OpenGL Max draw buffers: " << OpenGL::getMaxDrawBuffers() << std::endl;
+        out << "OpenGL Max color attachments: " << OpenGL::getMaxColorAttachments() << std::endl;
+    }
+    #endif
+    
+    #ifdef PGG_SDL
+    void querySDL(SDL_Renderer* renderer) {
         SDL_RendererInfo rendererInfo;
         SDL_GetRendererInfo(renderer, &rendererInfo);
         
@@ -122,12 +139,8 @@ namespace Video {
         out << "SDL Software fallback: " << SDL::isSoftwareFallback() << std::endl;
         out << "SDL Hardware accelerated: " << SDL::isHardwareAccelerated() << std::endl;
         out << "SDL Texture renderering: " << SDL::supportsTextureRender() << std::endl;
-        out << "OpenGL Version (Integral): " << OpenGL::getMajorVersion() << "." << OpenGL::getMinorVersion() << std::endl;
-        out << "OpenGL Version (String): " << OpenGL::getVersion() << std::endl;
-        out << "OpenGL Debug output enabled: " << OpenGL::isDebugOutputEnabled() << std::endl;
-        out << "OpenGL Max draw buffers: " << OpenGL::getMaxDrawBuffers() << std::endl;
-        out << "OpenGL Max color attachments: " << OpenGL::getMaxColorAttachments() << std::endl;
     }
+    #endif
     
     uint32_t mWindowWidth = 640;
     uint32_t mWindowHeight = 480;

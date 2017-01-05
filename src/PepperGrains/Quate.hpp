@@ -19,7 +19,7 @@
 
 #include "btBulletDynamicsCommon.h"
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 
 // Nothing but a way to easily convert between the many quaternion types
 

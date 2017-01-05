@@ -14,12 +14,19 @@
    limitations under the License.
 */
 
-#ifndef OPENGLSTUFF_HPP
-#define OPENGLSTUFF_HPP
+#ifndef PGG_GRAPHICSAPISTUFF_HPP
+#define PGG_GRAPHICSAPISTUFF_HPP
 
+#ifdef PGG_OPENGL
 #include <GL/glew.h>
+#endif
+
+#ifdef PGG_VULKAN
+#include <vulkan/vulkan.h>
+#endif
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#endif // OPENGLSTUFF_HPP
+#endif // PGG_GRAPHICSAPISTUFF_HPP

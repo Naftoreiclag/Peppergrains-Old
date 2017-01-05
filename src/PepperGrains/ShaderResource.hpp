@@ -17,7 +17,7 @@
 #ifndef PGG_ShaderResource_HPP
 #define PGG_ShaderResource_HPP
 
-#include <OpenGLStuff.hpp>
+#include <GraphicsApiStuff.hpp>
 
 #include "Resource.hpp"
 

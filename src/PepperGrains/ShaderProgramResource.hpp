@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "OpenGLStuff.hpp"
+#include "GraphicsApiStuff.hpp"
 
 #include "Renderable.hpp"
 #include "Resource.hpp"

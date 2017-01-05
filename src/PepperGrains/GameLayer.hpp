@@ -17,7 +17,7 @@
 #ifndef VSE_GAMELAYER_HPP
 #define VSE_GAMELAYER_HPP
 
-#include "NALEvents.hpp"
+#include "Events.hpp"
 
 #include "GamelayerMachine.hpp"
 
