@@ -47,7 +47,7 @@ public:
     static Model* gallop(Resource* resource);
 
     // Render this model with the provided matrices
-    void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
+    //void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
     
     Geometry* getGeometry() const;
     Material* getMaterial() const;

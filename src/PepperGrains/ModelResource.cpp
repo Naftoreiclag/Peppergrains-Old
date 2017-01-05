@@ -81,7 +81,7 @@ void ModelResource::load() {
     mGeometry->bindBuffers();
 
     // Tell OpenGL which attributes to read, how to read them, and where to send them
-    mMaterial->enableVertexAttributesFor(mGeometry);
+    //mMaterial->enableVertexAttributesFor(mGeometry);
 
     // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
@@ -102,6 +102,7 @@ void ModelResource::unload() {
     mLoaded = false;
 }
 
+/*
 void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
     if(!mMaterial->isVisible(rendPass)) {
@@ -122,6 +123,8 @@ void ModelResource::render(Renderable::Pass rendPass, const glm::mat4& modelMat)
     // Unbind shader program
     glUseProgram(0);
 }
+*/
+
 Geometry* ModelResource::getGeometry() const {
     return mGeometry;
 }

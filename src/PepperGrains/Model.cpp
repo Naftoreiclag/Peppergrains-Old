@@ -24,9 +24,11 @@ Model* Model::getFallback() {
     return &fallbackModel;
 }
 
+/*
 void FallbackModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
     
 }
+*/
 void FallbackModel::load() {
     
 }

@@ -239,6 +239,7 @@ void GeometryResource::drawElementsInstanced(uint32_t num) const {
 
 void GeometryResource::bindBuffers() {
     glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
+    if(usesByteVBO()) glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 }
 void GeometryResource::enablePositionAttrib(GLuint posAttrib) {

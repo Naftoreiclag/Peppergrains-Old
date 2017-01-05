@@ -20,6 +20,7 @@
 #include "ReferenceCounted.hpp"
 #include "Resource.hpp"
 #include "Renderable.hpp"
+#include "Geometry.hpp"
 #include "Material.hpp"
 
 namespace pgg {
@@ -29,7 +30,7 @@ class Model : virtual public ReferenceCounted {
 public:
     static Model* getFallback();
 
-    virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
+    //virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
     
     virtual Geometry* getGeometry() const = 0;
     virtual Material* getMaterial() const = 0;
@@ -39,7 +40,7 @@ public:
 
 class FallbackModel : public Model {
 public:
-    void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
+    //void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
     
     void load();
     void unload();

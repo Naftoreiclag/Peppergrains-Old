@@ -17,26 +17,96 @@
 #ifndef PGG_MATERIAL_HPP
 #define PGG_MATERIAL_HPP
 
-#include "Resource.hpp"
 #include "ReferenceCounted.hpp"
-#include "Geometry.hpp"
-#include "Renderable.hpp"
-#include "ShaderProgramResource.hpp"
+#include "Texture.hpp"
+#include "Vec3.hpp"
 
 namespace pgg {
 
+/* Represents a list of textures, constant values, and other shader hints to be used in conjunction with a particular
+ * Geometry when rendering a Model.
+ * 
+ * Unlike most resource-y objects, Materials are concrete and can be instantiated using new. This means that custom
+ * materials can be created at runtime and modified dynamically. MaterialResource is still immutable, however.
+ */
+    
 // Virtual inheritance to avoid diamond conflict with MaterialResource
 class Material : virtual public ReferenceCounted {
 public:
+    class Input {
+    public:
+        enum Type {
+            TEXTURE,
+            VEC3,
+            
+            EMPTY
+        };
+    private:
+        Type mType;
+        union Value {
+            Value();
+            ~Value();
+            
+            Texture* mTexture;
+            Vec3 mVec3;
+        };
+        Value mValue;
+    public:
+        Input(Texture* texture);
+        Input(Vec3 vec3);
+        Input();
+        
+        // Rule of three
+        Input(const Input& other);
+        Input& operator=(const Input& other);
+        ~Input();
+        
+        Type getType() const;
+        bool isSpecified() const;
+        void clear();
+    };
+    
+    /* Different techniques allow for automatic fallback behavior.
+     * If for some reason a glsl-shader technique cannot be run,
+     * such as in the case of an outdated opengl driver or missing
+     * features, the next technique is used as a backup.
+     * 
+     * As such, only one technique is loaded at a time, and this technique
+     * is determined upon loading.
+     * 
+     * High-level-values is guaranteed to work at least partially, and so
+     * should always be the last technique in the list.
+     */
+    class Technique {
+    public:
+        enum Type {
+            NONE,
+            HIGH_LEVEL_VALUES,
+            GLSL_SHADER,
+        };
+        
+        Type mType = Type::NONE;
+        
+        Input mDiffuse;
+        Input mSpecular;
+        Input mNormals;
+        
+        void clear();
+    };
+private:
+    Technique mTechnique;
+    
+public:
     Material();
+    Material(Technique technique);
     virtual ~Material();
     
     static Material* getFallback();
     
-    virtual void enableVertexAttributesFor(Geometry* geometry) const = 0;
-    virtual bool isVisible(Renderable::Pass rpc) const = 0;
-    virtual void useProgram(Renderable::Pass rpc, const glm::mat4& mMat) const = 0;
-    virtual const ShaderProgramResource* getShaderProg() const = 0;
+    virtual void load();
+    virtual void unload();
+    
+    virtual const Technique& getTechnique() const;
 };
 
 }

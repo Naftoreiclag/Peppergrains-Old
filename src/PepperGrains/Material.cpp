@@ -21,14 +21,135 @@
 
 namespace pgg {
 
+Material::Input::Value::Value()
+: mTexture(nullptr){
+}
+Material::Input::Value::~Value() { }
+
+Material::Input::Input(Texture* texture)
+: mType(Type::TEXTURE) {
+    if(!texture) {
+        mType = Type::EMPTY;
+        return;
+    }
+    mValue.mTexture = texture;
+    mValue.mTexture->grab();
+}
+Material::Input::Input(Vec3 vec3)
+: mType(Type::VEC3) {
+    mValue.mVec3 = vec3;
+}
+Material::Input::Input()
+: mType(Type::EMPTY) {
+}
+
+// Copy constructor
+Material::Input::Input(const Material::Input& other)
+: mType(other.mType) {
+    switch(mType) {
+        case Type::TEXTURE: {
+            mValue.mTexture = other.mValue.mTexture;
+            mValue.mTexture->grab();
+            break;
+        }
+        case Type::VEC3: {
+            mValue.mVec3 = other.mValue.mVec3;
+            break;
+        }
+        default: break;
+    }
+}
+
+// Copy assignment
+Material::Input& Material::Input::operator=(const Material::Input& other) {
+    // Retain same type, use new value
+    if(mType) {
+        switch(mType) {
+            case Type::TEXTURE: {
+                // Only do reference recounting if the new texture is different
+                if(mValue.mTexture != other.mValue.mTexture) {
+                    mValue.mTexture->drop();
+                    mValue.mTexture = other.mValue.mTexture;
+                    mValue.mTexture->grab();
+                }
+                break;
+            }
+            case Type::VEC3: {
+                mValue.mVec3 = other.mValue.mVec3;
+                break;
+            }
+            default: break;
+        }
+    }
+    
+    // Changing to new type
+    else {
+        switch(mType) {
+            case Type::TEXTURE: {
+                mValue.mTexture->drop();
+                break;
+            }
+            default: break;
+        }
+        mType = other.mType;
+        switch(mType) {
+            case Type::TEXTURE: {
+                mValue.mTexture = other.mValue.mTexture;
+                mValue.mTexture->grab();
+                break;
+            }
+            case Type::VEC3: {
+                mValue.mVec3 = other.mValue.mVec3;
+                break;
+            }
+            default: break;
+        }
+    }
+}
+
+Material::Input::Type Material::Input::getType() const { return mType; }
+bool Material::Input::isSpecified() const { return mType != Type::EMPTY; }
+
+// Deconstructor
+Material::Input::~Input() {
+    clear();
+}
+
+void Material::Input::clear() {
+    switch(mType) {
+        case Type::TEXTURE: {
+            mValue.mTexture->drop();
+            break;
+        }
+        default: break;
+    }
+    mType = Type::EMPTY;
+}
+
+void Material::Technique::clear() {
+    mDiffuse.clear();
+    mNormals.clear();
+    mSpecular.clear();
+    mType = Type::NONE;
+}
+
 Material::Material() { }
+Material::Material(Material::Technique technique)
+: mTechnique(technique) {
+}
 Material::~Material() { }
 
 Material* Material::getFallback() {
-    // Not giving a file name results in the special error type resource, in the case of material resources
-    
+    // Not giving a file name for MaterialResource results in the special error type resource
     static MaterialResource fallbackMaterial;
     return &fallbackMaterial;
+}
+
+void Material::load() { }
+void Material::unload() { delete this; }
+
+const Material::Technique& Material::getTechnique() const {
+    return mTechnique;
 }
 
 }

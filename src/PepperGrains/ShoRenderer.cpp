@@ -307,7 +307,7 @@ void ShoRenderer::modelimapOpaque(ModelInstance* modeli) {
     Model* model = modeli->getModel();
     Material* material = model->getMaterial();
     Geometry* geometry = model->getGeometry();
-    
+    /*
     if(!material->isVisible(rendPass)) {
         return;
     }
@@ -319,12 +319,7 @@ void ShoRenderer::modelimapOpaque(ModelInstance* modeli) {
 
     // Draw elements as specified by the geometry
     geometry->drawElements();
-
-    // Unbind vertex array object
-    //glBindVertexArray(0);
-
-    // Unbind shader program
-    //glUseProgram(0);
+     */
 }
 void ShoRenderer::modelimapTransparent(ModelInstance* modeli) {
     
