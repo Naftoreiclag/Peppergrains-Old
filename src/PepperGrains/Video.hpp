@@ -17,10 +17,11 @@
 #ifndef PGG_ENGINEVIDEO_HPP
 #define PGG_ENGINEVIDEO_HPP
 
+#include <stdint.h>
 #include <string>
 
-#include "GL/glew.h"
-#include "SDL2/SDL.h"
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
 
 namespace pgg {
 namespace Video {
@@ -68,6 +69,11 @@ namespace Video {
         
         bool supportsTextureRender(bool initial = false);
     }
+    
+    uint32_t getWindowWidth();
+    uint32_t getWindowHeight();
+    
+    void resizeWindow(uint32_t width, uint32_t height);
     
     void queryDriverData(SDL_Renderer* renderer);
     

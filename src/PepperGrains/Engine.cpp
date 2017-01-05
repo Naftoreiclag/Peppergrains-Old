@@ -18,14 +18,24 @@
 
 #include <sstream>
 
-#include "OpenGLStuff.hpp"
-#include "SDL2/SDL.h"
-#include "lua.hpp"
+#ifdef PGG_SDL
+#include <SDL2/SDL.h>
+#endif
 
-#include "ResourceManager.hpp"
+#ifdef PGG_GLFW
+#include <GLFW/glfw3.h>
+#endif
 
-#include "DesignerGameLayer.hpp"
-#include "OverworldGameLayer.hpp"
+#ifdef PGG_OPENGL
+#include <OpenGLStuff.hpp>
+#endif
+
+#ifdef PGG_VULKAN
+#include <vulkan/vulkan.h>
+#endif
+
+#include <lua.hpp>
+
 #include "MissionGamelayer.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
@@ -34,29 +44,138 @@
 #include "Scripts.hpp"
 
 namespace pgg {
+namespace Video {
+    extern uint32_t mWindowWidth;
+    extern uint32_t mWindowHeight;
+}
+    
 namespace Engine {
+    
+    #ifdef PGG_SDL
+    SDL_Window* mSdlWindow;
+    SDL_Renderer* mSdlRenderer;
+    SDL_GLContext mGlContext;
+    bool initializeWindowingInputSystem() {
+        if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+            Logger::log(Logger::SEVERE) << "Could not initalize SDL video" << std::endl;
+            return false;
+        }
+        
+        // These attributes must be set before creating any SDL windows
+        // Note: the major and minor version are only hints (not guranteed to use 4.3)
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        
+        // Create the window
+        mSdlWindow = SDL_CreateWindow("Window Title", 
+            SDL_WINDOWPOS_CENTERED, 
+            SDL_WINDOWPOS_CENTERED, 
+            Video::getWindowWidth(), Video::getWindowHeight(), 
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+        if(!mSdlWindow) {
+            Logger::log(Logger::SEVERE) << "Could not create SDL window" << std::endl;
+            return false;
+        }
+        
+        // Create OpenGL context for the renderer
+        mGlContext = SDL_GL_CreateContext(mSdlWindow);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetSwapInterval(1);
+        
+        // Create SDL renderer
+        mSdlRenderer = SDL_CreateRenderer(mSdlWindow, -1, 0);
+        if(!mSdlRenderer) {
+            Logger::log(Logger::SEVERE) << "Could not create SDL renderer" << std::endl;
+            return false;
+        }
+        Video::queryDriverData(mSdlRenderer);
+        
+        if(SDL_Init(SDL_INIT_EVENTS) < 0) {
+            std::cout << "Could not initialize SDL events" << std::endl;
+            return false;
+        }
+        
+        return true;
+    }
+    bool cleanupWindowingInputSystem() {
+        SDL_GL_DeleteContext(mGlContext);
+        
+        SDL_DestroyWindow(mSdlWindow);
+        SDL_DestroyRenderer(mSdlRenderer);
+        
+        SDL_Quit();
+        return true;
+    }
+    #endif
 
+    #ifdef PGG_GLFW
+    bool initializeWindowingInputSystem() {
+        if(!glfwInit()) {
+            Logger::log(Logger::SEVERE) << "Could not initialize GLFW" << std::endl;
+            return false;
+        }
+        return true;
+    }
+    bool cleanupWindowingInputSystem() {
+        return true;
+        
+    }
+    #endif
+    
+    #ifdef PGG_OPENGL
+    bool initializeGraphicsApi() {
+        // Initialize GLEW, using OpenGL experimental drivers
+        glewExperimental = GL_TRUE;
+        glewInit();
+        
+        // Enable OpenGL debug output
+        glEnable(GL_DEBUG_OUTPUT);
+        return true;
+    }
+    bool cleanupGraphicsApi() {
+        return true;
+    }
+    #endif
+    
+    #ifdef PGG_VULKAN
+    bool initializeGraphicsApi() {
+        return true;
+        
+    }
+    bool cleanupGraphicsApi() {
+        return true;
+        
+    }
+    #endif
+    
+    
     Sound::Endpoint soundEndpoint;
-
-    GamelayerMachine gamelayerMachine;
-    uint32_t mTotalTicks;
+    SoundIo* mSndIo;
+    bool initializeSoundSystem() {
+        mSndIo = soundio_create();
+        soundio_connect(mSndIo); // Connect to the first available backend
+        soundio_flush_events(mSndIo); // Initial event flush
+        SoundIoDevice* mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo)); // Use default device
+        soundEndpoint.setDevice(mSndDevice);
+        
+        return true;
+    }
 
     bool mMainLoopRunning;
     void quit() {
         mMainLoopRunning = false;
     }
 
-    double calcRunTimeSeconds() {
-        return SDL_GetTicks();
-    }
-    uint64_t calcRunTimeMilliseconds() {
-        return ((double) SDL_GetTicks()) * 0.001;
-    }
-
+    GamelayerMachine mGamelayerMachine;
+    uint32_t mTotalTicks;
     int run(int argc, char* argv[]) {
-        if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cout << "Could not initalize SDL video" << std::endl;
-            return -1;
+        
+        Video::resizeWindow(1280, 960);
+        
+        if(!initializeWindowingInputSystem()) {
+            Logger::log(Logger::SEVERE) << "Fatal error initializing windowing/input system" << std::endl;
+            return EXIT_FAILURE;
         }
         
         float mTps;
@@ -66,61 +185,14 @@ namespace Engine {
         mTps = 0.f;
         mTpsWeight = 0.85f;
         
-        uint32_t windowWidth = 1280;
-        uint32_t windowHeight = 960;
-        
-        // Initialize sound system
-        SoundIo* mSndIo = soundio_create();
-        
-        // Connect to the first available backend
-        soundio_connect(mSndIo);
-        
-        // Initial event flush
-        soundio_flush_events(mSndIo);
-        
-        // Use default device
-        SoundIoDevice* mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo));
-        
-        soundEndpoint.setDevice(mSndDevice);
-        
-        // These attributes must be set before creating any SDL windows
-        // Note: the major and minor version are only hints (not guranteed to use 4.3)
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        
-        // Create the window
-        SDL_Window* sdlWindow = SDL_CreateWindow("Window Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-        if(!sdlWindow) {
-            std::cout << "Could not create SDL window" << std::endl;
-            return -1;
+        if(!initializeGraphicsApi()) {
+            Logger::log(Logger::SEVERE) << "Fatal error initializing graphics API" << std::endl;
+            return EXIT_FAILURE;
         }
         
-        // Create OpenGL context for the renderer
-        SDL_GLContext glContext = SDL_GL_CreateContext(sdlWindow);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetSwapInterval(1);
-        
-        // Create SDL renderer
-        SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
-        if(!sdlRenderer) {
-            std::cout << "Could not create SDL renderer" << std::endl;
-            return -1;
-        }
-        
-        // Initialize GLEW, using OpenGL experimental drivers
-        glewExperimental = GL_TRUE;
-        glewInit();
-        
-        // Enable OpenGL debug output
-        glEnable(GL_DEBUG_OUTPUT);
-        
-        Video::queryDriverData(sdlRenderer);
-        
-        // Initialize SDL events
-        if(SDL_Init(SDL_INIT_EVENTS) < 0) {
-            std::cout << "Could not initialize SDL events" << std::endl;
-            return -1;
+        if(!initializeSoundSystem()) {
+            Logger::log(Logger::SEVERE) << "Fatal error initializing sound system" << std::endl;
+            return EXIT_FAILURE;
         }
         
         Scripts::init();
@@ -131,11 +203,11 @@ namespace Engine {
         Addons::logAddonFailures();
         Addons::clearFailedAddons();
 
-        gamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
-
         uint32_t prev = SDL_GetTicks();
         mMainLoopRunning = true;
         InputState inputState;
+        
+        //mGamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
         
         while(mMainLoopRunning) {
             inputState.setMouseDelta(0, 0);
@@ -146,43 +218,46 @@ namespace Engine {
             while(SDL_PollEvent(&event)) {
                 switch(event.type) {
                     case SDL_QUIT: {
-                        gamelayerMachine.onQuit(QuitEvent(event.quit));
+                        mGamelayerMachine.onQuit(QuitEvent(event.quit));
                         quit();
                         break;
                     }
                     case SDL_TEXTINPUT: {
-                        gamelayerMachine.onTextInput(TextInputEvent(event.text));
+                        mGamelayerMachine.onTextInput(TextInputEvent(event.text));
                         break;
                     }
                     
                     // Both press and release should trigger the same event
                     case SDL_KEYUP:
                     case SDL_KEYDOWN: {
-                        gamelayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
+                        mGamelayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
                         break;
                     }
                     case SDL_MOUSEMOTION: {
                         MouseMoveEvent mme(event.motion);
                         inputState.setMouseDelta(mme.dx, mme.dy);
-                        gamelayerMachine.onMouseMove(MouseMoveEvent(event.motion));
+                        mGamelayerMachine.onMouseMove(MouseMoveEvent(event.motion));
                         break;
                     }
                     
                     // Both press and release should trigger the same event
                     case SDL_MOUSEBUTTONUP:
                     case SDL_MOUSEBUTTONDOWN: {
-                        gamelayerMachine.onMouseButton(MouseButtonEvent(event.button));
+                        mGamelayerMachine.onMouseButton(MouseButtonEvent(event.button));
                         break;
                     }
                     case SDL_MOUSEWHEEL: {
-                        gamelayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
+                        mGamelayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
                         break;
                     }
                     case SDL_WINDOWEVENT: {
                         switch(event.window.event) {
                             // This also catches resizing due to API calls
                             case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                                gamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
+                                WindowResizeEvent windowResizeEvent(event.window);
+                                Video::mWindowWidth = windowResizeEvent.width;
+                                Video::mWindowHeight = windowResizeEvent.height;
+                                mGamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
                             }
                         }
                     }
@@ -213,30 +288,39 @@ namespace Engine {
                 inputState.updateKeysFromSDL();
                 inputState.updateMouseFromSDL();
                 
-                gamelayerMachine.onTick(tpf, &inputState);
+                mGamelayerMachine.onTick(tpf, &inputState);
                 soundEndpoint.updateSoundThread();
 
                 // Swap buffers (draw everything onto the screen)
-                SDL_GL_SwapWindow(sdlWindow);
+                SDL_GL_SwapWindow(mSdlWindow);
             }
         }
-        gamelayerMachine.removeAll();
+        mGamelayerMachine.removeAll();
         
         Scripts::close();
         
-        SDL_GL_DeleteContext(glContext);
+        if(!cleanupGraphicsApi()) {
+            Logger::log(Logger::SEVERE) << "Fatal error cleaning up graphics API" << std::endl;
+            return EXIT_FAILURE;
+        }
         
-        SDL_DestroyWindow(sdlWindow);
-        SDL_DestroyRenderer(sdlRenderer);
+        if(!cleanupWindowingInputSystem()) {
+            Logger::log(Logger::SEVERE) << "Fatal error cleaning up windowing/input system" << std::endl;
+            return EXIT_FAILURE;
+        }
         
-        SDL_Quit();
-        
-        return 0;
+        return EXIT_SUCCESS;
     }
 
 } // Engine
 } // pgg
 
 int main(int argc, char* argv[]) {
-    return pgg::Engine::run(argc, argv);
+    using namespace pgg;
+    try {
+        return Engine::run(argc, argv);
+    } catch(const std::runtime_error& e) {
+        Logger::log(Logger::SEVERE) << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 }

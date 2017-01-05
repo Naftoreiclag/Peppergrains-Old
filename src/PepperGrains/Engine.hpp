@@ -27,12 +27,9 @@ namespace pgg {
 namespace Engine {
     
     extern Sound::Endpoint soundEndpoint;
-    extern GamelayerMachine gamelayerMachine;
+    extern GamelayerMachine mGamelayerMachine;
     
     void quit();
-    
-    double calcRunTimeSeconds();
-    uint64_t calcRunTimeMilliseconds();
     
     uint64_t getTotalTickCount();
     

@@ -48,8 +48,8 @@ MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
 , flipped(e.direction == SDL_MOUSEWHEEL_FLIPPED) { }
 
 WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
-: width(e.data1)
-, height(e.data2) { }
+: width(e.data1 < 1 ? 1 : e.data1)
+, height(e.data2 < 1 ? 1 : e.data2) { }
 
 }
 

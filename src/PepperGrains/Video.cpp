@@ -128,6 +128,18 @@ namespace Video {
         out << "OpenGL Max draw buffers: " << OpenGL::getMaxDrawBuffers() << std::endl;
         out << "OpenGL Max color attachments: " << OpenGL::getMaxColorAttachments() << std::endl;
     }
+    
+    uint32_t mWindowWidth = 640;
+    uint32_t mWindowHeight = 480;
+    
+    uint32_t getWindowWidth() { return mWindowWidth; }
+    uint32_t getWindowHeight() { return mWindowHeight; }
+    
+    void resizeWindow(uint32_t width, uint32_t height) {
+        mWindowWidth = width;
+        mWindowHeight = height;
+    }
+    
 } // Video
 } // pgg
 
