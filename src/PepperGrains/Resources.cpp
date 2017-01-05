@@ -20,7 +20,7 @@
 #include <map>
 
 #include "boost/filesystem.hpp"
-#include "json/json.h"
+#include <json/json.h>
 
 #include "Addons.hpp"
 #include "ResourcesUtil.hpp"

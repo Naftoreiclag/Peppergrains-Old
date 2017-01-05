@@ -95,6 +95,8 @@ namespace Engine {
         return true;
     }
     inline void wisPollEvents() {
+        mInputState.updateKeysFromSDL();
+        mInputState.updateMouseFromSDL();
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -194,6 +196,10 @@ namespace Engine {
         return true;
     }
     inline void wisPollEvents() {
+        if(glfwWindowShouldClose(mGlfwWindow)) {
+            mGamelayerMachine.onQuit(QuitEvent());
+            quit();
+        }
         glfwPollEvents();
     }
     inline void wisPostRender() {
@@ -277,7 +283,12 @@ namespace Engine {
         Addons::logAddonFailures();
         Addons::clearFailedAddons();
 
+        #ifdef PGG_SDL
         uint32_t prev = SDL_GetTicks();
+        #endif
+        #ifdef PGG_GLFW
+        uint32_t prev = 0;
+        #endif
         mMainLoopRunning = true;
         InputState mInputState;
         
@@ -299,7 +310,12 @@ namespace Engine {
                 
             }
             else {
+                #ifdef PGG_SDL
                 uint32_t now = SDL_GetTicks();
+                #endif
+                #ifdef PGG_GLFW
+                uint32_t now = 0;
+                #endif
                 float tpf = now - prev;
                 tpf /= 1000.f;
                 prev = now;
@@ -313,9 +329,6 @@ namespace Engine {
                     mOneSecondTimer -= 1.f;
                     Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
                 }
-                
-                mInputState.updateKeysFromSDL();
-                mInputState.updateMouseFromSDL();
                 
                 mGamelayerMachine.onTick(tpf, &mInputState);
                 mSoundEndpoint.updateSoundThread();

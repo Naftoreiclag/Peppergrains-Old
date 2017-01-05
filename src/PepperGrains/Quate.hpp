@@ -18,7 +18,6 @@
 #define PGG_QUATE_HPP
 
 #include "btBulletDynamicsCommon.h"
-
 #include "GraphicsApiStuff.hpp"
 
 // Nothing but a way to easily convert between the many quaternion types

@@ -19,9 +19,9 @@
 #include <cassert>
 #include <fstream>
 
-#include "json/json.h"
+#include <GraphicsApiStuff.hpp>
+#include <json/json.h>
 
-#include "GraphicsApiStuff.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
 #include "ImageResource.hpp"

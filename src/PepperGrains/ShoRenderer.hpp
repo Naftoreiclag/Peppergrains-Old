@@ -19,7 +19,8 @@
 
 #include <stdint.h>
 
-#include "GraphicsApiStuff.hpp"
+#include <GraphicsApiStuff.hpp>
+
 #include "ShaderProgramResource.hpp"
 #include "Scenegraph.hpp"
 #include "Camera.hpp"

@@ -20,7 +20,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "json/json.h"
+#include <json/json.h>
 
 #include "Logger.hpp"
 #include "Resources.hpp"

@@ -21,7 +21,6 @@
 
 #include "GamelayerMachine.hpp"
 #include "SoundEndpoint.hpp"
-#include "ResourceManager.hpp"
 
 namespace pgg {
 namespace Engine {

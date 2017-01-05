@@ -361,7 +361,7 @@
         <IncludePath Value="$(LSIO_HOME)/include"/>
         <IncludePath Value="$(LUA_HOME)/include"/>
         <Preprocessor Value="PGG_OPENGL"/>
-        <Preprocessor Value="PGG_SDL"/>
+        <Preprocessor Value="PGG_GLFW"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(VULKAN_HOME)/Bin"/>

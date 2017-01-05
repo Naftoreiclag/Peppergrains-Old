@@ -20,7 +20,6 @@
 #include <ostream>
 
 #include "btBulletDynamicsCommon.h"
-
 #include "GraphicsApiStuff.hpp"
 
 namespace pgg {

@@ -19,8 +19,9 @@
 
 #include <stdint.h>
 
+#include <GraphicsApiStuff.hpp>
+
 #include "Model.hpp"
-#include "GraphicsApiStuff.hpp"
 #include "Spharm.hpp"
 
 // Perhaps all models should be instances, and instead there should just be geometryinstance

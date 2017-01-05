@@ -281,130 +281,130 @@ Scancode scancodeFromSDLMouse(uint8_t button) {
 #ifdef PGG_GLFW
 Scancode scancodeFromGLFWKey(int key) {
     switch(key) {
-        case GLFW_KEY_SPACE                        : return Scancode::K_SPACEBAR
-        case GLFW_KEY_APOSTROPHE                   : return Scancode::K_APOSTROPHE
-        case GLFW_KEY_COMMA                        : return Scancode::K_COMMA
-        case GLFW_KEY_MINUS                        : return Scancode::K_SUBTRACT
-        case GLFW_KEY_PERIOD                       : return Scancode::K_PERIOD
-        case GLFW_KEY_SLASH                        : return Scancode::K_SLASH
-        case GLFW_KEY_0                            : return Scancode::K_0
-        case GLFW_KEY_1                            : return Scancode::K_1
-        case GLFW_KEY_2                            : return Scancode::K_2
-        case GLFW_KEY_3                            : return Scancode::K_3
-        case GLFW_KEY_4                            : return Scancode::K_4
-        case GLFW_KEY_5                            : return Scancode::K_5
-        case GLFW_KEY_6                            : return Scancode::K_6
-        case GLFW_KEY_7                            : return Scancode::K_7
-        case GLFW_KEY_8                            : return Scancode::K_8
-        case GLFW_KEY_9                            : return Scancode::K_9
-        case GLFW_KEY_SEMICOLON                    : return Scancode::K_SEMICOLON
-        case GLFW_KEY_EQUAL                        : return Scancode::K_EQUALS
-        case GLFW_KEY_A                            : return Scancode::K_A
-        case GLFW_KEY_B                            : return Scancode::K_B
-        case GLFW_KEY_C                            : return Scancode::K_C
-        case GLFW_KEY_D                            : return Scancode::K_D
-        case GLFW_KEY_E                            : return Scancode::K_E
-        case GLFW_KEY_F                            : return Scancode::K_F
-        case GLFW_KEY_G                            : return Scancode::K_G
-        case GLFW_KEY_H                            : return Scancode::K_H
-        case GLFW_KEY_I                            : return Scancode::K_I
-        case GLFW_KEY_J                            : return Scancode::K_J
-        case GLFW_KEY_K                            : return Scancode::K_K
-        case GLFW_KEY_L                            : return Scancode::K_L
-        case GLFW_KEY_M                            : return Scancode::K_M
-        case GLFW_KEY_N                            : return Scancode::K_N
-        case GLFW_KEY_O                            : return Scancode::K_O
-        case GLFW_KEY_P                            : return Scancode::K_P
-        case GLFW_KEY_Q                            : return Scancode::K_Q
-        case GLFW_KEY_R                            : return Scancode::K_R
-        case GLFW_KEY_S                            : return Scancode::K_S
-        case GLFW_KEY_T                            : return Scancode::K_T
-        case GLFW_KEY_U                            : return Scancode::K_U
-        case GLFW_KEY_V                            : return Scancode::K_V
-        case GLFW_KEY_W                            : return Scancode::K_W
-        case GLFW_KEY_X                            : return Scancode::K_X
-        case GLFW_KEY_Y                            : return Scancode::K_Y
-        case GLFW_KEY_Z                            : return Scancode::K_Z
-        case GLFW_KEY_LEFT_BRACKET                 : return Scancode::K_BRACKET_LEFT
-        case GLFW_KEY_BACKSLASH                    : return Scancode::K_BACKSLASH
-        case GLFW_KEY_RIGHT_BRACKET                : return Scancode::K_BRACKET_RIGHT
-        case GLFW_KEY_GRAVE_ACCENT                 : return Scancode::K_GRAVE
-        case GLFW_KEY_WORLD_1                      : return Scancode::K_INTERNATIONAL_1
-        case GLFW_KEY_WORLD_2                      : return Scancode::K_INTERNATIONAL_3
-        case GLFW_KEY_ESCAPE                       : return Scancode::K_ESCAPE
-        case GLFW_KEY_ENTER                        : return Scancode::K_RETURN
-        case GLFW_KEY_TAB                          : return Scancode::K_TAB
-        case GLFW_KEY_BACKSPACE                    : return Scancode::K_BACKSPACE
-        case GLFW_KEY_INSERT                       : return Scancode::K_INSERT
-        case GLFW_KEY_DELETE                       : return Scancode::K_DELETE
-        case GLFW_KEY_RIGHT                        : return Scancode::K_ARROW_RIGHT
-        case GLFW_KEY_LEFT                         : return Scancode::K_ARROW_LEFT
-        case GLFW_KEY_DOWN                         : return Scancode::K_ARROW_DOWN
-        case GLFW_KEY_UP                           : return Scancode::K_ARROW_UP
-        case GLFW_KEY_PAGE_UP                      : return Scancode::K_PAGE_UP
-        case GLFW_KEY_PAGE_DOWN                    : return Scancode::K_PAGE_DOWN
-        case GLFW_KEY_HOME                         : return Scancode::K_HOME
-        case GLFW_KEY_END                          : return Scancode::K_END
-        case GLFW_KEY_CAPS_LOCK                    : return Scancode::K_CAPS_LOCK
-        case GLFW_KEY_SCROLL_LOCK                  : return Scancode::K_SCROLL_LOCK
-        case GLFW_KEY_NUM_LOCK                     : return Scancode::K_NUMLOCK
-        case GLFW_KEY_PRINT_SCREEN                 : return Scancode::K_PRINTSCREEN
-        case GLFW_KEY_PAUSE                        : return Scancode::K_PAUSE
-        case GLFW_KEY_F1                           : return Scancode::K_F1
-        case GLFW_KEY_F2                           : return Scancode::K_F2
-        case GLFW_KEY_F3                           : return Scancode::K_F3
-        case GLFW_KEY_F4                           : return Scancode::K_F4
-        case GLFW_KEY_F5                           : return Scancode::K_F5
-        case GLFW_KEY_F6                           : return Scancode::K_F6
-        case GLFW_KEY_F7                           : return Scancode::K_F7
-        case GLFW_KEY_F8                           : return Scancode::K_F8
-        case GLFW_KEY_F9                           : return Scancode::K_F9
-        case GLFW_KEY_F10                          : return Scancode::K_F10
-        case GLFW_KEY_F11                          : return Scancode::K_F11
-        case GLFW_KEY_F12                          : return Scancode::K_F12
-        case GLFW_KEY_F13                          : return Scancode::K_F13
-        case GLFW_KEY_F14                          : return Scancode::K_F14
-        case GLFW_KEY_F15                          : return Scancode::K_F15
-        case GLFW_KEY_F16                          : return Scancode::K_F16
-        case GLFW_KEY_F17                          : return Scancode::K_F17
-        case GLFW_KEY_F18                          : return Scancode::K_F18
-        case GLFW_KEY_F19                          : return Scancode::K_F19
-        case GLFW_KEY_F20                          : return Scancode::K_F20
-        case GLFW_KEY_F21                          : return Scancode::K_F21
-        case GLFW_KEY_F22                          : return Scancode::K_F22
-        case GLFW_KEY_F23                          : return Scancode::K_F23
-        case GLFW_KEY_F24                          : return Scancode::K_F24
-        case GLFW_KEY_F25                          : return Scancode::K_F25
-        case GLFW_KEY_KP_0                         : return Scancode::K_NUMPAD_0
-        case GLFW_KEY_KP_1                         : return Scancode::K_NUMPAD_1
-        case GLFW_KEY_KP_2                         : return Scancode::K_NUMPAD_2
-        case GLFW_KEY_KP_3                         : return Scancode::K_NUMPAD_3
-        case GLFW_KEY_KP_4                         : return Scancode::K_NUMPAD_4
-        case GLFW_KEY_KP_5                         : return Scancode::K_NUMPAD_5
-        case GLFW_KEY_KP_6                         : return Scancode::K_NUMPAD_6
-        case GLFW_KEY_KP_7                         : return Scancode::K_NUMPAD_7
-        case GLFW_KEY_KP_8                         : return Scancode::K_NUMPAD_8
-        case GLFW_KEY_KP_9                         : return Scancode::K_NUMPAD_9
-        case GLFW_KEY_KP_DECIMAL                   : return Scancode::K_NUMPAD_PERIOD
-        case GLFW_KEY_KP_DIVIDE                    : return Scancode::K_NUMPAD_DIVIDE
-        case GLFW_KEY_KP_MULTIPLY                  : return Scancode::K_NUMPAD_MULTIPLY
-        case GLFW_KEY_KP_SUBTRACT                  : return Scancode::K_NUMPAD_SUBTRACT
-        case GLFW_KEY_KP_ADD                       : return Scancode::K_NUMPAD_ADD
-        case GLFW_KEY_KP_ENTER                     : return Scancode::K_NUMPAD_ENTER
-        case GLFW_KEY_KP_EQUAL                     : return Scancode::K_NUMPAD_EQUALS
-        case GLFW_KEY_LEFT_SHIFT                   : return Scancode::K_SHIFT_LEFT
-        case GLFW_KEY_LEFT_CONTROL                 : return Scancode::K_CONTROL_LEFT
-        case GLFW_KEY_LEFT_ALT                     : return Scancode::K_ALT_LEFT
-        case GLFW_KEY_LEFT_SUPER                   : return Scancode::K_GUI_LEFT
-        case GLFW_KEY_RIGHT_SHIFT                  : return Scancode::K_SHIFT_RIGHT
-        case GLFW_KEY_RIGHT_CONTROL                : return Scancode::K_CONTROL_RIGHT
-        case GLFW_KEY_RIGHT_ALT                    : return Scancode::K_ALT_RIGHT
-        case GLFW_KEY_RIGHT_SUPER                  : return Scancode::K_GUI_RIGHT
-        case GLFW_KEY_MENU                         : return Scancode::K_MENU
+        case GLFW_KEY_SPACE                        : return Scancode::K_SPACEBAR;
+        case GLFW_KEY_APOSTROPHE                   : return Scancode::K_APOSTROPHE;
+        case GLFW_KEY_COMMA                        : return Scancode::K_COMMA;
+        case GLFW_KEY_MINUS                        : return Scancode::K_SUBTRACT;
+        case GLFW_KEY_PERIOD                       : return Scancode::K_PERIOD;
+        case GLFW_KEY_SLASH                        : return Scancode::K_SLASH;
+        case GLFW_KEY_0                            : return Scancode::K_0;
+        case GLFW_KEY_1                            : return Scancode::K_1;
+        case GLFW_KEY_2                            : return Scancode::K_2;
+        case GLFW_KEY_3                            : return Scancode::K_3;
+        case GLFW_KEY_4                            : return Scancode::K_4;
+        case GLFW_KEY_5                            : return Scancode::K_5;
+        case GLFW_KEY_6                            : return Scancode::K_6;
+        case GLFW_KEY_7                            : return Scancode::K_7;
+        case GLFW_KEY_8                            : return Scancode::K_8;
+        case GLFW_KEY_9                            : return Scancode::K_9;
+        case GLFW_KEY_SEMICOLON                    : return Scancode::K_SEMICOLON;
+        case GLFW_KEY_EQUAL                        : return Scancode::K_EQUALS;
+        case GLFW_KEY_A                            : return Scancode::K_A;
+        case GLFW_KEY_B                            : return Scancode::K_B;
+        case GLFW_KEY_C                            : return Scancode::K_C;
+        case GLFW_KEY_D                            : return Scancode::K_D;
+        case GLFW_KEY_E                            : return Scancode::K_E;
+        case GLFW_KEY_F                            : return Scancode::K_F;
+        case GLFW_KEY_G                            : return Scancode::K_G;
+        case GLFW_KEY_H                            : return Scancode::K_H;
+        case GLFW_KEY_I                            : return Scancode::K_I;
+        case GLFW_KEY_J                            : return Scancode::K_J;
+        case GLFW_KEY_K                            : return Scancode::K_K;
+        case GLFW_KEY_L                            : return Scancode::K_L;
+        case GLFW_KEY_M                            : return Scancode::K_M;
+        case GLFW_KEY_N                            : return Scancode::K_N;
+        case GLFW_KEY_O                            : return Scancode::K_O;
+        case GLFW_KEY_P                            : return Scancode::K_P;
+        case GLFW_KEY_Q                            : return Scancode::K_Q;
+        case GLFW_KEY_R                            : return Scancode::K_R;
+        case GLFW_KEY_S                            : return Scancode::K_S;
+        case GLFW_KEY_T                            : return Scancode::K_T;
+        case GLFW_KEY_U                            : return Scancode::K_U;
+        case GLFW_KEY_V                            : return Scancode::K_V;
+        case GLFW_KEY_W                            : return Scancode::K_W;
+        case GLFW_KEY_X                            : return Scancode::K_X;
+        case GLFW_KEY_Y                            : return Scancode::K_Y;
+        case GLFW_KEY_Z                            : return Scancode::K_Z;
+        case GLFW_KEY_LEFT_BRACKET                 : return Scancode::K_BRACKET_LEFT;
+        case GLFW_KEY_BACKSLASH                    : return Scancode::K_BACKSLASH;
+        case GLFW_KEY_RIGHT_BRACKET                : return Scancode::K_BRACKET_RIGHT;
+        case GLFW_KEY_GRAVE_ACCENT                 : return Scancode::K_GRAVE;
+        case GLFW_KEY_WORLD_1                      : return Scancode::K_INTERNATIONAL_1;
+        case GLFW_KEY_WORLD_2                      : return Scancode::K_INTERNATIONAL_3;
+        case GLFW_KEY_ESCAPE                       : return Scancode::K_ESCAPE;
+        case GLFW_KEY_ENTER                        : return Scancode::K_RETURN;
+        case GLFW_KEY_TAB                          : return Scancode::K_TAB;
+        case GLFW_KEY_BACKSPACE                    : return Scancode::K_BACKSPACE;
+        case GLFW_KEY_INSERT                       : return Scancode::K_INSERT;
+        case GLFW_KEY_DELETE                       : return Scancode::K_DELETE;
+        case GLFW_KEY_RIGHT                        : return Scancode::K_ARROW_RIGHT;
+        case GLFW_KEY_LEFT                         : return Scancode::K_ARROW_LEFT;
+        case GLFW_KEY_DOWN                         : return Scancode::K_ARROW_DOWN;
+        case GLFW_KEY_UP                           : return Scancode::K_ARROW_UP;
+        case GLFW_KEY_PAGE_UP                      : return Scancode::K_PAGE_UP;
+        case GLFW_KEY_PAGE_DOWN                    : return Scancode::K_PAGE_DOWN;
+        case GLFW_KEY_HOME                         : return Scancode::K_HOME;
+        case GLFW_KEY_END                          : return Scancode::K_END;
+        case GLFW_KEY_CAPS_LOCK                    : return Scancode::K_CAPS_LOCK;
+        case GLFW_KEY_SCROLL_LOCK                  : return Scancode::K_SCROLL_LOCK;
+        case GLFW_KEY_NUM_LOCK                     : return Scancode::K_NUMLOCK;
+        case GLFW_KEY_PRINT_SCREEN                 : return Scancode::K_PRINTSCREEN;
+        case GLFW_KEY_PAUSE                        : return Scancode::K_PAUSE;
+        case GLFW_KEY_F1                           : return Scancode::K_F1;
+        case GLFW_KEY_F2                           : return Scancode::K_F2;
+        case GLFW_KEY_F3                           : return Scancode::K_F3;
+        case GLFW_KEY_F4                           : return Scancode::K_F4;
+        case GLFW_KEY_F5                           : return Scancode::K_F5;
+        case GLFW_KEY_F6                           : return Scancode::K_F6;
+        case GLFW_KEY_F7                           : return Scancode::K_F7;
+        case GLFW_KEY_F8                           : return Scancode::K_F8;
+        case GLFW_KEY_F9                           : return Scancode::K_F9;
+        case GLFW_KEY_F10                          : return Scancode::K_F10;
+        case GLFW_KEY_F11                          : return Scancode::K_F11;
+        case GLFW_KEY_F12                          : return Scancode::K_F12;
+        case GLFW_KEY_F13                          : return Scancode::K_F13;
+        case GLFW_KEY_F14                          : return Scancode::K_F14;
+        case GLFW_KEY_F15                          : return Scancode::K_F15;
+        case GLFW_KEY_F16                          : return Scancode::K_F16;
+        case GLFW_KEY_F17                          : return Scancode::K_F17;
+        case GLFW_KEY_F18                          : return Scancode::K_F18;
+        case GLFW_KEY_F19                          : return Scancode::K_F19;
+        case GLFW_KEY_F20                          : return Scancode::K_F20;
+        case GLFW_KEY_F21                          : return Scancode::K_F21;
+        case GLFW_KEY_F22                          : return Scancode::K_F22;
+        case GLFW_KEY_F23                          : return Scancode::K_F23;
+        case GLFW_KEY_F24                          : return Scancode::K_F24;
+        case GLFW_KEY_F25                          : return Scancode::K_F25;
+        case GLFW_KEY_KP_0                         : return Scancode::K_NUMPAD_0;
+        case GLFW_KEY_KP_1                         : return Scancode::K_NUMPAD_1;
+        case GLFW_KEY_KP_2                         : return Scancode::K_NUMPAD_2;
+        case GLFW_KEY_KP_3                         : return Scancode::K_NUMPAD_3;
+        case GLFW_KEY_KP_4                         : return Scancode::K_NUMPAD_4;
+        case GLFW_KEY_KP_5                         : return Scancode::K_NUMPAD_5;
+        case GLFW_KEY_KP_6                         : return Scancode::K_NUMPAD_6;
+        case GLFW_KEY_KP_7                         : return Scancode::K_NUMPAD_7;
+        case GLFW_KEY_KP_8                         : return Scancode::K_NUMPAD_8;
+        case GLFW_KEY_KP_9                         : return Scancode::K_NUMPAD_9;
+        case GLFW_KEY_KP_DECIMAL                   : return Scancode::K_NUMPAD_PERIOD;
+        case GLFW_KEY_KP_DIVIDE                    : return Scancode::K_NUMPAD_DIVIDE;
+        case GLFW_KEY_KP_MULTIPLY                  : return Scancode::K_NUMPAD_MULTIPLY;
+        case GLFW_KEY_KP_SUBTRACT                  : return Scancode::K_NUMPAD_SUBTRACT;
+        case GLFW_KEY_KP_ADD                       : return Scancode::K_NUMPAD_ADD;
+        case GLFW_KEY_KP_ENTER                     : return Scancode::K_NUMPAD_ENTER;
+        case GLFW_KEY_KP_EQUAL                     : return Scancode::K_NUMPAD_EQUALS;
+        case GLFW_KEY_LEFT_SHIFT                   : return Scancode::K_SHIFT_LEFT;
+        case GLFW_KEY_LEFT_CONTROL                 : return Scancode::K_CONTROL_LEFT;
+        case GLFW_KEY_LEFT_ALT                     : return Scancode::K_ALT_LEFT;
+        case GLFW_KEY_LEFT_SUPER                   : return Scancode::K_GUI_LEFT;
+        case GLFW_KEY_RIGHT_SHIFT                  : return Scancode::K_SHIFT_RIGHT;
+        case GLFW_KEY_RIGHT_CONTROL                : return Scancode::K_CONTROL_RIGHT;
+        case GLFW_KEY_RIGHT_ALT                    : return Scancode::K_ALT_RIGHT;
+        case GLFW_KEY_RIGHT_SUPER                  : return Scancode::K_GUI_RIGHT;
+        case GLFW_KEY_MENU                         : return Scancode::K_MENU;
         default : return Scancode::UNKNOWN;
     }
 }
-Scancode scancodeFromGLFWMouse(uint8_t button) {
+Scancode scancodeFromGLFWMouse(int button) {
     switch(button) {
         case GLFW_MOUSE_BUTTON_LEFT     : return Scancode::M_LEFT; // GLFW_MOUSE_BUTTON_1
         case GLFW_MOUSE_BUTTON_RIGHT    : return Scancode::M_RIGHT; // GLFW_MOUSE_BUTTON_2
@@ -455,6 +455,7 @@ void InputState::setMouseDelta(int32_t dx, int32_t dy) {
     mMouseDY = dy;
 }
 
+#ifdef PGG_SDL
 void InputState::updateKeysFromSDL() {
     int sdlKeystateSize;
     const Uint8* keystates = SDL_GetKeyboardState(&sdlKeystateSize);
@@ -477,6 +478,7 @@ void InputState::updateMouseFromSDL() {
     mPressed[Input::Scancode::M_SPECIAL_0] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_X1)) > 0 ? true : false;
     mPressed[Input::Scancode::M_SPECIAL_1] = (buttonBitmask & SDL_BUTTON(SDL_BUTTON_X2)) > 0 ? true : false;
 }
+#endif
 
 void InputState::setState(Input::Scancode button, bool pressed) {
     assert(button < Input::Scancode::ENUM_SIZE && "Button scancode out of array bounds in ScancodeState::setState()");

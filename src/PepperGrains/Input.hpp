@@ -313,8 +313,10 @@ public:
     int32_t getMouseDX() const;
     int32_t getMouseDY() const;
     
+    #ifdef PGG_SDL
     void updateKeysFromSDL();
     void updateMouseFromSDL();
+    #endif
     
     void setState(Input::Scancode button, bool pressed);
     void setMouseDelta(int32_t dx, int32_t dy);

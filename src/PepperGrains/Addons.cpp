@@ -20,7 +20,7 @@
 #include <vector>
 #include <map>
 
-#include "json/json.h"
+#include <json/json.h>
 #include "boost/filesystem.hpp"
 
 #include "ResourcesUtil.hpp"

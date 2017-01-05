@@ -17,7 +17,8 @@
 #ifndef PGG_RENDERABLE_HPP
 #define PGG_RENDERABLE_HPP
 
-#include "GraphicsApiStuff.hpp"
+#include <GraphicsApiStuff.hpp>
+
 #include "HardValueStuff.hpp"
 #include "Camera.hpp"
 

@@ -18,8 +18,8 @@
 #define PGG_MATERIALRESOURCE_HPP
 
 
-#include "json/json.h"
-#include "GraphicsApiStuff.hpp"
+#include <json/json.h>
+#include <GraphicsApiStuff.hpp>
 
 #include "Resource.hpp" // Base class: Resource
 #include "ShaderProgramResource.hpp"

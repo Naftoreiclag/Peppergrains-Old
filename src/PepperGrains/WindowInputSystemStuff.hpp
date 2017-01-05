@@ -22,6 +22,12 @@
 #endif
 
 #ifdef PGG_GLFW
+
+// Ensure glew.h is loaded before gl.h if we are using that
+#ifdef PGG_OPENGL
+#include <GraphicsApiStuff.hpp>
+#endif
+
 #include <GLFW/glfw3.h>
 #endif
 
