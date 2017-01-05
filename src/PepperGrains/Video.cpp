@@ -138,6 +138,8 @@ namespace Video {
     void resizeWindow(uint32_t width, uint32_t height) {
         mWindowWidth = width;
         mWindowHeight = height;
+        
+        // todo: actually call the resize func instead
     }
     
 } // Video

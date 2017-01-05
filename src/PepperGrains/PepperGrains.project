@@ -107,8 +107,6 @@
       <File Name="StreamStuff.hpp"/>
       <File Name="NALEvents.cpp"/>
       <File Name="NALEvents.hpp"/>
-      <File Name="NALInputs.cpp"/>
-      <File Name="NALInputs.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">
@@ -236,6 +234,8 @@
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
     </VirtualDirectory>
+    <File Name="Input.cpp"/>
+    <File Name="Input.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="lib">
     <File Name="../../lib/src/jsoncpp/dist/jsoncpp.cpp"/>

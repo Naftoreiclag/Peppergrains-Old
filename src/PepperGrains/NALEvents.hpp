@@ -22,24 +22,45 @@
 #include <stdint.h>
 #include <string>
 
-#include "SDL2/SDL.h"
+#ifdef PGG_SDL
+#include <SDL2/SDL.h>
+#endif
 
-#include "NALInputs.hpp"
+#ifdef PGG_GLFW
+#include <GLFW/glfw3.h>
+#endif
+
+#include "Input.hpp"
 
 namespace pgg {
 
 struct QuitEvent {
+    #ifdef PGG_SDL
     QuitEvent(SDL_QuitEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    QuitEvent();
+    #endif
 };
 
 struct TextInputEvent {
+    #ifdef PGG_SDL
     TextInputEvent(SDL_TextInputEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    // TODO: IMPLEMENT
+    #endif
     
     std::string text;
 };
 
 struct KeyboardEvent {
+    #ifdef PGG_SDL
     KeyboardEvent(SDL_KeyboardEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    KeyboardEvent(int key, int action);
+    #endif
     
     // true = pressed, false = released
     bool pressed;
@@ -48,7 +69,12 @@ struct KeyboardEvent {
 };
 
 struct MouseMoveEvent {
+    #ifdef PGG_SDL
     MouseMoveEvent(SDL_MouseMotionEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    MouseMoveEvent(int32_t x, int32_t y, int32_t dx, int32_t dy);
+    #endif
     
     int32_t x;
     int32_t y;
@@ -57,17 +83,26 @@ struct MouseMoveEvent {
 };
 
 struct MouseButtonEvent {
+    #ifdef PGG_SDL
     MouseButtonEvent(SDL_MouseButtonEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    MouseButtonEvent(int key, int status, int32_t x, int32_t, y);
+    #endif
     
     Input::Scancode button;
     bool pressed;
-    uint8_t clicks;
     int32_t x;
     int32_t y;
+    uint8_t clicks;
 };
 
 struct MouseWheelMoveEvent {
+    #ifdef PGG_SDL
     MouseWheelMoveEvent(SDL_MouseWheelEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    #endif
     
     int32_t x;
     int32_t y;
@@ -75,7 +110,11 @@ struct MouseWheelMoveEvent {
 };
 
 struct WindowResizeEvent {
+    #ifdef PGG_SDL
     WindowResizeEvent(SDL_WindowEvent e);
+    #endif
+    #ifdef PGG_GLFW
+    #endif
     
     uint32_t width;
     uint32_t height;

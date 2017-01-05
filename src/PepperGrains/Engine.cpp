@@ -50,12 +50,21 @@ namespace Video {
 }
     
 namespace Engine {
+
+    bool mMainLoopRunning;
+    void quit() {
+        mMainLoopRunning = false;
+    }
+    
+    InputState mInputState;
+    
+    // wis = Window/Input system
     
     #ifdef PGG_SDL
     SDL_Window* mSdlWindow;
     SDL_Renderer* mSdlRenderer;
     SDL_GLContext mGlContext;
-    bool initializeWindowingInputSystem() {
+    bool wisInitialize() {
         if(SDL_Init(SDL_INIT_VIDEO) < 0) {
             Logger::log(Logger::SEVERE) << "Could not initalize SDL video" << std::endl;
             return false;
@@ -68,7 +77,7 @@ namespace Engine {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         
         // Create the window
-        mSdlWindow = SDL_CreateWindow("Window Title", 
+        mSdlWindow = SDL_CreateWindow("SDL Window", 
             SDL_WINDOWPOS_CENTERED, 
             SDL_WINDOWPOS_CENTERED, 
             Video::getWindowWidth(), Video::getWindowHeight(), 
@@ -98,7 +107,63 @@ namespace Engine {
         
         return true;
     }
-    bool cleanupWindowingInputSystem() {
+    inline void wisPollEvents() {
+        SDL_Event event;
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_QUIT: {
+                    mGamelayerMachine.onQuit(QuitEvent(event.quit));
+                    quit();
+                    break;
+                }
+                case SDL_TEXTINPUT: {
+                    mGamelayerMachine.onTextInput(TextInputEvent(event.text));
+                    break;
+                }
+                
+                // Both press and release should trigger the same event
+                case SDL_KEYUP:
+                case SDL_KEYDOWN: {
+                    mGamelayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
+                    break;
+                }
+                case SDL_MOUSEMOTION: {
+                    MouseMoveEvent mme(event.motion);
+                    mInputState.setMouseDelta(mme.dx, mme.dy);
+                    mGamelayerMachine.onMouseMove(MouseMoveEvent(event.motion));
+                    break;
+                }
+                
+                // Both press and release should trigger the same event
+                case SDL_MOUSEBUTTONUP:
+                case SDL_MOUSEBUTTONDOWN: {
+                    mGamelayerMachine.onMouseButton(MouseButtonEvent(event.button));
+                    break;
+                }
+                case SDL_MOUSEWHEEL: {
+                    mGamelayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
+                    break;
+                }
+                case SDL_WINDOWEVENT: {
+                    switch(event.window.event) {
+                        // This also catches resizing due to API calls
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                            WindowResizeEvent windowResizeEvent(event.window);
+                            Video::mWindowWidth = windowResizeEvent.width;
+                            Video::mWindowHeight = windowResizeEvent.height;
+                            mGamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
+                        }
+                    }
+                }
+                default: break;
+            }
+        }
+    }
+    inline void wisPostRender() {
+        // Swap buffers (draw everything onto the screen)
+        SDL_GL_SwapWindow(mSdlWindow);
+    }
+    bool wisCleanup() {
         SDL_GL_DeleteContext(mGlContext);
         
         SDL_DestroyWindow(mSdlWindow);
@@ -110,21 +175,45 @@ namespace Engine {
     #endif
 
     #ifdef PGG_GLFW
-    bool initializeWindowingInputSystem() {
+    GLFWwindow* mGlfwWindow;
+    
+    void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifierFlags) {
+        KeyboardEvent event;
+        
+        mGamelayerMachine.onKeyboardEvent(event);
+    }
+    
+    bool wisInitialize() {
         if(!glfwInit()) {
             Logger::log(Logger::SEVERE) << "Could not initialize GLFW" << std::endl;
             return false;
         }
+        mGlfwWindow = glfwCreateWindow(
+            Video::getWindowWidth(), Video::getWindowHeight(), 
+            "GLFW Window", 0, 0);
+        if(!mGlfwWindow) {
+            glfwTerminate();
+            return false;
+        }
+        glfwMakeContextCurrent(mGlfwWindow);
+        glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
         return true;
     }
-    bool cleanupWindowingInputSystem() {
+    inline void wisPollEvents() {
+        glfwPollEvents();
+    }
+    inline void wisPostRender() {
+        // Swap buffers (draw everything onto the screen)
+        glfwSwapBuffers(mGlfwWindow);
+    }
+    bool wisCleanup() {
+        glfwTerminate();
         return true;
-        
     }
     #endif
     
     #ifdef PGG_OPENGL
-    bool initializeGraphicsApi() {
+    bool gapiInitialize() {
         // Initialize GLEW, using OpenGL experimental drivers
         glewExperimental = GL_TRUE;
         glewInit();
@@ -133,64 +222,52 @@ namespace Engine {
         glEnable(GL_DEBUG_OUTPUT);
         return true;
     }
-    bool cleanupGraphicsApi() {
+    bool gapiCleanup() {
         return true;
     }
     #endif
     
     #ifdef PGG_VULKAN
-    bool initializeGraphicsApi() {
+    bool gapiInitialize() {
         return true;
         
     }
-    bool cleanupGraphicsApi() {
+    bool gapiCleanup() {
         return true;
         
     }
     #endif
     
     
-    Sound::Endpoint soundEndpoint;
+    Sound::Endpoint mSoundEndpoint;
     SoundIo* mSndIo;
-    bool initializeSoundSystem() {
+    bool sndsInitialize() {
         mSndIo = soundio_create();
         soundio_connect(mSndIo); // Connect to the first available backend
         soundio_flush_events(mSndIo); // Initial event flush
         SoundIoDevice* mSndDevice = soundio_get_output_device(mSndIo, soundio_default_output_device_index(mSndIo)); // Use default device
-        soundEndpoint.setDevice(mSndDevice);
+        mSoundEndpoint.setDevice(mSndDevice);
         
         return true;
-    }
-
-    bool mMainLoopRunning;
-    void quit() {
-        mMainLoopRunning = false;
     }
 
     GamelayerMachine mGamelayerMachine;
     uint32_t mTotalTicks;
     int run(int argc, char* argv[]) {
         
-        Video::resizeWindow(1280, 960);
+        Video::mWindowWidth = 1280;
+        Video::mWindowHeight = 960;
         
-        if(!initializeWindowingInputSystem()) {
+        if(!wisInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }
-        
-        float mTps;
-        float mTpsWeight;
-        float mOneSecondTimer;
-        
-        mTps = 0.f;
-        mTpsWeight = 0.85f;
-        
-        if(!initializeGraphicsApi()) {
+        if(!gapiInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing graphics API" << std::endl;
             return EXIT_FAILURE;
         }
         
-        if(!initializeSoundSystem()) {
+        if(!sndsInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing sound system" << std::endl;
             return EXIT_FAILURE;
         }
@@ -205,65 +282,20 @@ namespace Engine {
 
         uint32_t prev = SDL_GetTicks();
         mMainLoopRunning = true;
-        InputState inputState;
+        InputState mInputState;
+        
+        float mTps = 0.f;
+        float mTpsWeight = 0.85f;
+        float mOneSecondTimer;
         
         //mGamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
         
         while(mMainLoopRunning) {
-            inputState.setMouseDelta(0, 0);
+            mInputState.setMouseDelta(0, 0);
             
             soundio_flush_events(mSndIo);
             
-            SDL_Event event;
-            while(SDL_PollEvent(&event)) {
-                switch(event.type) {
-                    case SDL_QUIT: {
-                        mGamelayerMachine.onQuit(QuitEvent(event.quit));
-                        quit();
-                        break;
-                    }
-                    case SDL_TEXTINPUT: {
-                        mGamelayerMachine.onTextInput(TextInputEvent(event.text));
-                        break;
-                    }
-                    
-                    // Both press and release should trigger the same event
-                    case SDL_KEYUP:
-                    case SDL_KEYDOWN: {
-                        mGamelayerMachine.onKeyboardEvent(KeyboardEvent(event.key));
-                        break;
-                    }
-                    case SDL_MOUSEMOTION: {
-                        MouseMoveEvent mme(event.motion);
-                        inputState.setMouseDelta(mme.dx, mme.dy);
-                        mGamelayerMachine.onMouseMove(MouseMoveEvent(event.motion));
-                        break;
-                    }
-                    
-                    // Both press and release should trigger the same event
-                    case SDL_MOUSEBUTTONUP:
-                    case SDL_MOUSEBUTTONDOWN: {
-                        mGamelayerMachine.onMouseButton(MouseButtonEvent(event.button));
-                        break;
-                    }
-                    case SDL_MOUSEWHEEL: {
-                        mGamelayerMachine.onMouseWheel(MouseWheelMoveEvent(event.wheel));
-                        break;
-                    }
-                    case SDL_WINDOWEVENT: {
-                        switch(event.window.event) {
-                            // This also catches resizing due to API calls
-                            case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                                WindowResizeEvent windowResizeEvent(event.window);
-                                Video::mWindowWidth = windowResizeEvent.width;
-                                Video::mWindowHeight = windowResizeEvent.height;
-                                mGamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
-                            }
-                        }
-                    }
-                    default: break;
-                }
-            }
+            wisPollEvents();
             
             // It is possible that an event triggered the loop to end
             if(!mMainLoopRunning) {
@@ -285,26 +317,25 @@ namespace Engine {
                     Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
                 }
                 
-                inputState.updateKeysFromSDL();
-                inputState.updateMouseFromSDL();
+                mInputState.updateKeysFromSDL();
+                mInputState.updateMouseFromSDL();
                 
-                mGamelayerMachine.onTick(tpf, &inputState);
-                soundEndpoint.updateSoundThread();
+                mGamelayerMachine.onTick(tpf, &mInputState);
+                mSoundEndpoint.updateSoundThread();
 
-                // Swap buffers (draw everything onto the screen)
-                SDL_GL_SwapWindow(mSdlWindow);
+                wisPostRender();
             }
         }
         mGamelayerMachine.removeAll();
         
         Scripts::close();
         
-        if(!cleanupGraphicsApi()) {
+        if(!gapiCleanup()) {
             Logger::log(Logger::SEVERE) << "Fatal error cleaning up graphics API" << std::endl;
             return EXIT_FAILURE;
         }
         
-        if(!cleanupWindowingInputSystem()) {
+        if(!wisCleanup()) {
             Logger::log(Logger::SEVERE) << "Fatal error cleaning up windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }

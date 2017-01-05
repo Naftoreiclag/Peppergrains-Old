@@ -18,6 +18,7 @@
 
 namespace pgg {
 
+#ifdef PGG_SDL
 QuitEvent::QuitEvent(SDL_QuitEvent e) { }
 
 TextInputEvent::TextInputEvent(SDL_TextInputEvent e)
@@ -37,10 +38,9 @@ MouseMoveEvent::MouseMoveEvent(SDL_MouseMotionEvent e)
 MouseButtonEvent::MouseButtonEvent(SDL_MouseButtonEvent e)
 : button(Input::scancodeFromSDLMouse(e.button))
 , pressed(e.state == SDL_PRESSED)
-, clicks(e.clicks)
 , x(e.x)
-, y(e.x) {
-}
+, y(e.y)
+, clicks(e.clicks) { }
 
 MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
 : x(e.x)
@@ -50,6 +50,45 @@ MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
 WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
 : width(e.data1 < 1 ? 1 : e.data1)
 , height(e.data2 < 1 ? 1 : e.data2) { }
+
+#endif
+
+#ifdef PGG_GLFW
+QuitEvent::QuitEvent() { }
+
+/*
+TextInputEvent::TextInputEvent(SDL_TextInputEvent e)
+: text(e.text) { }
+*/
+
+KeyboardEvent::KeyboardEvent(int key, int action)
+: pressed(action != GLFW_RELEASE)
+, repeat(action == GLFW_REPEAT)
+, key(Input::scancodeFromGLFWKey(key)) { }
+
+MouseMoveEvent::MouseMoveEvent(int32_t x, int32_t y, int32_t dx, int32_t dy)
+: x(x)
+, y(y)
+, dx(dx)
+, dy(dy) { }
+
+MouseButtonEvent::MouseButtonEvent(int button, int action, int32_t x, int32_t y)
+: button(Input::scancodeFromGLFWMouse(button))
+, pressed(action == GLFW_PRESS)
+, x(x)
+, y(y)
+, clicks(1) { }
+
+MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e)
+: x(e.x)
+, y(e.y)
+, flipped(e.direction == SDL_MOUSEWHEEL_FLIPPED) { }
+
+WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
+: width(e.data1 < 1 ? 1 : e.data1)
+, height(e.data2 < 1 ? 1 : e.data2) { }
+#endif
+
 
 }
 

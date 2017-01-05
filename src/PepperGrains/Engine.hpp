@@ -26,7 +26,7 @@
 namespace pgg {
 namespace Engine {
     
-    extern Sound::Endpoint soundEndpoint;
+    extern Sound::Endpoint mSoundEndpoint;
     extern GamelayerMachine mGamelayerMachine;
     
     void quit();

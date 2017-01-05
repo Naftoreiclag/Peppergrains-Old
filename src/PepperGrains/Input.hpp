@@ -14,10 +14,18 @@
    limitations under the License.
 */
 
-#ifndef PGG_NALINPUTS_HPP
-#define PGG_NALINPUTS_HPP
+#ifndef PGG_INPUT_HPP
+#define PGG_INPUT_HPP
 
-#include "SDL2/SDL.h"
+#include <stdint.h>
+
+#ifdef PGG_SDL
+#include <SDL2/SDL.h>
+#endif
+
+#ifdef PGG_GLFW
+#include <GLFW/glfw3.h>
+#endif
 
 namespace pgg {
 
@@ -31,6 +39,9 @@ enum Scancode {
     M_RIGHT,
     M_SPECIAL_0,
     M_SPECIAL_1,
+    M_SPECIAL_2,
+    M_SPECIAL_3,
+    M_SPECIAL_4,
     K_0,
     K_1,
     K_2,
@@ -152,6 +163,7 @@ enum Scancode {
     K_F22,
     K_F23,
     K_F24,
+    K_F25, // not available in SDL
     K_APP_BACK,
     K_APP_FAVORITES,
     K_APP_FORWARD,
@@ -271,8 +283,15 @@ enum Scancode {
     ENUM_SIZE // Hold size of this enum; do not place enums after this point!
 };
 
-Scancode scancodeFromSDLKeyScancode(SDL_Scancode key);
+#ifdef PGG_SDL
+Scancode scancodeFromSDLKeyScancode(SDL_Scancode scancode);
 Scancode scancodeFromSDLMouse(uint8_t button);
+#endif
+
+#ifdef PGG_GLFW
+Scancode scancodeFromGLFWKey(int key);
+Scancode scancodeFromGLFWMouse(int button);
+#endif
 
 }
 
@@ -303,4 +322,4 @@ public:
 
 }
 
-#endif // PGG_NALINPUTS_HPP
+#endif // PGG_INPUT_HPP
