@@ -16,5 +16,4 @@ built/*
 run/resources/*
 run/core/*
 run/addons/*
-dependencies/*
-dependencies-win/*
+lib/*

@@ -237,10 +237,8 @@
       <File Name="ShaderResource.hpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <VirtualDirectory Name="libraries">
-    <VirtualDirectory Name="jsoncpp">
-      <File Name="../../dependencies/jsoncpp/dist/jsoncpp.cpp"/>
-    </VirtualDirectory>
+  <VirtualDirectory Name="lib">
+    <File Name="../../lib/src/jsoncpp/dist/jsoncpp.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
@@ -350,8 +348,8 @@
     <Configuration Name="WinDebug" CompilerType="MinGW ( mingw64 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-std=c++11;-Wall;-Wno-reorder" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../../dependencies/jsoncpp/dist"/>
-        <IncludePath Value="../../dependencies/stb"/>
+        <IncludePath Value="../../lib/src/jsoncpp/dist"/>
+        <IncludePath Value="../../lib/src/stb"/>
         <IncludePath Value="$(BOOST_HOME)"/>
         <IncludePath Value="$(GLEW_HOME)/include"/>
         <IncludePath Value="$(GLM_HOME)/include"/>
@@ -384,13 +382,13 @@
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./../../built/PepperGrains/WinDebug" Command="&quot;../built/PepperGrains/WinDebug/$(ProjectName)&quot;" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./../../run" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[BOOST_HOME=C:/boost
-SDL2_HOME=../../dependencies-win/mingw-w64/SDL2
-GLEW_HOME=../../dependencies-win/mingw-w64/GLEW
-GLM_HOME=../../dependencies-win/header-only/GLM
+SDL2_HOME=../../lib/mingw-w64/SDL2
+GLEW_HOME=../../lib/mingw-w64/GLEW
+GLM_HOME=../../lib/src/glm-0.9.8.3
 MINGW64_HOME=C:/mingw-w64/x86_64-5.1.0-posix-seh-rt_v4-rev0/mingw64
-BULLET_HOME=../../dependencies-win/mingw-w64/bullet3-2.83.7
-LSIO_HOME=../../dependencies-win/mingw-w64/libsoundio-1.1.0
-LUA_HOME=../../dependencies-win/mingw-w64/lua-5.3.3]]>
+BULLET_HOME=../../lib/mingw-w64/bullet3-2.83.7
+LSIO_HOME=../../lib/mingw-w64/libsoundio-1.1.0
+LUA_HOME=../../lib/mingw-w64/lua-5.3.3]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
         <DebuggerSearchPaths/>
