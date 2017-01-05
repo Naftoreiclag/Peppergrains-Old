@@ -20,15 +20,16 @@
 #include <thread>
 #include <math.h>
 
+#include "Video.hpp"
 #include "ModelInstance.hpp"
 #include "ModelResource.hpp"
 #include "Resources.hpp"
 
 namespace pgg {
 
-MissionGameLayer::MissionGameLayer(uint32_t width, uint32_t height)
-: mScreenWidth(width)
-, mScreenHeight(height)
+MissionGameLayer::MissionGameLayer()
+: mScreenWidth(Video::getWindowWidth())
+, mScreenHeight(Video::getWindowHeight())
 , mPeriod(0.f) {
 }
 

@@ -25,7 +25,7 @@ namespace pgg {
 
 class MissionGameLayer : public Gamelayer {
 public:
-    MissionGameLayer(uint32_t width, uint32_t height);
+    MissionGameLayer();
     ~MissionGameLayer();
 private:
     uint32_t mScreenWidth;

@@ -296,7 +296,7 @@ namespace Engine {
         float mTpsWeight = 0.85f;
         float mOneSecondTimer;
         
-        //mGamelayerMachine.addBottom(new MissionGameLayer(windowWidth, windowHeight));
+        mGamelayerMachine.addBottom(new MissionGameLayer());
         
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
