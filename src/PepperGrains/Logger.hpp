@@ -28,9 +28,13 @@ namespace Logger {
     class OutBuffer;
     class Out : public std::ostream {
     public:
+        //Out();
         Out(Channel* channel);
         Out(const Out& copyCtr);
+        //operator=(const Out& assignment);
         ~Out();
+        
+        // Instead of re-assigning to an Out instance, switch between Channel pointers!
         
         void indent();
         void unindent();

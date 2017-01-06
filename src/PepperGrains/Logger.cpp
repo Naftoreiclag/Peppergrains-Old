@@ -21,7 +21,14 @@
 
 namespace pgg {
 namespace Logger {
-
+    /*
+    Out::Out()
+    : mChannel(Logger::VERBOSE)
+    , std::ostream(new OutBuffer(Logger::VERBOSE)) {
+        mOutBuf = static_cast<OutBuffer*>(rdbuf());
+    }
+    */
+    
     Out::Out(Channel* channel)
     : mChannel(channel)
     , std::ostream(new OutBuffer(channel)) {
@@ -33,9 +40,20 @@ namespace Logger {
     , std::ostream(new OutBuffer(copyCtr.mChannel)) {
         mOutBuf = static_cast<OutBuffer*>(rdbuf());
     }
+    
+    /*
+    Out::operator=(const Out& assignment) {
+        if(mChannel != assignment.mChannel) {
+            mChannel = assignment.mChannel;
+            delete mOutBuf;
+            rdbuf(new OutBuffer(mChannel));
+            mOutBuf = static_cast<OutBuffer*>(rdbuf());
+        }
+    }
+    */
 
     Out::~Out() {
-        delete mOutBuf;//rdbuf();
+        delete mOutBuf;
     }
     
     void Out::indent() {

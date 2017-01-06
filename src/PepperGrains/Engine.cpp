@@ -16,7 +16,9 @@
 
 #include "Engine.hpp"
 
+#include <cstring>
 #include <sstream>
+#include <vector>
 
 #include <GraphicsApiLibrary.hpp>
 #include <WindowInputSystemLibrary.hpp>
@@ -243,42 +245,241 @@ namespace Engine {
     #ifdef PGG_VULKAN
     VkApplicationInfo mAppDesc;
     VkInstance mVkInstance;
+    
+    #ifndef NDEBUG
+    VkDebugReportCallbackEXT vkDebugReportCallback;
+    VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
+        VkDebugReportFlagsEXT flags,
+        VkDebugReportObjectTypeEXT objecType,
+        uint64_t object,
+        size_t location,
+        int32_t code,
+        const char* layer,
+        const char* message,
+        void* userData) {
+        
+        Logger::Channel* out;
+        if(flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) out = Logger::VERBOSE;
+        if(flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) out = Logger::INFO;
+        if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT || 
+            flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) out = Logger::WARN;
+        if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) out = Logger::SEVERE;
+        
+        Logger::log(out) << "Vk Validation: " << message << std::endl;
+        
+        return VK_FALSE;
+    }
+    VkResult initializeDebugReportCallback() {
+        VkDebugReportCallbackCreateInfoEXT reportArgs;
+        reportArgs.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+        reportArgs.pNext = nullptr;
+        reportArgs.flags = VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT;
+        reportArgs.pfnCallback = vulkanDebugCallback;
+        auto proxCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(mVkInstance, "vkCreateDebugReportCallbackEXT");
+        if(proxCreateDebugReportCallbackEXT) {
+            return proxCreateDebugReportCallbackEXT(mVkInstance, &reportArgs, nullptr, &vkDebugReportCallback);
+        } else {
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+    }
+    void cleanupDebugReportCallback() {
+        auto proxCreateDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(mVkInstance, "vkDestroyDebugReportCallbackEXT");
+        if(proxCreateDebugReportCallbackEXT) {
+            proxCreateDebugReportCallbackEXT(mVkInstance, vkDebugReportCallback, nullptr);
+        }
+    }
+    #endif // !NDEBUG
+    
     bool gapiInitialize() {
+        Logger::Out iout = Logger::log(Logger::INFO);
+        Logger::Out vout = Logger::log(Logger::VERBOSE);
+        Logger::Out sout = Logger::log(Logger::SEVERE);
+        
         VkResult result;
         
         mAppDesc.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        mAppDesc.pNext = nullptr;
         mAppDesc.pApplicationName = "Application Name Here";
         mAppDesc.applicationVersion = VK_MAKE_VERSION(0, 0, 2);
         mAppDesc.pEngineName = "Peppergrains";
         mAppDesc.engineVersion = VK_MAKE_VERSION(0, 0, 1);
         mAppDesc.apiVersion = VK_API_VERSION_1_0;
         
-        // Get GLFW required extensions
-        uint32_t numReqExt;
-        const char** reqExts = glfwGetRequiredInstanceExtensions(&numReqExt);
+        // Required extensions
+        std::vector<const char*> requiredExtensions;
         
-        // Request extensions and submit application info
+        // Populate list with GLFW requirements
+        {
+            uint32_t numGlfwReqExt;
+            const char** glfwReqExts = glfwGetRequiredInstanceExtensions(&numGlfwReqExt);
+            requiredExtensions.reserve(numGlfwReqExt);
+            for(uint32_t i = 0; i < numGlfwReqExt; ++ i) {
+                requiredExtensions.push_back(glfwReqExts[i]);
+            }
+        }
+        
+        #ifndef NDEBUG
+        requiredExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        #endif
+        
+        // Print verbose debug information
+        vout << "Required extensions: " << requiredExtensions.size() << std::endl;
+        for(const char* ext : requiredExtensions) {
+            vout << '\t' << ext << std::endl;
+        }
+        
+        // Find supported extensions
+        std::vector<VkExtensionProperties> availableExtensions;
+        {
+            uint32_t numSupportedExt = 0;
+            vkEnumerateInstanceExtensionProperties(nullptr, &numSupportedExt, nullptr);
+            availableExtensions.resize(numSupportedExt);
+            vkEnumerateInstanceExtensionProperties(nullptr, &numSupportedExt, availableExtensions.data());
+        }
+        
+        // Print verbose debug information
+        vout << "Supported extensions: " << availableExtensions.size() << std::endl;
+        for(const VkExtensionProperties& props : availableExtensions) {
+            vout << '\t' << props.extensionName << '\t' << props.specVersion << std::endl;
+        }
+        
+        // Ensure that all required extensions are available
+        {
+            std::vector<const char*> missingExts;
+            for(const char* requiredExt : requiredExtensions) {
+                bool found = false;
+                for(const VkExtensionProperties& props : availableExtensions) {
+                    if(std::strcmp(props.extensionName, requiredExt) == 0) {
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found) {
+                    missingExts.push_back(requiredExt);
+                }
+            }
+            if(missingExts.size() > 0) {
+                sout << "Missing extensions:" << std::endl;
+                for(const char* missing : missingExts) {
+                    sout << '\t' << missing << std::endl;
+                }
+            }
+            // Note: do not return yet, as more debug information can be provided
+        }
+        
+        // Validation layers
+        std::vector<const char*> requiredLayers;
+        
+        // Standard validation only in debug mode
+        #ifndef NDEBUG
+        requiredLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+        #endif // !NDEBUG
+        
+        std::vector<VkLayerProperties> availableLayers;
+        
+        {
+            uint32_t numLayers;
+            vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
+            availableLayers.resize(numLayers);
+            vkEnumerateInstanceLayerProperties(&numLayers, availableLayers.data());
+        }
+        
+        // Check validation layers (debug only)
+        #ifndef NDEBUG
+        {
+            std::vector<const char*> missingLayers;
+            for(const char* requiredLayer : requiredLayers) {
+                bool found = false;
+                for(const VkLayerProperties& props : availableLayers) {
+                    if(std::strcmp(props.layerName, requiredLayer) == 0) {
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found) {
+                    missingLayers.push_back(requiredLayer);
+                }
+            }
+            if(missingLayers.size() > 0) {
+                sout << "Missing layers:" << std::endl;
+                for(const char* missing : missingLayers) {
+                    sout << '\t' << missing << std::endl;
+                }
+            }
+            // Note: do not return yet, as more debug information can be provided
+        }
+        #endif // !NDEBUG
+        
+        // Request extensions, validation layers and submit application info
         VkInstanceCreateInfo createArgs;
         createArgs.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createArgs.pNext = nullptr;
+        createArgs.flags = 0;
         createArgs.pApplicationInfo = &mAppDesc;
-        createArgs.enabledLayerCount = 0;
-        createArgs.ppEnabledLayerNames = nullptr;
-        createArgs.enabledExtensionCount = numReqExt;
-        createArgs.ppEnabledExtensionNames = reqExts;
+        createArgs.enabledLayerCount = requiredLayers.size();
+        createArgs.ppEnabledLayerNames = requiredLayers.data();
+        createArgs.enabledExtensionCount = requiredExtensions.size();
+        createArgs.ppEnabledExtensionNames = requiredExtensions.data();
         
-        Logger::log(Logger::INFO) << "Creating Vulkan instance..." << std::endl;
         result = vkCreateInstance(&createArgs, nullptr, &mVkInstance);
         
-        Logger::log(Logger::INFO) << "Printing status..." << std::endl;
         if(result != VK_SUCCESS) {
-            Logger::log(Logger::SEVERE) << "Could not create Vulkan instance" << std::endl;
+            #ifdef NDEBUG
+            sout << "Could not create Vulkan instance" << std::endl;
+            #else
+            sout << "Could not create Vulkan instance: ";
+            switch(result) {
+                case VK_ERROR_OUT_OF_HOST_MEMORY: {
+                    sout << "Host out of memory";
+                    break;
+                }
+                case VK_ERROR_OUT_OF_DEVICE_MEMORY: {
+                    sout << "Device out of memory";
+                    break;
+                }
+                case VK_ERROR_INITIALIZATION_FAILED: {
+                    sout << "Initialization failed";
+                    break;
+                }
+                case VK_ERROR_LAYER_NOT_PRESENT: {
+                    sout << "Missing Vulkan layer";
+                    break;
+                }
+                case VK_ERROR_EXTENSION_NOT_PRESENT: {
+                    sout << "Missing Vulkan extension";
+                    break;
+                }
+                case VK_ERROR_INCOMPATIBLE_DRIVER: {
+                    sout << "Incompatible driver";
+                    break;
+                }
+                default: {
+                    sout << "Unknown error";
+                    break;
+                }
+            }
+            sout << std::endl;
+            #endif
             return false;
         }
+        
+        #ifndef NDEBUG
+        result = initializeDebugReportCallback();
+        if(result != VK_SUCCESS) {
+            sout << "Could not initialize debug report callback" << std::endl;
+            return false;
+        }
+        #endif // !NDEBUG
         
         Logger::log(Logger::INFO) << "Vulkan initialized successfully" << std::endl;
         return true;
     }
     bool gapiCleanup() {
+        
+        #ifndef NDEBUG
+        cleanupDebugReportCallback();
+        #endif
+        
         vkDestroyInstance(mVkInstance, nullptr);
         
         // Everything successful
