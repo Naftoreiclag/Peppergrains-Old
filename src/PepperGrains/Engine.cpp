@@ -260,13 +260,9 @@ namespace Engine {
     #ifndef NDEBUG
     VkDebugReportCallbackEXT vkDebugReportCallback;
     VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
-        VkDebugReportFlagsEXT flags,
-        VkDebugReportObjectTypeEXT objecType,
-        uint64_t object,
-        size_t location,
-        int32_t code,
-        const char* layer,
-        const char* message,
+        VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objecType,
+        uint64_t object, size_t location, int32_t code,
+        const char* layer, const char* message,
         void* userData) {
         
         Logger::Channel* out;
@@ -316,6 +312,8 @@ namespace Engine {
         mAppDesc.engineVersion = VK_MAKE_VERSION(0, 0, 1);
         mAppDesc.apiVersion = VK_API_VERSION_1_0;
         
+        Video::queryVulkan();
+        
         // Required extensions
         std::vector<const char*> requiredExtensions;
         
@@ -335,32 +333,19 @@ namespace Engine {
         
         // Print verbose debug information
         vout << "Required extensions: " << requiredExtensions.size() << std::endl;
+        vout.indent();
         for(const char* ext : requiredExtensions) {
-            vout << '\t' << ext << std::endl;
+            vout << ext << std::endl;
         }
-        
-        // Find supported extensions
-        std::vector<VkExtensionProperties> availableExtensions;
-        {
-            uint32_t numSupportedExt = 0;
-            vkEnumerateInstanceExtensionProperties(nullptr, &numSupportedExt, nullptr);
-            availableExtensions.resize(numSupportedExt);
-            vkEnumerateInstanceExtensionProperties(nullptr, &numSupportedExt, availableExtensions.data());
-        }
-        
-        // Print verbose debug information
-        vout << "Supported extensions: " << availableExtensions.size() << std::endl;
-        for(const VkExtensionProperties& props : availableExtensions) {
-            vout << '\t' << props.extensionName << '\t' << props.specVersion << std::endl;
-        }
+        vout.unindent();
         
         // Ensure that all required extensions are available
         {
             std::vector<const char*> missingExts;
             for(const char* requiredExt : requiredExtensions) {
                 bool found = false;
-                for(const VkExtensionProperties& props : availableExtensions) {
-                    if(std::strcmp(props.extensionName, requiredExt) == 0) {
+                for(const VkExtensionProperties& availableExt : Video::Vulkan::getAvailableExtensions()) {
+                    if(std::strcmp(availableExt.extensionName, requiredExt) == 0) {
                         found = true;
                         break;
                     }
@@ -371,9 +356,11 @@ namespace Engine {
             }
             if(missingExts.size() > 0) {
                 sout << "Missing extensions:" << std::endl;
+                sout.indent();
                 for(const char* missing : missingExts) {
-                    sout << '\t' << missing << std::endl;
+                    sout << missing << std::endl;
                 }
+                sout.unindent();
             }
             // Note: do not return yet, as more debug information can be provided
         }
@@ -386,23 +373,14 @@ namespace Engine {
         requiredLayers.push_back("VK_LAYER_LUNARG_standard_validation");
         #endif // !NDEBUG
         
-        std::vector<VkLayerProperties> availableLayers;
-        
-        {
-            uint32_t numLayers;
-            vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
-            availableLayers.resize(numLayers);
-            vkEnumerateInstanceLayerProperties(&numLayers, availableLayers.data());
-        }
-        
         // Check validation layers (debug only)
         #ifndef NDEBUG
         {
             std::vector<const char*> missingLayers;
             for(const char* requiredLayer : requiredLayers) {
                 bool found = false;
-                for(const VkLayerProperties& props : availableLayers) {
-                    if(std::strcmp(props.layerName, requiredLayer) == 0) {
+                for(const VkLayerProperties& availableLayer : Video::Vulkan::getAvailableLayers()) {
+                    if(std::strcmp(availableLayer.layerName, requiredLayer) == 0) {
                         found = true;
                         break;
                     }
@@ -413,9 +391,11 @@ namespace Engine {
             }
             if(missingLayers.size() > 0) {
                 sout << "Missing layers:" << std::endl;
+                sout.indent();
                 for(const char* missing : missingLayers) {
-                    sout << '\t' << missing << std::endl;
+                    sout << missing << std::endl;
                 }
+                sout.unindent();
             }
             // Note: do not return yet, as more debug information can be provided
         }
@@ -437,7 +417,7 @@ namespace Engine {
         if(result != VK_SUCCESS) {
             #ifdef NDEBUG
             sout << "Could not create Vulkan instance" << std::endl;
-            #else
+            #else // !NDEBUG
             sout << "Could not create Vulkan instance: ";
             switch(result) {
                 case VK_ERROR_OUT_OF_HOST_MEMORY: {
@@ -470,7 +450,7 @@ namespace Engine {
                 }
             }
             sout << std::endl;
-            #endif
+            #endif // !NDEBUG
             return false;
         }
         
@@ -482,7 +462,7 @@ namespace Engine {
         }
         #endif // !NDEBUG
         
-        Logger::log(Logger::INFO) << "Vulkan initialized successfully" << std::endl;
+        iout << "Vulkan initialized successfully" << std::endl;
         return true;
     }
     bool gapiCleanup() {

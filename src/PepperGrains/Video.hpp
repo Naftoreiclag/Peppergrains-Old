@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include <GraphicsApiLibrary.hpp>
 #include <WindowInputSystemLibrary.hpp>
@@ -63,7 +64,16 @@ namespace Video {
         bool supportsGeometryShaders();
         bool supportsTessellationShaders();
     }
-    #endif
+    void queryOpenGL();
+    #endif // PGG_OPENGL
+    
+    #ifdef PGG_VULKAN
+    namespace Vulkan {
+        const std::vector<VkExtensionProperties>& getAvailableExtensions();
+        const std::vector<VkLayerProperties>& getAvailableLayers();
+    }
+    void queryVulkan();
+    #endif // PGG_VULKAN
     
     #ifdef PGG_SDL
     namespace SDL {
@@ -73,20 +83,13 @@ namespace Video {
         
         bool supportsTextureRender(bool initial = false);
     }
-    #endif
+    void querySDL(SDL_Renderer* renderer);
+    #endif // PGG_SDL
     
     uint32_t getWindowWidth();
     uint32_t getWindowHeight();
     
     void resizeWindow(uint32_t width, uint32_t height);
-    
-    #ifdef PGG_OPENGL
-    void queryOpenGL();
-    #endif
-    
-    #ifdef PGG_SDL
-    void querySDL(SDL_Renderer* renderer);
-    #endif
     
 } // Video
 } // pgg

@@ -16,6 +16,8 @@
 
 #include "Video.hpp"
 
+#include <vector>
+
 #include "Logger.hpp"
 
 namespace pgg {
@@ -65,19 +67,6 @@ namespace Video {
             return getMajorVersion() >= 4;
         }
     }
-    #endif
-    
-    #ifdef PGG_SDL
-    namespace SDL {
-        std::string getName(std::string x) { static std::string y = x; return y; }
-        bool isSoftwareFallback(bool x) { static bool y = x; return y; }
-        bool isHardwareAccelerated(bool x) { static bool y = x; return y; }
-        
-        bool supportsTextureRender(bool x) { static bool y = x; return y; }
-    }
-    #endif
-    
-    #ifdef PGG_OPENGL
     void queryOpenGL() {
         GLint gi;
         
@@ -119,9 +108,59 @@ namespace Video {
         out << "OpenGL Max draw buffers: " << OpenGL::getMaxDrawBuffers() << std::endl;
         out << "OpenGL Max color attachments: " << OpenGL::getMaxColorAttachments() << std::endl;
     }
-    #endif
+    #endif // PGG_OPENGL
+    
+    #ifdef PGG_VULKAN
+    namespace Vulkan {
+        std::vector<VkExtensionProperties> extensionProperties;
+        std::vector<VkLayerProperties> layerProperties;
+        const std::vector<VkExtensionProperties>& getAvailableExtensions() { return extensionProperties; }
+        const std::vector<VkLayerProperties>& getAvailableLayers() { return layerProperties; }
+    }
+    void queryVulkan() {
+        using namespace Vulkan;
+        Logger::Out vout = Logger::log(Logger::VERBOSE);
+        
+        uint32_t numExt = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &numExt, nullptr);
+        extensionProperties.resize(numExt);
+        vkEnumerateInstanceExtensionProperties(nullptr, &numExt, extensionProperties.data());
+        vout << "Supported extensions: " << extensionProperties.size() << std::endl;
+        vout.indent();
+        for(const VkExtensionProperties& props : extensionProperties) {
+            vout << props.extensionName << '\t' << props.specVersion << std::endl;
+        }
+        vout.unindent();
+        
+        uint32_t numLayers = 0;
+        vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
+        layerProperties.resize(numLayers);
+        vkEnumerateInstanceLayerProperties(&numLayers, layerProperties.data());
+        vout << "Supported validation layers: " << extensionProperties.size() << std::endl;
+        vout.indent();
+        for(const VkLayerProperties& props : layerProperties) {
+            vout << props.layerName << std::endl;
+            vout.indent();
+            vout << "Spec: " << props.specVersion << std::endl;
+            vout << "Implementation: " << props.implementationVersion << std::endl;
+            std::string desc = props.description;
+            if(desc.length() > 0) {
+                vout << "Desc: " << props.description << std::endl;
+            }
+            vout.unindent();
+        }
+        vout.unindent();
+    }
+    #endif // PGG_VULKAN
     
     #ifdef PGG_SDL
+    namespace SDL {
+        std::string getName(std::string x) { static std::string y = x; return y; }
+        bool isSoftwareFallback(bool x) { static bool y = x; return y; }
+        bool isHardwareAccelerated(bool x) { static bool y = x; return y; }
+        
+        bool supportsTextureRender(bool x) { static bool y = x; return y; }
+    }
     void querySDL(SDL_Renderer* renderer) {
         SDL_RendererInfo rendererInfo;
         SDL_GetRendererInfo(renderer, &rendererInfo);
@@ -140,7 +179,7 @@ namespace Video {
         out << "SDL Hardware accelerated: " << SDL::isHardwareAccelerated() << std::endl;
         out << "SDL Texture renderering: " << SDL::supportsTextureRender() << std::endl;
     }
-    #endif
+    #endif // PGG_SDL
     
     uint32_t mWindowWidth = 640;
     uint32_t mWindowHeight = 480;
