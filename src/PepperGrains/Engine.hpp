@@ -25,6 +25,8 @@
 namespace pgg {
 namespace Engine {
     
+    extern const char* mName;
+    
     extern Sound::Endpoint mSoundEndpoint;
     extern GamelayerMachine mGamelayerMachine;
     

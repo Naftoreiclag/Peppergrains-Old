@@ -39,6 +39,8 @@ namespace Video {
 }
     
 namespace Engine {
+    
+    const char* mName = "Peppergrains";
 
     bool mMainLoopRunning;
     void quit() {
@@ -66,11 +68,11 @@ namespace Engine {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         
         // Create the window
-        mSdlWindow = SDL_CreateWindow("SDL Window", 
+        mSdlWindow = SDL_CreateWindow(mName, 
             SDL_WINDOWPOS_CENTERED, 
             SDL_WINDOWPOS_CENTERED, 
             Video::getWindowWidth(), Video::getWindowHeight(), 
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
         if(!mSdlWindow) {
             Logger::log(Logger::SEVERE) << "Could not create SDL window" << std::endl;
             return false;
@@ -97,7 +99,10 @@ namespace Engine {
         Logger::log(Logger::INFO) << "SDL initialized successfully" << std::endl;
         return true;
     }
-    bool wisPostInitialize() { return true; }
+    bool wisPostInitialize() {
+        SDL_ShowWindow(mSdlWindow);
+        return true;
+    }
     inline void wisPollEvents() {
         mInputState.updateKeysFromSDL();
         mInputState.updateMouseFromSDL();
@@ -189,14 +194,14 @@ namespace Engine {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         #endif
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         mGlfwWindow = glfwCreateWindow(
             Video::getWindowWidth(), Video::getWindowHeight(), 
-            "GLFW Window", nullptr, nullptr);
+            mName, nullptr, nullptr);
         if(!mGlfwWindow) {
             glfwTerminate();
             return false;
         }
-        glfwHideWindow(mGlfwWindow);
         glfwMakeContextCurrent(mGlfwWindow);
         glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
         glfwSetCursorPosCallback(mGlfwWindow, glfwCursorPositionCallback);
