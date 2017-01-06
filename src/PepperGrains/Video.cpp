@@ -112,35 +112,43 @@ namespace Video {
     
     #ifdef PGG_VULKAN
     namespace Vulkan {
-        std::vector<VkExtensionProperties> extensionProperties;
-        const std::vector<VkExtensionProperties>& getAvailableExtensions() { return extensionProperties; }
-        std::vector<VkLayerProperties> layerProperties;
-        const std::vector<VkLayerProperties>& getAvailableLayers() { return layerProperties; }
-        std::vector<VkPhysicalDevice> physicalDevices;
-        const std::vector<VkPhysicalDevice>& getPhysicalDevices() { return physicalDevices; }
+        VkInstance mVulkanInstance;
+        VkInstance getInstance() { return mVulkanInstance; }
+        VkPhysicalDevice mVulkanPhysDevice;
+        VkPhysicalDevice getPhysicalDevice() { return mVulkanPhysDevice; }
+        
+        std::vector<VkExtensionProperties> mExtensionProperties;
+        const std::vector<VkExtensionProperties>& getAvailableExtensions() { return mExtensionProperties; }
+        std::vector<VkLayerProperties> mLayerProperties;
+        const std::vector<VkLayerProperties>& getAvailableLayers() { return mLayerProperties; }
+        std::vector<VkPhysicalDevice> mPhysicalDevices;
+        const std::vector<VkPhysicalDevice>& getAllPhysicalDevices() { return mPhysicalDevices; }
+        std::vector<VkQueueFamilyProperties> mQueueFamilies;
+        const std::vector<VkQueueFamilyProperties>& getQueueFamilies() { return mQueueFamilies; }
     }
-    void queryVulkanExtensionsAndLayers() {
+    void queryVulkanGlobals() {
         using namespace Video::Vulkan;
+        Logger::Out iout = Logger::log(Logger::INFO);
         Logger::Out vout = Logger::log(Logger::VERBOSE);
         
         uint32_t numExt;
         vkEnumerateInstanceExtensionProperties(nullptr, &numExt, nullptr);
-        extensionProperties.resize(numExt);
-        vkEnumerateInstanceExtensionProperties(nullptr, &numExt, extensionProperties.data());
-        vout << "Supported extensions: " << extensionProperties.size() << std::endl;
+        mExtensionProperties.resize(numExt);
+        vkEnumerateInstanceExtensionProperties(nullptr, &numExt, mExtensionProperties.data());
+        iout << "Supported extensions: " << mExtensionProperties.size() << std::endl;
         vout.indent();
-        for(const VkExtensionProperties& props : extensionProperties) {
+        for(const VkExtensionProperties& props : mExtensionProperties) {
             vout << props.extensionName << '\t' << props.specVersion << std::endl;
         }
         vout.unindent();
         
         uint32_t numLayers;
         vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
-        layerProperties.resize(numLayers);
-        vkEnumerateInstanceLayerProperties(&numLayers, layerProperties.data());
-        vout << "Supported validation layers: " << extensionProperties.size() << std::endl;
+        mLayerProperties.resize(numLayers);
+        vkEnumerateInstanceLayerProperties(&numLayers, mLayerProperties.data());
+        iout << "Supported validation layers: " << mExtensionProperties.size() << std::endl;
         vout.indent();
-        for(const VkLayerProperties& props : layerProperties) {
+        for(const VkLayerProperties& props : mLayerProperties) {
             vout << props.layerName << std::endl;
             vout.indent();
             vout << "Spec: " << props.specVersion << std::endl;
@@ -153,17 +161,18 @@ namespace Video {
         }
         vout.unindent();
     }
-    void queryVulkanPhysicalDevices(VkInstance instance) {
+    void queryVulkanInstanceSpecific(VkInstance instance) {
         using namespace Video::Vulkan;
+        Logger::Out iout = Logger::log(Logger::INFO);
         Logger::Out vout = Logger::log(Logger::VERBOSE);
         
         uint32_t numDevices;
         vkEnumeratePhysicalDevices(instance, &numDevices, nullptr);
-        physicalDevices.resize(numDevices);
-        vkEnumeratePhysicalDevices(instance, &numDevices, physicalDevices.data());
-        vout << "Available physical devices: " << physicalDevices.size() << std::endl;
+        mPhysicalDevices.resize(numDevices);
+        vkEnumeratePhysicalDevices(instance, &numDevices, mPhysicalDevices.data());
+        iout << "Available physical devices: " << mPhysicalDevices.size() << std::endl;
         vout.indent();
-        for(const VkPhysicalDevice& device : physicalDevices) {
+        for(const VkPhysicalDevice& device : mPhysicalDevices) {
             VkPhysicalDeviceProperties properties;
             vkGetPhysicalDeviceProperties(device, &properties);
             VkPhysicalDeviceFeatures features;
@@ -255,6 +264,32 @@ namespace Video {
             vout.unindent();
         }
         vout.unindent();
+        
+        mVulkanInstance = instance;
+    }
+    void queryVulkanPhysicalDeviceSpecific(VkPhysicalDevice device) {
+        using namespace Video::Vulkan;
+        Logger::Out iout = Logger::log(Logger::INFO);
+        Logger::Out vout = Logger::log(Logger::VERBOSE);
+        
+        uint32_t numFamilies;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &numFamilies, nullptr);
+        mQueueFamilies.resize(numFamilies);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &numFamilies, mQueueFamilies.data());
+        iout << "Available queue families: " << mQueueFamilies.size() << std::endl;
+        vout.indent();
+        for(const VkQueueFamilyProperties& family : mQueueFamilies) {
+            vout << "Queue of size " << family.queueCount << std::endl;
+            vout.indent();
+            vout << "Graphics operations: " << (family.queueFlags & VK_QUEUE_GRAPHICS_BIT ? "available" : "unavailable") << std::endl;
+            vout << "Compute operations: " << (family.queueFlags & VK_QUEUE_COMPUTE_BIT ? "available" : "unavailable") << std::endl;
+            vout << "Transfer operations: " << (family.queueFlags & VK_QUEUE_TRANSFER_BIT ? "available" : "unavailable") << std::endl;
+            vout << "Sparse memory management operations: " << (family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT ? "available" : "unavailable") << std::endl;
+            vout.unindent();
+        }
+        vout.unindent();
+        
+        mVulkanPhysDevice = device;
     }
     #endif // PGG_VULKAN
     

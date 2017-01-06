@@ -69,12 +69,17 @@ namespace Video {
     
     #ifdef PGG_VULKAN
     namespace Vulkan {
+        VkInstance getInstance();
+        VkPhysicalDevice getPhysicalDevice();
+        
         const std::vector<VkExtensionProperties>& getAvailableExtensions();
         const std::vector<VkLayerProperties>& getAvailableLayers();
-        const std::vector<VkPhysicalDevice>& getPhysicalDevices();
+        const std::vector<VkPhysicalDevice>& getAllPhysicalDevices();
+        const std::vector<VkQueueFamilyProperties>& getQueueFamilies();
     }
-    void queryVulkanExtensionsAndLayers();
-    void queryVulkanPhysicalDevices(VkInstance instance);
+    void queryVulkanGlobals();
+    void queryVulkanInstanceSpecific(VkInstance instance);
+    void queryVulkanPhysicalDeviceSpecific(VkPhysicalDevice device);
     #endif // PGG_VULKAN
     
     #ifdef PGG_SDL
