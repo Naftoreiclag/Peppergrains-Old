@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "Geometry.hpp"
 #include "Resource.hpp"
@@ -74,6 +74,8 @@ public:
     void load();
     void unload();
 
+    #ifdef PGG_OPENGL
+
     void drawElements() const;
     void drawElementsInstanced(uint32_t num) const;
 
@@ -94,6 +96,8 @@ public:
     GLuint getFloatVertexBufferObjectHandle() const;
     GLuint getByteVertexBufferObjectHandle() const;
     GLuint getIndexBufferObjectHandle() const;
+    
+    #endif
     
     bool usesByteVBO() const;
 };

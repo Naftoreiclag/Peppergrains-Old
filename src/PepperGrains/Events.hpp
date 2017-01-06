@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <string>
 
-#include <WindowInputSystemStuff.hpp>
+#include <WindowInputSystemLibrary.hpp>
 
 #include "Input.hpp"
 

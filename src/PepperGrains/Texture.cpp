@@ -47,6 +47,7 @@ void FallbackTexture::load() {
     mImage = Image::getFallback();
     mImage->grab();
     
+    #ifdef PGG_OPENGL
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mImage->getWidth(), mImage->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, mImage->getImage());
@@ -57,12 +58,15 @@ void FallbackTexture::load() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+    #endif
 
     mLoaded = true;
 }
 void FallbackTexture::unload() {
     assert(mLoaded && "Attempted to unload texture before loading it");
+    #ifdef PGG_OPENGL
     glDeleteTextures(1, &mHandle);
+    #endif
     mImage->drop();
     mLoaded = false;
 }

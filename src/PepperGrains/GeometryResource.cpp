@@ -20,7 +20,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "StreamStuff.hpp"
 #include "Logger.hpp"
@@ -132,16 +132,6 @@ void GeometryResource::load() {
             floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 3] = readF32(input);
         }
     }
-    glGenBuffers(1, &mFloatVertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floatVertices), floatVertices, GL_STATIC_DRAW);
-    if(usesByteVBO()) {
-        glGenBuffers(1, &mByteVertexBufferObject);
-        glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(byteVertices), byteVertices, GL_STATIC_DRAW);
-        delete[] byteVertices;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     
     mNumTriangles = readU32(input);
 
@@ -214,23 +204,40 @@ void GeometryResource::load() {
     }
 
     input.close();
+    
+    #ifdef PGG_OPENGL
+    glGenBuffers(1, &mFloatVertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floatVertices), floatVertices, GL_STATIC_DRAW);
+    if(usesByteVBO()) {
+        glGenBuffers(1, &mByteVertexBufferObject);
+        glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(byteVertices), byteVertices, GL_STATIC_DRAW);
+        delete[] byteVertices;
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glGenBuffers(1, &mIndexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    #endif
     
     mLoaded = true;
 }
 
 void GeometryResource::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
+    
+    #ifdef PGG_OPENGL
     glDeleteBuffers(1, &mFloatVertexBufferObject);
     if(usesByteVBO()) glDeleteBuffers(1, &mByteVertexBufferObject);
     glDeleteBuffers(1, &mIndexBufferObject);
+    #endif
     mLoaded = false;
 }
 
+#ifdef PGG_OPENGL
 void GeometryResource::drawElements() const {
     glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
 }
@@ -288,10 +295,10 @@ void GeometryResource::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneInde
         glVertexAttribIPointer(boneIndexAttrib, 4, GL_UNSIGNED_BYTE, mByteVertexSize * sizeof(GLbyte), (GLvoid*) (mBoneIndexOff * sizeof(GLbyte)));
     }
 }
-
 GLuint GeometryResource::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
 GLuint GeometryResource::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
 GLuint GeometryResource::getByteVertexBufferObjectHandle() const { return mByteVertexBufferObject; }
+#endif
 
 bool GeometryResource::usesByteVBO() const {
     return mUseBoneWeights;

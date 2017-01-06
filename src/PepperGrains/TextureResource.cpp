@@ -19,7 +19,7 @@
 #include <cassert>
 #include <fstream>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 #include <json/json.h>
 
 #include "Logger.hpp"
@@ -46,6 +46,7 @@ Texture* TextureResource::gallop(Resource* resource) {
 }
 
 GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {
+    #ifdef PGG_OPENGL
     if(val == "RED") {
         return GL_RED;
     } else if(val == "GREEN") {
@@ -73,9 +74,11 @@ GLenum TextureResource::toEnumPF(const std::string& val, GLenum errorVal) {
     } else {
         return errorVal;
     }
+    #endif
 }
 
 GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
+    #ifdef PGG_OPENGL
     if(val == "linear") {
         return GL_LINEAR;
     } else if(val == "nearest") {
@@ -97,6 +100,7 @@ GLenum TextureResource::toEnum(const std::string& val, GLenum errorVal) {
     } else {
         return errorVal;
     }
+    #endif
 }
 
 void TextureResource::load() {
@@ -111,6 +115,7 @@ void TextureResource::load() {
     mImage = ImageResource::gallop(Resources::find(textureData["image"].asString()));
     mImage->grab();
 
+    #ifdef PGG_OPENGL
     glGenTextures(1, &mHandle);
     glBindTexture(GL_TEXTURE_2D, mHandle);
     glTexImage2D(GL_TEXTURE_2D, 0, toEnum(textureData["internalFormat"].asString(), GL_RGB8), mImage->getWidth(), mImage->getHeight(), 0, toEnumPF(textureData["pixelFormat"].asString(), GL_RGB), GL_UNSIGNED_BYTE, mImage->getImage());
@@ -121,13 +126,16 @@ void TextureResource::load() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, toEnum(textureData["magFilter"].asString(), GL_LINEAR));
 
     glBindTexture(GL_TEXTURE_2D, 0);
+    #endif
 
     mLoaded = true;
 }
 
 void TextureResource::unload() {
     assert(mLoaded && "Attempted to unload texture before loading it");
+    #ifdef PGG_OPENGL
     glDeleteTextures(1, &mHandle);
+    #endif
     mImage->drop();
     mLoaded = false;
 }

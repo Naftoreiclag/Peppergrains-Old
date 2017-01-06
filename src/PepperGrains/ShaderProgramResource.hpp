@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "Renderable.hpp"
 #include "Resource.hpp"

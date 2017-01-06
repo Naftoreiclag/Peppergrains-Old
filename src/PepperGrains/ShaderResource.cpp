@@ -54,6 +54,7 @@ void ShaderResource::load() {
     std::string shaderSrcStr = ss.str();
     const GLchar* shaderSrc = shaderSrcStr.c_str();
 
+    #ifdef PGG_OPENGL
     switch(mType) {
         case COMPUTE: {
             mHandle = glCreateShader(GL_COMPUTE_SHADER);
@@ -130,13 +131,17 @@ void ShaderResource::load() {
     } else {
         Logger::log(Logger::VERBOSE) << "Compiled shader " << this->getName() << std::endl;
     }
+    
+    #endif
 
     mLoaded = true;
 }
 
 void ShaderResource::unload() {
     assert(mLoaded && "Attempted to unload shader before loading it");
+    #ifdef PGG_OPENGL
     glDeleteShader(mHandle);
+    #endif
     mLoaded = false;
 }
 

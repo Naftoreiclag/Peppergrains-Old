@@ -14,8 +14,13 @@
    limitations under the License.
 */
 
-#ifndef PGG_WINDOWINPUTSYSTEMSTUFF_HPP
-#define PGG_WINDOWINPUTSYSTEMSTUFF_HPP
+#ifndef PGG_WINDOWINPUTSYSTEMLIBRARY_HPP
+#define PGG_WINDOWINPUTSYSTEMLIBRARY_HPP
+
+/* Properly includes either:
+ *      SDL
+ *      GLFW
+ */
 
 #ifdef PGG_SDL
 #include <SDL2/SDL.h>
@@ -23,12 +28,17 @@
 
 #ifdef PGG_GLFW
 
-// Ensure glew.h is loaded before gl.h if we are using that
+// Ensure glew.h is loaded before gl.h if we are using OpenGL
 #ifdef PGG_OPENGL
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
+#endif
+
+// GLFW needs to know to use vulkan instead of OpenGL
+#ifdef PGG_VULKAN
+#define GLFW_INCLUDE_VULKAN
 #endif
 
 #include <GLFW/glfw3.h>
 #endif
 
-#endif // PGG_WINDOWINPUTSYSTEMSTUFF_HPP
+#endif // PGG_WINDOWINPUTSYSTEMLIBRARY_HPP

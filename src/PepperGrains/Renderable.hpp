@@ -17,7 +17,7 @@
 #ifndef PGG_RENDERABLE_HPP
 #define PGG_RENDERABLE_HPP
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "HardValueStuff.hpp"
 #include "Camera.hpp"
@@ -66,6 +66,7 @@ public:
         GLuint mDepthStencilTexture;
         
         GLuint mSunDepthTexture[PGG_NUM_SUN_CASCADES];
+        
         glm::mat4 mSunViewProjMatr[PGG_NUM_SUN_CASCADES];
         
         bool mAvailableFustrumAABB;

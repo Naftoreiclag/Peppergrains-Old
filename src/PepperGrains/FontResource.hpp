@@ -47,7 +47,9 @@ public:
     void load();
     void unload();
 
+    #ifdef PGG_OPENGL
     void bindTextures();
+    #endif
 };
 
 }

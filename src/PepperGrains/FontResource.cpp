@@ -80,11 +80,13 @@ void FontResource::unload() {
     mLoaded = false;
 }
 
+#ifdef PGG_OPENGL
 void FontResource::bindTextures() {
     unsigned int index = 0;
     glActiveTexture(GL_TEXTURE0 + index);
     glBindTexture(GL_TEXTURE_2D, mTexture->getHandle());
     glUniform1i(mTextureHandle, index);
 }
+#endif
 
 }

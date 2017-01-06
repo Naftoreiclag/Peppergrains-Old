@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "ReferenceCounted.hpp"
 #include "Image.hpp"

@@ -222,6 +222,8 @@ void ShaderProgramResource::load() {
         mLinkedShaders.push_back(shader);
         shader->grab();
     }
+    
+    #ifdef PGG_OPENGL
 
     // Create program on GPU
     mShaderProg = glCreateProgram();
@@ -659,6 +661,8 @@ void ShaderProgramResource::load() {
             }
         }
     }
+    
+    #endif
 
     mLoaded = true;
 }
@@ -673,8 +677,12 @@ void ShaderProgramResource::unload() {
     }
     */
     
+    #ifdef PGG_OPENGL
+    
     // Free OpenGL shader program
     glDeleteProgram(mShaderProg);
+
+    #endif
 
     // Drop all grabbed resources
     for(std::vector<ShaderResource*>::iterator iter = mLinkedShaders.begin(); iter != mLinkedShaders.end(); ++ iter) {
@@ -686,6 +694,7 @@ void ShaderProgramResource::unload() {
 }
 
 void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, const glm::mat4& vMat, const glm::mat4& pMat) const {
+    #ifdef PGG_OPENGL
     if(mUseMMat) {
         glUniformMatrix4fv(mMMatUnif, 1, GL_FALSE, glm::value_ptr(mMat));
     }
@@ -722,10 +731,11 @@ void ShaderProgramResource::bindModelViewProjMatrices(const glm::mat4& mMat, con
     if(mUseIMVPMat) {
         glUniformMatrix4fv(mIMVPMatUnif, 1, GL_FALSE, glm::value_ptr(glm::inverse(pMat * vMat * mMat)));
     }
+    #endif
 }
 void ShaderProgramResource::bindRenderPass(Renderable::Pass rpc, const glm::mat4& modelMat) const {
     bindModelViewProjMatrices(modelMat, rpc.mCamera.getViewMatrix(), rpc.mCamera.getProjMatrix());
-    
+    #ifdef PGG_OPENGL
     if(mUseScreenSize) {
         glUniform2fv(mScreenSizeUnif, 1, glm::value_ptr(rpc.calcScreenSize()));
     }
@@ -738,6 +748,7 @@ void ShaderProgramResource::bindRenderPass(Renderable::Pass rpc, const glm::mat4
     if(mUseCameraDir) {
         glUniform3fv(mCameraDirUnif, 1, glm::value_ptr(rpc.mCamera.calcDirection()));
     }
+    #endif
 }
 
 GLuint ShaderProgramResource::getHandle() const { return mShaderProg; }

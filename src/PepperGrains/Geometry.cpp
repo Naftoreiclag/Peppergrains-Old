@@ -35,6 +35,7 @@ const Geometry::Armature& Geometry::getArmature() const {
     return dummy;
 }
 
+#ifdef PGG_OPENGL
 void Geometry::enablePositionAttrib(GLuint posAttrib) { }
 void Geometry::enableColorAttrib(GLuint colorAttrib) { }
 void Geometry::enableUVAttrib(GLuint textureAttrib) { }
@@ -42,6 +43,7 @@ void Geometry::enableNormalAttrib(GLuint normalAttrib) { }
 void Geometry::enableTangentAttrib(GLuint tangentAttrib) { }
 void Geometry::enableBitangentAttrib(GLuint bitangentAttrib) { }
 void Geometry::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) { }
+#endif
 
 }
 

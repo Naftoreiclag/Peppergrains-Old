@@ -35,7 +35,9 @@ public:
     virtual Geometry* getGeometry() const = 0;
     virtual Material* getMaterial() const = 0;
     
+    #ifdef PGG_OPENGL
     virtual void bindVertexArray() = 0;
+    #endif
 };
 
 class FallbackModel : public Model {
@@ -48,7 +50,9 @@ public:
     Geometry* getGeometry() const;
     Material* getMaterial() const;
     
+    #ifdef PGG_OPENGL
     void bindVertexArray();
+    #endif
     
 };
 

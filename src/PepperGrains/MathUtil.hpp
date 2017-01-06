@@ -17,7 +17,7 @@
 #ifndef PGG_MATHUTIL_HPP
 #define PGG_MATHUTIL_HPP
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "Vec3.hpp"
 #include "Quate.hpp"

@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "ReferenceCounted.hpp"
 #include "Resource.hpp"
@@ -56,7 +56,13 @@ public:
     };
 public:
     static Geometry* getFallback();
+    
+    virtual bool hasLightprobes() const;
+    virtual const std::vector<Lightprobe>& getLightprobes() const;
+    virtual bool hasArmature() const;
+    virtual const Armature& getArmature() const;
 
+    #ifdef PGG_OPENGL
     virtual void drawElements() const = 0;
     virtual void drawElementsInstanced(uint32_t num) const = 0;
 
@@ -73,11 +79,7 @@ public:
     virtual void enableTangentAttrib(GLuint tangentAttrib);
     virtual void enableBitangentAttrib(GLuint bitangentAttrib);
     virtual void enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib);
-    
-    virtual bool hasLightprobes() const;
-    virtual const std::vector<Lightprobe>& getLightprobes() const;
-    virtual bool hasArmature() const;
-    virtual const Armature& getArmature() const;
+    #endif
 };
 
 }

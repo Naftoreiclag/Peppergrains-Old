@@ -14,8 +14,13 @@
    limitations under the License.
 */
 
-#ifndef PGG_GRAPHICSAPISTUFF_HPP
-#define PGG_GRAPHICSAPISTUFF_HPP
+#ifndef PGG_GRAPHICSAPILIBRARY_HPP
+#define PGG_GRAPHICSAPILIBRARY_HPP
+
+/* Properly includes either:
+ *      OPENGL
+ *      VULKAN
+ */
 
 #ifdef PGG_OPENGL
 #include <GL/glew.h>
@@ -23,10 +28,22 @@
 
 #ifdef PGG_VULKAN
 #include <vulkan/vulkan.h>
+
+// Temporary quick fix
+#include <stdint.h>
+#define GLuint uint32_t
+#define GLubyte uint8_t
+#define GLint int32_t
+#define GLbyte int8_t
+#define GLfloat float
+#define GLbool bool
+#define GLenum int
+#define GLchar char
+
 #endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#endif // PGG_GRAPHICSAPISTUFF_HPP
+#endif // PGG_GRAPHICSAPILIBRARY_HPP

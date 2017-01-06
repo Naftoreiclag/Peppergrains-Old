@@ -20,8 +20,8 @@
 #include <stdint.h>
 #include <string>
 
-#include <GraphicsApiStuff.hpp>
-#include <WindowInputSystemStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
+#include <WindowInputSystemLibrary.hpp>
 
 namespace pgg {
 namespace Video {

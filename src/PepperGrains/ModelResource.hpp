@@ -52,7 +52,9 @@ public:
     Geometry* getGeometry() const;
     Material* getMaterial() const;
     
+    #ifdef PGG_OPENGL
     void bindVertexArray();
+    #endif
 };
 
 }

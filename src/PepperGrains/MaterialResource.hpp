@@ -19,7 +19,7 @@
 
 
 #include <json/json.h>
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "Resource.hpp" // Base class: Resource
 #include "ShaderProgramResource.hpp"

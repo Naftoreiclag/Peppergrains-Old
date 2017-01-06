@@ -14,7 +14,9 @@
    limitations under the License.
 */
 
-#include "ShoRenderer.hpp"
+#ifdef PGG_OPENGL
+
+#include "ShoRendererOpenGL.hpp"
 
 #include "Resources.hpp"
 
@@ -327,3 +329,4 @@ void ShoRenderer::modelimapTransparent(ModelInstance* modeli) {
 
 }
 
+#endif // PGG_OPENGL

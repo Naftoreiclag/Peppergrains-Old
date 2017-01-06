@@ -18,8 +18,8 @@
 
 #include <sstream>
 
-#include <GraphicsApiStuff.hpp>
-#include <WindowInputSystemStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
+#include <WindowInputSystemLibrary.hpp>
 #include <lua.hpp>
 
 #include "Events.hpp"
@@ -92,6 +92,7 @@ namespace Engine {
             return false;
         }
         
+        Logger::log(Logger::INFO) << "SDL initialized successfully" << std::endl;
         return true;
     }
     inline void wisPollEvents() {
@@ -165,7 +166,6 @@ namespace Engine {
 
     #ifdef PGG_GLFW
     GLFWwindow* mGlfwWindow;
-    
     void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
         mGamelayerMachine.onKeyboardEvent(KeyboardEvent(key, action));
     }
@@ -182,9 +182,13 @@ namespace Engine {
             Logger::log(Logger::SEVERE) << "Could not initialize GLFW" << std::endl;
             return false;
         }
+        #ifndef PGG_OPENGL
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        #endif
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         mGlfwWindow = glfwCreateWindow(
             Video::getWindowWidth(), Video::getWindowHeight(), 
-            "GLFW Window", 0, 0);
+            "GLFW Window", nullptr, nullptr);
         if(!mGlfwWindow) {
             glfwTerminate();
             return false;
@@ -193,6 +197,7 @@ namespace Engine {
         glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
         glfwSetCursorPosCallback(mGlfwWindow, glfwCursorPositionCallback);
         glfwSetMouseButtonCallback(mGlfwWindow, glfwMouseButtonCallback);
+        Logger::log(Logger::INFO) << "GLFW initialized successfully" << std::endl;
         return true;
     }
     inline void wisPollEvents() {
@@ -221,23 +226,63 @@ namespace Engine {
         // Enable OpenGL debug output
         glEnable(GL_DEBUG_OUTPUT);
         
+        // Query info about our OpenGL environment
         Video::queryOpenGL();
         
+        // Everything successful
+        Logger::log(Logger::INFO) << "OpenGL initialized successfully" << std::endl;
         return true;
     }
     bool gapiCleanup() {
+        
+        // Everything successful
         return true;
     }
     #endif
     
     #ifdef PGG_VULKAN
+    VkApplicationInfo mAppDesc;
+    VkInstance mVkInstance;
     bool gapiInitialize() {
-        return true;
+        VkResult result;
         
+        mAppDesc.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        mAppDesc.pApplicationName = "Application Name Here";
+        mAppDesc.applicationVersion = VK_MAKE_VERSION(0, 0, 2);
+        mAppDesc.pEngineName = "Peppergrains";
+        mAppDesc.engineVersion = VK_MAKE_VERSION(0, 0, 1);
+        mAppDesc.apiVersion = VK_API_VERSION_1_0;
+        
+        // Get GLFW required extensions
+        uint32_t numReqExt;
+        const char** reqExts = glfwGetRequiredInstanceExtensions(&numReqExt);
+        
+        // Request extensions and submit application info
+        VkInstanceCreateInfo createArgs;
+        createArgs.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createArgs.pApplicationInfo = &mAppDesc;
+        createArgs.enabledLayerCount = 0;
+        createArgs.ppEnabledLayerNames = nullptr;
+        createArgs.enabledExtensionCount = numReqExt;
+        createArgs.ppEnabledExtensionNames = reqExts;
+        
+        Logger::log(Logger::INFO) << "Creating Vulkan instance..." << std::endl;
+        result = vkCreateInstance(&createArgs, nullptr, &mVkInstance);
+        
+        Logger::log(Logger::INFO) << "Printing status..." << std::endl;
+        if(result != VK_SUCCESS) {
+            Logger::log(Logger::SEVERE) << "Could not create Vulkan instance" << std::endl;
+            return false;
+        }
+        
+        Logger::log(Logger::INFO) << "Vulkan initialized successfully" << std::endl;
+        return true;
     }
     bool gapiCleanup() {
-        return true;
+        vkDestroyInstance(mVkInstance, nullptr);
         
+        // Everything successful
+        return true;
     }
     #endif
     
@@ -261,15 +306,17 @@ namespace Engine {
         Video::mWindowWidth = 1280;
         Video::mWindowHeight = 960;
         
+        Logger::log(Logger::INFO) << "Initializing windowing/input system..." << std::endl;
         if(!wisInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }
+        Logger::log(Logger::INFO) << "Initializing windowing/input graphics API..." << std::endl;
         if(!gapiInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing graphics API" << std::endl;
             return EXIT_FAILURE;
         }
-        
+        Logger::log(Logger::INFO) << "Initializing windowing/input sound system..." << std::endl;
         if(!sndsInitialize()) {
             Logger::log(Logger::SEVERE) << "Fatal error initializing sound system" << std::endl;
             return EXIT_FAILURE;
@@ -340,11 +387,12 @@ namespace Engine {
         
         Scripts::close();
         
+        Logger::log(Logger::INFO) << "Cleaning up graphics API..." << std::endl;
         if(!gapiCleanup()) {
             Logger::log(Logger::SEVERE) << "Fatal error cleaning up graphics API" << std::endl;
             return EXIT_FAILURE;
         }
-        
+        Logger::log(Logger::INFO) << "Cleaning up windowing/input system..." << std::endl;
         if(!wisCleanup()) {
             Logger::log(Logger::SEVERE) << "Fatal error cleaning up windowing/input system" << std::endl;
             return EXIT_FAILURE;

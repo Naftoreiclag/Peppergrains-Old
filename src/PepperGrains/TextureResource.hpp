@@ -17,7 +17,7 @@
 #ifndef PGG_TEXTURERESOURCE_HPP
 #define PGG_TEXTURERESOURCE_HPP
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 #include "Resource.hpp"
 #include "Image.hpp"

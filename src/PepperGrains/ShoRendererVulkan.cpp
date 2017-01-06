@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 James Fong
+   Copyright 2017 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,38 +14,27 @@
    limitations under the License.
 */
 
-#include "Model.hpp"
+#include "ShoRendererVulkan.hpp"
 
-#include "Logger.hpp"
+#ifdef PGG_VULKAN
 
 namespace pgg {
-Model* Model::getFallback() {
-    static FallbackModel fallbackModel;
-    return &fallbackModel;
+
+ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
+{
 }
 
-/*
-void FallbackModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
+ShoRenderer::~ShoRenderer()
+{
+}
+
+void ShoRenderer::resize(uint32_t width, uint32_t height) {
     
 }
-*/
-void FallbackModel::load() {
+void ShoRenderer::renderFrame() {
     
 }
-void FallbackModel::unload() {
-    
 }
 
-Geometry* FallbackModel::getGeometry() const {
-    return Geometry::getFallback();
-}
+#endif // PGG_VULKAN
 
-Material* FallbackModel::getMaterial() const {
-    return Material::getFallback();
-}
-
-#ifdef PGG_OPENGL
-void FallbackModel::bindVertexArray() { }
-#endif
-
-}

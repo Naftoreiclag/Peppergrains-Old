@@ -71,6 +71,8 @@ void ModelResource::load() {
 
     mGeometry->grab();
     mMaterial->grab();
+    
+    #ifdef PGG_OPENGL
 
     // Create a new vertex array object
     // This will be needed to quickly bind/unbind shader attributes and geometry buffers
@@ -85,6 +87,8 @@ void ModelResource::load() {
 
     // Finished initalizing vertex array object, so unbind
     glBindVertexArray(0);
+    
+    #endif
 
     // Loading complete
     mLoaded = true;
@@ -95,8 +99,10 @@ void ModelResource::unload() {
     mGeometry->drop();
     mMaterial->drop();
 
+    #ifdef PGG_OPENGL
     // Tell OpenGL to free up the memory allocated during loading
     glDeleteVertexArrays(1, &mVertexArrayObject);
+    #endif
 
     // Unloading complete
     mLoaded = false;
@@ -132,8 +138,10 @@ Material* ModelResource::getMaterial() const {
     return mMaterial;
 }
 
+#ifdef PGG_OPENGL
 void ModelResource::bindVertexArray() {
     glBindVertexArray(mVertexArrayObject);
 }
+#endif
 
 }

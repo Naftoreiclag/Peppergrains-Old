@@ -67,8 +67,11 @@
   <VirtualDirectory Name="src">
     <VirtualDirectory Name="render">
       <VirtualDirectory Name="renderer">
-        <File Name="ShoRenderer.cpp"/>
+        <File Name="ShoRendererOpenGL.hpp"/>
+        <File Name="ShoRendererOpenGL.cpp"/>
         <File Name="ShoRenderer.hpp"/>
+        <File Name="ShoRendererVulkan.hpp"/>
+        <File Name="ShoRendererVulkan.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="scenegraph">
         <File Name="Scenegraph.hpp"/>
@@ -104,8 +107,8 @@
       <File Name="HardValueStuff.hpp"/>
       <File Name="StreamStuff.cpp"/>
       <File Name="StreamStuff.hpp"/>
-      <File Name="GraphicsApiStuff.hpp"/>
-      <File Name="WindowInputSystemStuff.hpp"/>
+      <File Name="GraphicsApiLibrary.hpp"/>
+      <File Name="WindowInputSystemLibrary.hpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">
@@ -360,7 +363,7 @@
         <IncludePath Value="$(BULLET_HOME)/include/bullet"/>
         <IncludePath Value="$(LSIO_HOME)/include"/>
         <IncludePath Value="$(LUA_HOME)/include"/>
-        <Preprocessor Value="PGG_OPENGL"/>
+        <Preprocessor Value="PGG_VULKAN"/>
         <Preprocessor Value="PGG_GLFW"/>
       </Compiler>
       <Linker Options="" Required="yes">

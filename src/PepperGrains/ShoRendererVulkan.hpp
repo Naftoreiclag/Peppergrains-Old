@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2017 James Fong
+   Copyright 2017 James Fong
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,42 +14,35 @@
    limitations under the License.
 */
 
-#ifndef PGG_ShaderResource_HPP
-#define PGG_ShaderResource_HPP
+#ifndef PGG_SHORENDERERVULKAN_HPP
+#define PGG_SHORENDERERVULKAN_HPP
+
+#ifdef PGG_VULKAN
+
+#include <stdint.h>
 
 #include <GraphicsApiLibrary.hpp>
 
-#include "Resource.hpp"
+#include "ShaderProgramResource.hpp"
+#include "Scenegraph.hpp"
+#include "Camera.hpp"
 
 namespace pgg {
 
-class ShaderResource : public Resource {
+class ShoRenderer {
 public:
-    enum Type {
-        COMPUTE,
-        VERTEX,
-        TESS_CONTROL,
-        TESS_EVALUATION,
-        GEOMETRY,
-        FRAGMENT
-    };
-private:
-    GLuint mHandle;
-    bool mLoaded;
-public:
-    const Type mType;
+    ShoRenderer(uint32_t screenWidth, uint32_t screenHeight);
+    ~ShoRenderer();
+    
+    Camera mCamera;
+    Scenegraph* mScenegraph;
 
-    ShaderResource(Type type);
-    virtual ~ShaderResource();
-    
-    static ShaderResource* gallop(Resource* resource);
-    
-    void load();
-    void unload();
-    
-    GLuint getHandle();
+    void resize(uint32_t width, uint32_t height);
+    void renderFrame();
 };
 
 }
 
-#endif // ShaderResource_HPP
+#endif // PGG_VULKAN
+
+#endif // PGG_SHORENDERERVULKAN_HPP

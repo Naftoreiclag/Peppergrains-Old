@@ -17,7 +17,7 @@
 #ifndef PGG_CAMERA_HPP
 #define PGG_CAMERA_HPP
 
-#include <GraphicsApiStuff.hpp>
+#include <GraphicsApiLibrary.hpp>
 
 namespace pgg {
 class Camera {
