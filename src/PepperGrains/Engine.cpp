@@ -256,6 +256,7 @@ namespace Engine {
     #ifdef PGG_VULKAN
     VkApplicationInfo mAppDesc;
     VkInstance mVkInstance;
+    VkPhysicalDevice mVkDevice; // Cleaned up automatically
     
     #ifndef NDEBUG
     VkDebugReportCallbackEXT vkDebugReportCallback;
@@ -312,7 +313,7 @@ namespace Engine {
         mAppDesc.engineVersion = VK_MAKE_VERSION(0, 0, 1);
         mAppDesc.apiVersion = VK_API_VERSION_1_0;
         
-        Video::queryVulkan();
+        Video::queryVulkanExtensionsAndLayers();
         
         // Required extensions
         std::vector<const char*> requiredExtensions;
@@ -461,6 +462,14 @@ namespace Engine {
             return false;
         }
         #endif // !NDEBUG
+        
+        Video::queryVulkanPhysicalDevices(mVkInstance);
+        
+        mVkDevice = VK_NULL_HANDLE;
+        
+        for(VkPhysicalDevice device : Video::Vulkan::getPhysicalDevices()) {
+            
+        }
         
         iout << "Vulkan initialized successfully" << std::endl;
         return true;

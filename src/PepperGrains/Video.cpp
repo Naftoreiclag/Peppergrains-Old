@@ -113,15 +113,17 @@ namespace Video {
     #ifdef PGG_VULKAN
     namespace Vulkan {
         std::vector<VkExtensionProperties> extensionProperties;
-        std::vector<VkLayerProperties> layerProperties;
         const std::vector<VkExtensionProperties>& getAvailableExtensions() { return extensionProperties; }
+        std::vector<VkLayerProperties> layerProperties;
         const std::vector<VkLayerProperties>& getAvailableLayers() { return layerProperties; }
+        std::vector<VkPhysicalDevice> physicalDevices;
+        const std::vector<VkPhysicalDevice>& getPhysicalDevices() { return physicalDevices; }
     }
-    void queryVulkan() {
-        using namespace Vulkan;
+    void queryVulkanExtensionsAndLayers() {
+        using namespace Video::Vulkan;
         Logger::Out vout = Logger::log(Logger::VERBOSE);
         
-        uint32_t numExt = 0;
+        uint32_t numExt;
         vkEnumerateInstanceExtensionProperties(nullptr, &numExt, nullptr);
         extensionProperties.resize(numExt);
         vkEnumerateInstanceExtensionProperties(nullptr, &numExt, extensionProperties.data());
@@ -132,7 +134,7 @@ namespace Video {
         }
         vout.unindent();
         
-        uint32_t numLayers = 0;
+        uint32_t numLayers;
         vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
         layerProperties.resize(numLayers);
         vkEnumerateInstanceLayerProperties(&numLayers, layerProperties.data());
@@ -147,6 +149,86 @@ namespace Video {
             if(desc.length() > 0) {
                 vout << "Desc: " << props.description << std::endl;
             }
+            vout.unindent();
+        }
+        vout.unindent();
+    }
+    void queryVulkanPhysicalDevices(VkInstance instance) {
+        using namespace Video::Vulkan;
+        Logger::Out vout = Logger::log(Logger::VERBOSE);
+        
+        uint32_t numDevices;
+        vkEnumeratePhysicalDevices(instance, &numDevices, nullptr);
+        physicalDevices.resize(numDevices);
+        vkEnumeratePhysicalDevices(instance, &numDevices, physicalDevices.data());
+        vout << "Available physical devices: " << physicalDevices.size() << std::endl;
+        vout.indent();
+        for(const VkPhysicalDevice& device : physicalDevices) {
+            VkPhysicalDeviceProperties properties;
+            vkGetPhysicalDeviceProperties(device, &properties);
+            VkPhysicalDeviceFeatures features;
+            vkGetPhysicalDeviceFeatures(device, &features);
+            vout << properties.deviceName << std::endl;
+            vout.indent();
+                vout << "API version: " << properties.apiVersion << std::endl;
+                vout << "Driver version: " << properties.driverVersion << std::endl;
+                #ifndef NDEBUG
+                vout << "alphaToOne: "                              << features.alphaToOne << std::endl;
+                vout << "depthBiasClamp: "                          << features.depthBiasClamp << std::endl;
+                vout << "depthBounds: "                             << features.depthBounds << std::endl;
+                vout << "depthClamp: "                              << features.depthClamp << std::endl;
+                vout << "drawIndirectFirstInstance: "               << features.drawIndirectFirstInstance << std::endl;
+                vout << "dualSrcBlend: "                            << features.dualSrcBlend << std::endl;
+                vout << "fillModeNonSolid: "                        << features.fillModeNonSolid << std::endl;
+                vout << "fragmentStoresAndAtomics: "                << features.fragmentStoresAndAtomics << std::endl;
+                vout << "fullDrawIndexUint32: "                     << features.fullDrawIndexUint32 << std::endl;
+                vout << "geometryShader: "                          << features.geometryShader << std::endl;
+                vout << "imageCubeArray: "                          << features.imageCubeArray << std::endl;
+                vout << "independentBlend: "                        << features.independentBlend << std::endl;
+                vout << "inheritedQueries: "                        << features.inheritedQueries << std::endl;
+                vout << "largePoints: "                             << features.largePoints << std::endl;
+                vout << "logicOp: "                                 << features.logicOp << std::endl;
+                vout << "multiDrawIndirect: "                       << features.multiDrawIndirect << std::endl;
+                vout << "multiViewport: "                           << features.multiViewport << std::endl;
+                vout << "occlusionQueryPrecise: "                   << features.occlusionQueryPrecise << std::endl;
+                vout << "pipelineStatisticsQuery: "                 << features.pipelineStatisticsQuery << std::endl;
+                vout << "robustBufferAccess: "                      << features.robustBufferAccess << std::endl;
+                vout << "sampleRateShading: "                       << features.sampleRateShading << std::endl;
+                vout << "samplerAnisotropy: "                       << features.samplerAnisotropy << std::endl;
+                vout << "shaderClipDistance: "                      << features.shaderClipDistance << std::endl;
+                vout << "shaderCullDistance: "                      << features.shaderCullDistance << std::endl;
+                vout << "shaderFloat64: "                           << features.shaderFloat64 << std::endl;
+                vout << "shaderImageGatherExtended: "               << features.shaderImageGatherExtended << std::endl;
+                vout << "shaderInt16: "                             << features.shaderInt16 << std::endl;
+                vout << "shaderInt64: "                             << features.shaderInt64 << std::endl;
+                vout << "shaderResourceMinLod: "                    << features.shaderResourceMinLod << std::endl;
+                vout << "shaderResourceResidency: "                 << features.shaderResourceResidency << std::endl;
+                vout << "shaderSampledImageArrayDynamicIndexing: "  << features.shaderSampledImageArrayDynamicIndexing << std::endl;
+                vout << "shaderStorageBufferArrayDynamicIndexing: " << features.shaderStorageBufferArrayDynamicIndexing << std::endl;
+                vout << "shaderStorageImageArrayDynamicIndexing: "  << features.shaderStorageImageArrayDynamicIndexing << std::endl;
+                vout << "shaderStorageImageExtendedFormats: "       << features.shaderStorageImageExtendedFormats << std::endl;
+                vout << "shaderStorageImageMultisample: "           << features.shaderStorageImageMultisample << std::endl;
+                vout << "shaderStorageImageReadWithoutFormat: "     << features.shaderStorageImageReadWithoutFormat << std::endl;
+                vout << "shaderStorageImageWriteWithoutFormat: "    << features.shaderStorageImageWriteWithoutFormat << std::endl;
+                vout << "shaderTessellationAndGeometryPointSize: "  << features.shaderTessellationAndGeometryPointSize << std::endl;
+                vout << "shaderUniformBufferArrayDynamicIndexing: " << features.shaderUniformBufferArrayDynamicIndexing << std::endl;
+                vout << "sparseBinding: "                           << features.sparseBinding << std::endl;
+                vout << "sparseResidency16Samples: "                << features.sparseResidency16Samples << std::endl;
+                vout << "sparseResidency2Samples: "                 << features.sparseResidency2Samples << std::endl;
+                vout << "sparseResidency4Samples: "                 << features.sparseResidency4Samples << std::endl;
+                vout << "sparseResidency8Samples: "                 << features.sparseResidency8Samples << std::endl;
+                vout << "sparseResidencyAliased: "                  << features.sparseResidencyAliased << std::endl;
+                vout << "sparseResidencyBuffer: "                   << features.sparseResidencyBuffer << std::endl;
+                vout << "sparseResidencyImage2D: "                  << features.sparseResidencyImage2D << std::endl;
+                vout << "sparseResidencyImage3D: "                  << features.sparseResidencyImage3D << std::endl;
+                vout << "tessellationShader: "                      << features.tessellationShader << std::endl;
+                vout << "textureCompressionASTC_LDR: "              << features.textureCompressionASTC_LDR << std::endl;
+                vout << "textureCompressionBC: "                    << features.textureCompressionBC << std::endl;
+                vout << "textureCompressionETC2: "                  << features.textureCompressionETC2 << std::endl;
+                vout << "variableMultisampleRate: "                 << features.variableMultisampleRate << std::endl;
+                vout << "vertexPipelineStoresAndAtomics: "          << features.vertexPipelineStoresAndAtomics << std::endl;
+                vout << "wideLines: "                               << features.wideLines << std::endl;
+                #endif // !NDEBUG
             vout.unindent();
         }
         vout.unindent();
