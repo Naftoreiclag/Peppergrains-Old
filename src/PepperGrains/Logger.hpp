@@ -71,6 +71,7 @@ namespace Logger {
     extern Channel* const INFO;
     extern Channel* const WARN;
     extern Channel* const SEVERE;
+    extern Channel* const ADDON;
 
     Out log(std::string id);
     Out log(Channel* channel);

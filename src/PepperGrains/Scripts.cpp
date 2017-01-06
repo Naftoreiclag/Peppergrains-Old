@@ -141,7 +141,7 @@ namespace Scripts {
     int li_print(lua_State* mL) {
         int numArgs = lua_gettop(mL);
         
-        Logger::Out out = Logger::log(Logger::INFO);
+        Logger::Out out = Logger::log(Logger::ADDON);
         
         size_t len;
         for(int i = 1; i <= numArgs; ++ i) {
