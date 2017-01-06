@@ -350,6 +350,7 @@ namespace Addons {
         {
             // Output debug information
             dlog << "Addon load order: " << std::endl;
+            dlog.indent();
             uint32_t debugStep = 1; // What step is being processed
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
                 dlog << debugStep << ": ";
@@ -363,6 +364,7 @@ namespace Addons {
                 dlog << '}' << std::endl;
                 ++ debugStep;
             }
+            dlog.unindent();
             
             // Process the load stack
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
