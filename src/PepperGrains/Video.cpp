@@ -172,6 +172,29 @@ namespace Video {
             vout.indent();
                 vout << "API version: " << properties.apiVersion << std::endl;
                 vout << "Driver version: " << properties.driverVersion << std::endl;
+                vout << "Device type: ";
+                switch(properties.deviceType) {
+                    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: {
+                        vout << " Integrated GPU" << std::endl;
+                        break;
+                    }
+                    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: {
+                        vout << " Discrete GPU" << std::endl;
+                        break;
+                    }
+                    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: {
+                        vout << " Virtual GPI" << std::endl;
+                        break;
+                    }
+                    case VK_PHYSICAL_DEVICE_TYPE_CPU: {
+                        vout << " CPU" << std::endl;
+                        break;
+                    }
+                    default: {
+                        vout << " Other" << std::endl;
+                        break;
+                    }
+                }
                 #ifndef NDEBUG
                 vout << "alphaToOne: "                              << features.alphaToOne << std::endl;
                 vout << "depthBiasClamp: "                          << features.depthBiasClamp << std::endl;
