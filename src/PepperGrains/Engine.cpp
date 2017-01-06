@@ -97,6 +97,7 @@ namespace Engine {
         Logger::log(Logger::INFO) << "SDL initialized successfully" << std::endl;
         return true;
     }
+    bool wisPostInitialize() { return true; }
     inline void wisPollEvents() {
         mInputState.updateKeysFromSDL();
         mInputState.updateMouseFromSDL();
@@ -195,11 +196,16 @@ namespace Engine {
             glfwTerminate();
             return false;
         }
+        glfwHideWindow(mGlfwWindow);
         glfwMakeContextCurrent(mGlfwWindow);
         glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
         glfwSetCursorPosCallback(mGlfwWindow, glfwCursorPositionCallback);
         glfwSetMouseButtonCallback(mGlfwWindow, glfwMouseButtonCallback);
         Logger::log(Logger::INFO) << "GLFW initialized successfully" << std::endl;
+        return true;
+    }
+    bool wisPostInitialize() {
+        glfwShowWindow(mGlfwWindow);
         return true;
     }
     inline void wisPollEvents() {
@@ -507,19 +513,22 @@ namespace Engine {
         Video::mWindowWidth = 1280;
         Video::mWindowHeight = 960;
         
-        Logger::log(Logger::INFO) << "Initializing windowing/input system..." << std::endl;
+        Logger::Out iout = Logger::log(Logger::INFO);
+        Logger::Out sout = Logger::log(Logger::SEVERE);
+        
+        iout << "Initializing windowing/input system..." << std::endl;
         if(!wisInitialize()) {
-            Logger::log(Logger::SEVERE) << "Fatal error initializing windowing/input system" << std::endl;
+            sout << "Fatal error initializing windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }
-        Logger::log(Logger::INFO) << "Initializing windowing/input graphics API..." << std::endl;
+        iout << "Initializing windowing/input graphics API..." << std::endl;
         if(!gapiInitialize()) {
-            Logger::log(Logger::SEVERE) << "Fatal error initializing graphics API" << std::endl;
+            sout << "Fatal error initializing graphics API" << std::endl;
             return EXIT_FAILURE;
         }
-        Logger::log(Logger::INFO) << "Initializing windowing/input sound system..." << std::endl;
+        iout << "Initializing windowing/input sound system..." << std::endl;
         if(!sndsInitialize()) {
-            Logger::log(Logger::SEVERE) << "Fatal error initializing sound system" << std::endl;
+            sout << "Fatal error initializing sound system" << std::endl;
             return EXIT_FAILURE;
         }
         
@@ -546,6 +555,11 @@ namespace Engine {
         
         mGamelayerMachine.addBottom(new MissionGameLayer());
         
+        iout << "Finalizing windowing/input system..." << std::endl;
+        if(!wisPostInitialize()) {
+            sout << "Fatal error finalizing windowing/input system" << std::endl;
+            return EXIT_FAILURE;
+        }
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
             wisPollEvents();
@@ -575,7 +589,7 @@ namespace Engine {
                 mOneSecondTimer += tpf;
                 if(mOneSecondTimer > 1.f) {
                     mOneSecondTimer -= 1.f;
-                    Logger::log(Logger::INFO) << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+                    iout << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
                 }
                 
                 mGamelayerMachine.onTick(tpf, &mInputState);
@@ -588,14 +602,14 @@ namespace Engine {
         
         Scripts::close();
         
-        Logger::log(Logger::INFO) << "Cleaning up graphics API..." << std::endl;
+        iout << "Cleaning up graphics API..." << std::endl;
         if(!gapiCleanup()) {
-            Logger::log(Logger::SEVERE) << "Fatal error cleaning up graphics API" << std::endl;
+            sout << "Fatal error cleaning up graphics API" << std::endl;
             return EXIT_FAILURE;
         }
-        Logger::log(Logger::INFO) << "Cleaning up windowing/input system..." << std::endl;
+        iout << "Cleaning up windowing/input system..." << std::endl;
         if(!wisCleanup()) {
-            Logger::log(Logger::SEVERE) << "Fatal error cleaning up windowing/input system" << std::endl;
+            sout << "Fatal error cleaning up windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }
         
