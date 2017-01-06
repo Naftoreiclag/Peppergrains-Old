@@ -74,13 +74,16 @@ namespace Logger {
 
     Channel::Channel(std::string id)
     : mId(id)
-    , mName(id) { }
+    , mName(id)
+    , mEnabled(true) { }
 
     int Channel::sync(OutBuffer& buffer, uint16_t indent) {
-        std::cout << mName << '\t' << std::string(indent * 2, ' ') << buffer.str();
+        if(mEnabled) std::cout << mName << '\t' << std::string(indent * 2, ' ') << buffer.str();
         buffer.str("");
         return std::cout ? 0 : -1;
     }
+    
+    void Channel::setEnabled(bool enabled) { mEnabled = enabled; }
 
     void Channel::setName(std::string name) { mName = name; }
     std::string Channel::getName() { return mName; }

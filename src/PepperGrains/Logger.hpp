@@ -61,10 +61,13 @@ namespace Logger {
         
         int sync(OutBuffer& buffer, uint16_t indent);
         
+        void setEnabled(bool enabled);
+        
         void setName(std::string name);
         std::string getName();
     private:
         std::string mName;
+        bool mEnabled;
     };
 
     extern Channel* const VERBOSE;
