@@ -257,13 +257,13 @@ namespace Engine {
     
     #ifdef PGG_VULKAN
     VkApplicationInfo mAppDesc;
-    VkInstance mVkInstance;
-    VkSurfaceKHR mVkSurface;
-    VkPhysicalDevice mVkPhysDevice; // Cleaned up automatically by mVkInstance
-    VkQueue mVkGraphicsQueue; // Cleaned up automatically by mVkInstance
-    VkQueue mVkDisplayQueue; // Cleaned up automatically by mVkInstance
-    VkDevice mVkLogicalDevice;
-    VkSwapchainKHR mVkSwapchain; // Must be cleaned up before mVkLogicalDevice
+    VkInstance mVkInstance = VK_NULL_HANDLE; // Clean up manually
+    VkSurfaceKHR mVkSurface = VK_NULL_HANDLE; // Clean up manually
+    VkPhysicalDevice mVkPhysDevice = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+    VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+    VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+    VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
+    VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
     
     #ifndef NDEBUG
     VkDebugReportCallbackEXT vkDebugReportCallback;
@@ -306,11 +306,11 @@ namespace Engine {
     #endif // !NDEBUG
 
     // True if this device can be used at all
-    bool isVulkanPhysicalDeviceSuitable(const std::vector<const char*>& neededVkPhysDeviceExts) {
+    bool isVulkanPhysicalDeviceSuitable(const std::vector<const char*>& mRequiredPhysDeviceExts) {
         if(Video::Vulkan::getGraphicsQueueFamilyIndex() == -1 || 
             Video::Vulkan::getDisplayQueueFamilyIndex() == -1) return false;
         
-        for(const char* reqExt : neededVkPhysDeviceExts) {
+        for(const char* reqExt : mRequiredPhysDeviceExts) {
             bool found = false;
             for(VkExtensionProperties ext : Video::Vulkan::getAvailablePhysicalDeviceExtensions()) {
                 if(strcmp(ext.extensionName, reqExt) == 0) {
@@ -373,8 +373,6 @@ namespace Engine {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
     
-    
-    
     VkExtent2D calcBestSwapExtents() {
         VkSurfaceCapabilitiesKHR cap = Video::Vulkan::getSurfaceCapabilities();
         
@@ -393,6 +391,9 @@ namespace Engine {
         }
     }
     
+    std::vector<const char*> mRequiredInstanceExts;
+    std::vector<const char*> mRequiredInstanceLayers;
+    std::vector<const char*> mRequiredPhysDeviceExts;
     bool gapiInitialize() {
         Logger::Out iout = Logger::log(Logger::INFO);
         Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -418,30 +419,29 @@ namespace Engine {
         
         // Init instance
         {
-            // Required extensions
-            std::vector<const char*> requiredExtensions;
+            assert(mRequiredInstanceExts.empty());
             
             // Populate list with GLFW requirements
             #ifdef PGG_GLFW
             {
                 uint32_t numGlfwReqExt;
                 const char** glfwReqExts = glfwGetRequiredInstanceExtensions(&numGlfwReqExt);
-                requiredExtensions.reserve(numGlfwReqExt);
+                mRequiredInstanceExts.reserve(numGlfwReqExt);
                 for(uint32_t i = 0; i < numGlfwReqExt; ++ i) {
-                    requiredExtensions.push_back(glfwReqExts[i]);
+                    mRequiredInstanceExts.push_back(glfwReqExts[i]);
                 }
             }
             #endif
             
             // Require debug reports in debug mode
             #ifndef NDEBUG
-            requiredExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+            mRequiredInstanceExts.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
             #endif
             
             // Print verbose debug information
-            vout << "Required extensions: " << requiredExtensions.size() << std::endl;
+            vout << "Required extensions: " << mRequiredInstanceExts.size() << std::endl;
             vout.indent();
-            for(const char* ext : requiredExtensions) {
+            for(const char* ext : mRequiredInstanceExts) {
                 vout << ext << std::endl;
             }
             vout.unindent();
@@ -449,7 +449,7 @@ namespace Engine {
             // Ensure that all required extensions are available
             {
                 std::vector<const char*> missingExts;
-                for(const char* requiredExt : requiredExtensions) {
+                for(const char* requiredExt : mRequiredInstanceExts) {
                     bool found = false;
                     for(const VkExtensionProperties& availableExt : Video::Vulkan::getAvailableExtensions()) {
                         if(std::strcmp(availableExt.extensionName, requiredExt) == 0) {
@@ -472,19 +472,18 @@ namespace Engine {
                 // Note: do not return yet, as more debug information can be provided
             }
             
-            // Validation layers
-            std::vector<const char*> requiredLayers;
+            assert(mRequiredInstanceLayers.empty());
             
             // Standard validation only in debug mode
             #ifndef NDEBUG
-            requiredLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+            mRequiredInstanceLayers.push_back("VK_LAYER_LUNARG_standard_validation");
             #endif // !NDEBUG
             
             // Check validation layers (debug only)
             #ifndef NDEBUG
             {
                 std::vector<const char*> missingLayers;
-                for(const char* requiredLayer : requiredLayers) {
+                for(const char* requiredLayer : mRequiredInstanceLayers) {
                     bool found = false;
                     for(const VkLayerProperties& availableLayer : Video::Vulkan::getAvailableLayers()) {
                         if(std::strcmp(availableLayer.layerName, requiredLayer) == 0) {
@@ -514,10 +513,10 @@ namespace Engine {
             createArgs.pNext = nullptr;
             createArgs.flags = 0;
             createArgs.pApplicationInfo = &mAppDesc;
-            createArgs.enabledLayerCount = requiredLayers.size();
-            createArgs.ppEnabledLayerNames = requiredLayers.data();
-            createArgs.enabledExtensionCount = requiredExtensions.size();
-            createArgs.ppEnabledExtensionNames = requiredExtensions.data();
+            createArgs.enabledLayerCount = mRequiredInstanceLayers.size();
+            createArgs.ppEnabledLayerNames = mRequiredInstanceLayers.data();
+            createArgs.enabledExtensionCount = mRequiredInstanceExts.size();
+            createArgs.ppEnabledExtensionNames = mRequiredInstanceExts.data();
             
             result = vkCreateInstance(&createArgs, nullptr, &mVkInstance);
             
@@ -587,20 +586,21 @@ namespace Engine {
                 return false;
             }
             
+            /*
             if(mVkSurface == VK_NULL_HANDLE) {
                 sout << "Undefined error while creating Vulkan surface" << std::endl;
                 return false;
             }
+            */
+            
+            // Read surface-specific data from Vulkan
+            Video::Vulkan::querySurfaceSpecific(mVkSurface);
         }
-        
-        std::vector<const char*> neededVkPhysDeviceExts = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-        };
         
         // Init physical device
         {
-            // Read surface-specific data from Vulkan
-            Video::Vulkan::querySurfaceSpecific(mVkSurface);
+            assert(mRequiredPhysDeviceExts.empty());
+            mRequiredPhysDeviceExts.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
             
             // Search for an appropriate physical device
             mVkPhysDevice = VK_NULL_HANDLE;
@@ -610,7 +610,7 @@ namespace Engine {
                     // Read physical-device specific data from Vulkan
                     Video::Vulkan::queryPhysicalDeviceSpecific(device);
                     
-                    if(isVulkanPhysicalDeviceSuitable(neededVkPhysDeviceExts)) {
+                    if(isVulkanPhysicalDeviceSuitable(mRequiredPhysDeviceExts)) {
                         double extraValue = calcVulkanPhysicalDeviceExtraValue();
                         if(extraValue > prevBest) {
                             mVkPhysDevice = device;
@@ -675,8 +675,8 @@ namespace Engine {
             deviceArgs.ppEnabledLayerNames = nullptr;
             
             // Use the extension list specified earlier
-            deviceArgs.enabledExtensionCount = neededVkPhysDeviceExts.size();
-            deviceArgs.ppEnabledExtensionNames = neededVkPhysDeviceExts.data();
+            deviceArgs.enabledExtensionCount = mRequiredPhysDeviceExts.size();
+            deviceArgs.ppEnabledExtensionNames = mRequiredPhysDeviceExts.data();
             
             VkPhysicalDeviceFeatures enabledFeatures; {
                 enabledFeatures.alphaToOne = VK_FALSE;
@@ -749,6 +749,8 @@ namespace Engine {
             // Get the queue family handles for later
             vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getGraphicsQueueFamilyIndex(), 0, &mVkGraphicsQueue);
             vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getDisplayQueueFamilyIndex(), 0, &mVkDisplayQueue);
+        
+            Video::Vulkan::queryLogicalDeviceSpecific(mVkLogicalDevice);
         }
         
         // Init surface swap chain
@@ -829,6 +831,7 @@ namespace Engine {
                 return false;
             }
             
+            Video::Vulkan::querySwapchainSpecific(mVkSwapchain);
         }
         
         iout << "Vulkan initialized successfully" << std::endl;
@@ -843,18 +846,7 @@ namespace Engine {
         cleanupDebugReportCallback();
         #endif
         
-        /*
-        auto proxDestroySurfaceKHR = reinterpret_cast<PFN_vkDestroySurfaceKHR>(vkGetInstanceProcAddr(mVkInstance, "vkDestroySurfaceKHR"));
-        if(!proxDestroySurfaceKHR) {
-            wout << "Could not get instance extension function vkDestroySurfaceKHR" << std::endl;
-        } else {
-            proxDestroySurfaceKHR(mVkInstance, mVkSurface, nullptr);
-        }
-        */
-        
-        vkDestroySwapchainKHR(mVkLogicalDevice, mVkSwapchain, nullptr);
-        
-        // mVkPhysDevice is cleaned up automatically
+        vkDestroySwapchainKHR(mVkLogicalDevice, mVkSwapchain, nullptr); // Swapchain must be destroyed before logical device
         vkDestroyDevice(mVkLogicalDevice, nullptr); // Logical device must be destroyed before instance
         vkDestroySurfaceKHR(mVkInstance, mVkSurface, nullptr);
         vkDestroyInstance(mVkInstance, nullptr);

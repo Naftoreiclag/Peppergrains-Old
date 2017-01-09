@@ -119,6 +119,10 @@ namespace Video {
         VkSurfaceKHR getSurface() { return mVulkanSurface; }
         VkPhysicalDevice mVulkanPhysDevice = VK_NULL_HANDLE;
         VkPhysicalDevice getPhysicalDevice() { return mVulkanPhysDevice; }
+        VkSwapchainKHR mVulkanSwapchain = VK_NULL_HANDLE;
+        VkSwapchainKHR getSwapchain() { return mVulkanSwapchain; }
+        VkDevice mVulkanLogicalDevice;
+        VkDevice getLogicalDevice() { return mVulkanLogicalDevice; }
         
         int32_t mQFIGraphics = -1;
         int32_t mQFICompute = -1;
@@ -131,12 +135,16 @@ namespace Video {
         int32_t getSparseQueueFamilyIndex() { return mQFISparse; }
         int32_t getDisplayQueueFamilyIndex() { return mQFIDisplay; }
         
+        
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities() { return mSurfaceCapabilities; }
         std::vector<VkSurfaceFormatKHR> mAvailableSurfaceFormats;
         const std::vector<VkSurfaceFormatKHR> getAvailableSurfaceFormats() { return mAvailableSurfaceFormats; }
         std::vector<VkPresentModeKHR> mAvailablePresentModes;
         const std::vector<VkPresentModeKHR> getAvailablePresentModes() { return mAvailablePresentModes; }
+        
+        std::vector<VkImage> mSwapchainImages;
+        const std::vector<VkImage>& getSwapchainImages() { return mSwapchainImages; }
         
         std::vector<VkExtensionProperties> mExtensionProperties;
         const std::vector<VkExtensionProperties>& getAvailableExtensions() { return mExtensionProperties; }
@@ -408,6 +416,21 @@ namespace Video {
                 mAvailablePresentModes.resize(numPresents);
                 vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanPhysDevice, mVulkanSurface, &numPresents, mAvailablePresentModes.data());
             }
+        }
+        void queryLogicalDeviceSpecific(VkDevice logicalDevice) {
+            mVulkanLogicalDevice = logicalDevice;
+        }
+        void querySwapchainSpecific(VkSwapchainKHR swapchain) {
+            Logger::Out iout = Logger::log(Logger::INFO);
+            Logger::Out vout = Logger::log(Logger::VERBOSE);
+            
+            mVulkanSwapchain = swapchain;
+            
+            uint32_t numImages;
+            vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, nullptr);
+            mSwapchainImages.resize(numImages);
+            vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, mSwapchainImages.data());
+            
         }
     }
     #endif // PGG_VULKAN

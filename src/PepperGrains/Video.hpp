@@ -72,6 +72,8 @@ namespace Video {
         VkInstance getInstance();
         VkSurfaceKHR getSurface();
         VkPhysicalDevice getPhysicalDevice();
+        VkDevice getLogicalDevice();
+        VkSwapchainKHR getSwapchain();
         
         int32_t getGraphicsQueueFamilyIndex();
         int32_t getComputeQueueFamilyIndex();
@@ -79,10 +81,12 @@ namespace Video {
         int32_t getSparseQueueFamilyIndex();
         int32_t getDisplayQueueFamilyIndex();
         
-        // Note: this data is not available until a physical device is queried
+        // Note: this data is not available until after a physical device is queried
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
         const std::vector<VkSurfaceFormatKHR> getAvailableSurfaceFormats();
         const std::vector<VkPresentModeKHR> getAvailablePresentModes();
+        
+        const std::vector<VkImage>& getSwapchainImages();
         
         const std::vector<VkExtensionProperties>& getAvailableExtensions();
         const std::vector<VkLayerProperties>& getAvailableLayers();
@@ -94,7 +98,9 @@ namespace Video {
         void queryGlobals();
         void queryInstanceSpecific(VkInstance instance);
         void querySurfaceSpecific(VkSurfaceKHR surface);
-        void queryPhysicalDeviceSpecific(VkPhysicalDevice device);
+        void queryPhysicalDeviceSpecific(VkPhysicalDevice physDevice);
+        void queryLogicalDeviceSpecific(VkDevice logicalDevice);
+        void querySwapchainSpecific(VkSwapchainKHR swapchain);
     }
     #endif // PGG_VULKAN
     
