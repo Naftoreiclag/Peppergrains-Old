@@ -264,6 +264,9 @@ namespace Engine {
     VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
     VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
     VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
+    VkFormat mVkSwapchainFormat;
+    VkExtent2D mVkSwapchainExtent;
+    std::vector<VkImageView> mVkSwapchainImageViews;
     
     #ifndef NDEBUG
     VkDebugReportCallbackEXT vkDebugReportCallback;
@@ -832,7 +835,43 @@ namespace Engine {
             }
             
             Video::Vulkan::querySwapchainSpecific(mVkSwapchain);
+            mVkSwapchainFormat = surfaceFormat.format;
+            mVkSwapchainExtent = surfaceExtent;
         }
+        
+        // Init image views
+        {
+            mVkSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size());
+            uint32_t index = 0;
+            for(VkImage image : Video::Vulkan::getSwapchainImages()) {
+                VkImageViewCreateInfo imageViewCstrArgs; {
+                    imageViewCstrArgs.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+                    imageViewCstrArgs.pNext = nullptr;
+                    imageViewCstrArgs.image = image;
+                    imageViewCstrArgs.viewType = VK_IMAGE_VIEW_TYPE_2D;
+                    imageViewCstrArgs.format = mVkSwapchainFormat;
+                    imageViewCstrArgs.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+                    imageViewCstrArgs.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+                    imageViewCstrArgs.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+                    imageViewCstrArgs.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+                    imageViewCstrArgs.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                    imageViewCstrArgs.subresourceRange.baseMipLevel = 0;
+                    imageViewCstrArgs.subresourceRange.levelCount = 1;
+                    imageViewCstrArgs.subresourceRange.baseArrayLayer = 0;
+                    imageViewCstrArgs.subresourceRange.layerCount = 1;
+                }
+                
+                result = vkCreateImageView(mVkLogicalDevice, &imageViewCstrArgs, nullptr, &(mVkSwapchainImageViews.data()[index]));
+                
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create image view #" << index << std::endl;
+                    return false;
+                }
+                ++ index;
+            }
+        }
+        
+        
         
         iout << "Vulkan initialized successfully" << std::endl;
         return true;
@@ -845,6 +884,10 @@ namespace Engine {
         #ifndef NDEBUG
         cleanupDebugReportCallback();
         #endif
+        
+        for(VkImageView view : mVkSwapchainImageViews) {
+            vkDestroyImageView(mVkLogicalDevice, view, nullptr);
+        }
         
         vkDestroySwapchainKHR(mVkLogicalDevice, mVkSwapchain, nullptr); // Swapchain must be destroyed before logical device
         vkDestroyDevice(mVkLogicalDevice, nullptr); // Logical device must be destroyed before instance
@@ -924,6 +967,9 @@ namespace Engine {
             sout << "Fatal error finalizing windowing/input system" << std::endl;
             return EXIT_FAILURE;
         }
+        
+        iout << "Initialization completed successfully" << std::endl;
+        iout << "Booting game logic..." << std::endl;
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
             wisPollEvents();
