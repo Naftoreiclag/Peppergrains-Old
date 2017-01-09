@@ -23,24 +23,37 @@
  */
 
 #ifdef PGG_OPENGL
-#include <GL/glew.h>
-#endif
+
+    #ifdef PGG_VULKAN
+    #error Cannot have both Vulkan and OpenGL enabled!
+    #endif // PGG_VULKAN
+
+    #include <GL/glew.h>
+
+#else // !PGG_OPENGL
+
+    // Temporary quick fix
+    #include <stdint.h>
+    #define GLuint uint32_t
+    #define GLubyte uint8_t
+    #define GLint int32_t
+    #define GLbyte int8_t
+    #define GLfloat float
+    #define GLbool bool
+    #define GLenum int
+    #define GLchar char
+
+#endif // !PGG_OPENGL
 
 #ifdef PGG_VULKAN
-#include <vulkan/vulkan.h>
 
-// Temporary quick fix
-#include <stdint.h>
-#define GLuint uint32_t
-#define GLubyte uint8_t
-#define GLint int32_t
-#define GLbyte int8_t
-#define GLfloat float
-#define GLbool bool
-#define GLenum int
-#define GLchar char
+    #ifndef PGG_GLFW
+    #error Vulkan requires GLFW! (Enable with -DPGG_GLFW)
+    #endif // !PGG_GLFW
 
-#endif
+    #include <vulkan/vulkan.h>
+
+#endif // PGG_VULKAN
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -70,16 +70,32 @@ namespace Video {
     #ifdef PGG_VULKAN
     namespace Vulkan {
         VkInstance getInstance();
+        VkSurfaceKHR getSurface();
         VkPhysicalDevice getPhysicalDevice();
+        
+        int32_t getGraphicsQueueFamilyIndex();
+        int32_t getComputeQueueFamilyIndex();
+        int32_t getTransferQueueFamilyIndex();
+        int32_t getSparseQueueFamilyIndex();
+        int32_t getDisplayQueueFamilyIndex();
+        
+        // Note: this data is not available until a physical device is queried
+        VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
+        const std::vector<VkSurfaceFormatKHR> getAvailableSurfaceFormats();
+        const std::vector<VkPresentModeKHR> getAvailablePresentModes();
         
         const std::vector<VkExtensionProperties>& getAvailableExtensions();
         const std::vector<VkLayerProperties>& getAvailableLayers();
         const std::vector<VkPhysicalDevice>& getAllPhysicalDevices();
+        const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions();
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies();
+        bool findQueueFamilySupporting(VkQueueFlags flags, uint32_t* index);
+        
+        void queryGlobals();
+        void queryInstanceSpecific(VkInstance instance);
+        void querySurfaceSpecific(VkSurfaceKHR surface);
+        void queryPhysicalDeviceSpecific(VkPhysicalDevice device);
     }
-    void queryVulkanGlobals();
-    void queryVulkanInstanceSpecific(VkInstance instance);
-    void queryVulkanPhysicalDeviceSpecific(VkPhysicalDevice device);
     #endif // PGG_VULKAN
     
     #ifdef PGG_SDL
