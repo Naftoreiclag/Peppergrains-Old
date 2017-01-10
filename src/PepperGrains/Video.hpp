@@ -94,14 +94,6 @@ namespace Video {
         const std::vector<VkPhysicalDevice>& getAllPhysicalDevices();
         const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions();
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies();
-        bool findQueueFamilySupporting(VkQueueFlags flags, uint32_t* index);
-        
-        void queryGlobals();
-        void queryInstanceSpecific(VkInstance instance);
-        void querySurfaceSpecific(VkSurfaceKHR surface);
-        void queryPhysicalDeviceSpecific(VkPhysicalDevice physDevice);
-        void queryLogicalDeviceSpecific(VkDevice logicalDevice);
-        void querySwapchainSpecific(VkSwapchainKHR swapchain);
         
         bool initialize();
         

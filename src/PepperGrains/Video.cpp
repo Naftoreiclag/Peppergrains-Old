@@ -117,16 +117,32 @@ namespace Video {
     
     #ifdef PGG_VULKAN
     namespace Vulkan {
-        VkInstance mVulkanInstance = VK_NULL_HANDLE;
-        VkInstance getInstance() { return mVulkanInstance; }
-        VkSurfaceKHR mVulkanSurface = VK_NULL_HANDLE;
-        VkSurfaceKHR getSurface() { return mVulkanSurface; }
-        VkPhysicalDevice mVulkanPhysDevice = VK_NULL_HANDLE;
-        VkPhysicalDevice getPhysicalDevice() { return mVulkanPhysDevice; }
-        VkSwapchainKHR mVulkanSwapchain = VK_NULL_HANDLE;
-        VkSwapchainKHR getSwapchain() { return mVulkanSwapchain; }
-        VkDevice mVulkanLogicalDevice;
-        VkDevice getLogicalDevice() { return mVulkanLogicalDevice; }
+        VkApplicationInfo mAppDesc;
+        VkFormat mVkIdealSurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
+        VkColorSpaceKHR mVkIdealSurfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+        VkPresentModeKHR mVkIdealPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        
+        // Determined during initialization
+        std::vector<const char*> mRequiredInstanceExts;
+        std::vector<const char*> mRequiredInstanceLayers;
+        std::vector<const char*> mRequiredPhysDeviceExts;
+        
+        VkInstance mVkInstance = VK_NULL_HANDLE; // Clean up manually
+        VkInstance getInstance() { return mVkInstance; }
+        VkSurfaceKHR mVkSurface = VK_NULL_HANDLE; // Clean up manually
+        VkSurfaceKHR getSurface() { return mVkSurface; }
+        VkPhysicalDevice mVkPhysDevice = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkPhysicalDevice getPhysicalDevice() { return mVkPhysDevice; }
+        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
+        VkDevice getLogicalDevice() { return mVkLogicalDevice; }
+        VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
+        VkSwapchainKHR getSwapchain() { return mVkSwapchain; }
+        VkFormat mVkSwapchainFormat;
+        VkExtent2D mVkSwapchainExtent;
+        std::vector<VkImageView> mVkSwapchainImageViews;
+        
         
         int32_t mQFIGraphics = -1;
         int32_t mQFICompute = -1;
@@ -160,23 +176,6 @@ namespace Video {
         const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions() { return mPhysicalDeviceExts; }
         std::vector<VkQueueFamilyProperties> mQueueFamilies;
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies() { return mQueueFamilies; }
-        
-        bool findQueueFamilySupporting(VkQueueFlags flags, uint32_t* rIndex) {
-            uint32_t index = 0;
-            for(const VkQueueFamilyProperties& family : mQueueFamilies) {
-                if(family.queueFlags & flags) {
-                    uint32_t& overwrite = *rIndex;
-                    overwrite = index;
-                    return true;
-                }
-                ++ index;
-            }
-            return false;
-        }
-        
-        bool findQueueFamilySupportingSurfaceKHR(uint32_t& rIndex) {
-            uint32_t index = 0;
-        }
         
         void queryGlobals() {
             Logger::Out iout = Logger::log(Logger::INFO);
@@ -212,21 +211,19 @@ namespace Video {
             }
             vout.unindent();
         }
-        void queryInstanceSpecific(VkInstance instance) {
+        void queryInstanceSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
             
-            mVulkanInstance = instance;
-            
-            if(mVulkanInstance == VK_NULL_HANDLE) {
+            if(mVkInstance == VK_NULL_HANDLE) {
                 mPhysicalDevices.clear();
                 return;
             }
             
             uint32_t numDevices;
-            vkEnumeratePhysicalDevices(mVulkanInstance, &numDevices, nullptr);
+            vkEnumeratePhysicalDevices(mVkInstance, &numDevices, nullptr);
             mPhysicalDevices.resize(numDevices);
-            vkEnumeratePhysicalDevices(mVulkanInstance, &numDevices, mPhysicalDevices.data());
+            vkEnumeratePhysicalDevices(mVkInstance, &numDevices, mPhysicalDevices.data());
             iout << "Available physical devices: " << mPhysicalDevices.size() << std::endl;
             vout.indent();
             for(const VkPhysicalDevice& device : mPhysicalDevices) {
@@ -322,17 +319,13 @@ namespace Video {
             }
             vout.unindent();
         }
-        void querySurfaceSpecific(VkSurfaceKHR surface) {
-            
-            mVulkanSurface = surface;
+        void querySurfaceSpecific() {
         }
-        void queryPhysicalDeviceSpecific(VkPhysicalDevice device) {
+        void queryPhysicalDeviceSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
             
-            mVulkanPhysDevice = device;
-            
-            if(mVulkanPhysDevice == VK_NULL_HANDLE) {
+            if(mVkPhysDevice == VK_NULL_HANDLE) {
                 mSurfaceCapabilities = VkSurfaceCapabilitiesKHR();
                 mAvailablePresentModes.clear();
                 mAvailableSurfaceFormats.clear();
@@ -347,9 +340,9 @@ namespace Video {
             }
             
             uint32_t numExts;
-            vkEnumerateDeviceExtensionProperties(mVulkanPhysDevice, nullptr, &numExts, nullptr);
+            vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, nullptr);
             mPhysicalDeviceExts.resize(numExts);
-            vkEnumerateDeviceExtensionProperties(mVulkanPhysDevice, nullptr, &numExts, mPhysicalDeviceExts.data());
+            vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, mPhysicalDeviceExts.data());
             
             /*
             bool hasSwapchain = false;
@@ -364,9 +357,9 @@ namespace Video {
             */
             
             uint32_t numFamilies;
-            vkGetPhysicalDeviceQueueFamilyProperties(mVulkanPhysDevice, &numFamilies, nullptr);
+            vkGetPhysicalDeviceQueueFamilyProperties(mVkPhysDevice, &numFamilies, nullptr);
             mQueueFamilies.resize(numFamilies);
-            vkGetPhysicalDeviceQueueFamilyProperties(mVulkanPhysDevice, &numFamilies, mQueueFamilies.data());
+            vkGetPhysicalDeviceQueueFamilyProperties(mVkPhysDevice, &numFamilies, mQueueFamilies.data());
             iout << "Available queue families: " << mQueueFamilies.size() << std::endl;
             vout.indent();
             int32_t index = -1;
@@ -380,7 +373,7 @@ namespace Video {
                 bool supportTransfer = family.queueFlags & VK_QUEUE_TRANSFER_BIT;
                 bool supportSparse = family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT;
                 VkBool32 vkBool;
-                vkGetPhysicalDeviceSurfaceSupportKHR(mVulkanPhysDevice, index, mVulkanSurface, &vkBool);
+                vkGetPhysicalDeviceSurfaceSupportKHR(mVkPhysDevice, index, mVkSurface, &vkBool);
                 bool supportSurfaceKHR = vkBool;
                 
                 vout.indent();
@@ -408,56 +401,30 @@ namespace Video {
                 mAvailableSurfaceFormats.clear();
                 mAvailablePresentModes.clear();
             } else {
-                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVulkanPhysDevice, mVulkanSurface, &mSurfaceCapabilities);
+                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysDevice, mVkSurface, &mSurfaceCapabilities);
                 
                 uint32_t numFormats;
-                vkGetPhysicalDeviceSurfaceFormatsKHR(mVulkanPhysDevice, mVulkanSurface, &numFormats, nullptr);
+                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, nullptr);
                 mAvailableSurfaceFormats.resize(numFormats);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(mVulkanPhysDevice, mVulkanSurface, &numFormats, mAvailableSurfaceFormats.data());
+                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, mAvailableSurfaceFormats.data());
                 
                 uint32_t numPresents;
-                vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanPhysDevice, mVulkanSurface, &numPresents, nullptr);
+                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, nullptr);
                 mAvailablePresentModes.resize(numPresents);
-                vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanPhysDevice, mVulkanSurface, &numPresents, mAvailablePresentModes.data());
+                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, mAvailablePresentModes.data());
             }
         }
-        void queryLogicalDeviceSpecific(VkDevice logicalDevice) {
-            mVulkanLogicalDevice = logicalDevice;
+        void queryLogicalDeviceSpecific() {
         }
-        void querySwapchainSpecific(VkSwapchainKHR swapchain) {
+        void querySwapchainSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
             
-            mVulkanSwapchain = swapchain;
-            
             uint32_t numImages;
-            vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, nullptr);
+            vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, nullptr);
             mSwapchainImages.resize(numImages);
-            vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, mSwapchainImages.data());
-            
+            vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, mSwapchainImages.data());
         }
-    
-        
-        VkApplicationInfo mAppDesc;
-        VkFormat mVkIdealSurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
-        VkColorSpaceKHR mVkIdealSurfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-        VkPresentModeKHR mVkIdealPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        
-        // Determined during initialization
-        std::vector<const char*> mRequiredInstanceExts;
-        std::vector<const char*> mRequiredInstanceLayers;
-        std::vector<const char*> mRequiredPhysDeviceExts;
-        
-        VkInstance mVkInstance = VK_NULL_HANDLE; // Clean up manually
-        VkSurfaceKHR mVkSurface = VK_NULL_HANDLE; // Clean up manually
-        VkPhysicalDevice mVkPhysDevice = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
-        VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
-        VkFormat mVkSwapchainFormat;
-        VkExtent2D mVkSwapchainExtent;
-        std::vector<VkImageView> mVkSwapchainImageViews;
         
         // Move to renderer
         VkShaderModule mShaderVertModule = VK_NULL_HANDLE;
@@ -623,7 +590,7 @@ namespace Video {
                 // Load global vulkan data
                 //  Available extensions
                 //  Available validation layers
-                Video::Vulkan::queryGlobals();
+                queryGlobals();
             }
             
             // Init instance
@@ -779,7 +746,7 @@ namespace Video {
                 
                 // Read instance-specific data from Vulkan
                 //  Physical devices
-                Video::Vulkan::queryInstanceSpecific(mVkInstance);
+                queryInstanceSpecific();
             }
             
             // Init surface
@@ -795,15 +762,8 @@ namespace Video {
                     return false;
                 }
                 
-                /*
-                if(mVkSurface == VK_NULL_HANDLE) {
-                    sout << "Undefined error while creating Vulkan surface" << std::endl;
-                    return false;
-                }
-                */
-                
                 // Read surface-specific data from Vulkan
-                Video::Vulkan::querySurfaceSpecific(mVkSurface);
+                querySurfaceSpecific();
             }
             
             // Init physical device
@@ -812,27 +772,31 @@ namespace Video {
                 mRequiredPhysDeviceExts.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
                 
                 // Search for an appropriate physical device
-                mVkPhysDevice = VK_NULL_HANDLE;
                 {
-                    double prevBest = -1.0;
+                    VkPhysicalDevice bestDevice = VK_NULL_HANDLE;
+                    double bestExtrasScore = -1.0;
                     for(VkPhysicalDevice device : Video::Vulkan::getAllPhysicalDevices()) {
                         // Read physical-device specific data from Vulkan
-                        Video::Vulkan::queryPhysicalDeviceSpecific(device);
+                        mVkPhysDevice = device;
+                        queryPhysicalDeviceSpecific();
                         
                         if(isVulkanPhysicalDeviceSuitable(mRequiredPhysDeviceExts)) {
                             double extraValue = calcVulkanPhysicalDeviceExtraValue();
-                            if(extraValue > prevBest) {
-                                mVkPhysDevice = device;
-                                prevBest = extraValue;
+                            if(extraValue > bestExtrasScore) {
+                                bestDevice = device;
+                                bestExtrasScore = extraValue;
                             }
                         }
+                    }
+                    if(mVkPhysDevice != bestDevice) {
+                        mVkPhysDevice = bestDevice;
+                        queryPhysicalDeviceSpecific();
                     }
                 }
                 
                 // If no physical device is found
                 if(mVkPhysDevice == VK_NULL_HANDLE) {
                     sout << "Could not find a GPU meeting requirements" << std::endl;
-                    Video::Vulkan::queryPhysicalDeviceSpecific(VK_NULL_HANDLE);
                     return false;
                 }
             }
@@ -959,7 +923,7 @@ namespace Video {
                 vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getGraphicsQueueFamilyIndex(), 0, &mVkGraphicsQueue);
                 vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getDisplayQueueFamilyIndex(), 0, &mVkDisplayQueue);
             
-                Video::Vulkan::queryLogicalDeviceSpecific(mVkLogicalDevice);
+                queryLogicalDeviceSpecific();
             }
             
             // Init surface swap chain
@@ -1040,9 +1004,10 @@ namespace Video {
                     return false;
                 }
                 
-                Video::Vulkan::querySwapchainSpecific(mVkSwapchain);
                 mVkSwapchainFormat = surfaceFormat.format;
                 mVkSwapchainExtent = surfaceExtent;
+                
+                querySwapchainSpecific();
             }
             
             // Init image views
