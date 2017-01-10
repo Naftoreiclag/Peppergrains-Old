@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include <WindowInputSystemLibrary.hpp>
+
 #include "GamelayerMachine.hpp"
 #include "SoundEndpoint.hpp"
 
@@ -32,7 +34,13 @@ namespace Engine {
     
     void quit();
     
-    uint64_t getTotalTickCount();
+    #ifdef PGG_SDL
+    SDL_Window* getSdlWindow();
+    #endif
+    
+    #ifdef PGG_GLFW
+    GLFWwindow* getGlfwWindow();
+    #endif
     
 } // Engine
 } // pgg
