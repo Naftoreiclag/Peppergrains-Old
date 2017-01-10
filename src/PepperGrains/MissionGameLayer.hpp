@@ -42,7 +42,7 @@ public:
     void onEnd();
     
     // Ticks
-    void onTick(float tpf, const InputState* keyStates);
+    void onTick(double tpf, const InputState* keyStates);
 
 };
 

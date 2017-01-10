@@ -26,7 +26,7 @@ void Gamelayer::onBegin() {}
 void Gamelayer::onEnd() {}
 
 // Ticks
-void Gamelayer::onTick(float tpf, const InputState* keyStates) {}
+void Gamelayer::onTick(double tpf, const InputState* keyStates) {}
 
 /* Key filtering:
  *  Set whatever keystates to be false before passing them on to the next layers

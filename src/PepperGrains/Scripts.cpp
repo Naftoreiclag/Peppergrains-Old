@@ -177,7 +177,7 @@ namespace Scripts {
         return 1; // require() returns the table containing the requested module
     }
     
-    void init() {
+    bool initialize() {
         assert(!mL && "The Lua state has already been created!");
         
         mL = luaL_newstate();
@@ -189,6 +189,8 @@ namespace Scripts {
         mLuaVersion = luaL_ref(mL, LUA_REGISTRYINDEX);
         
         Logger::log(Logger::INFO) << "Lua successfully loaded" << std::endl;
+        
+        return true;
     }
     
     lua_State* getState() {
@@ -341,10 +343,12 @@ namespace Scripts {
         assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
     }
     
-    void close() {
+    bool cleanup() {
         assert(mL && "The Lua state cannot be unloaded before creation!");
         unref(mLuaVersion);
         lua_close(mL);
+        
+        return true;
     }
     
     void enableBootstrap(bool enable) {

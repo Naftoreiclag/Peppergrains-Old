@@ -19,16 +19,18 @@
 #include "ShoRendererOpenGL.hpp"
 
 #include "Resources.hpp"
-
 #include "Logger.hpp"
+#include "Video.hpp"
 
 namespace pgg {
 
-ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
-: mScreenWidth(width)
-, mScreenHeight(height)
+ShoRenderer::ShoRenderer()
+: mScreenWidth(Video::getWindowWidth())
+, mScreenHeight(Video::getWindowHeight())
 , mScenegraph(nullptr)
-, mCamera(Camera(glm::radians(45.f), 1.f, 0.1f, 10.f)) {
+, mCamera(Camera(glm::radians(45.f), 1.f, 0.1f, 10.f)) { }
+
+bool ShoRenderer::initialize() {
     Logger::log(Logger::VERBOSE) << "Constructing Sho Renderer..." << std::endl;
     
     // Generate texture render targets
@@ -139,9 +141,13 @@ ShoRenderer::ShoRenderer(uint32_t width, uint32_t height)
 
         glBindVertexArray(0);
     }
+    
+    return true;
 }
 
-ShoRenderer::~ShoRenderer() {
+ShoRenderer::~ShoRenderer() { }
+
+bool ShoRenderer::cleanup() {
     Logger::log(Logger::VERBOSE) << "Deleting Sho Renderer..." << std::endl;
     
     glDeleteTextures(1, &mTextureForward);
@@ -151,6 +157,8 @@ ShoRenderer::~ShoRenderer() {
     glDeleteFramebuffers(1, &mFramebufferDepthPrepass);
     glDeleteFramebuffers(1, &mFramebufferForward);
     glDeleteFramebuffers(1, &mFramebufferSunlightIrradiance);
+    
+    return true;
 }
 
 void ShoRenderer::resize(uint32_t width, uint32_t height) {

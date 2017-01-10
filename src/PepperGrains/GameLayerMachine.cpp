@@ -104,7 +104,7 @@ void GamelayerMachine::removeAll() {
 }
 
 // Ticks
-void GamelayerMachine::onTick(float tpf, const InputState* keys) {
+void GamelayerMachine::onTick(double tpf, const InputState* keys) {
     bool allKeysFiltered = false;
     InputState filteredInputState = *keys;
     

@@ -33,7 +33,7 @@ public:
     virtual void onEnd();
     
     // Ticks
-    virtual void onTick(float tpf, const InputState* keyStates);
+    virtual void onTick(double tpf, const InputState* keyStates);
     
     /* Key filtering:
      *  Set whatever keystates to be false before passing them on to the next layers

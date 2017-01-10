@@ -30,9 +30,18 @@
 namespace pgg {
 
 class ShoRenderer {
+private:
+    VkShaderModule mShaderVertModule = VK_NULL_HANDLE;
+    VkShaderModule mShaderFragModule = VK_NULL_HANDLE;
+    VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
+    VkRenderPass mRenderPass = VK_NULL_HANDLE;
+    VkPipeline mPipeline = VK_NULL_HANDLE;
 public:
-    ShoRenderer(uint32_t screenWidth, uint32_t screenHeight);
+    ShoRenderer();
     ~ShoRenderer();
+    
+    bool initialize();
+    bool cleanup();
     
     Camera mCamera;
     Scenegraph* mScenegraph;

@@ -41,7 +41,7 @@ public:
     void removeAll();
     
     // Ticks
-    void onTick(float tpf, const InputState* inputState);
+    void onTick(double tpf, const InputState* inputState);
     
     // Key handling
     void onKeyboardEvent(const KeyboardEvent& event);

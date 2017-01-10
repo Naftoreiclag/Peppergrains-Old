@@ -68,6 +68,10 @@ private:
     GLuint mFullscreenVbo;
     GLuint mFullscreenIbo;
 public:
+    
+    bool initialize();
+    bool cleanup();
+    
     void resize(uint32_t width, uint32_t height);
     
     void renderFrame();

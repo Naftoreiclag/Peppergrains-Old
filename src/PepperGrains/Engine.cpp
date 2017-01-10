@@ -21,6 +21,7 @@
 #include <set>
 #include <sstream>
 #include <vector>
+#include <chrono>
 
 #include <GraphicsApiLibrary.hpp>
 #include <WindowInputSystemLibrary.hpp>
@@ -181,7 +182,6 @@ namespace Engine {
     #ifdef PGG_GLFW
     GLFWwindow* mGlfwWindow;
     GLFWwindow* getGlfwWindow() { return mGlfwWindow; }
-    
     void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
         mGamelayerMachine.onKeyboardEvent(KeyboardEvent(key, action));
     }
@@ -295,27 +295,21 @@ namespace Engine {
             sout << "Fatal error initializing sound system" << std::endl;
             return EXIT_FAILURE;
         }
-        
-        Scripts::init();
+        iout << "Initializing lua scripting..." << std::endl;
+        if(!Scripts::initialize()) {
+            sout << "Fatal error initializing lua scripting" << std::endl;
+            return EXIT_FAILURE;
+        }
         
         Resources::loadCore("core/data.package");
         Addons::preloadAddonDirectory("addons");
         Addons::bootstrapAddons();
         Addons::logAddonFailures();
         Addons::clearFailedAddons();
-
-        #ifdef PGG_SDL
-        uint32_t prev = SDL_GetTicks();
-        #endif
-        #ifdef PGG_GLFW
-        uint32_t prev = 0;
-        #endif
-        mMainLoopRunning = true;
-        InputState mInputState;
         
-        float mTps = 0.f;
-        float mTpsWeight = 0.85f;
-        float mOneSecondTimer;
+        double mTps = 0.f;
+        double mTpsWeight = 0.85f;
+        double mOneSecondTimer;
         
         mGamelayerMachine.addBottom(new MissionGameLayer());
         
@@ -327,27 +321,23 @@ namespace Engine {
         
         iout << "Initialization completed successfully" << std::endl;
         iout << "Running..." << std::endl;
+
+        auto timePrev = std::chrono::steady_clock::now();
+        mMainLoopRunning = true;
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
             wisPollEvents();
             
             soundio_flush_events(mSndIo);
             
-            
             // It is possible that an event triggered the loop to end
-            if(!mMainLoopRunning) {
+            if(mMainLoopRunning) {
+                auto timeNow = std::chrono::steady_clock::now();
+                std::chrono::duration<double> timeDelta = timeNow - timePrev;
+                timePrev = timeNow;
                 
-            }
-            else {
-                #ifdef PGG_SDL
-                uint32_t now = SDL_GetTicks();
-                #endif
-                #ifdef PGG_GLFW
-                uint32_t now = 0;
-                #endif
-                float tpf = now - prev;
-                tpf /= 1000.f;
-                prev = now;
+                // TPF = Time Per Frame (in seconds per frame)
+                double tpf = timeDelta.count();
                 
                 if(tpf > 0) {
                     float fpsNew = 1 / tpf;
@@ -367,8 +357,11 @@ namespace Engine {
         }
         mGamelayerMachine.removeAll();
         
-        Scripts::close();
-        
+        iout << "Cleaning up scripts..." << std::endl;
+        if(!Scripts::cleanup()) {
+            sout << "Fatal error cleaning up scripts" << std::endl;
+            return EXIT_FAILURE;
+        }
         iout << "Cleaning up graphics API..." << std::endl;
         if(!gapiCleanup()) {
             sout << "Fatal error cleaning up graphics API" << std::endl;
@@ -380,6 +373,7 @@ namespace Engine {
             return EXIT_FAILURE;
         }
         
+        iout << "Application terminated successfully" << std::endl;
         return EXIT_SUCCESS;
     }
 

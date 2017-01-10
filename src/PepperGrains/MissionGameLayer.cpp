@@ -39,7 +39,8 @@ MissionGameLayer::~MissionGameLayer()
 
 // Lifecycle
 void MissionGameLayer::onBegin() {
-    mRenderer = new ShoRenderer(mScreenWidth, mScreenHeight);
+    mRenderer = new ShoRenderer();
+    mRenderer->initialize();
     
     mRootNode = new SimpleScenegraph();
     mRenderer->mScenegraph = mRootNode;
@@ -51,14 +52,16 @@ void MissionGameLayer::onBegin() {
 }
 void MissionGameLayer::onEnd() {
     
+    
     delete mRootNode->mModelInst;
     delete mRootNode;
+    mRenderer->cleanup();
     delete mRenderer;
 }
 
 // Ticks
-void MissionGameLayer::onTick(float tpf, const InputState* keyStates) {
-    //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+void MissionGameLayer::onTick(double tpf, const InputState* keyStates) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     
     //mRootNode->update(tpf);
     

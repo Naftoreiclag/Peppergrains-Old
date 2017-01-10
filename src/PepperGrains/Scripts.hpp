@@ -49,7 +49,7 @@ namespace Scripts {
         */
     };
 
-    void init();
+    bool initialize();
     lua_State* getState();
     
     RegRef loadFunc(const char* filename, RegRef env = LUA_NOREF, std::string debugPath = "");
@@ -63,7 +63,7 @@ namespace Scripts {
     
     void unref(RegRef& ref);
     
-    void close();
+    bool cleanup();
     
     // Allows scripts to use bootstrap-exclusive functions
     void enableBootstrap(bool enable = true);
