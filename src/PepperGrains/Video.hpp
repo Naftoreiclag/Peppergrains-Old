@@ -77,6 +77,12 @@ namespace Video {
         VkPhysicalDevice getPhysicalDevice();
         VkDevice getLogicalDevice();
         
+        VkQueue getGraphicsQueue();
+        VkQueue getComputeQueue();
+        VkQueue getTransferQueue();
+        VkQueue getSparseQueue();
+        VkQueue getDisplayQueue();
+        
         int32_t getGraphicsQueueFamilyIndex();
         int32_t getComputeQueueFamilyIndex();
         int32_t getTransferQueueFamilyIndex();
@@ -123,6 +129,7 @@ namespace Video {
     
     uint32_t getWindowWidth();
     uint32_t getWindowHeight();
+    float calcWindowAspectRatio();
     
     void resizeWindow(uint32_t width, uint32_t height);
     

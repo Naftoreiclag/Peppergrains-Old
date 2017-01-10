@@ -28,9 +28,7 @@
 namespace pgg {
 
 MissionGameLayer::MissionGameLayer()
-: mScreenWidth(Video::getWindowWidth())
-, mScreenHeight(Video::getWindowHeight())
-, mPeriod(0.f) {
+: mPeriod(0.f) {
 }
 
 MissionGameLayer::~MissionGameLayer()
@@ -47,7 +45,7 @@ void MissionGameLayer::onBegin() {
     
     mRootNode->mModelInst = new ModelInstance(ModelResource::gallop(Resources::find("CoolCactus.model")));
     
-    mRenderer->mCamera.setProjMatrix(glm::radians(50.f), (float) mScreenWidth / (float) mScreenWidth, 0.2f, 200.f);
+    mRenderer->mCamera.setProjMatrix(glm::radians(50.f), Video::calcWindowAspectRatio(), 0.2f, 200.f);
     mRenderer->mCamera.setViewMatrix(glm::vec3(4.f, 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {

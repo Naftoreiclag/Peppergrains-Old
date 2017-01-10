@@ -152,10 +152,15 @@ namespace Video {
         VkDevice getLogicalDevice() { return mVkLogicalDevice; }
         
         VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getGraphicsQueue() { return mVkGraphicsQueue; }
         VkQueue mVkComputeQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getComputeQueue() { return mVkComputeQueue; }
         VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getTransferQueue() { return mVkTransferQueue; }
         VkQueue mVkSparseQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getSparseQueue() { return mVkSparseQueue; }
         VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getDisplayQueue() { return mVkDisplayQueue; }
         
         int32_t mQFIGraphics = -1;
         int32_t getGraphicsQueueFamilyIndex() { return mQFIGraphics; }
@@ -987,7 +992,7 @@ namespace Video {
             
             // Init image views
             {
-                mSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size());
+                mSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size(), VK_NULL_HANDLE);
                 uint32_t index = 0;
                 for(VkImage image : Video::Vulkan::getSwapchainImages()) {
                     VkImageViewCreateInfo imageViewCstrArgs; {
@@ -1024,6 +1029,8 @@ namespace Video {
             
             Logger::Out sout = Logger::log(Logger::SEVERE);
             Logger::Out wout = Logger::log(Logger::WARN);
+            
+            vkDeviceWaitIdle(mVkLogicalDevice);
             
             #ifndef NDEBUG
             cleanupDebugReportCallback();
@@ -1083,6 +1090,7 @@ namespace Video {
     
     uint32_t getWindowWidth() { return mWindowWidth; }
     uint32_t getWindowHeight() { return mWindowHeight; }
+    float calcWindowAspectRatio() { return (float) mWindowWidth / (float) mWindowHeight; }
     
     void resizeWindow(uint32_t width, uint32_t height) {
         mWindowWidth = width;
