@@ -14,9 +14,9 @@
    limitations under the License.
 */
 
-#include "ShoRendererVulkan.hpp"
-
 #ifdef PGG_VULKAN
+
+#include "ShoRendererVulkan.hpp"
 
 #include "StreamStuff.hpp"
 #include "Video.hpp"
@@ -37,9 +37,13 @@ bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* modu
     return result == VK_SUCCESS;
 }
 
-ShoRenderer::ShoRenderer() { }
+ShoRendererVk::ShoRendererVk() { }
+
+bool initializeGraphicsPipeline() {
     
-bool ShoRenderer::initialize() {
+}
+
+bool ShoRendererVk::initialize() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
     Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -52,6 +56,7 @@ bool ShoRenderer::initialize() {
         colorAttachDesc.format = Video::Vulkan::getSwapchainFormat();
         colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        //colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -80,6 +85,15 @@ bool ShoRenderer::initialize() {
         subpassDesc.pPreserveAttachments = nullptr;
     }
     
+    VkSubpassDependency subpassDep; {
+        subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
+        subpassDep.dstSubpass = 0;
+        subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        subpassDep.srcAccessMask = 0;
+        subpassDep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        subpassDep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    }
+    
     VkRenderPassCreateInfo rpCstrArgs; {
         rpCstrArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         rpCstrArgs.pNext = nullptr;
@@ -89,8 +103,8 @@ bool ShoRenderer::initialize() {
         rpCstrArgs.pAttachments = &colorAttachDesc;
         rpCstrArgs.subpassCount = 1;
         rpCstrArgs.pSubpasses = &subpassDesc;
-        rpCstrArgs.dependencyCount = 0;
-        rpCstrArgs.pDependencies = nullptr;
+        rpCstrArgs.dependencyCount = 1;
+        rpCstrArgs.pDependencies = &subpassDep;
     }
     
     result = vkCreateRenderPass(Video::Vulkan::getLogicalDevice(), &rpCstrArgs, nullptr, &mRenderPass);
@@ -320,14 +334,145 @@ bool ShoRenderer::initialize() {
         return false;
     }
     
-    
     iout << "Graphics pipeline created" << std::endl;
+    
+    
+    mSwapchainFramebuffers.resize(Video::Vulkan::getSwapchainImageViews().size(), VK_NULL_HANDLE);
+    
+    for(uint32_t index = 0; index < Video::Vulkan::getSwapchainImageViews().size(); ++ index) {
+        VkImageView imgViewAttachments[] = {
+            Video::Vulkan::getSwapchainImageViews().at(index)
+        };
+        
+        VkFramebufferCreateInfo fbCargs; {
+            fbCargs.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            fbCargs.pNext = nullptr;
+            fbCargs.flags = 0;
+            
+            fbCargs.renderPass = mRenderPass;
+            
+            fbCargs.attachmentCount = 1;
+            fbCargs.pAttachments = imgViewAttachments;
+            fbCargs.width = Video::Vulkan::getSwapchainExtent().width;
+            fbCargs.height = Video::Vulkan::getSwapchainExtent().height;
+            fbCargs.layers = 1;
+        }
+        
+        result = vkCreateFramebuffer(Video::Vulkan::getLogicalDevice(), &fbCargs, nullptr, &(mSwapchainFramebuffers[index]));
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not create framebuffer #" << index << std::endl;
+            return false;
+        }
+    }
+    
+    VkCommandPoolCreateInfo cpCargs; {
+        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        cpCargs.pNext = nullptr;
+        cpCargs.flags = 0;
+        
+        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
+    }
+    
+    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create command pool" << std::endl;
+        return false;
+    }
+    
+    mCommandBuffers.resize(mSwapchainFramebuffers.size());
+    
+    VkCommandBufferAllocateInfo cbaArgs; {
+        cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cbaArgs.pNext = nullptr;
+        cbaArgs.commandPool = mCommandPool;
+        cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cbaArgs.commandBufferCount = mCommandBuffers.size();
+    }
+    
+    result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, mCommandBuffers.data());
+    
+    if(result != VK_SUCCESS) {
+        sout << "Could not allocate command buffers" << std::endl;
+        return false;
+    }
+    
+    for(uint32_t i = 0; i < mCommandBuffers.size(); ++ i) {
+        VkCommandBuffer cmdBuff = mCommandBuffers.at(i);
+        VkCommandBufferBeginInfo cbbArgs; {
+            cbbArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            cbbArgs.pNext = nullptr;
+            cbbArgs.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+            cbbArgs.pInheritanceInfo = nullptr;
+        }
+        
+        result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
+        
+        VkClearValue color = {0.f, 1.f, 1.f, 1.f};
+        
+        VkRenderPassBeginInfo rpbArgs; {
+            rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            rpbArgs.pNext = nullptr;
+            rpbArgs.renderPass = mRenderPass;
+            rpbArgs.framebuffer = mSwapchainFramebuffers.at(i);
+            rpbArgs.renderArea.offset = {0, 0};
+            rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
+            rpbArgs.clearValueCount = 1;
+            rpbArgs.pClearValues = &color;
+        }
+        
+        vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
+        
+        vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+        
+        vkCmdDraw(cmdBuff, 3, 1, 0, 0);
+        
+        vkCmdEndRenderPass(cmdBuff);
+        
+        result = vkEndCommandBuffer(cmdBuff);
+        if(result != VK_SUCCESS) {
+            sout << "Could not record command buffer" << std::endl;
+            return false;
+        }
+        
+    }
+    
+    VkSemaphoreCreateInfo whyVulkan; {
+        whyVulkan.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        whyVulkan.pNext = nullptr;
+        whyVulkan.flags = 0;
+    }
+    
+    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemImageAvailable);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create image availability semaphore" << std::endl;
+        return false;
+    }
+    
+    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemRenderFinished);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create render finishing semaphore" << std::endl;
+        return false;
+    }
+    
+    return true;
 }
 
-ShoRenderer::~ShoRenderer() {
+ShoRendererVk::~ShoRendererVk() {
 }
 
-bool ShoRenderer::cleanup() {
+bool ShoRendererVk::cleanup() {
+
+    vkDeviceWaitIdle(Video::Vulkan::getLogicalDevice());
+    
+    vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
+    vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
+    
+    vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
+    
+    for(VkFramebuffer fb : mSwapchainFramebuffers) {
+        vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), fb, nullptr);
+    }
     
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     
@@ -342,11 +487,63 @@ bool ShoRenderer::cleanup() {
     
 }
 
-void ShoRenderer::resize(uint32_t width, uint32_t height) {
+void ShoRendererVk::resize(uint32_t width, uint32_t height) {
     
 }
-void ShoRenderer::renderFrame() {
+void ShoRendererVk::renderFrame() {
     
+    VkResult result;
+    
+    uint32_t imgIndex;
+    vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), Video::Vulkan::getSwapchain(), std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
+    
+    VkSemaphore waitSems[] = {
+        mSemImageAvailable
+    };
+    
+    VkPipelineStageFlags waitFlags[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+    
+    VkSemaphore signalSems[] = {
+        mSemRenderFinished
+    };
+    
+    VkSubmitInfo submitArgs; {
+        submitArgs.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitArgs.pNext = nullptr;
+        submitArgs.waitSemaphoreCount = 1;
+        submitArgs.pWaitSemaphores = waitSems;
+        submitArgs.pWaitDstStageMask = waitFlags;
+        submitArgs.commandBufferCount = 1;
+        submitArgs.pCommandBuffers = &(mCommandBuffers.at(imgIndex));
+        submitArgs.signalSemaphoreCount = 1;
+        submitArgs.pSignalSemaphores = signalSems;
+    }
+    
+    result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, VK_NULL_HANDLE);
+    
+    if(result != VK_SUCCESS) {
+        Logger::log(Logger::SEVERE) << "AAAA" << std::endl;
+        return;
+    }
+    
+    VkSwapchainKHR swapchains[] = {
+        Video::Vulkan::getSwapchain()
+    };
+    
+    VkPresentInfoKHR presentArgs; {
+        presentArgs.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentArgs.pNext = nullptr;
+        presentArgs.waitSemaphoreCount = 1;
+        presentArgs.pWaitSemaphores = signalSems;
+        presentArgs.swapchainCount = 1;
+        presentArgs.pSwapchains = swapchains;
+        presentArgs.pImageIndices = &imgIndex;
+        presentArgs.pResults = nullptr;
+    }
+    
+    vkQueuePresentKHR(Video::Vulkan::getDisplayQueue(), &presentArgs);
 }
 }
 

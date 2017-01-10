@@ -20,6 +20,7 @@
 #ifdef PGG_VULKAN
 
 #include <stdint.h>
+#include <vector>
 
 #include <GraphicsApiLibrary.hpp>
 
@@ -29,16 +30,24 @@
 
 namespace pgg {
 
-class ShoRenderer {
+class ShoRendererVk {
 private:
     VkShaderModule mShaderVertModule = VK_NULL_HANDLE;
     VkShaderModule mShaderFragModule = VK_NULL_HANDLE;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkRenderPass mRenderPass = VK_NULL_HANDLE;
     VkPipeline mPipeline = VK_NULL_HANDLE;
+    
+    VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
+    VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
+    
+    std::vector<VkFramebuffer> mSwapchainFramebuffers;
+    
+    VkCommandPool mCommandPool = VK_NULL_HANDLE;
+    std::vector<VkCommandBuffer> mCommandBuffers;
 public:
-    ShoRenderer();
-    ~ShoRenderer();
+    ShoRendererVk();
+    ~ShoRendererVk();
     
     bool initialize();
     bool cleanup();
@@ -49,6 +58,7 @@ public:
     void resize(uint32_t width, uint32_t height);
     void renderFrame();
 };
+typedef ShoRendererVk ShoRenderer;
 
 }
 
