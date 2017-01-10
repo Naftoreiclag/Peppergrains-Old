@@ -147,6 +147,23 @@ bool readBool(std::ifstream& input) {
     return readU8(input) != 0;
 }
 
+bool readFileToByteBuffer(std::string filename, std::vector<uint8_t>& buffer) {
+    std::ifstream file(filename, std::ios::in | std::ios::ate | std::ios::binary);
+    
+    if(!file.is_open()) {
+        return false;
+    }
+    
+    uint32_t size = file.tellg();
+    file.seekg(0);
+    
+    buffer.resize(size);
+    
+    file.read(reinterpret_cast<char*>(buffer.data()), size);
+    
+    return true;
+}
+
 uint64_t serializeFloat(long double fInput, uint16_t totalBits, uint16_t expBits) {
     if(fInput == 0.0) return 0;
     uint16_t sigBits = totalBits - expBits - 1;

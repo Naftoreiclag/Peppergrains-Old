@@ -20,6 +20,7 @@
 #include <string>
 #include <fstream>
 #include <stdint.h>
+#include <vector>
 
 namespace pgg {
 
@@ -54,6 +55,8 @@ std::string readString(std::ifstream& input);
 void writeBool(std::ofstream& output, bool value);
 void readBool(std::ifstream& input, bool& value);
 bool readBool(std::ifstream& input);
+
+bool readFileToByteBuffer(std::string filename, std::vector<uint8_t>& buffer);
 
 // IEEE Standard for Floating-Point Arithmetic (IEEE 754)
 uint64_t serializeFloat(long double fInput, uint16_t totalBits, uint16_t expBits);
