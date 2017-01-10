@@ -259,6 +259,15 @@ namespace Engine {
     
     #ifdef PGG_VULKAN
     VkApplicationInfo mAppDesc;
+    VkFormat mVkIdealSurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    VkColorSpaceKHR mVkIdealSurfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    VkPresentModeKHR mVkIdealPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+    
+    // Determined during initialization
+    std::vector<const char*> mRequiredInstanceExts;
+    std::vector<const char*> mRequiredInstanceLayers;
+    std::vector<const char*> mRequiredPhysDeviceExts;
+    
     VkInstance mVkInstance = VK_NULL_HANDLE; // Clean up manually
     VkSurfaceKHR mVkSurface = VK_NULL_HANDLE; // Clean up manually
     VkPhysicalDevice mVkPhysDevice = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
@@ -346,15 +355,13 @@ namespace Engine {
         return 1.0;
     }
     
-    VkFormat mIdealVulkanSurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    VkColorSpaceKHR mIdealVulkanSurfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     VkSurfaceFormatKHR findBestSwapSurfaceFormat() {
         const std::vector<VkSurfaceFormatKHR>& formats = Video::Vulkan::getAvailableSurfaceFormats();
         
         assert(formats.size() > 0);
         
         for(VkSurfaceFormatKHR format : formats) {
-            if(format.format == mIdealVulkanSurfaceFormat && format.colorSpace == mIdealVulkanSurfaceColorSpace) {
+            if(format.format == mVkIdealSurfaceFormat && format.colorSpace == mVkIdealSurfaceColorSpace) {
                 return format;
             }
         }
@@ -362,8 +369,8 @@ namespace Engine {
         VkSurfaceFormatKHR format = formats.at(0);
         if(format.format = VK_FORMAT_UNDEFINED) {
             VkSurfaceFormatKHR retVal; {
-                retVal.format = mIdealVulkanSurfaceFormat;
-                retVal.colorSpace = mIdealVulkanSurfaceColorSpace;
+                retVal.format = mVkIdealSurfaceFormat;
+                retVal.colorSpace = mVkIdealSurfaceColorSpace;
             }
             return retVal;
         }
@@ -371,14 +378,13 @@ namespace Engine {
         return format;
     }
     
-    VkPresentModeKHR mIdealVulkanPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
     VkPresentModeKHR findBestSwapPresentMode() {
         const std::vector<VkPresentModeKHR>& presents = Video::Vulkan::getAvailablePresentModes();
         
         assert(presents.size() > 0);
         
         for(VkPresentModeKHR present : presents) {
-            if(present == mIdealVulkanPresentMode) {
+            if(present == mVkIdealPresentMode) {
                 return present;
             }
         }
@@ -416,9 +422,6 @@ namespace Engine {
         return result == VK_SUCCESS;
     }
     
-    std::vector<const char*> mRequiredInstanceExts;
-    std::vector<const char*> mRequiredInstanceLayers;
-    std::vector<const char*> mRequiredPhysDeviceExts;
     bool gapiInitialize() {
         Logger::Out iout = Logger::log(Logger::INFO);
         Logger::Out vout = Logger::log(Logger::VERBOSE);
