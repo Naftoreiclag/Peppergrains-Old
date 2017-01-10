@@ -112,6 +112,22 @@ namespace Video {
             out << "OpenGL Max draw buffers: " << getMaxDrawBuffers() << std::endl;
             out << "OpenGL Max color attachments: " << getMaxColorAttachments() << std::endl;
         }
+        
+        bool initialize() {
+            // Initialize GLEW, using OpenGL experimental drivers
+            glewExperimental = GL_TRUE;
+            glewInit();
+            
+            // Enable OpenGL debug output
+            glEnable(GL_DEBUG_OUTPUT);
+            
+            // Query info about our OpenGL environment
+            Video::OpenGL::queryOpenGL();
+            
+            // Everything successful
+            Logger::log(Logger::INFO) << "OpenGL initialized successfully" << std::endl;
+            return true;
+        }
     }
     #endif // PGG_OPENGL
     
@@ -1368,6 +1384,11 @@ namespace Video {
         }
     }
     #endif // PGG_SDL
+    
+    #ifdef PGG_GFLW
+    namespace GLFW {
+    }
+    #endif // PGG_GLFW
     
     uint32_t mWindowWidth = 640;
     uint32_t mWindowHeight = 480;

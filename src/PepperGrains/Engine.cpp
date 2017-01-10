@@ -240,23 +240,9 @@ namespace Engine {
     
     #ifdef PGG_OPENGL
     bool gapiInitialize() {
-        // Initialize GLEW, using OpenGL experimental drivers
-        glewExperimental = GL_TRUE;
-        glewInit();
-        
-        // Enable OpenGL debug output
-        glEnable(GL_DEBUG_OUTPUT);
-        
-        // Query info about our OpenGL environment
-        Video::OpenGL::queryOpenGL();
-        
-        // Everything successful
-        Logger::log(Logger::INFO) << "OpenGL initialized successfully" << std::endl;
-        return true;
+        return Video::OpenGL::initialize();
     }
     bool gapiCleanup() {
-        
-        // Everything successful
         return true;
     }
     #endif

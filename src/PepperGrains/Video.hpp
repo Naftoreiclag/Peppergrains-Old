@@ -65,6 +65,8 @@ namespace Video {
         bool supportsTessellationShaders();
         
         void queryOpenGL();
+        
+        bool initialize();
     }
     #endif // PGG_OPENGL
     
@@ -113,6 +115,11 @@ namespace Video {
         void querySDL(SDL_Renderer* renderer);
     }
     #endif // PGG_SDL
+    
+    #ifdef PGG_GFLW
+    namespace GLFW {
+    }
+    #endif // PGG_GLFW
     
     uint32_t getWindowWidth();
     uint32_t getWindowHeight();
