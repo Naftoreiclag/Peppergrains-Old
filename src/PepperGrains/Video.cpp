@@ -117,7 +117,7 @@ namespace Video {
     
     #ifdef PGG_VULKAN
     namespace Vulkan {
-        VkApplicationInfo mAppDesc;
+        VkApplicationInfo mAppDesc; // Basic struct
         VkFormat mVkIdealSurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
         VkColorSpaceKHR mVkIdealSurfaceColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         VkPresentModeKHR mVkIdealPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -133,29 +133,27 @@ namespace Video {
         VkSurfaceKHR getSurface() { return mVkSurface; }
         VkPhysicalDevice mVkPhysDevice = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
         VkPhysicalDevice getPhysicalDevice() { return mVkPhysDevice; }
-        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
         VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
         VkDevice getLogicalDevice() { return mVkLogicalDevice; }
-        VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
-        VkSwapchainKHR getSwapchain() { return mVkSwapchain; }
-        VkFormat mVkSwapchainFormat;
-        VkExtent2D mVkSwapchainExtent;
-        std::vector<VkImageView> mVkSwapchainImageViews;
         
+        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue mVkComputeQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue mVkSparseQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
         
         int32_t mQFIGraphics = -1;
-        int32_t mQFICompute = -1;
-        int32_t mQFITransfer = -1;
-        int32_t mQFISparse = -1;
-        int32_t mQFIDisplay = -1;
         int32_t getGraphicsQueueFamilyIndex() { return mQFIGraphics; }
+        int32_t mQFICompute = -1;
         int32_t getComputeQueueFamilyIndex() { return mQFICompute; }
+        int32_t mQFITransfer = -1;
         int32_t getTransferQueueFamilyIndex() { return mQFITransfer; }
+        int32_t mQFISparse = -1;
         int32_t getSparseQueueFamilyIndex() { return mQFISparse; }
+        int32_t mQFIDisplay = -1;
         int32_t getDisplayQueueFamilyIndex() { return mQFIDisplay; }
         
-        
+        // Note: this data is not available until after a physical device is queried
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities() { return mSurfaceCapabilities; }
         std::vector<VkSurfaceFormatKHR> mAvailableSurfaceFormats;
@@ -163,7 +161,15 @@ namespace Video {
         std::vector<VkPresentModeKHR> mAvailablePresentModes;
         const std::vector<VkPresentModeKHR> getAvailablePresentModes() { return mAvailablePresentModes; }
         
-        std::vector<VkImage> mSwapchainImages;
+        VkSwapchainKHR mVkSwapchain = VK_NULL_HANDLE; // Clean up manually before mVkLogicalDevice
+        VkSwapchainKHR getSwapchain() { return mVkSwapchain; }
+        VkFormat mVkSwapchainFormat; // Basic struct
+        VkFormat getSwapchainFormat() { return mVkSwapchainFormat; }
+        VkExtent2D mVkSwapchainExtent; // Basic struct
+        VkExtent2D getSwapchainExtent() { return mVkSwapchainExtent; }
+        std::vector<VkImageView> mSwapchainImageViews; // Clean up manually
+        const std::vector<VkImageView>& getSwapchainImageViews() { return mSwapchainImageViews; }
+        std::vector<VkImage> mSwapchainImages; // Cleaned up automatically by mVkSwapchain
         const std::vector<VkImage>& getSwapchainImages() { return mSwapchainImages; }
         
         std::vector<VkExtensionProperties> mExtensionProperties;
@@ -177,6 +183,7 @@ namespace Video {
         std::vector<VkQueueFamilyProperties> mQueueFamilies;
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies() { return mQueueFamilies; }
         
+        // Queries important data from Vulkan
         void queryGlobals() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -319,8 +326,6 @@ namespace Video {
             }
             vout.unindent();
         }
-        void querySurfaceSpecific() {
-        }
         void queryPhysicalDeviceSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -343,18 +348,6 @@ namespace Video {
             vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, nullptr);
             mPhysicalDeviceExts.resize(numExts);
             vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, mPhysicalDeviceExts.data());
-            
-            /*
-            bool hasSwapchain = false;
-            for(VkExtensionProperties props : mPhysicalDeviceExts) {
-                if(strcmp(props.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
-                    hasSwapchain = true;
-                    continue;
-                }
-                
-                // More extensions...
-            }
-            */
             
             uint32_t numFamilies;
             vkGetPhysicalDeviceQueueFamilyProperties(mVkPhysDevice, &numFamilies, nullptr);
@@ -413,17 +406,6 @@ namespace Video {
                 mAvailablePresentModes.resize(numPresents);
                 vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, mAvailablePresentModes.data());
             }
-        }
-        void queryLogicalDeviceSpecific() {
-        }
-        void querySwapchainSpecific() {
-            Logger::Out iout = Logger::log(Logger::INFO);
-            Logger::Out vout = Logger::log(Logger::VERBOSE);
-            
-            uint32_t numImages;
-            vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, nullptr);
-            mSwapchainImages.resize(numImages);
-            vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, mSwapchainImages.data());
         }
         
         // Move to renderer
@@ -761,9 +743,6 @@ namespace Video {
                     sout << "Could not create Vulkan surface" << std::endl;
                     return false;
                 }
-                
-                // Read surface-specific data from Vulkan
-                querySurfaceSpecific();
             }
             
             // Init physical device
@@ -922,8 +901,6 @@ namespace Video {
                 // Get the queue family handles for later
                 vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getGraphicsQueueFamilyIndex(), 0, &mVkGraphicsQueue);
                 vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getDisplayQueueFamilyIndex(), 0, &mVkDisplayQueue);
-            
-                queryLogicalDeviceSpecific();
             }
             
             // Init surface swap chain
@@ -1006,13 +983,16 @@ namespace Video {
                 
                 mVkSwapchainFormat = surfaceFormat.format;
                 mVkSwapchainExtent = surfaceExtent;
-                
-                querySwapchainSpecific();
+            
+                uint32_t numImages;
+                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, nullptr);
+                mSwapchainImages.resize(numImages);
+                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, mSwapchainImages.data());
             }
             
             // Init image views
             {
-                mVkSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size());
+                mSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size());
                 uint32_t index = 0;
                 for(VkImage image : Video::Vulkan::getSwapchainImages()) {
                     VkImageViewCreateInfo imageViewCstrArgs; {
@@ -1032,7 +1012,7 @@ namespace Video {
                         imageViewCstrArgs.subresourceRange.layerCount = 1;
                     }
                     
-                    result = vkCreateImageView(mVkLogicalDevice, &imageViewCstrArgs, nullptr, &(mVkSwapchainImageViews.data()[index]));
+                    result = vkCreateImageView(mVkLogicalDevice, &imageViewCstrArgs, nullptr, &(mSwapchainImageViews.data()[index]));
                     
                     if(result != VK_SUCCESS) {
                         sout << "Could not create image view #" << index << std::endl;
@@ -1345,7 +1325,7 @@ namespace Video {
             vkDestroyShaderModule(mVkLogicalDevice, mShaderVertModule, nullptr);
             vkDestroyShaderModule(mVkLogicalDevice, mShaderFragModule, nullptr);
             
-            for(VkImageView view : mVkSwapchainImageViews) {
+            for(VkImageView view : mSwapchainImageViews) {
                 vkDestroyImageView(mVkLogicalDevice, view, nullptr);
             }
             
