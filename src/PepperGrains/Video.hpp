@@ -63,8 +63,9 @@ namespace Video {
         
         bool supportsGeometryShaders();
         bool supportsTessellationShaders();
+        
+        void queryOpenGL();
     }
-    void queryOpenGL();
     #endif // PGG_OPENGL
     
     #ifdef PGG_VULKAN
@@ -101,6 +102,10 @@ namespace Video {
         void queryPhysicalDeviceSpecific(VkPhysicalDevice physDevice);
         void queryLogicalDeviceSpecific(VkDevice logicalDevice);
         void querySwapchainSpecific(VkSwapchainKHR swapchain);
+        
+        bool initialize();
+        
+        bool cleanup();
     }
     #endif // PGG_VULKAN
     

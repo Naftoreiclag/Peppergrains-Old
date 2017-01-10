@@ -67,47 +67,48 @@ namespace Video {
         bool supportsTessellationShaders() {
             return getMajorVersion() >= 4;
         }
-    }
-    void queryOpenGL() {
-        GLint gi;
         
-        glGetIntegerv(GL_MAJOR_VERSION, &gi); OpenGL::getMajorVersion(gi);
-        glGetIntegerv(GL_MINOR_VERSION, &gi); OpenGL::getMinorVersion(gi);
-        glGetIntegerv(GL_CONTEXT_FLAGS, &gi); OpenGL::getContextFlags(gi);
-        
-        glGetIntegerv(GL_ATOMIC_COUNTER_BUFFER_SIZE, &gi); OpenGL::getMaxAtomicCounterBufferSize(gi);
-        glGetIntegerv(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &gi); OpenGL::getMaxAtomicCounterBufferBindings(gi);
-        glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &gi); OpenGL::getMaxShaderStorageBufferBindings(gi);
-        glGetIntegerv(GL_MAX_COMBINED_SHADER_OUTPUT_RESOURCES, &gi); OpenGL::getMaxCombinedShaderOutputResources(gi);
-        glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &gi); OpenGL::getMaxCombinedShaderStorageBlocks(gi);
-        glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &gi); OpenGL::getMaxUniformBlockSize(gi);
-        //glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_BUFFER_BINDINGS, &gi); OpenGL(gi);
-        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &gi); OpenGL::getMaxUniformBufferBindings(gi);
-        glGetIntegerv(GL_MAX_DEBUG_LOGGED_MESSAGES, &gi); OpenGL::getMaxDebugLoggedMessages(gi);
-        glGetIntegerv(GL_MAX_DEBUG_MESSAGE_LENGTH, &gi); OpenGL::getMaxDebugMessageLength(gi);
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &gi); OpenGL::getMaxColorAttachments(gi);
-        glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &gi); OpenGL::getMaxColorTextureSamples(gi);
-        glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &gi); OpenGL::getMaxDepthTextureSamples(gi);
-        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &gi); OpenGL::getMaxDrawBuffers(gi);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &gi); OpenGL::getMaxFramebufferHeight(gi);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &gi); OpenGL::getMaxFramebufferWidth(gi);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, &gi); OpenGL::getMaxFramebufferLayers(gi);
-        glGetIntegerv(GL_MAX_FRAMEBUFFER_SAMPLES, &gi); OpenGL::getMaxFramebufferSamples(gi);
-        
-        OpenGL::isDebugOutputEnabled(glIsEnabled(GL_DEBUG_OUTPUT) == GL_TRUE);
-        
-        OpenGL::getVersion(std::string((const char*) glGetString(GL_VERSION)));
-        OpenGL::getVendor(std::string((const char*) glGetString(GL_VENDOR)));
-        OpenGL::getRenderer(std::string((const char*) glGetString(GL_RENDERER)));
-        OpenGL::getShadingLanguageVersion(std::string((const char*) glGetString(GL_SHADING_LANGUAGE_VERSION)));
-        
-        Logger::Out out = Logger::log(Logger::INFO);
-        
-        out << "OpenGL Version (Integral): " << OpenGL::getMajorVersion() << "." << OpenGL::getMinorVersion() << std::endl;
-        out << "OpenGL Version (String): " << OpenGL::getVersion() << std::endl;
-        out << "OpenGL Debug output enabled: " << OpenGL::isDebugOutputEnabled() << std::endl;
-        out << "OpenGL Max draw buffers: " << OpenGL::getMaxDrawBuffers() << std::endl;
-        out << "OpenGL Max color attachments: " << OpenGL::getMaxColorAttachments() << std::endl;
+        void queryOpenGL() {
+            GLint gi;
+            
+            glGetIntegerv(GL_MAJOR_VERSION, &gi); getMajorVersion(gi);
+            glGetIntegerv(GL_MINOR_VERSION, &gi); getMinorVersion(gi);
+            glGetIntegerv(GL_CONTEXT_FLAGS, &gi); getContextFlags(gi);
+            
+            glGetIntegerv(GL_ATOMIC_COUNTER_BUFFER_SIZE, &gi); getMaxAtomicCounterBufferSize(gi);
+            glGetIntegerv(GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &gi); getMaxAtomicCounterBufferBindings(gi);
+            glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &gi); getMaxShaderStorageBufferBindings(gi);
+            glGetIntegerv(GL_MAX_COMBINED_SHADER_OUTPUT_RESOURCES, &gi); getMaxCombinedShaderOutputResources(gi);
+            glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &gi); getMaxCombinedShaderStorageBlocks(gi);
+            glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &gi); getMaxUniformBlockSize(gi);
+            //glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_BUFFER_BINDINGS, &gi); OpenGL(gi);
+            glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &gi); getMaxUniformBufferBindings(gi);
+            glGetIntegerv(GL_MAX_DEBUG_LOGGED_MESSAGES, &gi); getMaxDebugLoggedMessages(gi);
+            glGetIntegerv(GL_MAX_DEBUG_MESSAGE_LENGTH, &gi); getMaxDebugMessageLength(gi);
+            glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &gi); getMaxColorAttachments(gi);
+            glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &gi); getMaxColorTextureSamples(gi);
+            glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &gi); getMaxDepthTextureSamples(gi);
+            glGetIntegerv(GL_MAX_DRAW_BUFFERS, &gi); getMaxDrawBuffers(gi);
+            glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &gi); getMaxFramebufferHeight(gi);
+            glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &gi); getMaxFramebufferWidth(gi);
+            glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, &gi); getMaxFramebufferLayers(gi);
+            glGetIntegerv(GL_MAX_FRAMEBUFFER_SAMPLES, &gi); getMaxFramebufferSamples(gi);
+            
+            isDebugOutputEnabled(glIsEnabled(GL_DEBUG_OUTPUT) == GL_TRUE);
+            
+            getVersion(std::string((const char*) glGetString(GL_VERSION)));
+            getVendor(std::string((const char*) glGetString(GL_VENDOR)));
+            getRenderer(std::string((const char*) glGetString(GL_RENDERER)));
+            getShadingLanguageVersion(std::string((const char*) glGetString(GL_SHADING_LANGUAGE_VERSION)));
+            
+            Logger::Out out = Logger::log(Logger::INFO);
+            
+            out << "OpenGL Version (Integral): " << getMajorVersion() << "." << getMinorVersion() << std::endl;
+            out << "OpenGL Version (String): " << getVersion() << std::endl;
+            out << "OpenGL Debug output enabled: " << isDebugOutputEnabled() << std::endl;
+            out << "OpenGL Max draw buffers: " << getMaxDrawBuffers() << std::endl;
+            out << "OpenGL Max color attachments: " << getMaxColorAttachments() << std::endl;
+        }
     }
     #endif // PGG_OPENGL
     
@@ -430,6 +431,10 @@ namespace Video {
             vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, nullptr);
             mSwapchainImages.resize(numImages);
             vkGetSwapchainImagesKHR(mVulkanLogicalDevice, mVulkanSwapchain, &numImages, mSwapchainImages.data());
+            
+        }
+    
+        bool initializeEverything() {
             
         }
     }
