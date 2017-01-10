@@ -447,24 +447,25 @@ namespace Video {
         bool isHardwareAccelerated(bool x) { static bool y = x; return y; }
         
         bool supportsTextureRender(bool x) { static bool y = x; return y; }
-    }
-    void querySDL(SDL_Renderer* renderer) {
-        SDL_RendererInfo rendererInfo;
-        SDL_GetRendererInfo(renderer, &rendererInfo);
         
-        SDL::getName(std::string(rendererInfo.name));
-        
-        uint32_t flags = rendererInfo.flags;
-        SDL::isSoftwareFallback(flags & SDL_RENDERER_SOFTWARE);
-        SDL::isHardwareAccelerated(flags & SDL_RENDERER_ACCELERATED);
-        SDL::supportsTextureRender(flags & SDL_RENDERER_TARGETTEXTURE);
-        
-        Logger::Out out = Logger::log(Logger::INFO);
-        
-        out << "SDL Renderer name: " << SDL::getName() << std::endl;
-        out << "SDL Software fallback: " << SDL::isSoftwareFallback() << std::endl;
-        out << "SDL Hardware accelerated: " << SDL::isHardwareAccelerated() << std::endl;
-        out << "SDL Texture renderering: " << SDL::supportsTextureRender() << std::endl;
+        void querySDL(SDL_Renderer* renderer) {
+            SDL_RendererInfo rendererInfo;
+            SDL_GetRendererInfo(renderer, &rendererInfo);
+            
+            SDL::getName(std::string(rendererInfo.name));
+            
+            uint32_t flags = rendererInfo.flags;
+            SDL::isSoftwareFallback(flags & SDL_RENDERER_SOFTWARE);
+            SDL::isHardwareAccelerated(flags & SDL_RENDERER_ACCELERATED);
+            SDL::supportsTextureRender(flags & SDL_RENDERER_TARGETTEXTURE);
+            
+            Logger::Out out = Logger::log(Logger::INFO);
+            
+            out << "SDL Renderer name: " << SDL::getName() << std::endl;
+            out << "SDL Software fallback: " << SDL::isSoftwareFallback() << std::endl;
+            out << "SDL Hardware accelerated: " << SDL::isHardwareAccelerated() << std::endl;
+            out << "SDL Texture renderering: " << SDL::supportsTextureRender() << std::endl;
+        }
     }
     #endif // PGG_SDL
     

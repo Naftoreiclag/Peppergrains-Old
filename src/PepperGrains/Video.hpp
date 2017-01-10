@@ -116,8 +116,9 @@ namespace Video {
         bool isHardwareAccelerated(bool initial = false);
         
         bool supportsTextureRender(bool initial = false);
+        
+        void querySDL(SDL_Renderer* renderer);
     }
-    void querySDL(SDL_Renderer* renderer);
     #endif // PGG_SDL
     
     uint32_t getWindowWidth();
