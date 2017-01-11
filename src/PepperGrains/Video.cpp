@@ -211,6 +211,8 @@ namespace Video {
         
         std::vector<VkExtensionProperties> mPhysicalDeviceExts;
         const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions() { return mPhysicalDeviceExts; }
+        VkPhysicalDeviceProperties mPhysicalDeviceProperties;
+        VkPhysicalDeviceProperties getPhysicalDeviceProperties() { return mPhysicalDeviceProperties; }
         VkPhysicalDeviceFeatures mPhysicalDeviceFeatures;
         VkPhysicalDeviceFeatures getPhysicalDeviceFeatures() { return mPhysicalDeviceFeatures; }
         VkPhysicalDeviceMemoryProperties mPhysicalDeviceMemoryProperties;
@@ -412,6 +414,7 @@ namespace Video {
             mPhysicalDeviceExts.resize(numExts);
             vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, mPhysicalDeviceExts.data());
             
+            vkGetPhysicalDeviceProperties(mVkPhysDevice, &mPhysicalDeviceProperties);
             vkGetPhysicalDeviceFeatures(mVkPhysDevice, &mPhysicalDeviceFeatures);
             vkGetPhysicalDeviceMemoryProperties(mVkPhysDevice, &mPhysicalDeviceMemoryProperties);
             

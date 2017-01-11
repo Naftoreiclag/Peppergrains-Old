@@ -103,6 +103,7 @@ namespace Video {
         const std::vector<VkLayerProperties>& getAvailableLayers();
         const std::vector<VkPhysicalDevice>& getAllPhysicalDevices();
         const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions();
+        VkPhysicalDeviceProperties getPhysicalDeviceProperties();
         VkPhysicalDeviceFeatures getPhysicalDeviceFeatures();
         VkPhysicalDeviceMemoryProperties getPhysicalDeviceMemoryProperties();
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies();
