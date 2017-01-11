@@ -38,9 +38,10 @@ bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* modu
 }
 
 ShoRendererVk::ShoRendererVk() { }
+ShoRendererVk::~ShoRendererVk() { }
 
 bool ShoRendererVk::initialize() {
-    return initializeRenderpass()&& initializeFramebuffers() && initializeSemaphores() && initializePipeline() && populateCommandBuffers();
+    return initializeRenderpass() && initializeFramebuffers() && initializeSemaphores() && setupTestGeometry() && initializePipeline() && populateCommandBuffers();
 }
 bool ShoRendererVk::initializeRenderpass() {
 
@@ -115,6 +116,192 @@ bool ShoRendererVk::initializeRenderpass() {
     
     return true;
 }
+
+bool ShoRendererVk::initializeFramebuffers() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
+    
+    mSwapchainFramebuffers.resize(Video::Vulkan::getSwapchainImageViews().size(), VK_NULL_HANDLE);
+    
+    for(uint32_t index = 0; index < Video::Vulkan::getSwapchainImageViews().size(); ++ index) {
+        VkImageView imgViewAttachments[] = {
+            Video::Vulkan::getSwapchainImageViews().at(index)
+        };
+        
+        VkFramebufferCreateInfo fbCargs; {
+            fbCargs.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            fbCargs.pNext = nullptr;
+            fbCargs.flags = 0;
+            
+            fbCargs.renderPass = mRenderPass;
+            
+            fbCargs.attachmentCount = 1;
+            fbCargs.pAttachments = imgViewAttachments;
+            fbCargs.width = Video::Vulkan::getSwapchainExtent().width;
+            fbCargs.height = Video::Vulkan::getSwapchainExtent().height;
+            fbCargs.layers = 1;
+        }
+        
+        result = vkCreateFramebuffer(Video::Vulkan::getLogicalDevice(), &fbCargs, nullptr, &(mSwapchainFramebuffers[index]));
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not create framebuffer #" << index << std::endl;
+            return false;
+        }
+    }
+    
+    VkCommandPoolCreateInfo cpCargs; {
+        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        cpCargs.pNext = nullptr;
+        cpCargs.flags = 0;
+        
+        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
+    }
+    
+    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create command pool" << std::endl;
+        return false;
+    }
+    
+    mCommandBuffers.resize(mSwapchainFramebuffers.size(), VK_NULL_HANDLE);
+    
+    VkCommandBufferAllocateInfo cbaArgs; {
+        cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cbaArgs.pNext = nullptr;
+        cbaArgs.commandPool = mCommandPool;
+        cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cbaArgs.commandBufferCount = mCommandBuffers.size();
+    }
+    
+    result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, mCommandBuffers.data());
+    
+    if(result != VK_SUCCESS) {
+        sout << "Could not allocate command buffers" << std::endl;
+        return false;
+    }
+    
+    return true;
+}
+
+bool ShoRendererVk::initializeSemaphores() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
+    
+    VkSemaphoreCreateInfo whyVulkan; {
+        whyVulkan.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        whyVulkan.pNext = nullptr;
+        whyVulkan.flags = 0;
+    }
+    
+    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemImageAvailable);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create image availability semaphore" << std::endl;
+        return false;
+    }
+    
+    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemRenderFinished);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create render finishing semaphore" << std::endl;
+        return false;
+    }
+    
+    return true;
+}
+
+bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t& memTypeIndex) {
+    VkPhysicalDeviceMemoryProperties physMemProps = Video::Vulkan::getPhysicalDeviceMemoryProperties();
+    
+    for(uint32_t i = 0; i < physMemProps.memoryTypeCount; ++ i) {
+        if((allowedTypes & (1 << i)) && 
+            ((physMemProps.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties)) {
+            memTypeIndex = i;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool ShoRendererVk::setupTestGeometry() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
+    
+    glm::f32 vertData[] = {
+        -0.5, -0.5, 1.0, 0.0, 0.0,
+        0.5, 0.5, 0.0, 1.0, 0.0,
+        -0.5, 0.5, 0.0, 0.0, 1.0
+    };
+    
+    VkBufferCreateInfo buffInfo; {
+        buffInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        buffInfo.pNext = nullptr;
+        buffInfo.flags = 0;
+        
+        buffInfo.size = sizeof(vertData);//(3 + 2) * sizeof(glm::f32) * numVerts;
+        buffInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        buffInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    }
+    
+    result = vkCreateBuffer(Video::Vulkan::getLogicalDevice(), &buffInfo, nullptr, &mVertexBuffer);
+    
+    
+    if(result != VK_SUCCESS) {
+        Logger::log(Logger::WARN) << "Could not create vertex buffer" << std::endl;
+    }
+    
+    VkMemoryRequirements vertexBufferMemReq;
+    vkGetBufferMemoryRequirements(Video::Vulkan::getLogicalDevice(), mVertexBuffer, &vertexBufferMemReq);
+    
+    uint32_t memoryTypeIndex;
+    bool success = findSuitableMemoryTypeIndex(vertexBufferMemReq.memoryTypeBits, 
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                memoryTypeIndex);
+                
+    if(!success) {
+        sout << "Could not find memory type that can accept vertex buffer" << std::endl;
+        return false;
+    }
+    
+    VkMemoryAllocateInfo allocArgs; {
+        allocArgs.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocArgs.pNext = nullptr;
+        
+        allocArgs.allocationSize = vertexBufferMemReq.size;
+        allocArgs.memoryTypeIndex = memoryTypeIndex;
+    }
+    
+    result = vkAllocateMemory(Video::Vulkan::getLogicalDevice(), &allocArgs, nullptr, &mVertexBufferMemory);
+    
+    if(result != VK_SUCCESS) {
+        sout << "Could not allocate memory for vertex buffer" << std::endl;
+        return false;
+    }
+    
+    vkBindBufferMemory(Video::Vulkan::getLogicalDevice(), mVertexBuffer, mVertexBufferMemory, 0);
+    
+    void* memAddr;
+    vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, 0, sizeof(vertData), 0, &memAddr);
+    memcpy(memAddr, vertData, sizeof(vertData));
+    vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
+    
+    
+    
+    return true;
+}
+
 bool ShoRendererVk::initializePipeline() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
@@ -149,6 +336,30 @@ bool ShoRendererVk::initializePipeline() {
         return false;
     }
     
+    VkVertexInputBindingDescription bindDesc; {
+        bindDesc.binding = 0;
+        bindDesc.stride = (3 + 2) * sizeof(glm::f32);
+        bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    }
+    
+    VkVertexInputAttributeDescription locAttribDesc; {
+        locAttribDesc.binding = 0;
+        locAttribDesc.location = 0;
+        locAttribDesc.format = VK_FORMAT_R32G32_SFLOAT;
+        locAttribDesc.offset = (0) * sizeof(glm::f32);
+    }
+    
+    VkVertexInputAttributeDescription colorAttribDesc; {
+        colorAttribDesc.binding = 0;
+        colorAttribDesc.location = 1;
+        colorAttribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+        colorAttribDesc.offset = (0 + 2) * sizeof(glm::f32);
+    }
+    
+    VkVertexInputAttributeDescription attribDescs[] = {
+        locAttribDesc,
+        colorAttribDesc
+    };
     
     VkPipelineShaderStageCreateInfo pssVertCstrArgs; {
         pssVertCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -182,10 +393,10 @@ bool ShoRendererVk::initializePipeline() {
         pvisCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         pvisCstrArgs.pNext = nullptr;
         pvisCstrArgs.flags = 0;
-        pvisCstrArgs.vertexAttributeDescriptionCount = 0;
-        pvisCstrArgs.pVertexAttributeDescriptions = nullptr;
-        pvisCstrArgs.vertexBindingDescriptionCount = 0;
-        pvisCstrArgs.pVertexBindingDescriptions = nullptr;
+        pvisCstrArgs.vertexBindingDescriptionCount = 1;
+        pvisCstrArgs.pVertexBindingDescriptions = &bindDesc;
+        pvisCstrArgs.vertexAttributeDescriptionCount = 2;
+        pvisCstrArgs.pVertexAttributeDescriptions = attribDescs;
     }
     
     
@@ -346,76 +557,6 @@ bool ShoRendererVk::initializePipeline() {
     
     return true;
 }
-bool ShoRendererVk::initializeFramebuffers() {
-
-    Logger::Out iout = Logger::log(Logger::INFO);
-    Logger::Out vout = Logger::log(Logger::VERBOSE);
-    Logger::Out sout = Logger::log(Logger::SEVERE);
-    
-    VkResult result;
-    
-    mSwapchainFramebuffers.resize(Video::Vulkan::getSwapchainImageViews().size(), VK_NULL_HANDLE);
-    
-    for(uint32_t index = 0; index < Video::Vulkan::getSwapchainImageViews().size(); ++ index) {
-        VkImageView imgViewAttachments[] = {
-            Video::Vulkan::getSwapchainImageViews().at(index)
-        };
-        
-        VkFramebufferCreateInfo fbCargs; {
-            fbCargs.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            fbCargs.pNext = nullptr;
-            fbCargs.flags = 0;
-            
-            fbCargs.renderPass = mRenderPass;
-            
-            fbCargs.attachmentCount = 1;
-            fbCargs.pAttachments = imgViewAttachments;
-            fbCargs.width = Video::Vulkan::getSwapchainExtent().width;
-            fbCargs.height = Video::Vulkan::getSwapchainExtent().height;
-            fbCargs.layers = 1;
-        }
-        
-        result = vkCreateFramebuffer(Video::Vulkan::getLogicalDevice(), &fbCargs, nullptr, &(mSwapchainFramebuffers[index]));
-        
-        if(result != VK_SUCCESS) {
-            sout << "Could not create framebuffer #" << index << std::endl;
-            return false;
-        }
-    }
-    
-    VkCommandPoolCreateInfo cpCargs; {
-        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        cpCargs.pNext = nullptr;
-        cpCargs.flags = 0;
-        
-        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
-    }
-    
-    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create command pool" << std::endl;
-        return false;
-    }
-    
-    mCommandBuffers.resize(mSwapchainFramebuffers.size(), VK_NULL_HANDLE);
-    
-    VkCommandBufferAllocateInfo cbaArgs; {
-        cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cbaArgs.pNext = nullptr;
-        cbaArgs.commandPool = mCommandPool;
-        cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        cbaArgs.commandBufferCount = mCommandBuffers.size();
-    }
-    
-    result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, mCommandBuffers.data());
-    
-    if(result != VK_SUCCESS) {
-        sout << "Could not allocate command buffers" << std::endl;
-        return false;
-    }
-    
-    return true;
-}
 
 bool ShoRendererVk::populateCommandBuffers() {
 
@@ -451,6 +592,9 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
         
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexBuffer, &offset);
+        
         vkCmdDraw(cmdBuff, 3, 1, 0, 0);
         
         vkCmdEndRenderPass(cmdBuff);
@@ -465,39 +609,14 @@ bool ShoRendererVk::populateCommandBuffers() {
     return true;
 }
 
-bool ShoRendererVk::initializeSemaphores() {
-
-    Logger::Out iout = Logger::log(Logger::INFO);
-    Logger::Out vout = Logger::log(Logger::VERBOSE);
-    Logger::Out sout = Logger::log(Logger::SEVERE);
-    
-    VkResult result;
-    
-    VkSemaphoreCreateInfo whyVulkan; {
-        whyVulkan.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        whyVulkan.pNext = nullptr;
-        whyVulkan.flags = 0;
-    }
-    
-    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemImageAvailable);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create image availability semaphore" << std::endl;
-        return false;
-    }
-    
-    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemRenderFinished);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create render finishing semaphore" << std::endl;
-        return false;
-    }
-    
-    return true;
-}
-
-ShoRendererVk::~ShoRendererVk() {
-}
-
 bool ShoRendererVk::cleanup() {
+    
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, nullptr);
+    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexBuffer, nullptr);
+    
+    vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
+    vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
+    
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
@@ -506,20 +625,11 @@ bool ShoRendererVk::cleanup() {
     }
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
-    
     for(VkFramebuffer fb : mSwapchainFramebuffers) {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), fb, nullptr);
     }
     
-    
-    vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
-    
-    
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
-    
-    
-    vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
-    
     
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderVertModule, nullptr);
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderFragModule, nullptr);

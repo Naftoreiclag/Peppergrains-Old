@@ -46,11 +46,15 @@ private:
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> mCommandBuffers;
     
+    VkBuffer mVertexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mVertexBufferMemory = VK_NULL_HANDLE;
+    
     bool initializeRenderpass();
-    bool initializePipeline();
     bool initializeFramebuffers();
-    bool populateCommandBuffers();
     bool initializeSemaphores();
+    bool setupTestGeometry();
+    bool initializePipeline();
+    bool populateCommandBuffers();
 public:
     ShoRendererVk();
     ~ShoRendererVk();
