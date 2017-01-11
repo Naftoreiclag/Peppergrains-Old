@@ -77,17 +77,17 @@ namespace Video {
         VkPhysicalDevice getPhysicalDevice();
         VkDevice getLogicalDevice();
         
-        VkQueue getGraphicsQueue();
         VkQueue getComputeQueue();
-        VkQueue getTransferQueue();
-        VkQueue getSparseQueue();
         VkQueue getDisplayQueue();
+        VkQueue getGraphicsQueue();
+        VkQueue getSparseQueue();
+        VkQueue getTransferQueue();
         
-        int32_t getGraphicsQueueFamilyIndex();
         int32_t getComputeQueueFamilyIndex();
-        int32_t getTransferQueueFamilyIndex();
-        int32_t getSparseQueueFamilyIndex();
         int32_t getDisplayQueueFamilyIndex();
+        int32_t getGraphicsQueueFamilyIndex();
+        int32_t getSparseQueueFamilyIndex();
+        int32_t getTransferQueueFamilyIndex();
         
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
         const std::vector<VkSurfaceFormatKHR> getAvailableSurfaceFormats();

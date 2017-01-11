@@ -151,27 +151,26 @@ namespace Video {
         VkDevice mVkLogicalDevice = VK_NULL_HANDLE; // Clean up manually
         VkDevice getLogicalDevice() { return mVkLogicalDevice; }
         
-        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue getGraphicsQueue() { return mVkGraphicsQueue; }
-        VkQueue mVkComputeQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue getComputeQueue() { return mVkComputeQueue; }
-        VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue getTransferQueue() { return mVkTransferQueue; }
-        VkQueue mVkSparseQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue getSparseQueue() { return mVkSparseQueue; }
-        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
-        VkQueue getDisplayQueue() { return mVkDisplayQueue; }
-        
-        int32_t mQFIGraphics = -1;
-        int32_t getGraphicsQueueFamilyIndex() { return mQFIGraphics; }
         int32_t mQFICompute = -1;
         int32_t getComputeQueueFamilyIndex() { return mQFICompute; }
-        int32_t mQFITransfer = -1;
-        int32_t getTransferQueueFamilyIndex() { return mQFITransfer; }
-        int32_t mQFISparse = -1;
-        int32_t getSparseQueueFamilyIndex() { return mQFISparse; }
+        VkQueue mVkComputeQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getComputeQueue() { return mVkComputeQueue; }
         int32_t mQFIDisplay = -1;
         int32_t getDisplayQueueFamilyIndex() { return mQFIDisplay; }
+        VkQueue mVkDisplayQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getDisplayQueue() { return mVkDisplayQueue; }
+        int32_t mQFIGraphics = -1;
+        int32_t getGraphicsQueueFamilyIndex() { return mQFIGraphics; }
+        VkQueue mVkGraphicsQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getGraphicsQueue() { return mVkGraphicsQueue; }
+        int32_t mQFISparse = -1;
+        int32_t getSparseQueueFamilyIndex() { return mQFISparse; }
+        VkQueue mVkSparseQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getSparseQueue() { return mVkSparseQueue; }
+        int32_t mQFITransfer = -1;
+        int32_t getTransferQueueFamilyIndex() { return mQFITransfer; }
+        VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
+        VkQueue getTransferQueue() { return mVkTransferQueue; }
         
         // Note: this data is not available until after a physical device is queried
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
@@ -356,11 +355,16 @@ namespace Video {
                 mAvailableSurfaceFormats.clear();
                 mPhysicalDeviceExts.clear();
                 mQueueFamilies.clear();
-                mQFIGraphics = -1;
                 mQFICompute = -1;
-                mQFITransfer = -1;
-                mQFISparse = -1;
                 mQFIDisplay = -1;
+                mQFIGraphics = -1;
+                mQFISparse = -1;
+                mQFITransfer = -1;
+                mVkComputeQueue = VK_NULL_HANDLE;
+                mVkDisplayQueue = VK_NULL_HANDLE;
+                mVkGraphicsQueue = VK_NULL_HANDLE;
+                mVkSparseQueue = VK_NULL_HANDLE;
+                mVkTransferQueue = VK_NULL_HANDLE;
                 return;
             }
             
@@ -387,25 +391,25 @@ namespace Video {
                 bool supportSparse = family.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT;
                 VkBool32 vkBool;
                 vkGetPhysicalDeviceSurfaceSupportKHR(mVkPhysDevice, index, mVkSurface, &vkBool);
-                bool supportSurfaceKHR = vkBool;
+                bool supportDisplay = vkBool;
                 
                 vout.indent();
-                vout << "Graphics operations: " << (supportGraphics ? "available" : "unavailable") << std::endl;
                 vout << "Compute operations: " << (supportCompute ? "available" : "unavailable") << std::endl;
-                vout << "Transfer operations: " << (supportTransfer ? "available" : "unavailable") << std::endl;
+                vout << "Display operations (SurfaceKHR): " << (supportDisplay ? "available" : "unavailable") << std::endl;
+                vout << "Graphics operations: " << (supportGraphics ? "available" : "unavailable") << std::endl;
                 vout << "Sparse memory management operations: " << (supportSparse ? "available" : "unavailable") << std::endl;
-                vout << "Supports SurfaceKHR: " << (supportSurfaceKHR ? "available" : "unavailable") << std::endl;
+                vout << "Transfer operations: " << (supportTransfer ? "available" : "unavailable") << std::endl;
                 vout.unindent();
                 
                 if(family.queueCount == 0) {
                     continue;
                 }
                 
-                if(supportGraphics && mQFIGraphics == -1) mQFIGraphics = index;
                 if(supportCompute && mQFICompute == -1) mQFICompute = index;
-                if(supportTransfer && mQFITransfer == -1) mQFITransfer = index;
+                if(supportDisplay && mQFIDisplay == -1) mQFIDisplay = index;
+                if(supportGraphics && mQFIGraphics == -1) mQFIGraphics = index;
                 if(supportSparse && mQFISparse == -1) mQFISparse = index;
-                if(supportSurfaceKHR && mQFIDisplay == -1) mQFIDisplay = index;
+                if(supportTransfer && mQFITransfer == -1) mQFITransfer = index;
             }
             vout.unindent();
             
