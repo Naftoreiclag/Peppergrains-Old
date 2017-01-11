@@ -329,8 +329,6 @@ namespace Engine {
         double mTpsWeight = 0.85f;
         double mOneSecondTimer;
         
-        mGamelayerMachine.addBottom(new MissionGameLayer());
-        
         iout << "Finalizing windowing/input system..." << std::endl;
         if(!wisPostInitialize()) {
             sout << "Fatal error finalizing windowing/input system" << std::endl;
@@ -339,6 +337,8 @@ namespace Engine {
         
         iout << "Initialization completed successfully" << std::endl;
         iout << "Running..." << std::endl;
+        
+        mGamelayerMachine.addBottom(new MissionGameLayer());
 
         auto timePrev = std::chrono::steady_clock::now();
         mMainLoopRunning = true;
