@@ -40,6 +40,9 @@ bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* modu
 ShoRendererVk::ShoRendererVk() { }
 
 bool ShoRendererVk::initialize() {
+    return initializeRenderpass()&& initializeFramebuffers() && initializeSemaphores() && initializePipeline() && populateCommandBuffers();
+}
+bool ShoRendererVk::initializeRenderpass() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
     Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -109,6 +112,16 @@ bool ShoRendererVk::initialize() {
         sout << "Could not create render pass" << std::endl;
         return false;
     }
+    
+    return true;
+}
+bool ShoRendererVk::initializePipeline() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
     
     std::vector<uint8_t> shaderVertRaw, shaderFragRaw;
     
@@ -331,8 +344,15 @@ bool ShoRendererVk::initialize() {
         return false;
     }
     
-    iout << "Graphics pipeline created" << std::endl;
+    return true;
+}
+bool ShoRendererVk::initializeFramebuffers() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
     
+    VkResult result;
     
     mSwapchainFramebuffers.resize(Video::Vulkan::getSwapchainImageViews().size(), VK_NULL_HANDLE);
     
@@ -377,7 +397,7 @@ bool ShoRendererVk::initialize() {
         return false;
     }
     
-    mCommandBuffers.resize(mSwapchainFramebuffers.size());
+    mCommandBuffers.resize(mSwapchainFramebuffers.size(), VK_NULL_HANDLE);
     
     VkCommandBufferAllocateInfo cbaArgs; {
         cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -393,6 +413,17 @@ bool ShoRendererVk::initialize() {
         sout << "Could not allocate command buffers" << std::endl;
         return false;
     }
+    
+    return true;
+}
+
+bool ShoRendererVk::populateCommandBuffers() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
     
     for(uint32_t i = 0; i < mCommandBuffers.size(); ++ i) {
         VkCommandBuffer cmdBuff = mCommandBuffers.at(i);
@@ -431,6 +462,16 @@ bool ShoRendererVk::initialize() {
         }
         
     }
+    return true;
+}
+
+bool ShoRendererVk::initializeSemaphores() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
     
     VkSemaphoreCreateInfo whyVulkan; {
         whyVulkan.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -460,7 +501,9 @@ bool ShoRendererVk::cleanup() {
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
-    
+    if(!mCommandBuffers.empty()) {
+        vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), mCommandPool, mCommandBuffers.size(), mCommandBuffers.data());
+    }
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
     
