@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <vector>
 #include <sstream>
 
@@ -184,7 +185,8 @@ namespace Scripts {
         luaL_openlibs(mL);
         
         assert(mLuaVersion == LUA_NOREF && "Lua _VERSION already acquired!");
-        assert(lua_getglobal(mL, "_VERSION") == LUA_TSTRING && "Lua _VERSION missing!");
+        int versionType = lua_getglobal(mL, "_VERSION");
+        assert(versionType == LUA_TSTRING && "Lua _VERSION missing!");
         Logger::log(Logger::INFO) << "Lua version: " << lua_tostring(mL, -1) << std::endl;
         mLuaVersion = luaL_ref(mL, LUA_REGISTRYINDEX);
         
@@ -212,7 +214,8 @@ namespace Scripts {
             if(env != LUA_NOREF) {
                 //lua_getglobal(mL, "_G");
                 pushRef(env);
-                assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
+                const char* upvalueName = lua_setupvalue(mL, -2, 1);
+                assert((strcmp(upvalueName, "_ENV") == 0) && "First Lua upvalue is not _ENV; sandboxing failed!");
             }
             return luaL_ref(mL, LUA_REGISTRYINDEX); // -1 +0 -
         } else {
@@ -340,7 +343,8 @@ namespace Scripts {
         if(env == LUA_NOREF) return;
         
         pushRef(env);
-        assert(std::string(lua_setupvalue(mL, -2, 1)) == "_ENV" && "First Lua upvalue is not _ENV; sandboxing failed!");
+        const char* upvalueName = lua_setupvalue(mL, -2, 1);
+        assert((strcmp(upvalueName, "_ENV") == 0) && "First Lua upvalue is not _ENV; sandboxing failed!");
     }
     
     bool cleanup() {
