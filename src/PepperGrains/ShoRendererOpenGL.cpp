@@ -16,7 +16,7 @@
 
 #ifdef PGG_OPENGL
 
-#include "ShoRendererOpenGL.hpp"
+#include "ShoRendererOgOpenGL.hpp"
 
 #include "Resources.hpp"
 #include "Logger.hpp"
@@ -24,13 +24,13 @@
 
 namespace pgg {
 
-ShoRenderer::ShoRenderer()
+ShoRendererOg::ShoRendererOg()
 : mScreenWidth(Video::getWindowWidth())
 , mScreenHeight(Video::getWindowHeight())
 , mScenegraph(nullptr)
 , mCamera(Camera(glm::radians(45.f), 1.f, 0.1f, 10.f)) { }
 
-bool ShoRenderer::initialize() {
+bool ShoRendererOg::initialize() {
     Logger::log(Logger::VERBOSE) << "Constructing Sho Renderer..." << std::endl;
     
     // Generate texture render targets
@@ -145,9 +145,9 @@ bool ShoRenderer::initialize() {
     return true;
 }
 
-ShoRenderer::~ShoRenderer() { }
+ShoRendererOg::~ShoRendererOg() { }
 
-bool ShoRenderer::cleanup() {
+bool ShoRendererOg::cleanup() {
     Logger::log(Logger::VERBOSE) << "Deleting Sho Renderer..." << std::endl;
     
     glDeleteTextures(1, &mTextureForward);
@@ -161,11 +161,11 @@ bool ShoRenderer::cleanup() {
     return true;
 }
 
-void ShoRenderer::resize(uint32_t width, uint32_t height) {
+void ShoRendererOg::resize(uint32_t width, uint32_t height) {
     Logger::log(Logger::VERBOSE) << "Resizing Sho Renderer to " << width << "x" << height << std::endl;
 }
 
-void ShoRenderer::renderFrame() {
+void ShoRendererOg::renderFrame() {
     if(!mScenegraph) {
         return;
     }
@@ -189,7 +189,7 @@ void ShoRenderer::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        mScenegraph->render(std::bind(&ShoRenderer::modelimapDepthPass, this, std::placeholders::_1));
+        mScenegraph->render(std::bind(&ShoRendererOg::modelimapDepthPass, this, std::placeholders::_1));
     }
     
     // Cascaded shadow map generation
@@ -234,7 +234,7 @@ void ShoRenderer::renderFrame() {
     // Geometry pass
     {
         // Populate per-object lightprobe data
-        mScenegraph->render(std::bind(&ShoRenderer::modelimapLightprobe, this, std::placeholders::_1));
+        mScenegraph->render(std::bind(&ShoRendererOg::modelimapLightprobe, this, std::placeholders::_1));
         
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferForward);
         GLuint colorAttachments[] = {
@@ -252,10 +252,10 @@ void ShoRenderer::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // Opaque geometry
-        mScenegraph->render(std::bind(&ShoRenderer::modelimapOpaque, this, std::placeholders::_1));
+        mScenegraph->render(std::bind(&ShoRendererOg::modelimapOpaque, this, std::placeholders::_1));
         
         // Transparent
-        mScenegraph->render(std::bind(&ShoRenderer::modelimapTransparent, this, std::placeholders::_1));
+        mScenegraph->render(std::bind(&ShoRendererOg::modelimapTransparent, this, std::placeholders::_1));
     }
     
     // Skybox
@@ -290,10 +290,10 @@ void ShoRenderer::renderFrame() {
     // TODO: disable double buffering; we already have our own "other" buffer
 }
 
-void ShoRenderer::modelimapDepthPass(ModelInstance* modeli) {
+void ShoRendererOg::modelimapDepthPass(ModelInstance* modeli) {
 }
 
-void ShoRenderer::modelimapLightprobe(ModelInstance* modeli) {
+void ShoRendererOg::modelimapLightprobe(ModelInstance* modeli) {
     const std::vector<Geometry::Lightprobe>& lightprobes = modeli->getModel()->getGeometry()->getLightprobes();
     
     std::vector<Geometry::Lightprobe>::const_iterator liter = lightprobes.begin();
@@ -308,7 +308,7 @@ void ShoRenderer::modelimapLightprobe(ModelInstance* modeli) {
     }
 }
 
-void ShoRenderer::modelimapOpaque(ModelInstance* modeli) {
+void ShoRendererOg::modelimapOpaque(ModelInstance* modeli) {
     Renderable::Pass rendPass(Renderable::Pass::Type::SHO_FORWARD);
     rendPass.mScreenWidth = mScreenWidth;
     rendPass.mScreenHeight = mScreenHeight;
@@ -331,7 +331,10 @@ void ShoRenderer::modelimapOpaque(ModelInstance* modeli) {
     geometry->drawElements();
      */
 }
-void ShoRenderer::modelimapTransparent(ModelInstance* modeli) {
+void ShoRendererOg::modelimapTransparent(ModelInstance* modeli) {
+    
+}
+void ShoRendererOg::rebuildPipeline() {
     
 }
 

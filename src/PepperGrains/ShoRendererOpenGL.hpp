@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#ifndef PGG_SHORENDEREROPENGL_HPP
-#define PGG_SHORENDEREROPENGL_HPP
+#ifndef PGG_ShoRendererOgOPENGL_HPP
+#define PGG_ShoRendererOgOPENGL_HPP
 
 #ifdef PGG_OPENGL
 
@@ -30,10 +30,10 @@
 namespace pgg {
 
 // sho = Spherical Harmonic per-Object renderer
-class ShoRenderer {
+class ShoRendererOg {
 public:
-    ShoRenderer(uint32_t screenWidth, uint32_t screenHeight);
-    ~ShoRenderer();
+    ShoRendererOg(uint32_t screenWidth, uint32_t screenHeight);
+    ~ShoRendererOg();
     
     Camera mCamera;
     Scenegraph* mScenegraph;
@@ -80,10 +80,13 @@ public:
     void modelimapLightprobe(ModelInstance* modeli);
     void modelimapOpaque(ModelInstance* modeli);
     void modelimapTransparent(ModelInstance* modeli);
+    
+    void rebuildPipeline();
 };
+typedef ShoRendererOg ShoRenderer;
 
 }
 
 #endif // PGG_OPENGL
 
-#endif // PGG_SHORENDEREROPENGL_HPP
+#endif // PGG_ShoRendererOgOPENGL_HPP

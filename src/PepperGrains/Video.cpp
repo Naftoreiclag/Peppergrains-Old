@@ -24,6 +24,18 @@
 #include "Engine.hpp"
 
 namespace pgg {
+
+// Sometimes, we need to be able to signal the engine on graphics-related updates, such as Vulkan swapchain invalidation
+// Also needs to call the quit() function to forcefully end upon fatal error
+namespace Engine {
+    
+    void quit();
+    
+    #ifdef PGG_VULKAN
+    void onVulkanSwapchainInvalidated();
+    #endif
+} // Engine
+
 namespace Video {
     #ifdef PGG_OPENGL
     namespace OpenGL {
@@ -556,6 +568,145 @@ namespace Video {
             }
         }
         
+        bool rebuildSwapchain() {
+            Logger::Out iout = Logger::log(Logger::INFO);
+            Logger::Out vout = Logger::log(Logger::VERBOSE);
+            Logger::Out sout = Logger::log(Logger::SEVERE);
+            
+            VkResult result;
+            
+            // First, delete any swapchain images that may have existed previously
+            for(VkImageView view : mSwapchainImageViews) {
+                vkDestroyImageView(mVkLogicalDevice, view, nullptr);
+            }
+            
+            // Init surface swap chain
+            {
+                // Query / calculate important data
+                VkSurfaceCapabilitiesKHR surfaceCapabilities = Video::Vulkan::getSurfaceCapabilities();
+                VkSurfaceFormatKHR surfaceFormat = findBestSwapSurfaceFormat();
+                VkPresentModeKHR surfacePresentMode = findBestSwapPresentMode();
+                VkExtent2D surfaceExtent = calcBestSwapExtents();
+                
+                // Hopefully we can get one extra image to use triple buffering
+                uint32_t surfaceImageQuantity = surfaceCapabilities.minImageCount + 1;
+                
+                // Has a hard swap chain quantity limit (max != 0) and our reqest exceeds that maximum
+                if(surfaceCapabilities.maxImageCount > 0 && surfaceImageQuantity > surfaceCapabilities.maxImageCount) {
+                    surfaceImageQuantity = surfaceCapabilities.maxImageCount;
+                }
+                
+                VkSwapchainCreateInfoKHR swapchainCstrArgs;
+                
+                swapchainCstrArgs.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+                swapchainCstrArgs.pNext = nullptr;
+                
+                swapchainCstrArgs.flags = 0;
+                
+                swapchainCstrArgs.surface = mVkSurface;
+                
+                // How many presentable images the application needs
+                swapchainCstrArgs.minImageCount = surfaceImageQuantity;
+                
+                // Image qualities
+                swapchainCstrArgs.imageFormat = surfaceFormat.format;
+                swapchainCstrArgs.imageColorSpace = surfaceFormat.colorSpace;
+                swapchainCstrArgs.imageExtent = surfaceExtent;
+                
+                // Number of views. Used for stereo surfaces
+                swapchainCstrArgs.imageArrayLayers = 1;
+                
+                // How the swapchain's presented images will be used
+                swapchainCstrArgs.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+                
+                std::vector<uint32_t> sharingQueueFamilies;
+                sharingQueueFamilies.push_back(Video::Vulkan::getGraphicsQueueFamilyIndex());
+                if(Video::Vulkan::getGraphicsQueueFamilyIndex() == Video::Vulkan::getDisplayQueueFamilyIndex()) {
+                    // The swapchain will only ever be used by one queue family at a time
+                    swapchainCstrArgs.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+                    // Note that queueFamilyIndexCount and pQueueFamilyIndices are optional at this point
+                    
+                } else {
+                    // The swapchain will need to be shared by multiple families
+                    sharingQueueFamilies.push_back(Video::Vulkan::getDisplayQueueFamilyIndex());
+                    swapchainCstrArgs.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+                    
+                    assert(sharingQueueFamilies.size() >= 2);
+                }
+                swapchainCstrArgs.queueFamilyIndexCount = sharingQueueFamilies.size();
+                swapchainCstrArgs.pQueueFamilyIndices = sharingQueueFamilies.data();
+                
+                // No transformation
+                swapchainCstrArgs.preTransform = surfaceCapabilities.currentTransform;
+                
+                // Used for blending output with other operating system elements
+                swapchainCstrArgs.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+                
+                // Use the present mode determined earlier
+                swapchainCstrArgs.presentMode = surfacePresentMode;
+                
+                // Does the integrity of pixels not visible, not matter?
+                swapchainCstrArgs.clipped = VK_TRUE;
+                
+                // If there was a previous swap chain in use (there was not) this must be specified appropriately
+                swapchainCstrArgs.oldSwapchain = VK_NULL_HANDLE;
+                
+                if(mVkSwapchain == VK_NULL_HANDLE) {
+                    result = vkCreateSwapchainKHR(mVkLogicalDevice, &swapchainCstrArgs, nullptr, &mVkSwapchain);
+                } else {
+                    swapchainCstrArgs.oldSwapchain = mVkSwapchain;
+                    result = vkCreateSwapchainKHR(mVkLogicalDevice, &swapchainCstrArgs, nullptr, &mVkSwapchain);
+                    vkDestroySwapchainKHR(mVkLogicalDevice, swapchainCstrArgs.oldSwapchain, nullptr);
+                }
+                
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create swapchain" << std::endl;
+                    return false;
+                }
+                
+                mVkSwapchainFormat = surfaceFormat.format;
+                mVkSwapchainExtent = surfaceExtent;
+            
+                uint32_t numImages;
+                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, nullptr);
+                mSwapchainImages.resize(numImages);
+                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, mSwapchainImages.data());
+            }
+            
+            // Init image views
+            {
+                mSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size(), VK_NULL_HANDLE);
+                uint32_t index = 0;
+                for(VkImage image : Video::Vulkan::getSwapchainImages()) {
+                    VkImageViewCreateInfo imageViewCstrArgs; {
+                        imageViewCstrArgs.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+                        imageViewCstrArgs.pNext = nullptr;
+                        imageViewCstrArgs.image = image;
+                        imageViewCstrArgs.viewType = VK_IMAGE_VIEW_TYPE_2D;
+                        imageViewCstrArgs.format = mVkSwapchainFormat;
+                        imageViewCstrArgs.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+                        imageViewCstrArgs.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+                        imageViewCstrArgs.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+                        imageViewCstrArgs.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+                        imageViewCstrArgs.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                        imageViewCstrArgs.subresourceRange.baseMipLevel = 0;
+                        imageViewCstrArgs.subresourceRange.levelCount = 1;
+                        imageViewCstrArgs.subresourceRange.baseArrayLayer = 0;
+                        imageViewCstrArgs.subresourceRange.layerCount = 1;
+                    }
+                    
+                    result = vkCreateImageView(mVkLogicalDevice, &imageViewCstrArgs, nullptr, &(mSwapchainImageViews.data()[index]));
+                    
+                    if(result != VK_SUCCESS) {
+                        sout << "Could not create image view #" << index << std::endl;
+                        return false;
+                    }
+                    ++ index;
+                }
+            }
+            return true;
+        }
+        
         bool initialize() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -911,128 +1062,15 @@ namespace Video {
                 if(mQFICompute != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFICompute, 0, &mVkComputeQueue);
             }
             
-            // Init surface swap chain
-            {
-                // Query / calculate important data
-                VkSurfaceCapabilitiesKHR surfaceCapabilities = Video::Vulkan::getSurfaceCapabilities();
-                VkSurfaceFormatKHR surfaceFormat = findBestSwapSurfaceFormat();
-                VkPresentModeKHR surfacePresentMode = findBestSwapPresentMode();
-                VkExtent2D surfaceExtent = calcBestSwapExtents();
-                
-                // Hopefully we can get one extra image to use triple buffering
-                uint32_t surfaceImageQuantity = surfaceCapabilities.minImageCount + 1;
-                
-                // Has a hard swap chain quantity limit (max != 0) and our reqest exceeds that maximum
-                if(surfaceCapabilities.maxImageCount > 0 && surfaceImageQuantity > surfaceCapabilities.maxImageCount) {
-                    surfaceImageQuantity = surfaceCapabilities.maxImageCount;
-                }
-                
-                VkSwapchainCreateInfoKHR swapchainCstrArgs; {
-                    swapchainCstrArgs.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-                    swapchainCstrArgs.pNext = nullptr;
-                    
-                    swapchainCstrArgs.flags = 0;
-                    
-                    swapchainCstrArgs.surface = mVkSurface;
-                    
-                    // How many presentable images the application needs
-                    swapchainCstrArgs.minImageCount = surfaceImageQuantity;
-                    
-                    // Image qualities
-                    swapchainCstrArgs.imageFormat = surfaceFormat.format;
-                    swapchainCstrArgs.imageColorSpace = surfaceFormat.colorSpace;
-                    swapchainCstrArgs.imageExtent = surfaceExtent;
-                    
-                    // Number of views. Used for stereo surfaces
-                    swapchainCstrArgs.imageArrayLayers = 1;
-                    
-                    // How the swapchain's presented images will be used
-                    swapchainCstrArgs.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-                }
-                
-                std::vector<uint32_t> sharingQueueFamilies;
-                sharingQueueFamilies.push_back(Video::Vulkan::getGraphicsQueueFamilyIndex());
-                if(Video::Vulkan::getGraphicsQueueFamilyIndex() == Video::Vulkan::getDisplayQueueFamilyIndex()) {
-                    // The swapchain will only ever be used by one queue family at a time
-                    swapchainCstrArgs.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-                    // Note that queueFamilyIndexCount and pQueueFamilyIndices are optional at this point
-                    
-                } else {
-                    // The swapchain will need to be shared by multiple families
-                    sharingQueueFamilies.push_back(Video::Vulkan::getDisplayQueueFamilyIndex());
-                    swapchainCstrArgs.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-                    
-                    assert(sharingQueueFamilies.size() >= 2);
-                }
-                swapchainCstrArgs.queueFamilyIndexCount = sharingQueueFamilies.size();
-                swapchainCstrArgs.pQueueFamilyIndices = sharingQueueFamilies.data();
-                
-                // No transformation
-                swapchainCstrArgs.preTransform = surfaceCapabilities.currentTransform;
-                
-                // Used for blending output with other operating system elements
-                swapchainCstrArgs.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-                
-                // Use the present mode determined earlier
-                swapchainCstrArgs.presentMode = surfacePresentMode;
-                
-                // Does the integrity of pixels not visible, not matter?
-                swapchainCstrArgs.clipped = VK_TRUE;
-                
-                // If there was a previous swap chain in use (there was not) this must be specified appropriately
-                swapchainCstrArgs.oldSwapchain = VK_NULL_HANDLE;
-                
-                result = vkCreateSwapchainKHR(mVkLogicalDevice, &swapchainCstrArgs, nullptr, &mVkSwapchain);
-                
-                if(result != VK_SUCCESS) {
-                    sout << "Could not create swapchain" << std::endl;
-                    return false;
-                }
-                
-                mVkSwapchainFormat = surfaceFormat.format;
-                mVkSwapchainExtent = surfaceExtent;
-            
-                uint32_t numImages;
-                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, nullptr);
-                mSwapchainImages.resize(numImages);
-                vkGetSwapchainImagesKHR(mVkLogicalDevice, mVkSwapchain, &numImages, mSwapchainImages.data());
-            }
-            
-            // Init image views
-            {
-                mSwapchainImageViews.resize(Video::Vulkan::getSwapchainImages().size(), VK_NULL_HANDLE);
-                uint32_t index = 0;
-                for(VkImage image : Video::Vulkan::getSwapchainImages()) {
-                    VkImageViewCreateInfo imageViewCstrArgs; {
-                        imageViewCstrArgs.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-                        imageViewCstrArgs.pNext = nullptr;
-                        imageViewCstrArgs.image = image;
-                        imageViewCstrArgs.viewType = VK_IMAGE_VIEW_TYPE_2D;
-                        imageViewCstrArgs.format = mVkSwapchainFormat;
-                        imageViewCstrArgs.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-                        imageViewCstrArgs.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-                        imageViewCstrArgs.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-                        imageViewCstrArgs.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-                        imageViewCstrArgs.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                        imageViewCstrArgs.subresourceRange.baseMipLevel = 0;
-                        imageViewCstrArgs.subresourceRange.levelCount = 1;
-                        imageViewCstrArgs.subresourceRange.baseArrayLayer = 0;
-                        imageViewCstrArgs.subresourceRange.layerCount = 1;
-                    }
-                    
-                    result = vkCreateImageView(mVkLogicalDevice, &imageViewCstrArgs, nullptr, &(mSwapchainImageViews.data()[index]));
-                    
-                    if(result != VK_SUCCESS) {
-                        sout << "Could not create image view #" << index << std::endl;
-                        return false;
-                    }
-                    ++ index;
-                }
+            if(!rebuildSwapchain()) {
+                sout << "Fatal error building swapchain" << std::endl;
+                return false;
             }
             
             iout << "Vulkan initialized successfully" << std::endl;
             return true;
         }
+        
         bool cleanup() {
             
             Logger::Out sout = Logger::log(Logger::SEVERE);
@@ -1098,11 +1136,22 @@ namespace Video {
     uint32_t getWindowHeight() { return mWindowHeight; }
     float calcWindowAspectRatio() { return (float) mWindowWidth / (float) mWindowHeight; }
     
-    void resizeWindow(uint32_t width, uint32_t height) {
+    void onWindowResize(uint32_t width, uint32_t height) {
+        Logger::log(Logger::VERBOSE) << mWindowWidth << ", " << mWindowHeight << ", " << width << ", " << height << std::endl;
+        
+        // Do nothing if the window's new size is exactly the same
+        if(mWindowHeight == width && mWindowHeight == height) return;
+        
         mWindowWidth = width;
         mWindowHeight = height;
         
-        // todo: actually call the resize func instead
+        #ifdef PGG_VULKAN
+        if(!Vulkan::rebuildSwapchain()) {
+            Logger::log(Logger::SEVERE) << "Could not rebuild Vulkan swapchain for new window size" << std::endl;
+            Engine::quit();
+        }
+        Engine::onVulkanSwapchainInvalidated();
+        #endif
     }
     
 } // Video

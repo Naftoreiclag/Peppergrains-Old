@@ -57,6 +57,13 @@ public:
 
     void resize(uint32_t width, uint32_t height);
     void renderFrame();
+    
+    void modelimapDepthPass(ModelInstance* modeli);
+    void modelimapLightprobe(ModelInstance* modeli);
+    void modelimapOpaque(ModelInstance* modeli);
+    void modelimapTransparent(ModelInstance* modeli);
+    
+    void rebuildPipeline();
 };
 typedef ShoRendererVk ShoRenderer;
 

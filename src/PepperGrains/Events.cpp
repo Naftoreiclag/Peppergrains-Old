@@ -52,10 +52,11 @@ MouseWheelMoveEvent::MouseWheelMoveEvent(SDL_MouseWheelEvent e) {
     }
 }
 
+/*
 WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
 : width(e.data1 < 1 ? 1 : e.data1)
 , height(e.data2 < 1 ? 1 : e.data2) { }
-
+*/
 #endif
 
 #ifdef PGG_GLFW
@@ -86,14 +87,12 @@ MouseButtonEvent::MouseButtonEvent(int button, int status, double x, double y)
 MouseWheelMoveEvent::MouseWheelMoveEvent(double dx, double dy)
 : x(dx)
 , y(dy) { }
+#endif // PGG_GLFW
 
-/*
-WindowResizeEvent::WindowResizeEvent(SDL_WindowEvent e)
-: width(e.data1 < 1 ? 1 : e.data1)
-, height(e.data2 < 1 ? 1 : e.data2) { }
-*/
-#endif
 
+WindowResizeEvent::WindowResizeEvent(uint32_t width, uint32_t height)
+: width(width < 1 ? 1 : width)
+, height(width < 1 ? 1 : height) { }
 
 }
 

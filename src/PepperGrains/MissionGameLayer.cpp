@@ -76,6 +76,10 @@ void MissionGameLayer::onTick(double tpf, const InputState* keyStates) {
     
     mRenderer->renderFrame();
 }
+bool MissionGameLayer::onNeedRebuildRenderPipeline() {
+    mRenderer->rebuildPipeline();
+    return false;
+}
 
 }
 

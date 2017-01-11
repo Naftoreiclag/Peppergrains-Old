@@ -130,77 +130,53 @@ void GamelayerMachine::onTick(double tpf, const InputState* keys) {
     }
 }
 
-// Key handling
 void GamelayerMachine::onKeyboardEvent(const KeyboardEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onKeyboardEvent(event)) {
-            break;
-        }
+        if(layer->onKeyboardEvent(event)) break;
     }
 }
 void GamelayerMachine::onTextInput(const TextInputEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onTextInput(event)) {
-            break;
-        }
+        if(layer->onTextInput(event)) break;
     }
 }
-
-// Mouse handling
 void GamelayerMachine::onMouseMove(const MouseMoveEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onMouseMove(event)) {
-            break;
-        }
+        if(layer->onMouseMove(event)) break;
     }
 }
 void GamelayerMachine::onMouseButton(const MouseButtonEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onMouseButton(event)) {
-            break;
-        }
+        if(layer->onMouseButton(event)) break;
     }
 }
 void GamelayerMachine::onMouseWheel(const MouseWheelMoveEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onMouseWheel(event)) {
-            break;
-        }
+        if(layer->onMouseWheel(event)) break;
     }
 }
-void GamelayerMachine::onWindowSizeUpdate(const WindowResizeEvent& event) {
+void GamelayerMachine::onWindowResize(const WindowResizeEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onWindowSizeUpdate(event)) {
-            break;
-        }
+        if(layer->onWindowResize(event)) break;
+    }
+}
+
+void GamelayerMachine::onNeedRebuildRenderPipeline() {
+    for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
+        Gamelayer* layer = *iter;
+        if(layer->onNeedRebuildRenderPipeline()) break;
     }
 }
 void GamelayerMachine::onQuit(const QuitEvent& event) {
     for(std::vector<Gamelayer*>::reverse_iterator iter = mLayers.rbegin(); iter != mLayers.rend(); ++ iter) {
         Gamelayer* layer = *iter;
-        
-        // Blocking
-        if(layer->onQuit(event)) {
-            break;
-        }
+        if(layer->onQuit(event)) break;
     }
 }
 

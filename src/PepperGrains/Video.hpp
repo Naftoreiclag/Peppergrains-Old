@@ -131,7 +131,8 @@ namespace Video {
     uint32_t getWindowHeight();
     float calcWindowAspectRatio();
     
-    void resizeWindow(uint32_t width, uint32_t height);
+    // In response to the window changing size; do not try to use for modifying the window
+    void onWindowResize(uint32_t width, uint32_t height);
     
 } // Video
 } // pgg

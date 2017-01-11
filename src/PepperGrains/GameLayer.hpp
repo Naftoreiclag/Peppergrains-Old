@@ -56,7 +56,10 @@ public:
     virtual bool onMouseWheel(const MouseWheelMoveEvent& event);
     
     // Windowing
-    virtual bool onWindowSizeUpdate(const WindowResizeEvent& event);
+    virtual bool onWindowResize(const WindowResizeEvent& event);
+    
+    // Used when the Vulkan swap chain is rebuilt
+    virtual bool onNeedRebuildRenderPipeline();
     
     virtual bool onQuit(const QuitEvent& event);
 };

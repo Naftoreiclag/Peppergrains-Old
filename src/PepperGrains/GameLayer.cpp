@@ -49,7 +49,10 @@ bool Gamelayer::onMouseButton(const MouseButtonEvent& event) { return false; }
 bool Gamelayer::onMouseWheel(const MouseWheelMoveEvent& event) { return false; }
 
 // Windowing
-bool Gamelayer::onWindowSizeUpdate(const WindowResizeEvent& event) { return false; }
+bool Gamelayer::onWindowResize(const WindowResizeEvent& event) { return false; }
+
+//
+bool Gamelayer::onNeedRebuildRenderPipeline() { return false; }
 
 bool Gamelayer::onQuit(const QuitEvent& event) { return false; }
 

@@ -51,8 +51,7 @@ bool ShoRendererVk::initialize() {
         colorAttachDesc.flags = 0;
         colorAttachDesc.format = Video::Vulkan::getSwapchainFormat();
         colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-        //colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -82,6 +81,7 @@ bool ShoRendererVk::initialize() {
     }
     
     VkSubpassDependency subpassDep; {
+        subpassDep.dependencyFlags = 0;
         subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
         subpassDep.dstSubpass = 0;
         subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -405,8 +405,6 @@ bool ShoRendererVk::initialize() {
         
         result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
         
-        VkClearValue color = {0.f, 1.f, 1.f, 1.f};
-        
         VkRenderPassBeginInfo rpbArgs; {
             rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             rpbArgs.pNext = nullptr;
@@ -414,8 +412,8 @@ bool ShoRendererVk::initialize() {
             rpbArgs.framebuffer = mSwapchainFramebuffers.at(i);
             rpbArgs.renderArea.offset = {0, 0};
             rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
-            rpbArgs.clearValueCount = 1;
-            rpbArgs.pClearValues = &color;
+            rpbArgs.clearValueCount = 0;
+            rpbArgs.pClearValues = nullptr;
         }
         
         vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
@@ -459,9 +457,6 @@ ShoRendererVk::~ShoRendererVk() {
 }
 
 bool ShoRendererVk::cleanup() {
-
-    
-    
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
@@ -487,13 +482,15 @@ bool ShoRendererVk::cleanup() {
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderFragModule, nullptr);
     
     return true;
-    
 }
 
 void ShoRendererVk::resize(uint32_t width, uint32_t height) {
     
 }
+
 void ShoRendererVk::renderFrame() {
+    
+    mScenegraph->render(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
     
     VkResult result;
     
@@ -548,6 +545,24 @@ void ShoRendererVk::renderFrame() {
     
     vkQueuePresentKHR(Video::Vulkan::getDisplayQueue(), &presentArgs);
 }
+
+void ShoRendererVk::modelimapDepthPass(ModelInstance* modeli) {
+}
+void ShoRendererVk::modelimapLightprobe(ModelInstance* modeli) {
+}
+
+void ShoRendererVk::modelimapOpaque(ModelInstance* modeli) {
+    Model* model = modeli->getModel();
+    Material* material = model->getMaterial();
+    Geometry* geometry = model->getGeometry();
+}
+
+void ShoRendererVk::modelimapTransparent(ModelInstance* modeli) {
+}
+void ShoRendererVk::rebuildPipeline() {
+    
+}
+
 }
 
 #endif // PGG_VULKAN

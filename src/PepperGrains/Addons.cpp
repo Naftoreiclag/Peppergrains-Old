@@ -30,6 +30,8 @@
 namespace pgg {
 namespace Addons {
     
+    const char* mAddonDirName = "addons";
+    
     std::vector<Addon*> mPreloadAddons; // Addons in the preload stage waiting to be bootstrapped
     std::map<std::string, Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
     std::vector<Addon*> mFailedAddons; // Addons that encountered a fatal error during bootstrapping
@@ -594,6 +596,15 @@ namespace Addons {
             Addon* addon = *failIter;
             delete addon;
         }
+    }
+    
+    bool initialize() {
+        Addons::preloadAddonDirectory(mAddonDirName);
+        Addons::bootstrapAddons();
+        Addons::logAddonFailures();
+        Addons::clearFailedAddons();
+        
+        return true;
     }
 
 } // Addons

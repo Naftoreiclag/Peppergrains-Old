@@ -52,7 +52,8 @@ public:
     void onMouseButton(const MouseButtonEvent& event);
     void onMouseWheel(const MouseWheelMoveEvent& event);
     
-    void onWindowSizeUpdate(const WindowResizeEvent& event);
+    void onWindowResize(const WindowResizeEvent& event);
+    void onNeedRebuildRenderPipeline();
     
     void onQuit(const QuitEvent& event);
 };

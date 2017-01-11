@@ -56,6 +56,11 @@ namespace Engine {
     
     InputState mInputState;
     
+    // Fire resize event only on new frame
+    bool mWindowResizeEventQueued = false;
+    int32_t mNewWindowWidth;
+    int32_t mNewWindowHeight;
+    
     // wis = Window/Input system
     
     #ifdef PGG_SDL
@@ -155,10 +160,9 @@ namespace Engine {
                     switch(event.window.event) {
                         // This also catches resizing due to API calls
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                            WindowResizeEvent windowResizeEvent(event.window);
-                            Video::mWindowWidth = windowResizeEvent.width;
-                            Video::mWindowHeight = windowResizeEvent.height;
-                            mGamelayerMachine.onWindowSizeUpdate(WindowResizeEvent(event.window));
+                            mWindowResizeEventQueued = true;
+                            mNewWindowWidth = e.data1;
+                            mNewWindowHeight = e.data2;
                         }
                     }
                 }
@@ -184,20 +188,25 @@ namespace Engine {
     #ifdef PGG_GLFW
     GLFWwindow* mGlfwWindow;
     GLFWwindow* getGlfwWindow() { return mGlfwWindow; }
-    void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
+    void keyCallbackGlfw(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
         mGamelayerMachine.onKeyboardEvent(KeyboardEvent(key, action));
         
         if(Input::scancodeFromGLFWKey(key) == Input::Scancode::K_Q) {
             quit();
         }
     }
-    void glfwCursorPositionCallback(GLFWwindow* window, double x, double y) {
+    void cursorPositionCallbackGlfw(GLFWwindow* window, double x, double y) {
         double width = Video::getWindowWidth();
         double height = Video::getWindowHeight();
         mGamelayerMachine.onMouseMove(MouseMoveEvent(x * width, y * height, mInputState.getMouseDX(), mInputState.getMouseDY()));
     }
-    void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int heldKeys) {
+    void mouseButtonCallbackGlfw(GLFWwindow* window, int button, int action, int heldKeys) {
         mGamelayerMachine.onMouseButton(MouseButtonEvent(button, action, mInputState.getMouseX(), mInputState.getMouseY()));
+    }
+    void windowResizeCallbackGlfw(GLFWwindow* window, int width, int height) {
+        mWindowResizeEventQueued = true;
+        mNewWindowWidth = width;
+        mNewWindowHeight = height;
     }
     bool wisInitialize() {
         if(!glfwInit()) {
@@ -207,7 +216,7 @@ namespace Engine {
         #ifndef PGG_OPENGL
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         #endif
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         mGlfwWindow = glfwCreateWindow(
             Video::getWindowWidth(), Video::getWindowHeight(), 
@@ -217,9 +226,10 @@ namespace Engine {
             return false;
         }
         glfwMakeContextCurrent(mGlfwWindow);
-        glfwSetKeyCallback(mGlfwWindow, glfwKeyCallback);
-        glfwSetCursorPosCallback(mGlfwWindow, glfwCursorPositionCallback);
-        glfwSetMouseButtonCallback(mGlfwWindow, glfwMouseButtonCallback);
+        glfwSetKeyCallback(mGlfwWindow, keyCallbackGlfw);
+        glfwSetCursorPosCallback(mGlfwWindow, cursorPositionCallbackGlfw);
+        glfwSetMouseButtonCallback(mGlfwWindow, mouseButtonCallbackGlfw);
+        glfwSetWindowSizeCallback(mGlfwWindow, windowResizeCallbackGlfw);
         Logger::log(Logger::INFO) << "GLFW initialized successfully" << std::endl;
         return true;
     }
@@ -254,6 +264,9 @@ namespace Engine {
     #endif
     
     #ifdef PGG_VULKAN
+    void onVulkanSwapchainInvalidated() {
+        mGamelayerMachine.onNeedRebuildRenderPipeline();
+    }
     bool gapiInitialize() {
         return Video::Vulkan::initialize();
     }
@@ -280,9 +293,6 @@ namespace Engine {
     int run(int argc, char* argv[]) {
         //Logger::VERBOSE->setEnabled(false);
         
-        Video::mWindowWidth = 1280;
-        Video::mWindowHeight = 960;
-        
         Logger::Out iout = Logger::log(Logger::INFO);
         Logger::Out sout = Logger::log(Logger::SEVERE);
         
@@ -308,10 +318,12 @@ namespace Engine {
         }
         
         Resources::loadCore("core/data.package");
-        Addons::preloadAddonDirectory("addons");
-        Addons::bootstrapAddons();
-        Addons::logAddonFailures();
-        Addons::clearFailedAddons();
+        
+        iout << "Loading and initializing addons..." << std::endl;
+        if(!Addons::initialize()) {
+            sout << "Fatal error loading and initializing addons" << std::endl;
+            return EXIT_FAILURE;
+        }
         
         double mTps = 0.f;
         double mTpsWeight = 0.85f;
@@ -333,6 +345,18 @@ namespace Engine {
         while(mMainLoopRunning) {
             mInputState.setMouseDelta(0, 0);
             wisPollEvents();
+            
+            // TODO: use separate threads for game logic and windowing/rendering to avoid pause while dragging/resizing
+            if(mWindowResizeEventQueued) {
+                if(mNewWindowWidth < 0) mNewWindowWidth = 0;
+                if(mNewWindowHeight < 0) mNewWindowHeight = 0;
+                if(mNewWindowWidth != Video::getWindowWidth() || mNewWindowHeight != Video::getWindowHeight()) {
+                    Video::onWindowResize(mNewWindowWidth, mNewWindowHeight);
+                    mGamelayerMachine.onWindowResize(WindowResizeEvent(mNewWindowWidth, mNewWindowHeight));
+                    Logger::log(Logger::VERBOSE) << "Window resized to " << mNewWindowWidth << ", " << mNewWindowHeight << std::endl;
+                }
+                mWindowResizeEventQueued = false;
+            }
             
             soundio_flush_events(mSndIo);
             

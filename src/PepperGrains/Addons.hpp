@@ -31,6 +31,8 @@
 namespace pgg {
 namespace Addons {
     
+    extern const char* mAddonDirName;
+    
     struct Addon;
     //
     struct AddonError {
@@ -110,6 +112,8 @@ namespace Addons {
     
     std::vector<Addon*> getFailedAddons();
     void clearFailedAddons();
+
+    bool initialize();
 
 }
 }

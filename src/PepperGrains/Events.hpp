@@ -101,11 +101,7 @@ struct MouseWheelMoveEvent {
 };
 
 struct WindowResizeEvent {
-    #ifdef PGG_SDL
-    WindowResizeEvent(SDL_WindowEvent e);
-    #endif
-    #ifdef PGG_GLFW
-    #endif
+    WindowResizeEvent(uint32_t width, uint32_t height);
     
     uint32_t width;
     uint32_t height;

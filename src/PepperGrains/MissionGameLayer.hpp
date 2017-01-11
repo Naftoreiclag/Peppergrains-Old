@@ -43,6 +43,8 @@ public:
     
     // Ticks
     void onTick(double tpf, const InputState* keyStates);
+    
+    bool onNeedRebuildRenderPipeline();
 
     //bool onQuit(const QuitEvent& event);
 };
