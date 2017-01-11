@@ -46,7 +46,8 @@ namespace Video {
     
 namespace Engine {
     
-    const char* mName = "Peppergrains";
+    const char* mEngineName = "Peppergrains";
+    const char* mAppName = "Paradise";
 
     bool mMainLoopRunning;
     void quit() {
@@ -76,7 +77,7 @@ namespace Engine {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         
         // Create the window
-        mSdlWindow = SDL_CreateWindow(mName, 
+        mSdlWindow = SDL_CreateWindow(mEngineName, 
             SDL_WINDOWPOS_CENTERED, 
             SDL_WINDOWPOS_CENTERED, 
             Video::getWindowWidth(), Video::getWindowHeight(), 
@@ -210,7 +211,7 @@ namespace Engine {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         mGlfwWindow = glfwCreateWindow(
             Video::getWindowWidth(), Video::getWindowHeight(), 
-            mName, nullptr, nullptr);
+            mEngineName, nullptr, nullptr);
         if(!mGlfwWindow) {
             glfwTerminate();
             return false;

@@ -223,7 +223,7 @@ namespace Video {
             vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
             mLayerProperties.resize(numLayers);
             vkEnumerateInstanceLayerProperties(&numLayers, mLayerProperties.data());
-            iout << "Supported validation layers: " << mExtensionProperties.size() << std::endl;
+            iout << "Supported validation layers: " << mLayerProperties.size() << std::endl;
             vout.indent();
             for(const VkLayerProperties& props : mLayerProperties) {
                 vout << props.layerName << std::endl;
@@ -406,6 +406,11 @@ namespace Video {
                 if(supportTransfer) mQFITransfer = index;
                 if(supportSparse) mQFISparse = index;
                 if(supportSurfaceKHR) mQFIDisplay = index;
+                
+                // Magic!
+                if(mQFIGraphics != -1 && mQFIDisplay != -1) {
+                    break;
+                }
             }
             vout.unindent();
             
@@ -563,9 +568,9 @@ namespace Video {
             {
                 mAppDesc.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
                 mAppDesc.pNext = nullptr;
-                mAppDesc.pApplicationName = "Application Name Here";
+                mAppDesc.pApplicationName = Engine::mAppName;
                 mAppDesc.applicationVersion = VK_MAKE_VERSION(0, 0, 2);
-                mAppDesc.pEngineName = "Peppergrains";
+                mAppDesc.pEngineName = Engine::mEngineName;
                 mAppDesc.engineVersion = VK_MAKE_VERSION(0, 0, 1);
                 mAppDesc.apiVersion = VK_API_VERSION_1_0;
                 
@@ -790,11 +795,11 @@ namespace Video {
                 // Build a unique list of creation args for queues
                 {
                     std::set<int32_t> neededQueueFamilies = {
-                        Video::Vulkan::getGraphicsQueueFamilyIndex(), 
-                        Video::Vulkan::getDisplayQueueFamilyIndex(), 
-                        Video::Vulkan::getComputeQueueFamilyIndex(), 
-                        Video::Vulkan::getTransferQueueFamilyIndex(), 
-                        Video::Vulkan::getSparseQueueFamilyIndex()
+                        mQFICompute,
+                        mQFIDisplay,
+                        mQFIGraphics,
+                        mQFISparse,
+                        mQFITransfer,
                     };
                     for(int32_t queueFamilyIndex : neededQueueFamilies) {
                         if(queueFamilyIndex == -1) {
@@ -811,24 +816,6 @@ namespace Video {
                         queueCreationInfos.push_back(queueCreateArgs);
                     }
                 }
-                
-                
-                VkDeviceCreateInfo deviceArgs;
-                deviceArgs.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-                deviceArgs.pNext = nullptr;
-                deviceArgs.flags = 0;
-                
-                // 
-                deviceArgs.queueCreateInfoCount = queueCreationInfos.size();
-                deviceArgs.pQueueCreateInfos = queueCreationInfos.data();
-                
-                // (Deprecated, Vulkan used to have device-level layers but no longer does)
-                deviceArgs.enabledLayerCount = 0;
-                deviceArgs.ppEnabledLayerNames = nullptr;
-                
-                // Use the extension list specified earlier
-                deviceArgs.enabledExtensionCount = mRequiredPhysDeviceExts.size();
-                deviceArgs.ppEnabledExtensionNames = mRequiredPhysDeviceExts.data();
                 
                 VkPhysicalDeviceFeatures enabledFeatures; {
                     enabledFeatures.alphaToOne = VK_FALSE;
@@ -887,7 +874,26 @@ namespace Video {
                     enabledFeatures.vertexPipelineStoresAndAtomics = VK_FALSE;
                     enabledFeatures.wideLines = VK_FALSE;
                 }
-                deviceArgs.pEnabledFeatures = &enabledFeatures;
+                
+                VkDeviceCreateInfo deviceArgs; {
+                    deviceArgs.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+                    deviceArgs.pNext = nullptr;
+                    deviceArgs.flags = 0;
+                    
+                    // 
+                    deviceArgs.queueCreateInfoCount = queueCreationInfos.size();
+                    deviceArgs.pQueueCreateInfos = queueCreationInfos.data();
+                    
+                    // (Deprecated, Vulkan used to have device-level layers but no longer does)
+                    deviceArgs.enabledLayerCount = 0;
+                    deviceArgs.ppEnabledLayerNames = nullptr;
+                    
+                    // Use the extension list specified earlier
+                    deviceArgs.enabledExtensionCount = mRequiredPhysDeviceExts.size();
+                    deviceArgs.ppEnabledExtensionNames = mRequiredPhysDeviceExts.data();
+                    
+                    deviceArgs.pEnabledFeatures = &enabledFeatures;
+                }
                 
                 // Finally create the device
                 result = vkCreateDevice(mVkPhysDevice, &deviceArgs, nullptr, &mVkLogicalDevice);
@@ -899,8 +905,11 @@ namespace Video {
                 }
                 
                 // Get the queue family handles for later
-                vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getGraphicsQueueFamilyIndex(), 0, &mVkGraphicsQueue);
-                vkGetDeviceQueue(mVkLogicalDevice, Video::Vulkan::getDisplayQueueFamilyIndex(), 0, &mVkDisplayQueue);
+                if(mQFIGraphics != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFIGraphics, 0, &mVkGraphicsQueue);
+                if(mQFIDisplay != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFIDisplay, 0, &mVkDisplayQueue);
+                if(mQFITransfer != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFITransfer, 0, &mVkTransferQueue);
+                if(mQFISparse != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFISparse, 0, &mVkSparseQueue);
+                if(mQFICompute != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFICompute, 0, &mVkComputeQueue);
             }
             
             // Init surface swap chain
