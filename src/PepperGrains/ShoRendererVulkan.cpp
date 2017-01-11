@@ -484,10 +484,6 @@ bool ShoRendererVk::cleanup() {
     return true;
 }
 
-void ShoRendererVk::resize(uint32_t width, uint32_t height) {
-    
-}
-
 void ShoRendererVk::renderFrame() {
     
     mScenegraph->render(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
@@ -560,7 +556,8 @@ void ShoRendererVk::modelimapOpaque(ModelInstance* modeli) {
 void ShoRendererVk::modelimapTransparent(ModelInstance* modeli) {
 }
 void ShoRendererVk::rebuildPipeline() {
-    
+    cleanup();
+    initialize();
 }
 
 }

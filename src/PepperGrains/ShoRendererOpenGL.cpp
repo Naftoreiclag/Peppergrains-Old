@@ -161,10 +161,6 @@ bool ShoRendererOg::cleanup() {
     return true;
 }
 
-void ShoRendererOg::resize(uint32_t width, uint32_t height) {
-    Logger::log(Logger::VERBOSE) << "Resizing Sho Renderer to " << width << "x" << height << std::endl;
-}
-
 void ShoRendererOg::renderFrame() {
     if(!mScenegraph) {
         return;

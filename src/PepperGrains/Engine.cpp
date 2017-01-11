@@ -348,12 +348,12 @@ namespace Engine {
             
             // TODO: use separate threads for game logic and windowing/rendering to avoid pause while dragging/resizing
             if(mWindowResizeEventQueued) {
-                if(mNewWindowWidth < 0) mNewWindowWidth = 0;
-                if(mNewWindowHeight < 0) mNewWindowHeight = 0;
+                if(mNewWindowWidth < 1) mNewWindowWidth = 1;
+                if(mNewWindowHeight < 1) mNewWindowHeight = 1;
                 if(mNewWindowWidth != Video::getWindowWidth() || mNewWindowHeight != Video::getWindowHeight()) {
+                    Logger::log(Logger::VERBOSE) << "Window resized to " << mNewWindowWidth << ", " << mNewWindowHeight << std::endl;
                     Video::onWindowResize(mNewWindowWidth, mNewWindowHeight);
                     mGamelayerMachine.onWindowResize(WindowResizeEvent(mNewWindowWidth, mNewWindowHeight));
-                    Logger::log(Logger::VERBOSE) << "Window resized to " << mNewWindowWidth << ", " << mNewWindowHeight << std::endl;
                 }
                 mWindowResizeEventQueued = false;
             }

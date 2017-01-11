@@ -55,7 +55,6 @@ public:
     Camera mCamera;
     Scenegraph* mScenegraph;
 
-    void resize(uint32_t width, uint32_t height);
     void renderFrame();
     
     void modelimapDepthPass(ModelInstance* modeli);

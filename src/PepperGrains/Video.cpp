@@ -184,7 +184,6 @@ namespace Video {
         VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
         VkQueue getTransferQueue() { return mVkTransferQueue; }
         
-        // Note: this data is not available until after a physical device is queried
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities() { return mSurfaceCapabilities; }
         std::vector<VkSurfaceFormatKHR> mAvailableSurfaceFormats;
@@ -357,6 +356,27 @@ namespace Video {
             }
             vout.unindent();
         }
+        
+        void querySurfaceSpecific() {
+            if(mQFIDisplay == -1) {
+                mSurfaceCapabilities = VkSurfaceCapabilitiesKHR();
+                mAvailableSurfaceFormats.clear();
+                mAvailablePresentModes.clear();
+            } else {
+                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysDevice, mVkSurface, &mSurfaceCapabilities);
+                
+                uint32_t numFormats;
+                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, nullptr);
+                mAvailableSurfaceFormats.resize(numFormats);
+                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, mAvailableSurfaceFormats.data());
+                
+                uint32_t numPresents;
+                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, nullptr);
+                mAvailablePresentModes.resize(numPresents);
+                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, mAvailablePresentModes.data());
+            }
+        }
+        
         void queryPhysicalDeviceSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
@@ -425,23 +445,8 @@ namespace Video {
             }
             vout.unindent();
             
-            if(mQFIDisplay == -1) {
-                mSurfaceCapabilities = VkSurfaceCapabilitiesKHR();
-                mAvailableSurfaceFormats.clear();
-                mAvailablePresentModes.clear();
-            } else {
-                vkGetPhysicalDeviceSurfaceCapabilitiesKHR(mVkPhysDevice, mVkSurface, &mSurfaceCapabilities);
-                
-                uint32_t numFormats;
-                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, nullptr);
-                mAvailableSurfaceFormats.resize(numFormats);
-                vkGetPhysicalDeviceSurfaceFormatsKHR(mVkPhysDevice, mVkSurface, &numFormats, mAvailableSurfaceFormats.data());
-                
-                uint32_t numPresents;
-                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, nullptr);
-                mAvailablePresentModes.resize(numPresents);
-                vkGetPhysicalDeviceSurfacePresentModesKHR(mVkPhysDevice, mVkSurface, &numPresents, mAvailablePresentModes.data());
-            }
+            // Surface properties change depending on physical device
+            querySurfaceSpecific();
         }
         
         #ifndef NDEBUG
@@ -551,20 +556,18 @@ namespace Video {
         }
         
         VkExtent2D calcBestSwapExtents() {
-            VkSurfaceCapabilitiesKHR cap = Video::Vulkan::getSurfaceCapabilities();
-            
             // Supports arbitrary sizes
-            if(cap.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
+            if(mSurfaceCapabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
                 VkExtent2D retVal; {
-                    retVal.width = std::min(std::max(Video::getWindowWidth(), cap.minImageExtent.width), cap.maxImageExtent.width);
-                    retVal.height = std::min(std::max(Video::getWindowHeight(), cap.minImageExtent.height), cap.maxImageExtent.height);
+                    retVal.width = std::min(std::max(Video::getWindowWidth(), mSurfaceCapabilities.minImageExtent.width), mSurfaceCapabilities.maxImageExtent.width);
+                    retVal.height = std::min(std::max(Video::getWindowHeight(), mSurfaceCapabilities.minImageExtent.height), mSurfaceCapabilities.maxImageExtent.height);
                 }
                 return retVal;
             }
             
             // 
             else {
-                return cap.currentExtent;
+                return mSurfaceCapabilities.currentExtent;
             }
         }
         
@@ -575,6 +578,10 @@ namespace Video {
             
             VkResult result;
             
+            // Requery the surface data
+            // Note: this will unnecessary on the very first call of this function but who cares
+            querySurfaceSpecific();
+            
             // First, delete any swapchain images that may have existed previously
             for(VkImageView view : mSwapchainImageViews) {
                 vkDestroyImageView(mVkLogicalDevice, view, nullptr);
@@ -583,17 +590,16 @@ namespace Video {
             // Init surface swap chain
             {
                 // Query / calculate important data
-                VkSurfaceCapabilitiesKHR surfaceCapabilities = Video::Vulkan::getSurfaceCapabilities();
                 VkSurfaceFormatKHR surfaceFormat = findBestSwapSurfaceFormat();
                 VkPresentModeKHR surfacePresentMode = findBestSwapPresentMode();
                 VkExtent2D surfaceExtent = calcBestSwapExtents();
                 
                 // Hopefully we can get one extra image to use triple buffering
-                uint32_t surfaceImageQuantity = surfaceCapabilities.minImageCount + 1;
+                uint32_t surfaceImageQuantity = mSurfaceCapabilities.minImageCount + 1;
                 
                 // Has a hard swap chain quantity limit (max != 0) and our reqest exceeds that maximum
-                if(surfaceCapabilities.maxImageCount > 0 && surfaceImageQuantity > surfaceCapabilities.maxImageCount) {
-                    surfaceImageQuantity = surfaceCapabilities.maxImageCount;
+                if(mSurfaceCapabilities.maxImageCount > 0 && surfaceImageQuantity > mSurfaceCapabilities.maxImageCount) {
+                    surfaceImageQuantity = mSurfaceCapabilities.maxImageCount;
                 }
                 
                 VkSwapchainCreateInfoKHR swapchainCstrArgs;
@@ -637,7 +643,7 @@ namespace Video {
                 swapchainCstrArgs.pQueueFamilyIndices = sharingQueueFamilies.data();
                 
                 // No transformation
-                swapchainCstrArgs.preTransform = surfaceCapabilities.currentTransform;
+                swapchainCstrArgs.preTransform = mSurfaceCapabilities.currentTransform;
                 
                 // Used for blending output with other operating system elements
                 swapchainCstrArgs.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -1137,20 +1143,22 @@ namespace Video {
     float calcWindowAspectRatio() { return (float) mWindowWidth / (float) mWindowHeight; }
     
     void onWindowResize(uint32_t width, uint32_t height) {
-        Logger::log(Logger::VERBOSE) << mWindowWidth << ", " << mWindowHeight << ", " << width << ", " << height << std::endl;
-        
-        // Do nothing if the window's new size is exactly the same
-        if(mWindowHeight == width && mWindowHeight == height) return;
+        //Logger::log(Logger::VERBOSE) << mWindowWidth << ", " << mWindowHeight << ", " << width << ", " << height << std::endl;
         
         mWindowWidth = width;
         mWindowHeight = height;
         
         #ifdef PGG_VULKAN
-        if(!Vulkan::rebuildSwapchain()) {
-            Logger::log(Logger::SEVERE) << "Could not rebuild Vulkan swapchain for new window size" << std::endl;
-            Engine::quit();
+        // For some reason images of width or height 1 crash Vulkan
+        if(mWindowWidth > 1 && mWindowHeight > 1) {
+            vkDeviceWaitIdle(Vulkan::mVkLogicalDevice);
+            if(!Vulkan::rebuildSwapchain()) {
+                Logger::log(Logger::SEVERE) << "Could not rebuild Vulkan swapchain for window size: " 
+                    << mWindowWidth << ", " << mWindowHeight << std::endl;
+                Engine::quit();
+            }
+            Engine::onVulkanSwapchainInvalidated();
         }
-        Engine::onVulkanSwapchainInvalidated();
         #endif
     }
     
