@@ -401,16 +401,11 @@ namespace Video {
                     continue;
                 }
                 
-                if(supportGraphics) mQFIGraphics = index;
-                if(supportCompute) mQFICompute = index;
-                if(supportTransfer) mQFITransfer = index;
-                if(supportSparse) mQFISparse = index;
-                if(supportSurfaceKHR) mQFIDisplay = index;
-                
-                // Magic!
-                if(mQFIGraphics != -1 && mQFIDisplay != -1) {
-                    break;
-                }
+                if(supportGraphics && mQFIGraphics == -1) mQFIGraphics = index;
+                if(supportCompute && mQFICompute == -1) mQFICompute = index;
+                if(supportTransfer && mQFITransfer == -1) mQFITransfer = index;
+                if(supportSparse && mQFISparse == -1) mQFISparse = index;
+                if(supportSurfaceKHR && mQFIDisplay == -1) mQFIDisplay = index;
             }
             vout.unindent();
             

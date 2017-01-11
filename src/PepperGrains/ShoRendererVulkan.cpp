@@ -460,29 +460,29 @@ ShoRendererVk::~ShoRendererVk() {
 
 bool ShoRendererVk::cleanup() {
 
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     for(VkFramebuffer fb : mSwapchainFramebuffers) {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), fb, nullptr);
     }
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
     
-    Logger::log(Logger::VERBOSE) << "123" << std::endl;
+    
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderVertModule, nullptr);
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderFragModule, nullptr);
     
