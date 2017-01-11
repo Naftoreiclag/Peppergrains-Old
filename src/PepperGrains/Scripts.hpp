@@ -66,7 +66,7 @@ namespace Scripts {
     bool cleanup();
     
     // Allows scripts to use bootstrap-exclusive functions
-    void enableBootstrap(bool enable = true);
+    void permitBootstrapFuncs(bool enable = true);
 
 } // Scripts
 } // pgg

@@ -265,7 +265,7 @@ namespace Addons {
                 }
             }
             
-            // Simulate the loading sequence; this vector stores all addons which are currently loaded
+            // Simulate the loading sequence; this vector stores all addons which would be currently loaded at that point
             std::vector<Addon*> areLoaded;
             
             // Addons that are not sorted yet
@@ -280,8 +280,7 @@ namespace Addons {
                     
                     // If all "after" addons have already been loaded, then add this one to the load stack
                     bool canLoad = true;
-                    for(std::vector<Addon*>::iterator iter3 = addon->mAfterLink.begin(); iter3 != addon->mAfterLink.end(); ++ iter3) {
-                        Addon* afterMe = *iter3;
+                    for(Addon* afterMe : addon->mAfterLink) {
                         if(std::find(areLoaded.begin(), areLoaded.end(), afterMe) == areLoaded.end()) {
                             canLoad = false;
                             break;
@@ -306,8 +305,7 @@ namespace Addons {
                 } else {
                     // All addons which can be loaded are loaded, leaving only circular dependencies
                     if(yetUnsorted.size() > 0) {
-                        for(std::vector<Addon*>::iterator iter = yetUnsorted.begin(); iter != yetUnsorted.end(); ++ iter) {
-                            Addon* addon = *iter;
+                        for(Addon* addon : yetUnsorted) {
                             AddonError ae;
                             ae.mType = AddonError::Type::CIRCULAR_AFTER;
                             
@@ -340,7 +338,7 @@ namespace Addons {
         // -- Load order now set, finally can load --
         
         // Enable bootstrap-specific permissions
-        Scripts::enableBootstrap();
+        Scripts::permitBootstrapFuncs();
         
         // There is nothing to do 
         if(loadOrder.size() == 0) {
@@ -354,12 +352,10 @@ namespace Addons {
             dlog << "Addon load order: " << std::endl;
             dlog.indent();
             uint32_t debugStep = 1; // What step is being processed
-            for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
+            for(std::vector<Addon*>& concurrentAddons : loadOrder) {
                 dlog << debugStep << ": ";
-                std::vector<Addon*> concurrentAddons = *stackIter;
                 std::string sep = "{[";
-                for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
-                    Addon* addon = *addonIter;
+                for(Addon* addon : concurrentAddons) {
                     dlog << sep << addon->mAddress << ']';
                     sep = " [";
                 }
@@ -369,14 +365,14 @@ namespace Addons {
             dlog.unindent();
             
             // Process the load stack
+            // Note: we must use an iterator here as opposed to the shorthand for loop because stack index is needed later
             for(auto stackIter = loadOrder.begin(); stackIter != loadOrder.end(); ++ stackIter) {
                 // These addons will be loaded concurrently
                 std::vector<Addon*> concurrentAddons = *stackIter;
                 
                 // Try to load these addons as normal
                 bool errorsEncounted = false;
-                for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
-                    Addon* addon = *addonIter;
+                for(Addon* addon : concurrentAddons) {
                     
                     // Skip addons that have errored from previous iterations of loadOrder
                     if(addon->mLoadErrors.size() > 0) {
@@ -454,8 +450,7 @@ namespace Addons {
                 // Fail any error'd addons and also fail any addons later in the load order depending on this one
                 // Note that this does not and should not add to mFailedAddons (That happens later)
                 if(errorsEncounted) {
-                    for(auto addonIter = concurrentAddons.begin(); addonIter != concurrentAddons.end(); ++ addonIter) {
-                        Addon* addon = *addonIter;
+                    for(Addon* addon : concurrentAddons) {
                         if(addon->mLoadErrors.size() > 0) {
                             // Search all later steps and addons within those steps
                             // Error only one layer; future errors will be caught in future iterations
@@ -482,7 +477,7 @@ namespace Addons {
         }
         
         // Disable bootstrap-specific permissions
-        Scripts::enableBootstrap(false);
+        Scripts::permitBootstrapFuncs(false);
         
         // Fail all broken addons
         {

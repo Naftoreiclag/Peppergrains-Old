@@ -351,7 +351,7 @@ namespace Scripts {
         return true;
     }
     
-    void enableBootstrap(bool enable) {
+    void permitBootstrapFuncs(bool enable) {
         
     }
 
