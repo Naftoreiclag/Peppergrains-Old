@@ -208,8 +208,14 @@ namespace Video {
         const std::vector<VkLayerProperties>& getAvailableLayers() { return mLayerProperties; }
         std::vector<VkPhysicalDevice> mPhysicalDevices;
         const std::vector<VkPhysicalDevice>& getAllPhysicalDevices() { return mPhysicalDevices; }
+        
         std::vector<VkExtensionProperties> mPhysicalDeviceExts;
         const std::vector<VkExtensionProperties>& getAvailablePhysicalDeviceExtensions() { return mPhysicalDeviceExts; }
+        VkPhysicalDeviceFeatures mPhysicalDeviceFeatures;
+        VkPhysicalDeviceFeatures getPhysicalDeviceFeatures() { return mPhysicalDeviceFeatures; }
+        VkPhysicalDeviceMemoryProperties mPhysicalDeviceMemoryProperties;
+        VkPhysicalDeviceMemoryProperties getPhysicalDeviceMemoryProperties() { return mPhysicalDeviceMemoryProperties; }
+        
         std::vector<VkQueueFamilyProperties> mQueueFamilies;
         const std::vector<VkQueueFamilyProperties>& getQueueFamilies() { return mQueueFamilies; }
         
@@ -382,9 +388,6 @@ namespace Video {
             Logger::Out vout = Logger::log(Logger::VERBOSE);
             
             if(mVkPhysDevice == VK_NULL_HANDLE) {
-                mSurfaceCapabilities = VkSurfaceCapabilitiesKHR();
-                mAvailablePresentModes.clear();
-                mAvailableSurfaceFormats.clear();
                 mPhysicalDeviceExts.clear();
                 mQueueFamilies.clear();
                 mQFICompute = -1;
@@ -397,6 +400,10 @@ namespace Video {
                 mVkGraphicsQueue = VK_NULL_HANDLE;
                 mVkSparseQueue = VK_NULL_HANDLE;
                 mVkTransferQueue = VK_NULL_HANDLE;
+            
+                // Surface properties change depending on physical device
+                querySurfaceSpecific();
+                
                 return;
             }
             
@@ -404,6 +411,9 @@ namespace Video {
             vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, nullptr);
             mPhysicalDeviceExts.resize(numExts);
             vkEnumerateDeviceExtensionProperties(mVkPhysDevice, nullptr, &numExts, mPhysicalDeviceExts.data());
+            
+            vkGetPhysicalDeviceFeatures(mVkPhysDevice, &mPhysicalDeviceFeatures);
+            vkGetPhysicalDeviceMemoryProperties(mVkPhysDevice, &mPhysicalDeviceMemoryProperties);
             
             uint32_t numFamilies;
             vkGetPhysicalDeviceQueueFamilyProperties(mVkPhysDevice, &numFamilies, nullptr);
