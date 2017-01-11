@@ -44,6 +44,7 @@ public:
     // Ticks
     void onTick(double tpf, const InputState* keyStates);
 
+    //bool onQuit(const QuitEvent& event);
 };
 
 }

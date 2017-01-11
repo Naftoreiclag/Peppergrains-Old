@@ -39,10 +39,6 @@ bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* modu
 
 ShoRendererVk::ShoRendererVk() { }
 
-bool initializeGraphicsPipeline() {
-    
-}
-
 bool ShoRendererVk::initialize() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
@@ -55,8 +51,8 @@ bool ShoRendererVk::initialize() {
         colorAttachDesc.flags = 0;
         colorAttachDesc.format = Video::Vulkan::getSwapchainFormat();
         colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        //colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        //colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -320,6 +316,7 @@ bool ShoRendererVk::initialize() {
         gpCstrArgs.pDepthStencilState = nullptr;
         gpCstrArgs.pColorBlendState = &pcbsCstrArgs;
         gpCstrArgs.pDynamicState = nullptr;
+        gpCstrArgs.pTessellationState = nullptr;
         gpCstrArgs.layout = mPipelineLayout;
         gpCstrArgs.renderPass = mRenderPass;
         gpCstrArgs.subpass = 0;
@@ -463,23 +460,29 @@ ShoRendererVk::~ShoRendererVk() {
 
 bool ShoRendererVk::cleanup() {
 
-    vkDeviceWaitIdle(Video::Vulkan::getLogicalDevice());
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     for(VkFramebuffer fb : mSwapchainFramebuffers) {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), fb, nullptr);
     }
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
     
+    Logger::log(Logger::VERBOSE) << "123" << std::endl;
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderVertModule, nullptr);
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderFragModule, nullptr);
     

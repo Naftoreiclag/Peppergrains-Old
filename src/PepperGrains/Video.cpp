@@ -1030,8 +1030,6 @@ namespace Video {
             Logger::Out sout = Logger::log(Logger::SEVERE);
             Logger::Out wout = Logger::log(Logger::WARN);
             
-            vkDeviceWaitIdle(mVkLogicalDevice);
-            
             #ifndef NDEBUG
             cleanupDebugReportCallback();
             #endif

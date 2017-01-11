@@ -57,6 +57,13 @@ void MissionGameLayer::onEnd() {
     delete mRenderer;
 }
 
+
+/*
+bool MissionGameLayer::onQuit(const QuitEvent& event) {
+    onEnd();
+}
+*/
+
 // Ticks
 void MissionGameLayer::onTick(double tpf, const InputState* keyStates) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));

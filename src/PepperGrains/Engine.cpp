@@ -34,6 +34,7 @@
 #include "Resources.hpp"
 #include "Addons.hpp"
 #include "Scripts.hpp"
+#include "Input.hpp"
 
 #include "StreamStuff.hpp"
 
@@ -184,6 +185,10 @@ namespace Engine {
     GLFWwindow* getGlfwWindow() { return mGlfwWindow; }
     void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int heldKeys) {
         mGamelayerMachine.onKeyboardEvent(KeyboardEvent(key, action));
+        
+        if(Input::scancodeFromGLFWKey(key) == Input::Scancode::K_Q) {
+            quit();
+        }
     }
     void glfwCursorPositionCallback(GLFWwindow* window, double x, double y) {
         double width = Video::getWindowWidth();
@@ -355,6 +360,12 @@ namespace Engine {
                 wisPostRender();
             }
         }
+        iout << "Terminating..." << std::endl;
+        
+        #ifdef PGG_VULKAN
+        vkDeviceWaitIdle(Video::Vulkan::getLogicalDevice());
+        #endif
+        
         mGamelayerMachine.removeAll();
         
         iout << "Cleaning up scripts..." << std::endl;
