@@ -217,13 +217,13 @@ bool ShoRendererVk::initializeSemaphores() {
     return true;
 }
 
-bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t& memTypeIndex) {
+bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex) {
     VkPhysicalDeviceMemoryProperties physMemProps = Video::Vulkan::getPhysicalDeviceMemoryProperties();
     
     for(uint32_t i = 0; i < physMemProps.memoryTypeCount; ++ i) {
         if((allowedTypes & (1 << i)) && 
             ((physMemProps.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties)) {
-            memTypeIndex = i;
+            (*memTypeIndex) = i;
             return true;
         }
     }
@@ -239,64 +239,122 @@ bool ShoRendererVk::setupTestGeometry() {
     
     VkResult result;
     
-    glm::f32 vertData[] = {
-        -0.5, -0.5, 1.0, 0.0, 0.0,
-        0.5, 0.5, 0.0, 1.0, 0.0,
-        -0.5, 0.5, 0.0, 0.0, 1.0
-    };
-    
-    VkBufferCreateInfo buffInfo; {
-        buffInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buffInfo.pNext = nullptr;
-        buffInfo.flags = 0;
+    {
+        glm::f32 geomVerticies[] = {
+            -0.5, -0.5, 1.0, 0.0, 0.0,
+            0.5, -0.5, 0.0, 1.0, 0.0,
+            -0.5, 0.5, 0.0, 0.0, 1.0,
+            0.5, 0.5, 1.0, 1.0, 0.0
+        };
         
-        buffInfo.size = sizeof(vertData);//(3 + 2) * sizeof(glm::f32) * numVerts;
-        buffInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        buffInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    }
-    
-    result = vkCreateBuffer(Video::Vulkan::getLogicalDevice(), &buffInfo, nullptr, &mVertexBuffer);
-    
-    
-    if(result != VK_SUCCESS) {
-        Logger::log(Logger::WARN) << "Could not create vertex buffer" << std::endl;
-    }
-    
-    VkMemoryRequirements vertexBufferMemReq;
-    vkGetBufferMemoryRequirements(Video::Vulkan::getLogicalDevice(), mVertexBuffer, &vertexBufferMemReq);
-    
-    uint32_t memoryTypeIndex;
-    bool success = findSuitableMemoryTypeIndex(vertexBufferMemReq.memoryTypeBits, 
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                memoryTypeIndex);
-                
-    if(!success) {
-        sout << "Could not find memory type that can accept vertex buffer" << std::endl;
-        return false;
-    }
-    
-    VkMemoryAllocateInfo allocArgs; {
-        allocArgs.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocArgs.pNext = nullptr;
+        VkBufferCreateInfo buffInfo; {
+            buffInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            buffInfo.pNext = nullptr;
+            buffInfo.flags = 0;
+            
+            buffInfo.size = sizeof(geomVerticies);
+            buffInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+            buffInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        }
         
-        allocArgs.allocationSize = vertexBufferMemReq.size;
-        allocArgs.memoryTypeIndex = memoryTypeIndex;
+        result = vkCreateBuffer(Video::Vulkan::getLogicalDevice(), &buffInfo, nullptr, &mVertexBuffer);
+        
+        if(result != VK_SUCCESS) {
+            Logger::log(Logger::WARN) << "Could not create vertex buffer" << std::endl;
+        }
+        
+        VkMemoryRequirements bufferMemReq;
+        vkGetBufferMemoryRequirements(Video::Vulkan::getLogicalDevice(), mVertexBuffer, &bufferMemReq);
+        
+        uint32_t memoryTypeIndex;
+        bool success = findSuitableMemoryTypeIndex(bufferMemReq.memoryTypeBits, 
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    &memoryTypeIndex);
+                    
+        if(!success) {
+            sout << "Could not find memory type that can accept vertex buffer" << std::endl;
+            return false;
+        }
+        
+        VkMemoryAllocateInfo allocArgs; {
+            allocArgs.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocArgs.pNext = nullptr;
+            
+            allocArgs.allocationSize = bufferMemReq.size;
+            allocArgs.memoryTypeIndex = memoryTypeIndex;
+        }
+        
+        result = vkAllocateMemory(Video::Vulkan::getLogicalDevice(), &allocArgs, nullptr, &mVertexBufferMemory);
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not allocate memory for vertex buffer" << std::endl;
+            return false;
+        }
+        
+        vkBindBufferMemory(Video::Vulkan::getLogicalDevice(), mVertexBuffer, mVertexBufferMemory, 0);
+        
+        void* memAddr;
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, 0, sizeof(geomVerticies), 0, &memAddr);
+        memcpy(memAddr, geomVerticies, sizeof(geomVerticies));
+        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
     }
     
-    result = vkAllocateMemory(Video::Vulkan::getLogicalDevice(), &allocArgs, nullptr, &mVertexBufferMemory);
-    
-    if(result != VK_SUCCESS) {
-        sout << "Could not allocate memory for vertex buffer" << std::endl;
-        return false;
+    {
+        glm::u16 geomIndices[] = {
+            0, 1, 3, 0, 3, 2
+        };
+        
+        VkBufferCreateInfo buffInfo; {
+            buffInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            buffInfo.pNext = nullptr;
+            buffInfo.flags = 0;
+            
+            buffInfo.size = sizeof(geomIndices);
+            buffInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+            buffInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        }
+        
+        result = vkCreateBuffer(Video::Vulkan::getLogicalDevice(), &buffInfo, nullptr, &mIndexBuffer);
+        
+        if(result != VK_SUCCESS) {
+            Logger::log(Logger::WARN) << "Could not create index buffer" << std::endl;
+        }
+        
+        VkMemoryRequirements bufferMemReq;
+        vkGetBufferMemoryRequirements(Video::Vulkan::getLogicalDevice(), mIndexBuffer, &bufferMemReq);
+        
+        uint32_t memoryTypeIndex;
+        bool success = findSuitableMemoryTypeIndex(bufferMemReq.memoryTypeBits, 
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    &memoryTypeIndex);
+                    
+        if(!success) {
+            sout << "Could not find memory type that can accept index buffer" << std::endl;
+            return false;
+        }
+        
+        VkMemoryAllocateInfo allocArgs; {
+            allocArgs.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocArgs.pNext = nullptr;
+            
+            allocArgs.allocationSize = bufferMemReq.size;
+            allocArgs.memoryTypeIndex = memoryTypeIndex;
+        }
+        
+        result = vkAllocateMemory(Video::Vulkan::getLogicalDevice(), &allocArgs, nullptr, &mIndexBufferMemory);
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not allocate memory for index buffer" << std::endl;
+            return false;
+        }
+        
+        vkBindBufferMemory(Video::Vulkan::getLogicalDevice(), mIndexBuffer, mIndexBufferMemory, 0);
+        
+        void* memAddr;
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory, 0, sizeof(geomIndices), 0, &memAddr);
+        memcpy(memAddr, geomIndices, sizeof(geomIndices));
+        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory);
     }
-    
-    vkBindBufferMemory(Video::Vulkan::getLogicalDevice(), mVertexBuffer, mVertexBufferMemory, 0);
-    
-    void* memAddr;
-    vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, 0, sizeof(vertData), 0, &memAddr);
-    memcpy(memAddr, vertData, sizeof(vertData));
-    vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
-    
     
     
     return true;
@@ -595,7 +653,9 @@ bool ShoRendererVk::populateCommandBuffers() {
         VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexBuffer, &offset);
         
-        vkCmdDraw(cmdBuff, 3, 1, 0, 0);
+        vkCmdBindIndexBuffer(cmdBuff, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        
+        vkCmdDrawIndexed(cmdBuff, 6, 1, 0, 0, 0);
         
         vkCmdEndRenderPass(cmdBuff);
         
@@ -612,7 +672,9 @@ bool ShoRendererVk::populateCommandBuffers() {
 bool ShoRendererVk::cleanup() {
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, nullptr);
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexBuffer, nullptr);
+    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mIndexBuffer, nullptr);
     
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);

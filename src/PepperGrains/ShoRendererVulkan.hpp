@@ -47,7 +47,9 @@ private:
     std::vector<VkCommandBuffer> mCommandBuffers;
     
     VkBuffer mVertexBuffer = VK_NULL_HANDLE;
+    VkBuffer mIndexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mVertexBufferMemory = VK_NULL_HANDLE;
+    VkDeviceMemory mIndexBufferMemory = VK_NULL_HANDLE;
     
     bool initializeRenderpass();
     bool initializeFramebuffers();
