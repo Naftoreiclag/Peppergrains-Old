@@ -20,6 +20,7 @@
 #include "Gamelayer.hpp"
 #include "ShoRenderer.hpp"
 #include "SimpleScenegraph.hpp"
+#include "NRES.hpp"
 
 namespace pgg {
 
@@ -30,6 +31,8 @@ public:
 private:
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
+    
+    nres::World mEntityWorld;
     
     ShoRenderer* mRenderer;
     SimpleScenegraph* mRootNode;

@@ -40,6 +40,7 @@ void MissionGameLayer::onBegin() {
     mRenderer = new ShoRenderer();
     mRenderer->initialize();
     
+    
     mRootNode = new SimpleScenegraph();
     mRenderer->mScenegraph = mRootNode;
     

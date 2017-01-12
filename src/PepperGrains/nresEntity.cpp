@@ -108,12 +108,8 @@ void Entity::publish() {
 Component* Entity::getComponent(const ComponentID& componentID) {
     assert(isPublished);
     
-    for(std::vector<Component*>::iterator compIter = components.begin(); compIter != components.end(); ++ compIter) {
-        Component* comp = *compIter;
-        
-        if(comp->getID() == componentID) {
-            return comp;
-        }
+    for(Component* comp : components) {
+        if(comp->getID() == componentID) return comp;
     }
     
     return 0;
@@ -123,8 +119,7 @@ void Entity::broadcast(EntitySignal* data) {
     assert(isPublished);
     
     // Broadcast message to every listener
-    for(std::vector<Listener*>::iterator listIter = listeners.begin(); listIter != listeners.end(); ++ listIter) {
-        Listener* listener = *listIter;
+    for(Listener* listener : listeners) {
         listener->onEntityBroadcast(this, data);
     }
     
