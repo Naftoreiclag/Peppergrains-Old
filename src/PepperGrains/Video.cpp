@@ -258,7 +258,11 @@ namespace Video {
         }
         void queryInstanceSpecific() {
             Logger::Out iout = Logger::log(Logger::INFO);
+            Logger::Out wout = Logger::log(Logger::WARN);
+            Logger::Out sout = Logger::log(Logger::SEVERE);
             Logger::Out vout = Logger::log(Logger::VERBOSE);
+            
+            VkResult result;
             
             if(mVkInstance == VK_NULL_HANDLE) {
                 mPhysicalDevices.clear();
@@ -268,7 +272,15 @@ namespace Video {
             uint32_t numDevices;
             vkEnumeratePhysicalDevices(mVkInstance, &numDevices, nullptr);
             mPhysicalDevices.resize(numDevices);
-            vkEnumeratePhysicalDevices(mVkInstance, &numDevices, mPhysicalDevices.data());
+            result = vkEnumeratePhysicalDevices(mVkInstance, &numDevices, mPhysicalDevices.data());
+            
+            if(result == VK_INCOMPLETE) {
+                wout << "Could not enumerate all physical devices" << std::endl;
+            } else if(result != VK_SUCCESS) {
+                sout << "Could not enumerate physical devices" << std::endl;
+                // crash?
+            }
+            
             iout << "Available physical devices: " << mPhysicalDevices.size() << std::endl;
             vout.indent();
             for(const VkPhysicalDevice& device : mPhysicalDevices) {

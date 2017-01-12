@@ -36,9 +36,10 @@ public:
     ~ShoRendererOg();
     
     Camera mCamera;
-    Scenegraph* mScenegraph;
     
 private:
+    Scenegraph* mScenegraph = nullptr;
+    
     uint32_t mScreenWidth;
     uint32_t mScreenHeight;
     

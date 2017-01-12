@@ -40,6 +40,19 @@ bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* modu
 ShoRendererVk::ShoRendererVk() { }
 ShoRendererVk::~ShoRendererVk() { }
 
+void ShoRendererVk::setScenegraph(Scenegraph* scenegraph) {
+    if(mScenegraph == scenegraph) return;
+    if(mScenegraph != nullptr) {
+        mScenegraph->setRendererAddListener(nullptr);
+        mScenegraph->setRendererRemoveListener(nullptr);
+    }
+    mScenegraph = scenegraph;
+    if(mScenegraph != nullptr) {
+        mScenegraph->setRendererAddListener(std::bind(&ShoRendererVk::onModeliAdded, this, std::placeholders::_1));
+        mScenegraph->setRendererRemoveListener(std::bind(&ShoRendererVk::onModeliRemoved, this, std::placeholders::_1));
+    }
+}
+
 bool ShoRendererVk::initialize() {
     return initializeRenderpass() && initializeFramebuffers() && initializeSemaphores() && setupTestGeometry() && initializePipeline() && populateCommandBuffers();
 }
@@ -316,7 +329,7 @@ bool ShoRendererVk::setupTestGeometry() {
     
     {
         glm::u16 geomIndices[] = {
-            0, 1, 3, 0, 3, 2
+            0, 3, 1, 0, 2, 3
         };
         
         makeBufferAndAllocateMemory(sizeof(geomIndices), 
@@ -782,8 +795,19 @@ bool ShoRendererVk::cleanup() {
 }
 
 void ShoRendererVk::renderFrame() {
+        
+    glm::mat4 geomMVP[] = {
+        glm::mat4(),
+        mCamera.getViewMatrix(),
+        mCamera.getProjMatrix()
+    };
+
+    void* memAddr;
+    vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
+    memcpy(memAddr, geomMVP, sizeof(geomMVP));
+    vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
     
-    mScenegraph->render(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
+    mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
     
     VkResult result;
     
@@ -851,6 +875,14 @@ void ShoRendererVk::modelimapOpaque(ModelInstance* modeli) {
 }
 
 void ShoRendererVk::modelimapTransparent(ModelInstance* modeli) {
+}
+void ShoRendererVk::onModeliAdded(ModelInstance* modeli) {
+    Logger::log(Logger::VERBOSE) << "Model added" << std::endl;
+    
+}
+void ShoRendererVk::onModeliRemoved(ModelInstance* modeli) {
+    Logger::log(Logger::VERBOSE) << "Model removed" << std::endl;
+    
 }
 void ShoRendererVk::rebuildPipeline() {
     cleanup();

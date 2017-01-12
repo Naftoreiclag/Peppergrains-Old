@@ -63,6 +63,8 @@ private:
     bool setupTestGeometry();
     bool initializePipeline();
     bool populateCommandBuffers();
+    
+    Scenegraph* mScenegraph = nullptr;
 public:
     ShoRendererVk();
     ~ShoRendererVk();
@@ -71,7 +73,7 @@ public:
     bool cleanup();
     
     Camera mCamera;
-    Scenegraph* mScenegraph;
+    void setScenegraph(Scenegraph* scenegraph);
 
     void renderFrame();
     
@@ -79,6 +81,8 @@ public:
     void modelimapLightprobe(ModelInstance* modeli);
     void modelimapOpaque(ModelInstance* modeli);
     void modelimapTransparent(ModelInstance* modeli);
+    void onModeliAdded(ModelInstance* modeli);
+    void onModeliRemoved(ModelInstance* modeli);
     
     void rebuildPipeline();
 };

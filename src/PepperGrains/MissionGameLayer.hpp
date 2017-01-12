@@ -34,8 +34,8 @@ private:
     
     nres::World mEntityWorld;
     
-    ShoRenderer* mRenderer;
-    SimpleScenegraph* mRootNode;
+    ShoRenderer* mRenderer = nullptr;
+    SimpleScenegraph* mScenegraph = nullptr;
     
     float mPeriod;
 

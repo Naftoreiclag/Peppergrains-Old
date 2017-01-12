@@ -17,8 +17,29 @@
 #include "SimpleScenegraph.hpp"
 
 namespace pgg {
-void SimpleScenegraph::render(std::function<void(ModelInstance*)> modelMapper) {
+// Perform a function on all attached ModelInstances
+void SimpleScenegraph::processAll(std::function<void(ModelInstance*)> modelMapper) {
     modelMapper(mModelInst);
 }
+
+// Provide a function to be called when a new ModelInstance is added
+void SimpleScenegraph::setRendererAddListener(std::function<void(ModelInstance*)> modelFunc) {
+    mAddListener = modelFunc;
+}
+
+// Provide a function to be called when a ModelInstance is removed
+void SimpleScenegraph::setRendererRemoveListener(std::function<void(ModelInstance*)> modelFunc) {
+    mRemoveListener = modelFunc;
+}
+
+ModelInstance* SimpleScenegraph::setModelInstance(ModelInstance* modelInst) {
+    if(mModelInst == modelInst) return mModelInst;
+    if(mModelInst != nullptr) mRemoveListener(mModelInst);
+    ModelInstance* oldModelInstance = mModelInst;
+    mModelInst = modelInst;
+    if(mModelInst != nullptr) mAddListener(mModelInst);
+    return oldModelInstance;
+}
+
 }
 

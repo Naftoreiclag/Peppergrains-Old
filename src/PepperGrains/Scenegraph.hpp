@@ -24,7 +24,12 @@
 namespace pgg {
 class Scenegraph {
 public:
-    virtual void render(std::function<void(ModelInstance*)> modelMapper) = 0;
+    // Perform a function on all attached ModelInstances
+    virtual void processAll(std::function<void(ModelInstance*)> modelMapper) = 0;
+    
+    // For the Renderer to add functions to be called when a new ModelInstance is added or removed
+    virtual void setRendererAddListener(std::function<void(ModelInstance*)> modelFunc) = 0;
+    virtual void setRendererRemoveListener(std::function<void(ModelInstance*)> modelFunc) = 0;
 };
 }
 

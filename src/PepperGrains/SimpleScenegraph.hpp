@@ -21,9 +21,22 @@
 
 namespace pgg {
 class SimpleScenegraph : public Scenegraph {
-public:
+private:
+    std::function<void(ModelInstance*)> mAddListener = nullptr;
+    std::function<void(ModelInstance*)> mRemoveListener = nullptr;
     ModelInstance* mModelInst;
-    void render(std::function<void(ModelInstance*)> modelMapper);
+public:
+    // Perform a function on all attached ModelInstances
+    void processAll(std::function<void(ModelInstance*)> modelMapper);
+    
+    // Provide a function to be called when a new ModelInstance is added
+    void setRendererAddListener(std::function<void(ModelInstance*)> modelFunc);
+    
+    // Provide a function to be called when a ModelInstance is removed
+    void setRendererRemoveListener(std::function<void(ModelInstance*)> modelFunc);
+    
+    // Set the sole model instance to render; returns old one or nullptr if there was none
+    ModelInstance* setModelInstance(ModelInstance* modelInst);
 };
 
 }

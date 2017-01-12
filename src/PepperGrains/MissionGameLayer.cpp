@@ -37,23 +37,20 @@ MissionGameLayer::~MissionGameLayer()
 
 // Lifecycle
 void MissionGameLayer::onBegin() {
+    mScenegraph = new SimpleScenegraph();
+    
     mRenderer = new ShoRenderer();
     mRenderer->initialize();
+    mRenderer->setScenegraph(mScenegraph);
     
-    
-    mRootNode = new SimpleScenegraph();
-    mRenderer->mScenegraph = mRootNode;
-    
-    mRootNode->mModelInst = new ModelInstance(ModelResource::gallop(Resources::find("CoolCactus.model")));
+    mScenegraph->setModelInstance(new ModelInstance(ModelResource::gallop(Resources::find("CoolCactus.model"))));
     
     mRenderer->mCamera.setProjMatrix(glm::radians(50.f), Video::calcWindowAspectRatio(), 0.2f, 200.f);
     mRenderer->mCamera.setViewMatrix(glm::vec3(4.f, 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 void MissionGameLayer::onEnd() {
-    
-    
-    delete mRootNode->mModelInst;
-    delete mRootNode;
+    delete mScenegraph->setModelInstance(nullptr);
+    delete mScenegraph;
     mRenderer->cleanup();
     delete mRenderer;
 }
@@ -72,12 +69,13 @@ void MissionGameLayer::onTick(double tpf, const InputState* keyStates) {
     //mRootNode->update(tpf);
     
     mPeriod += tpf;
-    mRootNode->mModelInst->mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
-    mRenderer->mCamera.setViewMatrix(glm::vec3(0.f, std::sin(mPeriod / 5) + 4.f, -4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    //mRootNode->mModelInst->mModelMatr = glm::rotate(glm::mat4(1.f), std::sin(mPeriod), glm::vec3(0.f, 1.f, 0.f));
+    mRenderer->mCamera.setViewMatrix(glm::vec3(std::sin(mPeriod) * 4.f, 4.f, std::cos(mPeriod) * 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     
     mRenderer->renderFrame();
 }
 bool MissionGameLayer::onNeedRebuildRenderPipeline() {
+    mRenderer->mCamera.setProjMatrix(glm::radians(50.f), Video::calcWindowAspectRatio(), 0.2f, 200.f);
     mRenderer->rebuildPipeline();
     return false;
 }

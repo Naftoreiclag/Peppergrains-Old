@@ -147,6 +147,10 @@ bool ShoRendererOg::initialize() {
 
 ShoRendererOg::~ShoRendererOg() { }
 
+void ShoRendererOg::setScenegraph(Scenegraph* scenegraph) {
+    mScenegraph = scenegraph;
+}
+
 bool ShoRendererOg::cleanup() {
     Logger::log(Logger::VERBOSE) << "Deleting Sho Renderer..." << std::endl;
     
@@ -185,7 +189,7 @@ void ShoRendererOg::renderFrame() {
         glDisable(GL_BLEND);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        mScenegraph->render(std::bind(&ShoRendererOg::modelimapDepthPass, this, std::placeholders::_1));
+        mScenegraph->processAll(std::bind(&ShoRendererOg::modelimapDepthPass, this, std::placeholders::_1));
     }
     
     // Cascaded shadow map generation
@@ -230,7 +234,7 @@ void ShoRendererOg::renderFrame() {
     // Geometry pass
     {
         // Populate per-object lightprobe data
-        mScenegraph->render(std::bind(&ShoRendererOg::modelimapLightprobe, this, std::placeholders::_1));
+        mScenegraph->processAll(std::bind(&ShoRendererOg::modelimapLightprobe, this, std::placeholders::_1));
         
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebufferForward);
         GLuint colorAttachments[] = {
@@ -248,10 +252,10 @@ void ShoRendererOg::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // Opaque geometry
-        mScenegraph->render(std::bind(&ShoRendererOg::modelimapOpaque, this, std::placeholders::_1));
+        mScenegraph->processAll(std::bind(&ShoRendererOg::modelimapOpaque, this, std::placeholders::_1));
         
         // Transparent
-        mScenegraph->render(std::bind(&ShoRendererOg::modelimapTransparent, this, std::placeholders::_1));
+        mScenegraph->processAll(std::bind(&ShoRendererOg::modelimapTransparent, this, std::placeholders::_1));
     }
     
     // Skybox
