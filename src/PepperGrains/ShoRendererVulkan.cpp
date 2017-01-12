@@ -330,8 +330,19 @@ bool ShoRendererVk::setupTestGeometry() {
         vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory);
     }
     
-    /*
     {
+        glm::mat4 geomMVP[3];
+        
+        makeBufferAndAllocateMemory(sizeof(geomMVP), 
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+            &mUniformBuffer, &mUniformBufferMemory);
+            
+        void* memAddr;
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
+        memcpy(memAddr, geomMVP, sizeof(geomMVP));
+        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
+        
         VkDescriptorSetLayoutBinding uniformBufferLayoutBinding; {
             uniformBufferLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             
@@ -356,12 +367,66 @@ bool ShoRendererVk::setupTestGeometry() {
             sout << "Could not create descriptor set layout" << std::endl;
             return false;
         }
+        
+        VkDescriptorPoolSize descPoolSize; {
+            descPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descPoolSize.descriptorCount = 1;
+        }
+        
+        VkDescriptorPoolCreateInfo descPoolCargs; {
+            descPoolCargs.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            descPoolCargs.pNext = nullptr;
+            descPoolCargs.flags = 0;
+            descPoolCargs.poolSizeCount = 1;
+            descPoolCargs.pPoolSizes = &descPoolSize;
+            descPoolCargs.maxSets = 1;
+        }
+        
+        result = vkCreateDescriptorPool(Video::Vulkan::getLogicalDevice(), &descPoolCargs, nullptr, &mDescriptorPool);
+        
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not create descriptor pool" << std::endl;
+            return false;
+        }
+        
+        VkDescriptorSetAllocateInfo descSetAargs; {
+            descSetAargs.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            descSetAargs.pNext = nullptr;
+            descSetAargs.descriptorPool = mDescriptorPool;
+            descSetAargs.descriptorSetCount = 1;
+            descSetAargs.pSetLayouts = &mDescriptorSetLayout;
+        }
+        
+        result = vkAllocateDescriptorSets(Video::Vulkan::getLogicalDevice(), &descSetAargs, &mDescriptorSet);
+        
+        
+        if(result != VK_SUCCESS) {
+            sout << "Could not allocate descriptor sets" << std::endl;
+            return false;
+        }
+        
+        VkDescriptorBufferInfo descBufferData; {
+            descBufferData.buffer = mUniformBuffer;
+            descBufferData.offset = 0;
+            descBufferData.range = sizeof(geomMVP);
+        }
+        
+        VkWriteDescriptorSet writeDescSet; {
+            writeDescSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescSet.pNext = nullptr;
+            writeDescSet.dstSet = mDescriptorSet;
+            writeDescSet.dstBinding = 0;
+            writeDescSet.dstArrayElement = 0;
+            writeDescSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            writeDescSet.descriptorCount = 1;
+            writeDescSet.pBufferInfo = &descBufferData;
+            writeDescSet.pImageInfo = nullptr;
+            writeDescSet.pTexelBufferView = nullptr;
+        }
+        
+        vkUpdateDescriptorSets(Video::Vulkan::getLogicalDevice(), 1, &writeDescSet, 0, nullptr);
     }
-    */
-    
-    
-    
-    
     
     return true;
 }
@@ -573,10 +638,10 @@ bool ShoRendererVk::initializePipeline() {
         plCstrArgs.pNext = nullptr;
         plCstrArgs.flags = 0;
         
-        plCstrArgs.setLayoutCount = 0;
-        plCstrArgs.pSetLayouts = nullptr;
-        //plCstrArgs.setLayoutCount = 1;
-        //plCstrArgs.pSetLayouts = &mDescriptorSetLayout;
+        //plCstrArgs.setLayoutCount = 0;
+        //plCstrArgs.pSetLayouts = nullptr;
+        plCstrArgs.setLayoutCount = 1;
+        plCstrArgs.pSetLayouts = &mDescriptorSetLayout;
         plCstrArgs.pushConstantRangeCount = 0;
         plCstrArgs.pPushConstantRanges = nullptr;
     }
@@ -663,6 +728,8 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         vkCmdBindIndexBuffer(cmdBuff, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
         
+        vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
+        
         vkCmdDrawIndexed(cmdBuff, 6, 1, 0, 0, 0);
         
         vkCmdEndRenderPass(cmdBuff);
@@ -679,12 +746,16 @@ bool ShoRendererVk::populateCommandBuffers() {
 
 bool ShoRendererVk::cleanup() {
     
-    //vkDestroyDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), mDescriptorSetLayout, nullptr);
+    // Descriptor sets are automatically cleaned up with the descriptor pool
+    vkDestroyDescriptorPool(Video::Vulkan::getLogicalDevice(), mDescriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), mDescriptorSetLayout, nullptr);
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, nullptr);
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory, nullptr);
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexBuffer, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mIndexBuffer, nullptr);
+    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mUniformBuffer, nullptr);
     
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
@@ -694,6 +765,7 @@ bool ShoRendererVk::cleanup() {
     
     if(!mCommandBuffers.empty()) {
         vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), mCommandPool, mCommandBuffers.size(), mCommandBuffers.data());
+        mCommandBuffers.clear();
     }
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     

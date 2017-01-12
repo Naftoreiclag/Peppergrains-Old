@@ -52,7 +52,10 @@ private:
     VkDeviceMemory mIndexBufferMemory = VK_NULL_HANDLE;
     VkBuffer mUniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;
+    
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSet mDescriptorSet;
     
     bool initializeRenderpass();
     bool initializeFramebuffers();
