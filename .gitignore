@@ -13,7 +13,6 @@ backup/*
 
 built/*
 
-run/resources/*
 run/core/*
-run/addons/*
+run/user/*
 lib/*

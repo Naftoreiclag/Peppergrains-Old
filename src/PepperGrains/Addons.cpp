@@ -30,7 +30,7 @@
 namespace pgg {
 namespace Addons {
     
-    const char* mAddonDirName = "addons";
+    const char* mAddonDirName = "user/addons";
     
     std::vector<Addon*> mPreloadAddons; // Addons in the preload stage waiting to be bootstrapped
     std::map<std::string, Addon*> mLoadedAddons; // Addons successfully bootstrapped and added to the Resource Modlayer stack
