@@ -39,10 +39,14 @@ private:
     VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
     VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
     
-    std::vector<VkFramebuffer> mSwapchainFramebuffers;
-    
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> mCommandBuffers;
+    
+    struct FramebufferSquad {
+        VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
+        VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
+    };
+    
+    std::vector<FramebufferSquad> mFramebufferSquads;
     
     VkBuffer mVertexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mVertexBufferMemory = VK_NULL_HANDLE;

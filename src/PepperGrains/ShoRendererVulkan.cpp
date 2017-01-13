@@ -125,9 +125,38 @@ bool ShoRendererVk::initializeFramebuffers() {
     
     VkResult result;
     
-    mSwapchainFramebuffers.resize(Video::Vulkan::getSwapchainImageViews().size(), VK_NULL_HANDLE);
+    mFramebufferSquads.resize(Video::Vulkan::getSwapchainImageViews().size());
+    
+    VkCommandPoolCreateInfo cpCargs; {
+        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        cpCargs.pNext = nullptr;
+        cpCargs.flags = 0;
+        
+        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
+    }
+    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
+    if(result != VK_SUCCESS) {
+        sout << "Could not create command pool" << std::endl;
+        return false;
+    }
+    
+    std::vector<VkCommandBuffer> commandBuffers(mFramebufferSquads.size(), VK_NULL_HANDLE);
+    VkCommandBufferAllocateInfo cbaArgs; {
+        cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cbaArgs.pNext = nullptr;
+        cbaArgs.commandPool = mCommandPool;
+        cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cbaArgs.commandBufferCount = commandBuffers.size();
+    }
+    result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, commandBuffers.data());
+    if(result != VK_SUCCESS) {
+        sout << "Could not allocate command buffers" << std::endl;
+        return false;
+    }
     
     for(uint32_t index = 0; index < Video::Vulkan::getSwapchainImageViews().size(); ++ index) {
+        FramebufferSquad& stuff = mFramebufferSquads[index];
+        
         VkImageView imgViewAttachments[] = {
             Video::Vulkan::getSwapchainImageViews().at(index)
         };
@@ -146,43 +175,14 @@ bool ShoRendererVk::initializeFramebuffers() {
             fbCargs.layers = 1;
         }
         
-        result = vkCreateFramebuffer(Video::Vulkan::getLogicalDevice(), &fbCargs, nullptr, &(mSwapchainFramebuffers[index]));
+        result = vkCreateFramebuffer(Video::Vulkan::getLogicalDevice(), &fbCargs, nullptr, &(stuff.mFramebuffer));
         
         if(result != VK_SUCCESS) {
             sout << "Could not create framebuffer #" << index << std::endl;
             return false;
         }
-    }
-    
-    VkCommandPoolCreateInfo cpCargs; {
-        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        cpCargs.pNext = nullptr;
-        cpCargs.flags = 0;
         
-        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
-    }
-    
-    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create command pool" << std::endl;
-        return false;
-    }
-    
-    mCommandBuffers.resize(mSwapchainFramebuffers.size(), VK_NULL_HANDLE);
-    
-    VkCommandBufferAllocateInfo cbaArgs; {
-        cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cbaArgs.pNext = nullptr;
-        cbaArgs.commandPool = mCommandPool;
-        cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        cbaArgs.commandBufferCount = mCommandBuffers.size();
-    }
-    
-    result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, mCommandBuffers.data());
-    
-    if(result != VK_SUCCESS) {
-        sout << "Could not allocate command buffers" << std::endl;
-        return false;
+        stuff.mCommandBuffer = commandBuffers[index];
     }
     
     return true;
@@ -484,7 +484,6 @@ bool ShoRendererVk::initializePipeline() {
         pvisCstrArgs.pVertexAttributeDescriptions = attribDescs;
     }
     
-    
     VkPipelineInputAssemblyStateCreateInfo piasCstrArgs; {
         piasCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         piasCstrArgs.pNext = nullptr;
@@ -492,7 +491,6 @@ bool ShoRendererVk::initializePipeline() {
         piasCstrArgs.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         piasCstrArgs.primitiveRestartEnable = VK_FALSE;
     }
-    
     
     VkViewport viewport; {
         viewport.x = 0;
@@ -503,18 +501,15 @@ bool ShoRendererVk::initializePipeline() {
         viewport.maxDepth = 1;
     }
     
-    
     VkOffset2D scissorsOff; {
         scissorsOff.x = 0;
         scissorsOff.y = 0;
     }
     
-    
     VkRect2D scissors; {
         scissors.offset = scissorsOff;
         scissors.extent = Video::Vulkan::getSwapchainExtent();
     }
-    
     
     VkPipelineViewportStateCreateInfo pvsCstrArgs; {
         pvsCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -526,7 +521,6 @@ bool ShoRendererVk::initializePipeline() {
         pvsCstrArgs.scissorCount = 1;
         pvsCstrArgs.pScissors = &scissors;
     }
-    
     
     VkPipelineRasterizationStateCreateInfo prsCstrArgs; {
         prsCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -545,7 +539,6 @@ bool ShoRendererVk::initializePipeline() {
         prsCstrArgs.depthBiasSlopeFactor = 0;
     }
     
-    
     VkPipelineMultisampleStateCreateInfo pmsCstrArgs; {
         pmsCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         pmsCstrArgs.pNext = nullptr;
@@ -558,7 +551,6 @@ bool ShoRendererVk::initializePipeline() {
         pmsCstrArgs.alphaToOneEnable = VK_FALSE;
     }
     
-    
     VkPipelineColorBlendAttachmentState pcbas; {
         pcbas.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         pcbas.blendEnable = VK_FALSE;
@@ -570,7 +562,6 @@ bool ShoRendererVk::initializePipeline() {
         pcbas.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
         pcbas.alphaBlendOp = VK_BLEND_OP_ADD;
     }
-    
     
     VkPipelineColorBlendStateCreateInfo pcbsCstrArgs; {
         pcbsCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -588,7 +579,6 @@ bool ShoRendererVk::initializePipeline() {
         pcbsCstrArgs.blendConstants[3] = 0;
     }
     
-    
     VkPipelineLayoutCreateInfo plCstrArgs; {
         plCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         plCstrArgs.pNext = nullptr;
@@ -602,7 +592,6 @@ bool ShoRendererVk::initializePipeline() {
         plCstrArgs.pPushConstantRanges = nullptr;
     }
     
-    
     result = vkCreatePipelineLayout(Video::Vulkan::getLogicalDevice(), &plCstrArgs, nullptr, &mPipelineLayout);
     
     if(result != VK_SUCCESS) {
@@ -613,14 +602,19 @@ bool ShoRendererVk::initializePipeline() {
         return false;
     }
     
-    
     VkGraphicsPipelineCreateInfo gpCstrArgs; {
         gpCstrArgs.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         gpCstrArgs.pNext = nullptr;
         gpCstrArgs.flags = 0;
         
+        gpCstrArgs.renderPass = mRenderPass;
+        
+        // Shaders
         gpCstrArgs.stageCount = 2;
         gpCstrArgs.pStages = pssCstrArgss;
+        
+        gpCstrArgs.layout = mPipelineLayout;
+        
         gpCstrArgs.pVertexInputState = &pvisCstrArgs;
         gpCstrArgs.pInputAssemblyState = &piasCstrArgs;
         gpCstrArgs.pViewportState = &pvsCstrArgs;
@@ -630,9 +624,9 @@ bool ShoRendererVk::initializePipeline() {
         gpCstrArgs.pColorBlendState = &pcbsCstrArgs;
         gpCstrArgs.pDynamicState = nullptr;
         gpCstrArgs.pTessellationState = nullptr;
-        gpCstrArgs.layout = mPipelineLayout;
-        gpCstrArgs.renderPass = mRenderPass;
+        
         gpCstrArgs.subpass = 0;
+        
         gpCstrArgs.basePipelineHandle = VK_NULL_HANDLE;
         gpCstrArgs.basePipelineIndex = -1;
     }
@@ -660,8 +654,10 @@ bool ShoRendererVk::populateCommandBuffers() {
     
     VkResult result;
     
-    for(uint32_t i = 0; i < mCommandBuffers.size(); ++ i) {
-        VkCommandBuffer cmdBuff = mCommandBuffers.at(i);
+    for(FramebufferSquad framebufferSquad : mFramebufferSquads) {
+        VkCommandBuffer cmdBuff = framebufferSquad.mCommandBuffer;
+        VkFramebuffer framebuff = framebufferSquad.mFramebuffer;
+        
         VkCommandBufferBeginInfo cbbArgs; {
             cbbArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             cbbArgs.pNext = nullptr;
@@ -675,7 +671,7 @@ bool ShoRendererVk::populateCommandBuffers() {
             rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             rpbArgs.pNext = nullptr;
             rpbArgs.renderPass = mRenderPass;
-            rpbArgs.framebuffer = mSwapchainFramebuffers.at(i);
+            rpbArgs.framebuffer = framebuff;
             rpbArgs.renderArea.offset = {0, 0};
             rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
             rpbArgs.clearValueCount = 0;
@@ -726,14 +722,11 @@ bool ShoRendererVk::cleanup() {
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
-    if(!mCommandBuffers.empty()) {
-        vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), mCommandPool, mCommandBuffers.size(), mCommandBuffers.data());
-        mCommandBuffers.clear();
-    }
+    // Note: Command buffers are freed with the pool (?)
     vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
-    for(VkFramebuffer fb : mSwapchainFramebuffers) {
-        vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), fb, nullptr);
+    for(FramebufferSquad framebufferSquad : mFramebufferSquads) {
+        vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFramebuffer, nullptr);
     }
     
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
@@ -742,28 +735,28 @@ bool ShoRendererVk::cleanup() {
 }
 
 void ShoRendererVk::renderFrame() {
-        
     glm::mat4 geomMVP[] = {
         glm::mat4(),
         mCamera.getViewMatrix(),
         mCamera.getProjMatrix()
     };
 
+    // Warning: this is unsafe behavior, since the uniform buffer could still be in use by a running command buffer
     void* memAddr;
     vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
     memcpy(memAddr, geomMVP, sizeof(geomMVP));
     vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
     
-    mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
+    //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
     
     VkResult result;
     
     uint32_t imgIndex;
     vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), Video::Vulkan::getSwapchain(), std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
-    
     VkSemaphore waitSems[] = {
         mSemImageAvailable
     };
+    FramebufferSquad& squad = mFramebufferSquads.at(imgIndex);
     
     VkPipelineStageFlags waitFlags[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
@@ -780,7 +773,7 @@ void ShoRendererVk::renderFrame() {
         submitArgs.pWaitSemaphores = waitSems;
         submitArgs.pWaitDstStageMask = waitFlags;
         submitArgs.commandBufferCount = 1;
-        submitArgs.pCommandBuffers = &(mCommandBuffers.at(imgIndex));
+        submitArgs.pCommandBuffers = &(squad.mCommandBuffer);
         submitArgs.signalSemaphoreCount = 1;
         submitArgs.pSignalSemaphores = signalSems;
     }
