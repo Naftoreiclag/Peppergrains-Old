@@ -375,7 +375,7 @@ namespace Engine {
                 mOneSecondTimer += tpf;
                 if(mOneSecondTimer > 1.f) {
                     mOneSecondTimer -= 1.f;
-                    iout << "TPS: " << (uint32_t) mTps << "  \tLast tick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+                    iout << "TPS: " << (uint32_t) mTps << "  \tLast tick: " << (tpf * 1e3) << "ms" << std::endl;
                 }
                 
                 mGamelayerMachine.onTick(tpf, &mInputState);
