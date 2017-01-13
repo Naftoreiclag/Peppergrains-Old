@@ -19,7 +19,9 @@
 namespace pgg {
 // Perform a function on all attached ModelInstances
 void SimpleScenegraph::processAll(std::function<void(ModelInstance*)> modelMapper) {
-    modelMapper(mModelInst);
+    if(mModelInst) {
+        modelMapper(mModelInst);
+    }
 }
 
 // Provide a function to be called when a new ModelInstance is added

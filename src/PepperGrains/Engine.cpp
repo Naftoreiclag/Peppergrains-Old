@@ -289,7 +289,6 @@ namespace Engine {
     }
 
     GamelayerMachine mGamelayerMachine;
-    uint32_t mTotalTicks;
     int run(int argc, char* argv[]) {
         //Logger::VERBOSE->setEnabled(false);
         
@@ -317,7 +316,7 @@ namespace Engine {
             return EXIT_FAILURE;
         }
         
-        Resources::loadCore("core/data.package");
+        Resources::loadCore("resources/engine/data.package");
         
         iout << "Loading and initializing addons..." << std::endl;
         if(!Addons::initialize()) {
@@ -376,7 +375,7 @@ namespace Engine {
                 mOneSecondTimer += tpf;
                 if(mOneSecondTimer > 1.f) {
                     mOneSecondTimer -= 1.f;
-                    iout << "TPS: " << (uint32_t) mTps << "  \tTick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
+                    iout << "TPS: " << (uint32_t) mTps << "  \tLast tick: " << (uint32_t) (tpf * 1000.f) << "ms" << std::endl;
                 }
                 
                 mGamelayerMachine.onTick(tpf, &mInputState);
