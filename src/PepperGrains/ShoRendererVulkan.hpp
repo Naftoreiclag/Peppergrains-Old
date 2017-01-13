@@ -44,6 +44,7 @@ private:
         VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
         VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
         VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
+        VkFence mFenceRenderFinished = VK_NULL_HANDLE;
     };
     
     std::vector<FramebufferSquad> mFramebufferSquads;

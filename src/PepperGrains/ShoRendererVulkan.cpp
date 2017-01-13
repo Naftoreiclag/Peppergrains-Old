@@ -191,12 +191,22 @@ bool ShoRendererVk::initializeFramebuffers() {
         semaphoreCargs.pNext = nullptr;
         semaphoreCargs.flags = 0;
     }
+    VkFenceCreateInfo fenceCargs; {
+        fenceCargs.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCargs.pNext = nullptr;
+        fenceCargs.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    }
     
     // Must iterate by reference; modifying values
     for(FramebufferSquad& squad : mFramebufferSquads) {
         result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &semaphoreCargs, nullptr, &(squad.mSemRenderFinished));
         if(result != VK_SUCCESS) {
             sout << "Could not create render completion semaphore" << std::endl;
+            return false;
+        }
+        result = vkCreateFence(Video::Vulkan::getLogicalDevice(), &fenceCargs, nullptr, &(squad.mFenceRenderFinished));
+        if(result != VK_SUCCESS) {
+            sout << "Could not create render completion fence" << std::endl;
             return false;
         }
     }
@@ -734,6 +744,7 @@ bool ShoRendererVk::cleanup() {
     for(FramebufferSquad& framebufferSquad : mFramebufferSquads) {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFramebuffer, nullptr);
         vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), framebufferSquad.mSemRenderFinished, nullptr);
+        vkDestroyFence(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFenceRenderFinished, nullptr);
     }
     mFramebufferSquads.clear();
     
@@ -787,7 +798,9 @@ void ShoRendererVk::renderFrame() {
         submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
     }
     
-    result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, VK_NULL_HANDLE);
+    vkWaitForFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished), VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
+    result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, squad.mFenceRenderFinished);
     
     if(result != VK_SUCCESS) {
         Logger::log(Logger::SEVERE) << "AAAA" << std::endl;
