@@ -469,33 +469,10 @@ bool ShoRendererVk::initializePipeline() {
         colorAttribDesc
     };
     
-    VkPipelineShaderStageCreateInfo pssVertCstrArgs; {
-        pssVertCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        pssVertCstrArgs.pNext = nullptr;
-        pssVertCstrArgs.flags = 0;
-        pssVertCstrArgs.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        pssVertCstrArgs.module = shaderVertex->getHandle();
-        pssVertCstrArgs.pName = "main";
-        pssVertCstrArgs.pSpecializationInfo = nullptr;
-    }
-    
-    
-    VkPipelineShaderStageCreateInfo pssFragCstrArgs; {
-        pssFragCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        pssFragCstrArgs.pNext = nullptr;
-        pssFragCstrArgs.flags = 0;
-        pssFragCstrArgs.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        pssFragCstrArgs.module = shaderFragment->getHandle();
-        pssFragCstrArgs.pName = "main";
-        pssFragCstrArgs.pSpecializationInfo = nullptr;
-    }
-    
-    
     VkPipelineShaderStageCreateInfo pssCstrArgss[] = {
-        pssVertCstrArgs,
-        pssFragCstrArgs
+        shaderVertex->getPipelineShaderStageInfo(),
+        shaderFragment->getPipelineShaderStageInfo()
     };
-    
     
     VkPipelineVertexInputStateCreateInfo pvisCstrArgs; {
         pvisCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

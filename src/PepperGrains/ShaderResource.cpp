@@ -44,6 +44,20 @@ ShaderResource* ShaderResource::gallop(Resource* resource) {
 }
 
 #ifdef PGG_VULKAN
+VkShaderStageFlagBits ShaderResource::toVulkanShaderStageFlagBits(Type t) {
+    switch(t) {
+        case Type::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
+        case Type::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
+        case Type::TESS_CONTROL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case Type::TESS_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case Type::GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case Type::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        default: return VK_SHADER_STAGE_ALL; // ??? There is no empty flag
+    }
+}
+VkShaderStageFlagBits ShaderResource::getShaderStageFlagBits() {
+    return toVulkanShaderStageFlagBits(mType);
+}
 void ShaderResource::load() {
     assert(!mLoaded && "Attempted to load shader that is already loaded");
     std::vector<uint8_t> bytecode;
@@ -60,15 +74,26 @@ void ShaderResource::load() {
     if(vkCreateShaderModule(Video::Vulkan::getLogicalDevice(), &cstrArgs, nullptr, &mHandle) != VK_SUCCESS) {
         Logger::log(Logger::WARN) << "Could not create shader module" << std::endl;
     }
+    mPipelineShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    mPipelineShaderStageInfo.pNext = nullptr;
+    mPipelineShaderStageInfo.flags = 0;
+    mPipelineShaderStageInfo.stage = toVulkanShaderStageFlagBits(mType);
+    mPipelineShaderStageInfo.module = mHandle;
+    mPipelineShaderStageInfo.pName = "main";
+    mPipelineShaderStageInfo.pSpecializationInfo = nullptr;
     mLoaded = true;
 }
 void ShaderResource::unload() {
     assert(mLoaded && "Attempted to unload shader before loading it");
     vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mHandle, nullptr);
+    mPipelineShaderStageInfo = VkPipelineShaderStageCreateInfo();
     mLoaded = false;
 }
 VkShaderModule ShaderResource::getHandle() {
     return mHandle;
+}
+VkPipelineShaderStageCreateInfo ShaderResource::getPipelineShaderStageInfo() {
+    return mPipelineShaderStageInfo;
 }
 #endif // PGG_VULKAN
 

@@ -33,10 +33,15 @@ public:
         GEOMETRY,
         FRAGMENT
     };
+    #ifdef PGG_VULKAN
+    static VkShaderStageFlagBits toVulkanShaderStageFlagBits(Type type);
+    #endif
+    
 private:
     
     #ifdef PGG_VULKAN
     VkShaderModule mHandle = VK_NULL_HANDLE;
+    VkPipelineShaderStageCreateInfo mPipelineShaderStageInfo;
     #endif
     
     #ifdef PGG_OPENGL
@@ -57,6 +62,8 @@ public:
     
     #ifdef PGG_VULKAN
     VkShaderModule getHandle();
+    VkPipelineShaderStageCreateInfo getPipelineShaderStageInfo();
+    VkShaderStageFlagBits getShaderStageFlagBits();
     #endif
     
     #ifdef PGG_OPENGL
