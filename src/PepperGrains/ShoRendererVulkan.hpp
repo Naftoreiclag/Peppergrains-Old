@@ -37,13 +37,13 @@ private:
     VkPipeline mPipeline = VK_NULL_HANDLE;
     
     VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
-    VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
     
     VkCommandPool mCommandPool = VK_NULL_HANDLE;
     
     struct FramebufferSquad {
         VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
         VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
+        VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
     };
     
     std::vector<FramebufferSquad> mFramebufferSquads;

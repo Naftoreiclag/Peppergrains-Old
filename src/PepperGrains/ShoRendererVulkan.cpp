@@ -155,6 +155,7 @@ bool ShoRendererVk::initializeFramebuffers() {
     }
     
     for(uint32_t index = 0; index < Video::Vulkan::getSwapchainImageViews().size(); ++ index) {
+        // Must be reference because data is being modified
         FramebufferSquad& stuff = mFramebufferSquads[index];
         
         VkImageView imgViewAttachments[] = {
@@ -185,6 +186,21 @@ bool ShoRendererVk::initializeFramebuffers() {
         stuff.mCommandBuffer = commandBuffers[index];
     }
     
+    VkSemaphoreCreateInfo semaphoreCargs; {
+        semaphoreCargs.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphoreCargs.pNext = nullptr;
+        semaphoreCargs.flags = 0;
+    }
+    
+    // Must iterate by reference; modifying values
+    for(FramebufferSquad& squad : mFramebufferSquads) {
+        result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &semaphoreCargs, nullptr, &(squad.mSemRenderFinished));
+        if(result != VK_SUCCESS) {
+            sout << "Could not create render completion semaphore" << std::endl;
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -205,12 +221,6 @@ bool ShoRendererVk::initializeSemaphores() {
     result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemImageAvailable);
     if(result != VK_SUCCESS) {
         sout << "Could not create image availability semaphore" << std::endl;
-        return false;
-    }
-    
-    result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &whyVulkan, nullptr, &mSemRenderFinished);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create render finishing semaphore" << std::endl;
         return false;
     }
     
@@ -720,14 +730,15 @@ bool ShoRendererVk::cleanup() {
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
     
     vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemImageAvailable, nullptr);
-    vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), mSemRenderFinished, nullptr);
     
-    // Note: Command buffers are freed with the pool (?)
-    vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
-    
-    for(FramebufferSquad framebufferSquad : mFramebufferSquads) {
+    for(FramebufferSquad& framebufferSquad : mFramebufferSquads) {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFramebuffer, nullptr);
+        vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), framebufferSquad.mSemRenderFinished, nullptr);
     }
+    mFramebufferSquads.clear();
+    
+    // Note: Command buffers are freed with the pool
+    vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
     
@@ -751,31 +762,29 @@ void ShoRendererVk::renderFrame() {
     
     VkResult result;
     
+    VkSwapchainKHR swapchain = Video::Vulkan::getSwapchain();
+    
     uint32_t imgIndex;
-    vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), Video::Vulkan::getSwapchain(), std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
-    VkSemaphore waitSems[] = {
-        mSemImageAvailable
-    };
+    vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), swapchain, std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
     FramebufferSquad& squad = mFramebufferSquads.at(imgIndex);
     
     VkPipelineStageFlags waitFlags[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     };
     
-    VkSemaphore signalSems[] = {
-        mSemRenderFinished
-    };
-    
     VkSubmitInfo submitArgs; {
         submitArgs.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitArgs.pNext = nullptr;
+        
         submitArgs.waitSemaphoreCount = 1;
-        submitArgs.pWaitSemaphores = waitSems;
+        submitArgs.pWaitSemaphores = &mSemImageAvailable;
         submitArgs.pWaitDstStageMask = waitFlags;
+        
         submitArgs.commandBufferCount = 1;
         submitArgs.pCommandBuffers = &(squad.mCommandBuffer);
+        
         submitArgs.signalSemaphoreCount = 1;
-        submitArgs.pSignalSemaphores = signalSems;
+        submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
     }
     
     result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, VK_NULL_HANDLE);
@@ -785,17 +794,15 @@ void ShoRendererVk::renderFrame() {
         return;
     }
     
-    VkSwapchainKHR swapchains[] = {
-        Video::Vulkan::getSwapchain()
-    };
-    
     VkPresentInfoKHR presentArgs; {
         presentArgs.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentArgs.pNext = nullptr;
+        
         presentArgs.waitSemaphoreCount = 1;
-        presentArgs.pWaitSemaphores = signalSems;
+        presentArgs.pWaitSemaphores = &(squad.mSemRenderFinished);
+        
         presentArgs.swapchainCount = 1;
-        presentArgs.pSwapchains = swapchains;
+        presentArgs.pSwapchains = &swapchain;
         presentArgs.pImageIndices = &imgIndex;
         presentArgs.pResults = nullptr;
     }
