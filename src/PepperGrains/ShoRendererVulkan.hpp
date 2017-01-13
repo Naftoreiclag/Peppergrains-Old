@@ -24,7 +24,7 @@
 
 #include <GraphicsApiLibrary.hpp>
 
-#include "ShaderProgramResource.hpp"
+#include "ShaderResource.hpp"
 #include "Scenegraph.hpp"
 #include "Camera.hpp"
 
@@ -32,8 +32,6 @@ namespace pgg {
 
 class ShoRendererVk {
 private:
-    VkShaderModule mShaderVertModule = VK_NULL_HANDLE;
-    VkShaderModule mShaderFragModule = VK_NULL_HANDLE;
     VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
     VkRenderPass mRenderPass = VK_NULL_HANDLE;
     VkPipeline mPipeline = VK_NULL_HANDLE;

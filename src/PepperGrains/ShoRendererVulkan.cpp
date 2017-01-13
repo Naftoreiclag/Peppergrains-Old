@@ -18,24 +18,11 @@
 
 #include "ShoRendererVulkan.hpp"
 
-#include "StreamStuff.hpp"
+#include "Resources.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
 
 namespace pgg {
-        
-bool makeShaderModule(const std::vector<uint8_t>& bytecode, VkShaderModule* module) {
-    VkShaderModuleCreateInfo cstrArgs; {
-        cstrArgs.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        cstrArgs.pNext = nullptr;
-        cstrArgs.flags = 0;
-        cstrArgs.codeSize = bytecode.size();
-        cstrArgs.pCode = reinterpret_cast<const uint32_t*>(bytecode.data());
-    }
-    
-    VkResult result = vkCreateShaderModule(Video::Vulkan::getLogicalDevice(), &cstrArgs, nullptr, module);
-    return result == VK_SUCCESS;
-}
 
 ShoRendererVk::ShoRendererVk() { }
 ShoRendererVk::~ShoRendererVk() { }
@@ -452,31 +439,10 @@ bool ShoRendererVk::initializePipeline() {
     
     VkResult result;
     
-    std::vector<uint8_t> shaderVertRaw, shaderFragRaw;
-    
-    if(!readFileToByteBuffer("shader.vert.spv", shaderVertRaw)) {
-        sout << "Could not read test vertex shader" << std::endl;
-        return false;
-    }
-    
-    vout << "Vert size: " << shaderVertRaw.size() << std::endl;
-    
-    if(!readFileToByteBuffer("shader.frag.spv", shaderFragRaw)) {
-        sout << "Could not read test fragment shader" << std::endl;
-        return false;
-    }
-    
-    vout << "Frag size: " << shaderFragRaw.size() << std::endl;
-    
-    if(!makeShaderModule(shaderVertRaw, &mShaderVertModule)) {
-        sout << "Could not create vertex shader module" << std::endl;
-        return false;
-    }
-    
-    if(!makeShaderModule(shaderFragRaw, &mShaderFragModule)) {
-        sout << "Could not create fragment shader module" << std::endl;
-        return false;
-    }
+    ShaderResource* shaderVertex = ShaderResource::gallop(Resources::find("TestShader.vertexShader"));
+    shaderVertex->grab();
+    ShaderResource* shaderFragment = ShaderResource::gallop(Resources::find("TestShader.fragmentShader"));
+    shaderFragment->grab();
     
     VkVertexInputBindingDescription bindDesc; {
         bindDesc.binding = 0;
@@ -508,7 +474,7 @@ bool ShoRendererVk::initializePipeline() {
         pssVertCstrArgs.pNext = nullptr;
         pssVertCstrArgs.flags = 0;
         pssVertCstrArgs.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        pssVertCstrArgs.module = mShaderVertModule;
+        pssVertCstrArgs.module = shaderVertex->getHandle();
         pssVertCstrArgs.pName = "main";
         pssVertCstrArgs.pSpecializationInfo = nullptr;
     }
@@ -519,7 +485,7 @@ bool ShoRendererVk::initializePipeline() {
         pssFragCstrArgs.pNext = nullptr;
         pssFragCstrArgs.flags = 0;
         pssFragCstrArgs.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        pssFragCstrArgs.module = mShaderFragModule;
+        pssFragCstrArgs.module = shaderFragment->getHandle();
         pssFragCstrArgs.pName = "main";
         pssFragCstrArgs.pSpecializationInfo = nullptr;
     }
@@ -662,9 +628,11 @@ bool ShoRendererVk::initializePipeline() {
     
     result = vkCreatePipelineLayout(Video::Vulkan::getLogicalDevice(), &plCstrArgs, nullptr, &mPipelineLayout);
     
-    
     if(result != VK_SUCCESS) {
         sout << "Could not create pipeline layout" << std::endl;
+    
+        shaderVertex->drop();
+        shaderFragment->drop();
         return false;
     }
     
@@ -693,6 +661,11 @@ bool ShoRendererVk::initializePipeline() {
     }
     
     result = vkCreateGraphicsPipelines(Video::Vulkan::getLogicalDevice(), VK_NULL_HANDLE, 1, &gpCstrArgs, nullptr, &mPipeline);
+    
+    shaderVertex->drop();
+    shaderVertex = nullptr;
+    shaderFragment->drop();
+    shaderFragment = nullptr;
     
     if(result != VK_SUCCESS) {
         sout << "Could not create graphics pipeline" << std::endl;
@@ -787,9 +760,6 @@ bool ShoRendererVk::cleanup() {
     }
     
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
-    
-    vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderVertModule, nullptr);
-    vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mShaderFragModule, nullptr);
     
     return true;
 }

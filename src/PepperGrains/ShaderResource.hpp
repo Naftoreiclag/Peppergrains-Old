@@ -34,7 +34,15 @@ public:
         FRAGMENT
     };
 private:
+    
+    #ifdef PGG_VULKAN
+    VkShaderModule mHandle = VK_NULL_HANDLE;
+    #endif
+    
+    #ifdef PGG_OPENGL
     GLuint mHandle;
+    #endif
+    
     bool mLoaded;
 public:
     const Type mType;
@@ -47,7 +55,13 @@ public:
     void load();
     void unload();
     
+    #ifdef PGG_VULKAN
+    VkShaderModule getHandle();
+    #endif
+    
+    #ifdef PGG_OPENGL
     GLuint getHandle();
+    #endif
 };
 
 }

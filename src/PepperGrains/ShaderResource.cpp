@@ -22,17 +22,17 @@
 #include <string>
 
 #include "Logger.hpp"
+#include "StreamStuff.hpp"
+#include "Video.hpp"
 
 namespace pgg {
 
 ShaderResource::ShaderResource(ShaderResource::Type type)
 : mType(type)
 , mLoaded(false)
-, Resource(Resource::Type::SHADER) {
-}
+, Resource(Resource::Type::SHADER) { }
 
-ShaderResource::~ShaderResource() {
-}
+ShaderResource::~ShaderResource() { }
 
 ShaderResource* ShaderResource::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::SHADER) {
@@ -43,6 +43,36 @@ ShaderResource* ShaderResource::gallop(Resource* resource) {
     }
 }
 
+#ifdef PGG_VULKAN
+void ShaderResource::load() {
+    assert(!mLoaded && "Attempted to load shader that is already loaded");
+    std::vector<uint8_t> bytecode;
+    if(!readFileToByteBuffer(this->getFile().string(), bytecode)) {
+        Logger::log(Logger::WARN) << "Could not read shader" << std::endl;
+    }
+    VkShaderModuleCreateInfo cstrArgs; {
+        cstrArgs.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        cstrArgs.pNext = nullptr;
+        cstrArgs.flags = 0;
+        cstrArgs.codeSize = bytecode.size();
+        cstrArgs.pCode = reinterpret_cast<const uint32_t*>(bytecode.data());
+    }
+    if(vkCreateShaderModule(Video::Vulkan::getLogicalDevice(), &cstrArgs, nullptr, &mHandle) != VK_SUCCESS) {
+        Logger::log(Logger::WARN) << "Could not create shader module" << std::endl;
+    }
+    mLoaded = true;
+}
+void ShaderResource::unload() {
+    assert(mLoaded && "Attempted to unload shader before loading it");
+    vkDestroyShaderModule(Video::Vulkan::getLogicalDevice(), mHandle, nullptr);
+    mLoaded = false;
+}
+VkShaderModule ShaderResource::getHandle() {
+    return mHandle;
+}
+#endif // PGG_VULKAN
+
+#ifdef PGG_OPENGL
 void ShaderResource::load() {
     assert(!mLoaded && "Attempted to load shader that is already loaded");
 
@@ -136,17 +166,14 @@ void ShaderResource::load() {
 
     mLoaded = true;
 }
-
 void ShaderResource::unload() {
     assert(mLoaded && "Attempted to unload shader before loading it");
-    #ifdef PGG_OPENGL
     glDeleteShader(mHandle);
-    #endif
     mLoaded = false;
 }
-
 GLuint ShaderResource::getHandle() {
     return mHandle;
 }
+#endif // PGG_OPENGL
 
 }
