@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="PepperGrains" InternalType="Console">
+<CodeLite_Project Name="PepperGrains" InternalType="Console" Version="10.0.0">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00060001N0005Debug0000000000000001N0010LinuxDebug0000000000000001N0012LinuxRelease0000000000000001N0007Release0000000000000001N0008WinDebug0000000000000001N0010WinRelease000000000000]]>
@@ -109,6 +109,8 @@
       <File Name="StreamStuff.hpp"/>
       <File Name="GraphicsApiLibrary.hpp"/>
       <File Name="WindowInputSystemLibrary.hpp"/>
+      <File Name="VulkanUtils.hpp"/>
+      <File Name="VulkanUtils.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="entity system">
       <VirtualDirectory Name="nres">

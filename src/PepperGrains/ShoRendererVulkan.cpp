@@ -21,6 +21,7 @@
 #include "Resources.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
+#include "VulkanUtils.hpp"
 
 namespace pgg {
 
@@ -237,76 +238,6 @@ bool ShoRendererVk::initializeSemaphores() {
     return true;
 }
 
-bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex) {
-    VkPhysicalDeviceMemoryProperties physMemProps = Video::Vulkan::getPhysicalDeviceMemoryProperties();
-    
-    for(uint32_t i = 0; i < physMemProps.memoryTypeCount; ++ i) {
-        if((allowedTypes & (1 << i)) && 
-            ((physMemProps.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties)) {
-            (*memTypeIndex) = i;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-bool makeBufferAndAllocateMemory(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags requiredProperties, VkBuffer* buffer, VkDeviceMemory* bufferMemory) {
-
-    Logger::Out sout = Logger::log(Logger::SEVERE);
-    
-    VkResult result;
-    
-    VkBufferCreateInfo buffInfo; {
-        buffInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buffInfo.pNext = nullptr;
-        buffInfo.flags = 0;
-        
-        buffInfo.size = size;
-        buffInfo.usage = usage;
-        buffInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    }
-    
-    result = vkCreateBuffer(Video::Vulkan::getLogicalDevice(), &buffInfo, nullptr, buffer);
-    
-    if(result != VK_SUCCESS) {
-        Logger::log(Logger::WARN) << "Could not create buffer" << std::endl;
-        return false;
-    }
-    
-    VkMemoryRequirements bufferMemReq;
-    vkGetBufferMemoryRequirements(Video::Vulkan::getLogicalDevice(), *buffer, &bufferMemReq);
-    
-    uint32_t memoryTypeIndex;
-    bool success = findSuitableMemoryTypeIndex(bufferMemReq.memoryTypeBits, 
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                &memoryTypeIndex);
-                
-    if(!success) {
-        sout << "Could not find memory type for buffer" << std::endl;
-        return false;
-    }
-    
-    VkMemoryAllocateInfo allocArgs; {
-        allocArgs.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocArgs.pNext = nullptr;
-        
-        allocArgs.allocationSize = bufferMemReq.size;
-        allocArgs.memoryTypeIndex = memoryTypeIndex;
-    }
-    
-    result = vkAllocateMemory(Video::Vulkan::getLogicalDevice(), &allocArgs, nullptr, bufferMemory);
-    
-    if(result != VK_SUCCESS) {
-        sout << "Could not allocate memory for buffer" << std::endl;
-        return false;
-    }
-    
-    vkBindBufferMemory(Video::Vulkan::getLogicalDevice(), *buffer, *bufferMemory, 0);
-    
-    return true;
-}
-
 bool ShoRendererVk::setupTestGeometry() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
@@ -323,7 +254,7 @@ bool ShoRendererVk::setupTestGeometry() {
             0.5, 0.5, 1.0, 1.0, 0.0
         };
         
-        makeBufferAndAllocateMemory(sizeof(geomVerticies), 
+        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomVerticies), 
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mVertexBuffer, &mVertexBufferMemory);
@@ -339,7 +270,7 @@ bool ShoRendererVk::setupTestGeometry() {
             0, 3, 1, 0, 2, 3
         };
         
-        makeBufferAndAllocateMemory(sizeof(geomIndices), 
+        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomIndices), 
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mIndexBuffer, &mIndexBufferMemory);
@@ -353,7 +284,7 @@ bool ShoRendererVk::setupTestGeometry() {
     {
         glm::mat4 geomMVP[3];
         
-        makeBufferAndAllocateMemory(sizeof(geomMVP), 
+        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomMVP), 
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mUniformBuffer, &mUniformBufferMemory);
