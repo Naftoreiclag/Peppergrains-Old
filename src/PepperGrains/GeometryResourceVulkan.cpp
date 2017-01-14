@@ -43,7 +43,7 @@ GeometryResourceVK::~GeometryResourceVK() {
 Geometry* GeometryResourceVK::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
-        return getFallback();
+        return Geometry::getFallback();
     } else {
         return static_cast<GeometryResourceVK*>(resource);
     }

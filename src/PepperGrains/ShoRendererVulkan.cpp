@@ -22,6 +22,7 @@
 #include "Video.hpp"
 #include "Logger.hpp"
 #include "VulkanUtils.hpp"
+#include "GeometryResource.hpp"
 
 namespace pgg {
 
@@ -243,6 +244,9 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out iout = Logger::log(Logger::INFO);
     Logger::Out vout = Logger::log(Logger::VERBOSE);
     Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
+    mTestGeom->grab();
     
     VkResult result;
     
@@ -648,6 +652,8 @@ bool ShoRendererVk::populateCommandBuffers() {
 }
 
 bool ShoRendererVk::cleanup() {
+    
+    mTestGeom->drop();
     
     // Descriptor sets are automatically cleaned up with the descriptor pool
     vkDestroyDescriptorPool(Video::Vulkan::getLogicalDevice(), mDescriptorPool, nullptr);

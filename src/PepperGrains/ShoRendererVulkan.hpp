@@ -27,6 +27,7 @@
 #include "ShaderResource.hpp"
 #include "Scenegraph.hpp"
 #include "Camera.hpp"
+#include "Geometry.hpp"
 
 namespace pgg {
 
@@ -55,6 +56,8 @@ private:
     uint32_t mIndexBufferSize;
     VkBuffer mUniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;
+    
+    Geometry* mTestGeom = nullptr;
     
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
