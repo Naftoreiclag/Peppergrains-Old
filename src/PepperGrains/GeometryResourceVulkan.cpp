@@ -263,6 +263,9 @@ void GeometryResourceVK::load() {
 void GeometryResourceVK::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
     
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory, nullptr);
+    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexIndexBuffer, nullptr);
+    
     mLoaded = false;
 }
 
