@@ -51,8 +51,8 @@ private:
     
     VkBuffer mVertexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mVertexBufferMemory = VK_NULL_HANDLE;
-    VkBuffer mIndexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory mIndexBufferMemory = VK_NULL_HANDLE;
+    uint32_t mVertexBufferSize;
+    uint32_t mIndexBufferSize;
     VkBuffer mUniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;
     

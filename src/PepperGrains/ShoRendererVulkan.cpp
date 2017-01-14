@@ -253,32 +253,25 @@ bool ShoRendererVk::setupTestGeometry() {
             -0.5, 0.5, 0.0, 0.0, 1.0,
             0.5, 0.5, 1.0, 1.0, 0.0
         };
+        glm::u16 geomIndices[] = {
+            0, 3, 1, 0, 2, 3
+        };
         
-        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomVerticies), 
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+        mVertexBufferSize = sizeof(geomVerticies);
+        mIndexBufferSize = sizeof(geomIndices);
+        
+        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomVerticies) + sizeof(geomIndices), 
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mVertexBuffer, &mVertexBufferMemory);
         
         void* memAddr;
         vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, 0, sizeof(geomVerticies), 0, &memAddr);
-        memcpy(memAddr, geomVerticies, sizeof(geomVerticies));
+        std::memcpy(memAddr, geomVerticies, sizeof(geomVerticies));
         vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
-    }
-    
-    {
-        glm::u16 geomIndices[] = {
-            0, 3, 1, 0, 2, 3
-        };
-        
-        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomIndices), 
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-            &mIndexBuffer, &mIndexBufferMemory);
-            
-        void* memAddr;
-        vkMapMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory, 0, sizeof(geomIndices), 0, &memAddr);
-        memcpy(memAddr, geomIndices, sizeof(geomIndices));
-        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory);
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, sizeof(geomVerticies), sizeof(geomIndices), 0, &memAddr);
+        std::memcpy(memAddr, geomIndices, sizeof(geomIndices));
+        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
     }
     
     {
@@ -636,7 +629,7 @@ bool ShoRendererVk::populateCommandBuffers() {
         VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexBuffer, &offset);
         
-        vkCmdBindIndexBuffer(cmdBuff, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(cmdBuff, mVertexBuffer, mVertexBufferSize, VK_INDEX_TYPE_UINT16);
         
         vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
         
@@ -661,10 +654,8 @@ bool ShoRendererVk::cleanup() {
     vkDestroyDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), mDescriptorSetLayout, nullptr);
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, nullptr);
-    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mIndexBufferMemory, nullptr);
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexBuffer, nullptr);
-    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mIndexBuffer, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mUniformBuffer, nullptr);
     
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
