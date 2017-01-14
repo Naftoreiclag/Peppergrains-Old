@@ -211,7 +211,6 @@
       <File Name="Spharm.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resources">
-      <File Name="GeometryResource.cpp"/>
       <File Name="GeometryResource.hpp"/>
       <File Name="ImageResource.cpp"/>
       <File Name="ImageResource.hpp"/>
@@ -237,6 +236,10 @@
       <File Name="FontResource.hpp"/>
       <File Name="ShaderResource.cpp"/>
       <File Name="ShaderResource.hpp"/>
+      <File Name="GeometryResourceOpenGL.hpp"/>
+      <File Name="GeometryResourceOpenGL.cpp"/>
+      <File Name="GeometryResourceVulkan.hpp"/>
+      <File Name="GeometryResourceVulkan.cpp"/>
     </VirtualDirectory>
     <File Name="Input.cpp"/>
     <File Name="Input.hpp"/>

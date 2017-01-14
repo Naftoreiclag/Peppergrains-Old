@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-#include "GeometryResource.hpp"
+#include "GeometryResourceOpenGL.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -27,24 +27,24 @@
 
 namespace pgg {
 
-GeometryResource::GeometryResource()
+GeometryResourceOG::GeometryResourceOG()
 : mLoaded(false)
 , Resource(Resource::Type::GEOMETRY) {
 }
 
-GeometryResource::~GeometryResource() {
+GeometryResourceOG::~GeometryResourceOG() {
 }
 
-Geometry* GeometryResource::gallop(Resource* resource) {
+Geometry* GeometryResourceOG::gallop(Resource* resource) {
     if(!resource || resource->mResourceType != Resource::Type::GEOMETRY) {
         Logger::log(Logger::WARN) << "Failed to cast " << (resource ? resource->getName() : "nullptr") << " to geometry!" << std::endl;
         return getFallback();
     } else {
-        return static_cast<GeometryResource*>(resource);
+        return static_cast<GeometryResourceOG*>(resource);
     }
 }
 
-void GeometryResource::load() {
+void GeometryResourceOG::load() {
     assert(!mLoaded && "Attempted to load geometry that is already loaded");
 
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
@@ -226,7 +226,7 @@ void GeometryResource::load() {
     mLoaded = true;
 }
 
-void GeometryResource::unload() {
+void GeometryResourceOG::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
     
     #ifdef PGG_OPENGL
@@ -238,55 +238,55 @@ void GeometryResource::unload() {
 }
 
 #ifdef PGG_OPENGL
-void GeometryResource::drawElements() const {
+void GeometryResourceOG::drawElements() const {
     glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
 }
-void GeometryResource::drawElementsInstanced(uint32_t num) const {
+void GeometryResourceOG::drawElementsInstanced(uint32_t num) const {
     glDrawElementsInstanced(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0, num);
 }
 
-void GeometryResource::bindBuffers() {
+void GeometryResourceOG::bindBuffers() {
     glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
     if(usesByteVBO()) glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
 }
-void GeometryResource::enablePositionAttrib(GLuint posAttrib) {
+void GeometryResourceOG::enablePositionAttrib(GLuint posAttrib) {
     if(mUsePosition) {
         glEnableVertexAttribArray(posAttrib);
         glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mPositionOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableColorAttrib(GLuint colorAttrib) {
+void GeometryResourceOG::enableColorAttrib(GLuint colorAttrib) {
     if(mUseColor) {
         glEnableVertexAttribArray(colorAttrib);
         glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mColorOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableUVAttrib(GLuint textureAttrib) {
+void GeometryResourceOG::enableUVAttrib(GLuint textureAttrib) {
     if(mUseUV) {
         glEnableVertexAttribArray(textureAttrib);
         glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mUVOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableNormalAttrib(GLuint normalAttrib) {
+void GeometryResourceOG::enableNormalAttrib(GLuint normalAttrib) {
     if(mUseNormal) {
         glEnableVertexAttribArray(normalAttrib);
         glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mNormalOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableTangentAttrib(GLuint tangentAttrib) {
+void GeometryResourceOG::enableTangentAttrib(GLuint tangentAttrib) {
     if(mUseTangent) {
         glEnableVertexAttribArray(tangentAttrib);
         glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mTangentOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableBitangentAttrib(GLuint bitangentAttrib) {
+void GeometryResourceOG::enableBitangentAttrib(GLuint bitangentAttrib) {
     if(mUseBitangent) {
         glEnableVertexAttribArray(bitangentAttrib);
         glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBitangentOff * sizeof(GLfloat)));
     }
 }
-void GeometryResource::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) {
+void GeometryResourceOG::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) {
     if(mUseBoneWeights) {
         glEnableVertexAttribArray(boneWeightAttrib);
         glVertexAttribPointer(boneWeightAttrib, 4, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBoneWeightOff * sizeof(GLfloat)));
@@ -295,12 +295,12 @@ void GeometryResource::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneInde
         glVertexAttribIPointer(boneIndexAttrib, 4, GL_UNSIGNED_BYTE, mByteVertexSize * sizeof(GLbyte), (GLvoid*) (mBoneIndexOff * sizeof(GLbyte)));
     }
 }
-GLuint GeometryResource::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
-GLuint GeometryResource::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
-GLuint GeometryResource::getByteVertexBufferObjectHandle() const { return mByteVertexBufferObject; }
+GLuint GeometryResourceOG::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
+GLuint GeometryResourceOG::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
+GLuint GeometryResourceOG::getByteVertexBufferObjectHandle() const { return mByteVertexBufferObject; }
 #endif
 
-bool GeometryResource::usesByteVBO() const {
+bool GeometryResourceOG::usesByteVBO() const {
     return mUseBoneWeights;
 }
 
