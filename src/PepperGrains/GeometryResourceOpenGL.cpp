@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#ifdef PGG_OPENGL
+
 #include "GeometryResourceOpenGL.hpp"
 
 #include <cassert>
@@ -205,7 +207,6 @@ void GeometryResourceOG::load() {
 
     input.close();
     
-    #ifdef PGG_OPENGL
     glGenBuffers(1, &mFloatVertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(floatVertices), floatVertices, GL_STATIC_DRAW);
@@ -221,7 +222,6 @@ void GeometryResourceOG::load() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    #endif
     
     mLoaded = true;
 }
@@ -229,15 +229,12 @@ void GeometryResourceOG::load() {
 void GeometryResourceOG::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
     
-    #ifdef PGG_OPENGL
     glDeleteBuffers(1, &mFloatVertexBufferObject);
     if(usesByteVBO()) glDeleteBuffers(1, &mByteVertexBufferObject);
     glDeleteBuffers(1, &mIndexBufferObject);
-    #endif
     mLoaded = false;
 }
 
-#ifdef PGG_OPENGL
 void GeometryResourceOG::drawElements() const {
     glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
 }
@@ -298,10 +295,12 @@ void GeometryResourceOG::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIn
 GLuint GeometryResourceOG::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
 GLuint GeometryResourceOG::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
 GLuint GeometryResourceOG::getByteVertexBufferObjectHandle() const { return mByteVertexBufferObject; }
-#endif
 
 bool GeometryResourceOG::usesByteVBO() const {
     return mUseBoneWeights;
 }
 
 }
+
+
+#endif // PGG_OPENGL

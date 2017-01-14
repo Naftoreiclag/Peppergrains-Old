@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#ifdef PGG_VULKAN
+
 #ifndef PGG_GEOMETRYRESOURCE_VULKAN_HPP
 #define PGG_GEOMETRYRESOURCE_VULKAN_HPP
 
@@ -59,10 +61,6 @@ private:
     Geometry::Armature mArmature;
     std::vector<Geometry::Lightprobe> mLightprobes;
 
-    GLuint mFloatVertexBufferObject;
-    GLuint mByteVertexBufferObject;
-    GLuint mIndexBufferObject;
-
     bool mLoaded;
     
 public:
@@ -73,36 +71,12 @@ public:
 
     void load();
     void unload();
-
-    #ifdef PGG_OPENGL
-
-    void drawElements() const;
-    void drawElementsInstanced(uint32_t num) const;
-
-    // Bind vertex and index buffers to the underlying vertex array object
-    void bindBuffers();
-
-    // These methods are used during vertex array object intialization
-    // They tell OpenGL how to read attribute data from the buffers
-    // If the geometry lacks a specific attribute, these methods will skip
-    void enablePositionAttrib(GLuint posAttrib);
-    void enableColorAttrib(GLuint colorAttrib);
-    void enableUVAttrib(GLuint textureAttrib);
-    void enableNormalAttrib(GLuint normalAttrib);
-    void enableTangentAttrib(GLuint tangentAttrib);
-    void enableBitangentAttrib(GLuint bitangentAttrib);
-    void enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib);
-
-    GLuint getFloatVertexBufferObjectHandle() const;
-    GLuint getByteVertexBufferObjectHandle() const;
-    GLuint getIndexBufferObjectHandle() const;
-    
-    #endif
-    
-    bool usesByteVBO() const;
 };
 typedef GeometryResourceVK GeometryResource;
 
 }
 
-#endif // GeometryResourceVK_HPP
+#endif // PGG_GEOMETRYRESOURCE_VULKAN_HPP
+
+
+#endif // PGG_VULKAN

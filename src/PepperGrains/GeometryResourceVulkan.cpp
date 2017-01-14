@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#ifdef PGG_VULKAN
+
 #include "GeometryResourceVulkan.hpp"
 
 #include <cassert>
@@ -85,11 +87,8 @@ void GeometryResourceVK::load() {
     mBoneIndexOff = 0;
     mByteVertexSize = mBoneIndexOff + (mUseBoneWeights ? 4 : 0);
 
+    
     GLfloat floatVertices[mNumVertices * mFloatVertexSize];
-    GLbyte* byteVertices = nullptr;
-    if(usesByteVBO()) {
-        byteVertices = new GLbyte[mNumVertices * mByteVertexSize];
-    }
 
     for(uint32_t i = 0; i < mNumVertices; ++ i) {
         if(mUsePosition) {
@@ -122,10 +121,12 @@ void GeometryResourceVK::load() {
             floatVertices[(i * mFloatVertexSize) + mBitangentOff + 2] = readF32(input);
         }
         if(mUseBoneWeights) {
+            /*
             byteVertices[(i * mByteVertexSize) + mBoneIndexOff    ] = readU8(input);
             byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 1] = readU8(input);
             byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 2] = readU8(input);
             byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 3] = readU8(input);
+            */
             floatVertices[(i * mFloatVertexSize) + mBoneWeightOff    ] = readF32(input);
             floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 1] = readF32(input);
             floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 2] = readF32(input);
@@ -205,103 +206,15 @@ void GeometryResourceVK::load() {
 
     input.close();
     
-    #ifdef PGG_OPENGL
-    glGenBuffers(1, &mFloatVertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floatVertices), floatVertices, GL_STATIC_DRAW);
-    if(usesByteVBO()) {
-        glGenBuffers(1, &mByteVertexBufferObject);
-        glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(byteVertices), byteVertices, GL_STATIC_DRAW);
-        delete[] byteVertices;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &mIndexBufferObject);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    #endif
-    
     mLoaded = true;
 }
 
 void GeometryResourceVK::unload() {
     assert(mLoaded && "Attempted to unload geometry before loading it");
     
-    #ifdef PGG_OPENGL
-    glDeleteBuffers(1, &mFloatVertexBufferObject);
-    if(usesByteVBO()) glDeleteBuffers(1, &mByteVertexBufferObject);
-    glDeleteBuffers(1, &mIndexBufferObject);
-    #endif
     mLoaded = false;
 }
 
-#ifdef PGG_OPENGL
-void GeometryResourceVK::drawElements() const {
-    glDrawElements(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0);
-}
-void GeometryResourceVK::drawElementsInstanced(uint32_t num) const {
-    glDrawElementsInstanced(GL_TRIANGLES, mNumTriangles * 3, GL_UNSIGNED_INT, 0, num);
 }
 
-void GeometryResourceVK::bindBuffers() {
-    glBindBuffer(GL_ARRAY_BUFFER, mFloatVertexBufferObject);
-    if(usesByteVBO()) glBindBuffer(GL_ARRAY_BUFFER, mByteVertexBufferObject);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBufferObject);
-}
-void GeometryResourceVK::enablePositionAttrib(GLuint posAttrib) {
-    if(mUsePosition) {
-        glEnableVertexAttribArray(posAttrib);
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mPositionOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableColorAttrib(GLuint colorAttrib) {
-    if(mUseColor) {
-        glEnableVertexAttribArray(colorAttrib);
-        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mColorOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableUVAttrib(GLuint textureAttrib) {
-    if(mUseUV) {
-        glEnableVertexAttribArray(textureAttrib);
-        glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mUVOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableNormalAttrib(GLuint normalAttrib) {
-    if(mUseNormal) {
-        glEnableVertexAttribArray(normalAttrib);
-        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mNormalOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableTangentAttrib(GLuint tangentAttrib) {
-    if(mUseTangent) {
-        glEnableVertexAttribArray(tangentAttrib);
-        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mTangentOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableBitangentAttrib(GLuint bitangentAttrib) {
-    if(mUseBitangent) {
-        glEnableVertexAttribArray(bitangentAttrib);
-        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBitangentOff * sizeof(GLfloat)));
-    }
-}
-void GeometryResourceVK::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) {
-    if(mUseBoneWeights) {
-        glEnableVertexAttribArray(boneWeightAttrib);
-        glVertexAttribPointer(boneWeightAttrib, 4, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBoneWeightOff * sizeof(GLfloat)));
-        glEnableVertexAttribArray(boneIndexAttrib);
-        // Note the "I" for "integer"
-        glVertexAttribIPointer(boneIndexAttrib, 4, GL_UNSIGNED_BYTE, mByteVertexSize * sizeof(GLbyte), (GLvoid*) (mBoneIndexOff * sizeof(GLbyte)));
-    }
-}
-GLuint GeometryResourceVK::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
-GLuint GeometryResourceVK::getIndexBufferObjectHandle() const { return mIndexBufferObject; }
-GLuint GeometryResourceVK::getByteVertexBufferObjectHandle() const { return mByteVertexBufferObject; }
-#endif
-
-bool GeometryResourceVK::usesByteVBO() const {
-    return mUseBoneWeights;
-}
-
-}
+#endif // PGG_VULKAN

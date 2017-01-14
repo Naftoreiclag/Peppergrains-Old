@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#ifdef PGG_OPENGL
+
 #ifndef PGG_GEOMETRYRESOURCE_OPENGL_HPP
 #define PGG_GEOMETRYRESOURCE_OPENGL_HPP
 
@@ -74,8 +76,6 @@ public:
     void load();
     void unload();
 
-    #ifdef PGG_OPENGL
-
     void drawElements() const;
     void drawElementsInstanced(uint32_t num) const;
 
@@ -97,8 +97,6 @@ public:
     GLuint getByteVertexBufferObjectHandle() const;
     GLuint getIndexBufferObjectHandle() const;
     
-    #endif
-    
     bool usesByteVBO() const;
 };
 typedef GeometryResourceOG GeometryResource;
@@ -106,3 +104,5 @@ typedef GeometryResourceOG GeometryResource;
 }
 
 #endif // GeometryResourceOG_HPP
+
+#endif // PGG_OPENGL
