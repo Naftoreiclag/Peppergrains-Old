@@ -40,6 +40,8 @@ private:
     bool mUseTangent;
     bool mUseBitangent;
     bool mUseBoneWeights; // Also for bone indices
+    
+    uint8_t mIndexTypeSize;
 
     // Offsets in float array
     uint32_t mPositionOff;
@@ -49,14 +51,17 @@ private:
     uint32_t mTangentOff;
     uint32_t mBitangentOff;
     uint32_t mBoneWeightOff;
-    uint32_t mFloatVertexSize;
+    uint32_t mFloatsPerVertex;
     
     // Offsets in byte array
     uint32_t mBoneIndexOff;
-    uint32_t mByteVertexSize;
+    uint32_t mBytesPerVertex;
 
     uint32_t mNumVertices;
     uint32_t mNumTriangles;
+    
+    VkBuffer mVertexIndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory mVertexIndexBufferMemory = VK_NULL_HANDLE;
     
     Geometry::Armature mArmature;
     std::vector<Geometry::Lightprobe> mLightprobes;

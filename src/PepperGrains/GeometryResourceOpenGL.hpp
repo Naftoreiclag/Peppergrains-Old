@@ -49,11 +49,11 @@ private:
     uint32_t mTangentOff;
     uint32_t mBitangentOff;
     uint32_t mBoneWeightOff;
-    uint32_t mFloatVertexSize;
+    uint32_t mFloatsPerVertex;
     
     // Offsets in byte array
     uint32_t mBoneIndexOff;
-    uint32_t mByteVertexSize;
+    uint32_t mBytesPerVertex;
 
     uint32_t mNumVertices;
     uint32_t mNumTriangles;

@@ -82,56 +82,56 @@ void GeometryResourceOG::load() {
     mTangentOff = mNormalOff + (mUseNormal ? 3 : 0);
     mBitangentOff = mTangentOff + (mUseTangent ? 3 : 0);
     mBoneWeightOff = mBitangentOff + (mUseBitangent ? 3 : 0);
-    mFloatVertexSize = mBoneWeightOff + (mUseBoneWeights ? 4 : 0);
+    mFloatsPerVertex = mBoneWeightOff + (mUseBoneWeights ? 4 : 0);
     
     mBoneIndexOff = 0;
-    mByteVertexSize = mBoneIndexOff + (mUseBoneWeights ? 4 : 0);
+    mBytesPerVertex = mBoneIndexOff + (mUseBoneWeights ? 4 : 0);
 
-    GLfloat floatVertices[mNumVertices * mFloatVertexSize];
+    GLfloat floatVertices[mNumVertices * mFloatsPerVertex];
     GLbyte* byteVertices = nullptr;
     if(usesByteVBO()) {
-        byteVertices = new GLbyte[mNumVertices * mByteVertexSize];
+        byteVertices = new GLbyte[mNumVertices * mBytesPerVertex];
     }
 
     for(uint32_t i = 0; i < mNumVertices; ++ i) {
         if(mUsePosition) {
-            floatVertices[(i * mFloatVertexSize) + mPositionOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mPositionOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mPositionOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mPositionOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mPositionOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mPositionOff + 2] = readF32(input);
         }
         if(mUseColor) {
-            floatVertices[(i * mFloatVertexSize) + mColorOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mColorOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mColorOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mColorOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mColorOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mColorOff + 2] = readF32(input);
         }
         if(mUseUV) {
-            floatVertices[(i * mFloatVertexSize) + mUVOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mUVOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mUVOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mUVOff + 1] = readF32(input);
         }
         if(mUseNormal) {
-            floatVertices[(i * mFloatVertexSize) + mNormalOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mNormalOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mNormalOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mNormalOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mNormalOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mNormalOff + 2] = readF32(input);
         }
         if(mUseTangent) {
-            floatVertices[(i * mFloatVertexSize) + mTangentOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mTangentOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mTangentOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mTangentOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mTangentOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mTangentOff + 2] = readF32(input);
         }
         if(mUseBitangent) {
-            floatVertices[(i * mFloatVertexSize) + mBitangentOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mBitangentOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mBitangentOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBitangentOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBitangentOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBitangentOff + 2] = readF32(input);
         }
         if(mUseBoneWeights) {
-            byteVertices[(i * mByteVertexSize) + mBoneIndexOff    ] = readU8(input);
-            byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 1] = readU8(input);
-            byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 2] = readU8(input);
-            byteVertices[(i * mByteVertexSize) + mBoneIndexOff + 3] = readU8(input);
-            floatVertices[(i * mFloatVertexSize) + mBoneWeightOff    ] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 1] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 2] = readF32(input);
-            floatVertices[(i * mFloatVertexSize) + mBoneWeightOff + 3] = readF32(input);
+            byteVertices[(i * mBytesPerVertex) + mBoneIndexOff    ] = readU8(input);
+            byteVertices[(i * mBytesPerVertex) + mBoneIndexOff + 1] = readU8(input);
+            byteVertices[(i * mBytesPerVertex) + mBoneIndexOff + 2] = readU8(input);
+            byteVertices[(i * mBytesPerVertex) + mBoneIndexOff + 3] = readU8(input);
+            floatVertices[(i * mFloatsPerVertex) + mBoneWeightOff    ] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBoneWeightOff + 1] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBoneWeightOff + 2] = readF32(input);
+            floatVertices[(i * mFloatsPerVertex) + mBoneWeightOff + 3] = readF32(input);
         }
     }
     
@@ -250,46 +250,46 @@ void GeometryResourceOG::bindBuffers() {
 void GeometryResourceOG::enablePositionAttrib(GLuint posAttrib) {
     if(mUsePosition) {
         glEnableVertexAttribArray(posAttrib);
-        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mPositionOff * sizeof(GLfloat)));
+        glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mPositionOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableColorAttrib(GLuint colorAttrib) {
     if(mUseColor) {
         glEnableVertexAttribArray(colorAttrib);
-        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mColorOff * sizeof(GLfloat)));
+        glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mColorOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableUVAttrib(GLuint textureAttrib) {
     if(mUseUV) {
         glEnableVertexAttribArray(textureAttrib);
-        glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mUVOff * sizeof(GLfloat)));
+        glVertexAttribPointer(textureAttrib, 2, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mUVOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableNormalAttrib(GLuint normalAttrib) {
     if(mUseNormal) {
         glEnableVertexAttribArray(normalAttrib);
-        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mNormalOff * sizeof(GLfloat)));
+        glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mNormalOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableTangentAttrib(GLuint tangentAttrib) {
     if(mUseTangent) {
         glEnableVertexAttribArray(tangentAttrib);
-        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mTangentOff * sizeof(GLfloat)));
+        glVertexAttribPointer(tangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mTangentOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableBitangentAttrib(GLuint bitangentAttrib) {
     if(mUseBitangent) {
         glEnableVertexAttribArray(bitangentAttrib);
-        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBitangentOff * sizeof(GLfloat)));
+        glVertexAttribPointer(bitangentAttrib, 3, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mBitangentOff * sizeof(GLfloat)));
     }
 }
 void GeometryResourceOG::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) {
     if(mUseBoneWeights) {
         glEnableVertexAttribArray(boneWeightAttrib);
-        glVertexAttribPointer(boneWeightAttrib, 4, GL_FLOAT, GL_FALSE, mFloatVertexSize * sizeof(GLfloat), (GLvoid*) (mBoneWeightOff * sizeof(GLfloat)));
+        glVertexAttribPointer(boneWeightAttrib, 4, GL_FLOAT, GL_FALSE, mFloatsPerVertex * sizeof(GLfloat), (GLvoid*) (mBoneWeightOff * sizeof(GLfloat)));
         glEnableVertexAttribArray(boneIndexAttrib);
         // Note the "I" for "integer"
-        glVertexAttribIPointer(boneIndexAttrib, 4, GL_UNSIGNED_BYTE, mByteVertexSize * sizeof(GLbyte), (GLvoid*) (mBoneIndexOff * sizeof(GLbyte)));
+        glVertexAttribIPointer(boneIndexAttrib, 4, GL_UNSIGNED_BYTE, mBytesPerVertex * sizeof(GLbyte), (GLvoid*) (mBoneIndexOff * sizeof(GLbyte)));
     }
 }
 GLuint GeometryResourceOG::getFloatVertexBufferObjectHandle() const { return mFloatVertexBufferObject; }
