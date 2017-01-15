@@ -28,6 +28,13 @@ namespace VulkanUtils {
     
 bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex);
 bool makeBufferAndAllocateMemory(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags requiredProperties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+
+/* case 2: return VK_INDEX_TYPE_UINT16;
+ * case 4: return VK_INDEX_TYPE_UINT32;
+ * default: return VK_INDEX_TYPE_END_RANGE;
+ */
+VkIndexType indexTypeFromSize(uint8_t size);
+
 } // VulkanUtils
 } // pgg
 

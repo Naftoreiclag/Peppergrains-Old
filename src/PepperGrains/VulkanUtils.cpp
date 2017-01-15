@@ -94,6 +94,14 @@ bool makeBufferAndAllocateMemory(VkDeviceSize size, VkBufferUsageFlags usage, Vk
     return true;
 }
 
+VkIndexType indexTypeFromSize(uint8_t size) {
+    switch(size) {
+        case 2: return VK_INDEX_TYPE_UINT16;
+        case 4: return VK_INDEX_TYPE_UINT32;
+        default: return VK_INDEX_TYPE_END_RANGE;
+    }
+}
+
 } // VulkanUtils
 } // pgg
 

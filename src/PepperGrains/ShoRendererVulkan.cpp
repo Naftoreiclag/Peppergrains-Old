@@ -23,6 +23,7 @@
 #include "Logger.hpp"
 #include "VulkanUtils.hpp"
 #include "GeometryResource.hpp"
+#include "Engine.hpp"
 
 namespace pgg {
 
@@ -246,37 +247,12 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out sout = Logger::log(Logger::SEVERE);
     
     mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
+    iout << "asdf" << std::endl;
     mTestGeom->grab();
+    iout << "asdf" << std::endl;
+    
     
     VkResult result;
-    
-    {
-        glm::f32 geomVerticies[] = {
-            -0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5, -0.5, 0.0, 1.0, 0.0,
-            -0.5, 0.5, 0.0, 0.0, 1.0,
-            0.5, 0.5, 1.0, 1.0, 0.0
-        };
-        glm::u16 geomIndices[] = {
-            0, 3, 1, 0, 2, 3
-        };
-        
-        mVertexBufferSize = sizeof(geomVerticies);
-        mIndexBufferSize = sizeof(geomIndices);
-        
-        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomVerticies) + sizeof(geomIndices), 
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-            &mVertexBuffer, &mVertexBufferMemory);
-        
-        void* memAddr;
-        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, 0, sizeof(geomVerticies), 0, &memAddr);
-        std::memcpy(memAddr, geomVerticies, sizeof(geomVerticies));
-        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
-        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, sizeof(geomVerticies), sizeof(geomIndices), 0, &memAddr);
-        std::memcpy(memAddr, geomIndices, sizeof(geomIndices));
-        vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory);
-    }
     
     {
         glm::mat4 geomMVP[3];
@@ -392,53 +368,10 @@ bool ShoRendererVk::initializePipeline() {
     ShaderResource* shaderFragment = ShaderResource::gallop(Resources::find("TestShader.fragmentShader"));
     shaderFragment->grab();
     
-    VkVertexInputBindingDescription bindDesc; {
-        bindDesc.binding = 0;
-        bindDesc.stride = (3 + 2) * sizeof(glm::f32);
-        bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    }
-    
-    VkVertexInputAttributeDescription locAttribDesc; {
-        locAttribDesc.binding = 0;
-        locAttribDesc.location = 0;
-        locAttribDesc.format = VK_FORMAT_R32G32_SFLOAT;
-        locAttribDesc.offset = (0) * sizeof(glm::f32);
-    }
-    
-    VkVertexInputAttributeDescription colorAttribDesc; {
-        colorAttribDesc.binding = 0;
-        colorAttribDesc.location = 1;
-        colorAttribDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
-        colorAttribDesc.offset = (0 + 2) * sizeof(glm::f32);
-    }
-    
-    VkVertexInputAttributeDescription attribDescs[] = {
-        locAttribDesc,
-        colorAttribDesc
-    };
-    
     VkPipelineShaderStageCreateInfo pssCstrArgss[] = {
         shaderVertex->getPipelineShaderStageInfo(),
         shaderFragment->getPipelineShaderStageInfo()
     };
-    
-    VkPipelineVertexInputStateCreateInfo pvisCstrArgs; {
-        pvisCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        pvisCstrArgs.pNext = nullptr;
-        pvisCstrArgs.flags = 0;
-        pvisCstrArgs.vertexBindingDescriptionCount = 1;
-        pvisCstrArgs.pVertexBindingDescriptions = &bindDesc;
-        pvisCstrArgs.vertexAttributeDescriptionCount = 2;
-        pvisCstrArgs.pVertexAttributeDescriptions = attribDescs;
-    }
-    
-    VkPipelineInputAssemblyStateCreateInfo piasCstrArgs; {
-        piasCstrArgs.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        piasCstrArgs.pNext = nullptr;
-        piasCstrArgs.flags = 0;
-        piasCstrArgs.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        piasCstrArgs.primitiveRestartEnable = VK_FALSE;
-    }
     
     VkViewport viewport; {
         viewport.x = 0;
@@ -563,8 +496,8 @@ bool ShoRendererVk::initializePipeline() {
         
         gpCstrArgs.layout = mPipelineLayout;
         
-        gpCstrArgs.pVertexInputState = &pvisCstrArgs;
-        gpCstrArgs.pInputAssemblyState = &piasCstrArgs;
+        gpCstrArgs.pVertexInputState = mTestGeom->getVertexInputState();
+        gpCstrArgs.pInputAssemblyState = mTestGeom->getInputAssemblyState();
         gpCstrArgs.pViewportState = &pvsCstrArgs;
         gpCstrArgs.pRasterizationState = &prsCstrArgs;
         gpCstrArgs.pMultisampleState = &pmsCstrArgs;
@@ -630,14 +563,10 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
         
-        VkDeviceSize offset = 0;
-        vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexBuffer, &offset);
-        
-        vkCmdBindIndexBuffer(cmdBuff, mVertexBuffer, mVertexBufferSize, VK_INDEX_TYPE_UINT16);
-        
         vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
         
-        vkCmdDrawIndexed(cmdBuff, 6, 1, 0, 0, 0);
+        //mTestGeom->cmdBindBuffers(cmdBuff);
+        //mTestGeom->cmdDrawIndexed(cmdBuff);
         
         vkCmdEndRenderPass(cmdBuff);
         
@@ -655,14 +584,12 @@ bool ShoRendererVk::cleanup() {
     
     mTestGeom->drop();
     
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, nullptr);
+    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mUniformBuffer, nullptr);
+    
     // Descriptor sets are automatically cleaned up with the descriptor pool
     vkDestroyDescriptorPool(Video::Vulkan::getLogicalDevice(), mDescriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), mDescriptorSetLayout, nullptr);
-    
-    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mVertexBufferMemory, nullptr);
-    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, nullptr);
-    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mVertexBuffer, nullptr);
-    vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mUniformBuffer, nullptr);
     
     vkDestroyPipeline(Video::Vulkan::getLogicalDevice(), mPipeline, nullptr);
     vkDestroyPipelineLayout(Video::Vulkan::getLogicalDevice(), mPipelineLayout, nullptr);
@@ -690,6 +617,8 @@ void ShoRendererVk::renderFrame() {
         mCamera.getViewMatrix(),
         mCamera.getProjMatrix()
     };
+    
+    //Engine::quit();
 
     // Warning: this is unsafe behavior, since the uniform buffer could still be in use by a running command buffer
     void* memAddr;

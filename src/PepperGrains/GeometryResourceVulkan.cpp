@@ -52,32 +52,49 @@ Geometry* GeometryResourceVK::gallop(Resource* resource) {
 void GeometryResourceVK::load() {
     assert(!mLoaded && "Attempted to load geometry that is already loaded");
 
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
     std::ifstream input(this->getFile().string().c_str(), std::ios::in | std::ios::binary);
     if(input.fail()) {
         //loadError();
         return;
     }
     
+    iout << "aaa" << std::endl;
+    
     uint8_t bitfield = readU8(input);
-    //mHasVertices = bitfield & 0x01;
-    //mHasTriangles = bitfield & 0x02;
-    mHasArmature = bitfield & 0x04;
-    mHasLightprobes = bitfield & 0x08;
+    //mHasVertices = bitfield & (1 << 0);
+    //mHasTriangles = bitfield & (1 << 1);
+    mHasArmature = bitfield & (1 << 2);
+    mHasLightprobes = bitfield & (1 << 3);
         
     bitfield = readU8(input);
-    mUsePosition = bitfield & 0x01;
-    mUseColor = bitfield & 0x02;
-    mUseUV = bitfield & 0x04;
-    mUseNormal = bitfield & 0x08;
-    mUseTangent = bitfield & 0x10;
-    mUseBitangent = bitfield & 0x20;
-    mUseBoneWeights = bitfield & 0x40;
+    mUsePosition = bitfield & (1 << 0);
+    mUseColor = bitfield & (1 << 1);
+    mUseUV = bitfield & (1 << 2);
+    mUseNormal = bitfield & (1 << 3);
+    mUseTangent = bitfield & (1 << 4);
+    mUseBitangent = bitfield & (1 << 5);
+    mUseBoneWeights = bitfield & (1 << 6);
+
+    vout << "Position " << mUsePosition << std::endl;
+    vout << "Color " << mUseColor << std::endl;
+    vout << "UV " << mUseUV << std::endl;
+    vout << "Normal " << mUseNormal << std::endl;
+    vout << "Tangent " << mUseTangent << std::endl;
+    vout << "Bitangent " << mUseBitangent << std::endl;
+    vout << "Boneweights " << mUseBoneWeights << std::endl;
 
     // Skinning technique
     readU8(input);
 
     mNumVertices = readU32(input);
+    
 
+    iout << mNumVertices << std::endl;
     mPositionOff = 0;
     mColorOff = mPositionOff + (mUsePosition ? 3 : 0);
     mUVOff = mColorOff + (mUseColor ? 3 : 0);
@@ -90,11 +107,15 @@ void GeometryResourceVK::load() {
     mBoneIndexOff = 0;
     mBytesPerVertex = mBoneIndexOff + (mUseBoneWeights ? 4 : 0);
     
+    vout << "Floats per vertex " << mFloatsPerVertex << std::endl;
+    vout << "Bytes per vertex " << mBytesPerVertex << std::endl;
+    
     glm::f32* floatVertices = nullptr;
     if(mFloatsPerVertex > 0) floatVertices = new glm::f32[mNumVertices * mFloatsPerVertex];
     glm::u8* byteVertices = nullptr;
     if(mBytesPerVertex > 0) byteVertices = new glm::u8[mNumVertices * mBytesPerVertex];
 
+    iout << "aaa" << std::endl;
     for(uint32_t i = 0; i < mNumVertices; ++ i) {
         if(mUsePosition) {
             floatVertices[(i * mFloatsPerVertex) + mPositionOff    ] = readF32(input);
@@ -105,6 +126,7 @@ void GeometryResourceVK::load() {
             floatVertices[(i * mFloatsPerVertex) + mColorOff    ] = readF32(input);
             floatVertices[(i * mFloatsPerVertex) + mColorOff + 1] = readF32(input);
             floatVertices[(i * mFloatsPerVertex) + mColorOff + 2] = readF32(input);
+            readF32(input);
         }
         if(mUseUV) {
             floatVertices[(i * mFloatsPerVertex) + mUVOff    ] = readF32(input);
@@ -137,35 +159,40 @@ void GeometryResourceVK::load() {
         }
     }
     
+    iout << "aaa" << std::endl;
     mNumTriangles = readU32(input);
+    iout << mNumTriangles << std::endl;
     
     if(mNumTriangles == 0) {
         //loadError();
         return;
     }
 
-    glm::u8* indices8 = nullptr;
+    iout << "bbb" << std::endl;
     glm::u16* indices16 = nullptr;
     glm::u32* indices32 = nullptr;
-    if(mNumVertices <= 1 << 8) {
-        mIndexTypeSize = sizeof(glm::u8);
-        indices8 = new glm::u8[mNumTriangles * 3];
-        for(uint32_t i = 0; i < mNumTriangles; ++ i) {
-            indices8[(i * 3)    ] = readU8(input);
-            indices8[(i * 3) + 1] = readU8(input);
-            indices8[(i * 3) + 2] = readU8(input);
-        }
-    }
-    else if(mNumVertices <= 1 << 16) {
+    if(mNumVertices <= 1 << 16) {
+    iout << "ccc" << std::endl;
         mIndexTypeSize = sizeof(glm::u16);
         indices16 = new glm::u16[mNumTriangles * 3];
-        for(uint32_t i = 0; i < mNumTriangles; ++ i) {
-            indices16[(i * 3)    ] = readU16(input);
-            indices16[(i * 3) + 1] = readU16(input);
-            indices16[(i * 3) + 2] = readU16(input);
+        if(mNumVertices <= 1 << 8) {
+    iout << "eee" << std::endl;
+            for(uint32_t i = 0; i < mNumTriangles; ++ i) {
+                indices16[(i * 3)    ] = readU8(input);
+                indices16[(i * 3) + 1] = readU8(input);
+                indices16[(i * 3) + 2] = readU8(input);
+            }
+        } else {
+    iout << "fff" << std::endl;
+            for(uint32_t i = 0; i < mNumTriangles; ++ i) {
+                indices16[(i * 3)    ] = readU16(input);
+                indices16[(i * 3) + 1] = readU16(input);
+                indices16[(i * 3) + 2] = readU16(input);
+            }
         }
     }
     else {
+    iout << "ddd" << std::endl;
         mIndexTypeSize = sizeof(glm::u32);
         indices32 = new glm::u32[mNumTriangles * 3];
         for(uint32_t i = 0; i < mNumTriangles; ++ i) {
@@ -174,6 +201,7 @@ void GeometryResourceVK::load() {
             indices32[(i * 3) + 2] = readU32(input);
         }
     }
+    iout << "aaa" << std::endl;
     
     if(mHasArmature) {
         uint16_t numBones = readU8(input);
@@ -192,7 +220,7 @@ void GeometryResourceVK::load() {
             for(uint8_t j = 0; j < numChildren; ++ j) bone.mChildren.push_back(readU8(input));
         }
     }
-    
+    iout << "aaa" << std::endl;
     if(mHasLightprobes) {
         // Skinning technique
         readU8(input);
@@ -220,40 +248,40 @@ void GeometryResourceVK::load() {
         }
     }
 
+    iout << "aaa" << std::endl;
     input.close();
     
-    uint32_t sizeOfFloatVertexArray = mNumVertices * mFloatsPerVertex * sizeof(glm::f32);
-    uint32_t sizeOfByteVertexArray = mNumVertices * mBytesPerVertex * sizeof(glm::u8);
-    uint32_t sizeOfIndexArray = mNumTriangles * 3 * mIndexTypeSize;
+    mSizeOfFloatVertexArray = mNumVertices * mFloatsPerVertex * sizeof(glm::f32);
+    mSizeOfByteVertexArray = mNumVertices * mBytesPerVertex * sizeof(glm::u8);
+    mSizeOfIndexArray = mNumTriangles * 3 * mIndexTypeSize;
     
+    iout << "aaa" << std::endl;
     // TODO: upload byte vertex array also
     
-    VulkanUtils::makeBufferAndAllocateMemory(sizeOfFloatVertexArray + sizeOfIndexArray, 
+    VulkanUtils::makeBufferAndAllocateMemory(mSizeOfFloatVertexArray + mSizeOfIndexArray, 
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
         &mVertexIndexBuffer, &mVertexIndexBufferMemory);
     {
         void* memAddr;
         
-        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory, 0, sizeOfFloatVertexArray, 0, &memAddr);
-        std::memcpy(memAddr, floatVertices, sizeOfFloatVertexArray);
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory, 0, mSizeOfFloatVertexArray, 0, &memAddr);
+        std::memcpy(memAddr, floatVertices, mSizeOfFloatVertexArray);
         vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory);
         
-        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory, sizeOfFloatVertexArray, sizeOfIndexArray, 0, &memAddr);
-        if(mIndexTypeSize == sizeof(glm::u8)) {
-            std::memcpy(memAddr, indices8, sizeOfIndexArray);
-        } else if(mIndexTypeSize == sizeof(glm::u16)) {
-            std::memcpy(memAddr, indices16, sizeOfIndexArray);
+        vkMapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory, mSizeOfFloatVertexArray, mSizeOfIndexArray, 0, &memAddr);
+        if(mIndexTypeSize == sizeof(glm::u16)) {
+            std::memcpy(memAddr, indices16, mSizeOfIndexArray);
         } else if(mIndexTypeSize == sizeof(glm::u32)) {
-            std::memcpy(memAddr, indices32, sizeOfIndexArray);
+            std::memcpy(memAddr, indices32, mSizeOfIndexArray);
         }
         vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mVertexIndexBufferMemory);
     }
     
+    iout << "aaa" << std::endl;
     // TODO: make sure memory is cleaned up even in the event of error
     if(floatVertices) delete[] floatVertices;
     if(byteVertices) delete[] byteVertices;
-    if(indices8) delete[] indices8;
     if(indices16) delete[] indices16;
     if(indices32) delete[] indices32;
     
@@ -348,6 +376,14 @@ void GeometryResourceVK::unload() {
 const VkPipelineVertexInputStateCreateInfo* GeometryResourceVK::getVertexInputState() { return &mVertexInputState; }
 const VkPipelineInputAssemblyStateCreateInfo* GeometryResourceVK::getInputAssemblyState() { return &mInputAssemblyState; }
 
+void GeometryResourceVK::cmdBindBuffers(VkCommandBuffer cmdBuff) {
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexIndexBuffer, &offset);
+    vkCmdBindIndexBuffer(cmdBuff, mVertexIndexBuffer, mSizeOfIndexArray, VulkanUtils::indexTypeFromSize(mIndexTypeSize));
+}
+void GeometryResourceVK::cmdDrawIndexed(VkCommandBuffer cmdBuff) {
+    vkCmdDrawIndexed(cmdBuff, mNumTriangles * 3, 1, 0, 0, 0);
+}
 }
 
 #endif // PGG_VULKAN

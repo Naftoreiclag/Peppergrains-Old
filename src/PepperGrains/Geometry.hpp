@@ -84,6 +84,8 @@ public:
     #ifdef PGG_VULKAN
     virtual const VkPipelineVertexInputStateCreateInfo* getVertexInputState();
     virtual const VkPipelineInputAssemblyStateCreateInfo* getInputAssemblyState();
+    virtual void cmdBindBuffers(VkCommandBuffer cmdBuff);
+    virtual void cmdDrawIndexed(VkCommandBuffer cmdBuff);
     #endif // PGG_VULKAN
 };
 

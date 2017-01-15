@@ -41,6 +41,12 @@ private:
     bool mUseBitangent;
     bool mUseBoneWeights; // Also for bone indices
     
+    
+    uint32_t mSizeOfByteVertexArray;
+    uint32_t mSizeOfFloatVertexArray;
+    uint32_t mSizeOfIndexArray;
+    
+    // Either sizeof(glm::u16) or sizeof(glm::u32)
     uint8_t mIndexTypeSize;
 
     // Offsets in float array
@@ -86,6 +92,9 @@ public:
     
     const VkPipelineVertexInputStateCreateInfo* getVertexInputState();
     const VkPipelineInputAssemblyStateCreateInfo* getInputAssemblyState();
+    
+    void cmdBindBuffers(VkCommandBuffer cmdBuff);
+    void cmdDrawIndexed(VkCommandBuffer cmdBuff);
 };
 typedef GeometryResourceVK GeometryResource;
 

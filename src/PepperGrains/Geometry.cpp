@@ -48,6 +48,8 @@ void Geometry::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib)
 #ifdef PGG_VULKAN
 const VkPipelineVertexInputStateCreateInfo* Geometry::getVertexInputState() { return nullptr; }
 const VkPipelineInputAssemblyStateCreateInfo* Geometry::getInputAssemblyState() { return nullptr; }
+void Geometry::cmdBindBuffers(VkCommandBuffer cmdBuff) { }
+void Geometry::cmdDrawIndexed(VkCommandBuffer cmdBuff) { }
 #endif
 
 }

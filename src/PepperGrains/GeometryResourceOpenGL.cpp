@@ -103,6 +103,7 @@ void GeometryResourceOG::load() {
             floatVertices[(i * mFloatsPerVertex) + mColorOff    ] = readF32(input);
             floatVertices[(i * mFloatsPerVertex) + mColorOff + 1] = readF32(input);
             floatVertices[(i * mFloatsPerVertex) + mColorOff + 2] = readF32(input);
+            readF32(input);
         }
         if(mUseUV) {
             floatVertices[(i * mFloatsPerVertex) + mUVOff    ] = readF32(input);
