@@ -63,6 +63,11 @@ private:
     VkBuffer mVertexIndexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mVertexIndexBufferMemory = VK_NULL_HANDLE;
     
+    std::vector<VkVertexInputBindingDescription> mVertexInputBindingDescs;
+    std::vector<VkVertexInputAttributeDescription> mVertexInputAttributeDescs;
+    VkPipelineVertexInputStateCreateInfo mVertexInputState;
+    VkPipelineInputAssemblyStateCreateInfo mInputAssemblyState;
+    
     Geometry::Armature mArmature;
     std::vector<Geometry::Lightprobe> mLightprobes;
 
@@ -76,6 +81,9 @@ public:
 
     void load();
     void unload();
+    
+    const VkPipelineVertexInputStateCreateInfo* getVertexInputState();
+    const VkPipelineInputAssemblyStateCreateInfo* getInputAssemblyState();
 };
 typedef GeometryResourceVK GeometryResource;
 

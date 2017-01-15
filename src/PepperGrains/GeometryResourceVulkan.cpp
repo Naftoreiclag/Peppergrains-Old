@@ -257,6 +257,82 @@ void GeometryResourceVK::load() {
     if(indices16) delete[] indices16;
     if(indices32) delete[] indices32;
     
+    if(mUsePosition) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 0;
+        attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrib.offset = mPositionOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mUseColor) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 1;
+        attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrib.offset = mColorOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mUseUV) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 2;
+        attrib.format = VK_FORMAT_R32G32_SFLOAT;
+        attrib.offset = mUVOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mUseNormal) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 3;
+        attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrib.offset = mNormalOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mUseTangent) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 4;
+        attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrib.offset = mTangentOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mUseBitangent) {
+        VkVertexInputAttributeDescription attrib;
+        attrib.binding = 0;
+        attrib.location = 5;
+        attrib.format = VK_FORMAT_R32G32B32_SFLOAT;
+        attrib.offset = mBitangentOff * sizeof(glm::f32);
+        mVertexInputAttributeDescs.push_back(attrib);
+    }
+    
+    if(mFloatsPerVertex > 0) {
+        VkVertexInputBindingDescription binding;
+        binding.binding = 0;
+        binding.stride = mFloatsPerVertex * sizeof(glm::f32);
+        binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        mVertexInputBindingDescs.push_back(binding);
+    }
+    
+    mVertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    mVertexInputState.pNext = nullptr;
+    mVertexInputState.flags = 0;
+    mVertexInputState.vertexBindingDescriptionCount = mVertexInputBindingDescs.size();
+    mVertexInputState.pVertexBindingDescriptions = mVertexInputBindingDescs.data();
+    mVertexInputState.vertexAttributeDescriptionCount = mVertexInputAttributeDescs.size();
+    mVertexInputState.pVertexAttributeDescriptions = mVertexInputAttributeDescs.data();
+    
+    mInputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    mInputAssemblyState.pNext = nullptr;
+    mInputAssemblyState.flags = 0;
+    mInputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    mInputAssemblyState.primitiveRestartEnable = VK_FALSE;
+    
     mLoaded = true;
 }
 
@@ -268,6 +344,9 @@ void GeometryResourceVK::unload() {
     
     mLoaded = false;
 }
+
+const VkPipelineVertexInputStateCreateInfo* GeometryResourceVK::getVertexInputState() { return &mVertexInputState; }
+const VkPipelineInputAssemblyStateCreateInfo* GeometryResourceVK::getInputAssemblyState() { return &mInputAssemblyState; }
 
 }
 
