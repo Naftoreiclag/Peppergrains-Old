@@ -79,7 +79,12 @@ public:
     virtual void enableTangentAttrib(GLuint tangentAttrib);
     virtual void enableBitangentAttrib(GLuint bitangentAttrib);
     virtual void enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib);
-    #endif
+    #endif // PGG_OPENGL
+    
+    #ifdef PGG_VULKAN
+    virtual const VkPipelineVertexInputStateCreateInfo* getVertexInputState();
+    virtual const VkPipelineInputAssemblyStateCreateInfo* getInputAssemblyState();
+    #endif // PGG_VULKAN
 };
 
 }

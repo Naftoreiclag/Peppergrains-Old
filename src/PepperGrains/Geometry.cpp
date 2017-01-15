@@ -45,5 +45,10 @@ void Geometry::enableBitangentAttrib(GLuint bitangentAttrib) { }
 void Geometry::enableBoneAttrib(GLuint boneWeightAttrib, GLuint boneIndexAttrib) { }
 #endif
 
+#ifdef PGG_VULKAN
+const VkPipelineVertexInputStateCreateInfo* Geometry::getVertexInputState() { return nullptr; }
+const VkPipelineInputAssemblyStateCreateInfo* Geometry::getInputAssemblyState() { return nullptr; }
+#endif
+
 }
 

@@ -63,8 +63,10 @@ private:
     VkBuffer mVertexIndexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mVertexIndexBufferMemory = VK_NULL_HANDLE;
     
+    // The data of these vectors are referenced during pipeline creation
     std::vector<VkVertexInputBindingDescription> mVertexInputBindingDescs;
     std::vector<VkVertexInputAttributeDescription> mVertexInputAttributeDescs;
+    
     VkPipelineVertexInputStateCreateInfo mVertexInputState;
     VkPipelineInputAssemblyStateCreateInfo mInputAssemblyState;
     
