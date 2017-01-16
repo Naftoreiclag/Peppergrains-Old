@@ -379,7 +379,7 @@ const VkPipelineInputAssemblyStateCreateInfo* GeometryResourceVK::getInputAssemb
 void GeometryResourceVK::cmdBindBuffers(VkCommandBuffer cmdBuff) {
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexIndexBuffer, &offset);
-    vkCmdBindIndexBuffer(cmdBuff, mVertexIndexBuffer, mSizeOfIndexArray, VulkanUtils::indexTypeFromSize(mIndexTypeSize));
+    vkCmdBindIndexBuffer(cmdBuff, mVertexIndexBuffer, mSizeOfFloatVertexArray, VulkanUtils::indexTypeFromSize(mIndexTypeSize));
 }
 void GeometryResourceVK::cmdDrawIndexed(VkCommandBuffer cmdBuff) {
     vkCmdDrawIndexed(cmdBuff, mNumTriangles * 3, 1, 0, 0, 0);

@@ -363,9 +363,9 @@ bool ShoRendererVk::initializePipeline() {
     
     VkResult result;
     
-    ShaderResource* shaderVertex = ShaderResource::gallop(Resources::find("TestShader.vertexShader"));
+    ShaderResource* shaderVertex = ShaderResource::gallop(Resources::find("TestShader2.vertexShader"));
     shaderVertex->grab();
-    ShaderResource* shaderFragment = ShaderResource::gallop(Resources::find("TestShader.fragmentShader"));
+    ShaderResource* shaderFragment = ShaderResource::gallop(Resources::find("TestShader2.fragmentShader"));
     shaderFragment->grab();
     
     VkPipelineShaderStageCreateInfo pssCstrArgss[] = {
@@ -565,8 +565,8 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
         
-        //mTestGeom->cmdBindBuffers(cmdBuff);
-        //mTestGeom->cmdDrawIndexed(cmdBuff);
+        mTestGeom->cmdBindBuffers(cmdBuff);
+        mTestGeom->cmdDrawIndexed(cmdBuff);
         
         vkCmdEndRenderPass(cmdBuff);
         
