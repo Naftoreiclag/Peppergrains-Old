@@ -58,7 +58,8 @@ bool ShoRendererVk::initializeRenderpass() {
         colorAttachDesc.flags = 0;
         colorAttachDesc.format = Video::Vulkan::getSwapchainFormat();
         colorAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        //colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -255,7 +256,7 @@ bool ShoRendererVk::setupTestGeometry() {
     VkResult result;
     
     {
-        glm::mat4 geomMVP[3];
+        glm::mat4 geomMVP[1];
         
         VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomMVP), 
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
@@ -548,6 +549,10 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
         
+        VkClearValue clearVal; {
+            clearVal.color = {0, 1, 1, 1};
+        }
+        
         VkRenderPassBeginInfo rpbArgs; {
             rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             rpbArgs.pNext = nullptr;
@@ -555,8 +560,8 @@ bool ShoRendererVk::populateCommandBuffers() {
             rpbArgs.framebuffer = framebuff;
             rpbArgs.renderArea.offset = {0, 0};
             rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
-            rpbArgs.clearValueCount = 0;
-            rpbArgs.pClearValues = nullptr;
+            rpbArgs.clearValueCount = 1;
+            rpbArgs.pClearValues = &clearVal;
         }
         
         vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
@@ -613,9 +618,7 @@ bool ShoRendererVk::cleanup() {
 
 void ShoRendererVk::renderFrame() {
     glm::mat4 geomMVP[] = {
-        glm::mat4(),
-        mCamera.getViewMatrix(),
-        mCamera.getProjMatrix()
+        mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
     };
     
     //Engine::quit();
