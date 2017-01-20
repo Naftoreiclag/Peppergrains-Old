@@ -248,9 +248,7 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out sout = Logger::log(Logger::SEVERE);
     
     mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
-    iout << "asdf" << std::endl;
     mTestGeom->grab();
-    iout << "asdf" << std::endl;
     
     
     VkResult result;
