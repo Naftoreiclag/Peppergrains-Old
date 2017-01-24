@@ -37,13 +37,15 @@ private:
     VkRenderPass mRenderPass = VK_NULL_HANDLE;
     VkPipeline mPipeline = VK_NULL_HANDLE;
     
-    VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
+    VkImage mDepthImage = VK_NULL_HANDLE;
+    VkDeviceMemory mDepthImageMemory = VK_NULL_HANDLE;
+    VkImageView mDepthImageView = VK_NULL_HANDLE;
     
-    VkCommandPool mCommandPool = VK_NULL_HANDLE;
+    VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
     
     struct FramebufferSquad {
         VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
-        VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
+        VkCommandBuffer mGraphicsCmdBuffer = VK_NULL_HANDLE;
         VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
         VkFence mFenceRenderFinished = VK_NULL_HANDLE;
     };

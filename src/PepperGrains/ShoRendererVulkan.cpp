@@ -131,24 +131,11 @@ bool ShoRendererVk::initializeFramebuffers() {
     
     mFramebufferSquads.resize(Video::Vulkan::getSwapchainImageViews().size());
     
-    VkCommandPoolCreateInfo cpCargs; {
-        cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        cpCargs.pNext = nullptr;
-        cpCargs.flags = 0;
-        
-        cpCargs.queueFamilyIndex = Video::Vulkan::getGraphicsQueueFamilyIndex();
-    }
-    result = vkCreateCommandPool(Video::Vulkan::getLogicalDevice(), &cpCargs, nullptr, &mCommandPool);
-    if(result != VK_SUCCESS) {
-        sout << "Could not create command pool" << std::endl;
-        return false;
-    }
-    
     std::vector<VkCommandBuffer> commandBuffers(mFramebufferSquads.size(), VK_NULL_HANDLE);
     VkCommandBufferAllocateInfo cbaArgs; {
         cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         cbaArgs.pNext = nullptr;
-        cbaArgs.commandPool = mCommandPool;
+        cbaArgs.commandPool = Video::Vulkan::getGraphicsCommandPool();
         cbaArgs.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         cbaArgs.commandBufferCount = commandBuffers.size();
     }
@@ -187,7 +174,7 @@ bool ShoRendererVk::initializeFramebuffers() {
             return false;
         }
         
-        stuff.mCommandBuffer = commandBuffers[index];
+        stuff.mGraphicsCmdBuffer = commandBuffers[index];
     }
     
     VkSemaphoreCreateInfo semaphoreCargs; {
@@ -247,7 +234,7 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out vout = Logger::log(Logger::VERBOSE);
     Logger::Out sout = Logger::log(Logger::SEVERE);
     
-    mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
+    mTestGeom = GeometryResource::gallop(Resources::find("Monkey.geometry"));
     mTestGeom->grab();
     
     
@@ -256,7 +243,7 @@ bool ShoRendererVk::setupTestGeometry() {
     {
         glm::mat4 geomMVP[1];
         
-        VulkanUtils::makeBufferAndAllocateMemory(sizeof(geomMVP), 
+        VulkanUtils::bufferCreateAndAllocate(sizeof(geomMVP), 
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mUniformBuffer, &mUniformBufferMemory);
@@ -535,7 +522,7 @@ bool ShoRendererVk::populateCommandBuffers() {
     VkResult result;
     
     for(FramebufferSquad framebufferSquad : mFramebufferSquads) {
-        VkCommandBuffer cmdBuff = framebufferSquad.mCommandBuffer;
+        VkCommandBuffer cmdBuff = framebufferSquad.mGraphicsCmdBuffer;
         VkFramebuffer framebuff = framebufferSquad.mFramebuffer;
         
         VkCommandBufferBeginInfo cbbArgs; {
@@ -603,11 +590,9 @@ bool ShoRendererVk::cleanup() {
         vkDestroyFramebuffer(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFramebuffer, nullptr);
         vkDestroySemaphore(Video::Vulkan::getLogicalDevice(), framebufferSquad.mSemRenderFinished, nullptr);
         vkDestroyFence(Video::Vulkan::getLogicalDevice(), framebufferSquad.mFenceRenderFinished, nullptr);
+        vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), Video::Vulkan::getGraphicsCommandPool(), 1, &(framebufferSquad.mGraphicsCmdBuffer));
     }
     mFramebufferSquads.clear();
-    
-    // Note: Command buffers are freed with the pool
-    vkDestroyCommandPool(Video::Vulkan::getLogicalDevice(), mCommandPool, nullptr);
     
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
     
@@ -650,7 +635,7 @@ void ShoRendererVk::renderFrame() {
         submitArgs.pWaitDstStageMask = waitFlags;
         
         submitArgs.commandBufferCount = 1;
-        submitArgs.pCommandBuffers = &(squad.mCommandBuffer);
+        submitArgs.pCommandBuffers = &(squad.mGraphicsCmdBuffer);
         
         submitArgs.signalSemaphoreCount = 1;
         submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);

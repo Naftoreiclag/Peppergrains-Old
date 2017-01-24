@@ -89,6 +89,12 @@ namespace Video {
         int32_t getSparseQueueFamilyIndex();
         int32_t getTransferQueueFamilyIndex();
         
+        VkCommandPool getComputeCommandPool();
+        VkCommandPool getDisplayCommandPool();
+        VkCommandPool getGraphicsCommandPool();
+        VkCommandPool getSparseCommandPool();
+        VkCommandPool getTransferCommandPool();
+        
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
         const std::vector<VkSurfaceFormatKHR> getAvailableSurfaceFormats();
         const std::vector<VkPresentModeKHR> getAvailablePresentModes();

@@ -25,15 +25,35 @@
 
 namespace pgg {
 namespace VulkanUtils { 
-    
+
+bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+void oneTimeUseCmdBufferFreeAndEndAndSubmit(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+
 bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex);
-bool makeBufferAndAllocateMemory(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags requiredProperties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+bool bufferCreateAndAllocate(
+    VkDeviceSize size, 
+    VkBufferUsageFlags usage, 
+    VkMemoryPropertyFlags requiredProperties, 
+    VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+bool imageCreateAndAllocate(
+    uint32_t width, uint32_t height, 
+    VkFormat format, 
+    VkImageTiling tilingType, 
+    VkImageUsageFlags usage, 
+    VkMemoryPropertyFlags requiredProperties, 
+    VkImage* imageHandle, VkDeviceMemory* imageMemory);
 
 /* case 2: return VK_INDEX_TYPE_UINT16;
  * case 4: return VK_INDEX_TYPE_UINT32;
  * default: return VK_INDEX_TYPE_END_RANGE;
  */
 VkIndexType indexTypeFromSize(uint8_t size);
+
+// Returns true if the physical device supports a particular format / image tiling type / format features combination
+bool physDeviceSupportsFormat(VkFormat format, VkImageTiling imageTilingType, VkFormatFeatureFlags requiredFormatFeatures);
+
+// Returns true if the given format has a stencil component
+bool formatHasStencilComponent(VkFormat format);
 
 } // VulkanUtils
 } // pgg

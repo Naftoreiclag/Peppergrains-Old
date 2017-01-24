@@ -184,6 +184,17 @@ namespace Video {
         VkQueue mVkTransferQueue = VK_NULL_HANDLE; // Cleaned up automatically by mVkInstance
         VkQueue getTransferQueue() { return mVkTransferQueue; }
         
+        VkCommandPool mCmdPoolCompute = VK_NULL_HANDLE;
+        VkCommandPool getComputeCommandPool() { return mCmdPoolCompute; }
+        VkCommandPool mCmdPoolDisplay = VK_NULL_HANDLE;
+        VkCommandPool getDisplayCommandPool() { return mCmdPoolDisplay; }
+        VkCommandPool mCmdPoolGraphics = VK_NULL_HANDLE;
+        VkCommandPool getGraphicsCommandPool() { return mCmdPoolGraphics; }
+        VkCommandPool mCmdPoolSparse = VK_NULL_HANDLE;
+        VkCommandPool getSparseCommandPool() { return mCmdPoolSparse; }
+        VkCommandPool mCmdPoolTransfer = VK_NULL_HANDLE;
+        VkCommandPool getTransferCommandPool() { return mCmdPoolTransfer; }
+        
         VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
         VkSurfaceCapabilitiesKHR getSurfaceCapabilities() { return mSurfaceCapabilities; }
         std::vector<VkSurfaceFormatKHR> mAvailableSurfaceFormats;
@@ -1208,6 +1219,50 @@ namespace Video {
                 if(mQFICompute != -1) vkGetDeviceQueue(mVkLogicalDevice, mQFICompute, 0, &mVkComputeQueue);
             }
             
+            // Command pools
+            {
+                VkCommandPoolCreateInfo cpCargs; {
+                    cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+                    cpCargs.pNext = nullptr;
+                    cpCargs.flags = 0;
+                }
+                
+                cpCargs.queueFamilyIndex = mQFICompute;
+                result = vkCreateCommandPool(mVkLogicalDevice, &cpCargs, nullptr, &mCmdPoolCompute);
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create compute command pool" << std::endl;
+                    return false;
+                }
+                
+                cpCargs.queueFamilyIndex = mQFIDisplay;
+                result = vkCreateCommandPool(mVkLogicalDevice, &cpCargs, nullptr, &mCmdPoolDisplay);
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create display command pool" << std::endl;
+                    return false;
+                }
+                
+                cpCargs.queueFamilyIndex = mQFIGraphics;
+                result = vkCreateCommandPool(mVkLogicalDevice, &cpCargs, nullptr, &mCmdPoolGraphics);
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create graphics command pool" << std::endl;
+                    return false;
+                }
+                
+                cpCargs.queueFamilyIndex = mQFISparse;
+                result = vkCreateCommandPool(mVkLogicalDevice, &cpCargs, nullptr, &mCmdPoolSparse);
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create sparse command pool" << std::endl;
+                    return false;
+                }
+                
+                cpCargs.queueFamilyIndex = mQFITransfer;
+                result = vkCreateCommandPool(mVkLogicalDevice, &cpCargs, nullptr, &mCmdPoolTransfer);
+                if(result != VK_SUCCESS) {
+                    sout << "Could not create transfer command pool" << std::endl;
+                    return false;
+                }
+            }
+            
             if(!rebuildSwapchain()) {
                 sout << "Fatal error building swapchain" << std::endl;
                 return false;
@@ -1225,6 +1280,13 @@ namespace Video {
             #ifndef NDEBUG
             cleanupDebugReportCallback();
             #endif
+            
+            // Note: Command buffers are freed with the pools
+            vkDestroyCommandPool(mVkLogicalDevice, mCmdPoolCompute, nullptr);
+            vkDestroyCommandPool(mVkLogicalDevice, mCmdPoolDisplay, nullptr);
+            vkDestroyCommandPool(mVkLogicalDevice, mCmdPoolGraphics, nullptr);
+            vkDestroyCommandPool(mVkLogicalDevice, mCmdPoolSparse, nullptr);
+            vkDestroyCommandPool(mVkLogicalDevice, mCmdPoolTransfer, nullptr);
             
             for(VkImageView view : mSwapchainImageViews) {
                 vkDestroyImageView(mVkLogicalDevice, view, nullptr);
