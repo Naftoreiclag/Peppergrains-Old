@@ -28,6 +28,7 @@
 #include "Scenegraph.hpp"
 #include "Camera.hpp"
 #include "Geometry.hpp"
+#include "Texture.hpp"
 
 namespace pgg {
 
@@ -56,6 +57,7 @@ private:
     VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;
     
     Geometry* mTestGeom = nullptr;
+    Texture* mTestTexture = nullptr;
     
     VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;

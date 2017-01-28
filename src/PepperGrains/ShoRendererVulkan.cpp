@@ -20,6 +20,7 @@
 
 #include "Image.hpp"
 #include "ImageResource.hpp"
+#include "TextureResource.hpp"
 #include "Resources.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
@@ -236,12 +237,16 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out vout = Logger::log(Logger::VERBOSE);
     Logger::Out sout = Logger::log(Logger::SEVERE);
     
+    /*
     Image* img = ImageResource::gallop(Resources::find("GreenJellyfish.image"));
     img->grab();
     img->drop();
-    
-    mTestGeom = GeometryResource::gallop(Resources::find("Monkey.geometry"));
+    */
+    mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
     mTestGeom->grab();
+    
+    mTestTexture = TextureResource::gallop(Resources::find("GreenJellyfish.texture"));
+    mTestTexture->grab();
     
     
     VkResult result;
@@ -352,20 +357,44 @@ bool ShoRendererVk::setupTestGeometry() {
             descBufferData.range = sizeof(geomMVP);
         }
         
-        VkWriteDescriptorSet writeDescSet; {
-            writeDescSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeDescSet.pNext = nullptr;
-            writeDescSet.dstSet = mDescriptorSet;
-            writeDescSet.dstBinding = 0;
-            writeDescSet.dstArrayElement = 0;
-            writeDescSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            writeDescSet.descriptorCount = 1;
-            writeDescSet.pBufferInfo = &descBufferData;
-            writeDescSet.pImageInfo = nullptr;
-            writeDescSet.pTexelBufferView = nullptr;
+        VkWriteDescriptorSet writeDescSetBuffer; {
+            writeDescSetBuffer.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescSetBuffer.pNext = nullptr;
+            writeDescSetBuffer.dstSet = mDescriptorSet;
+            writeDescSetBuffer.dstBinding = 0;
+            writeDescSetBuffer.dstArrayElement = 0;
+            writeDescSetBuffer.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            writeDescSetBuffer.descriptorCount = 1;
+            writeDescSetBuffer.pBufferInfo = &descBufferData;
+            writeDescSetBuffer.pImageInfo = nullptr;
+            writeDescSetBuffer.pTexelBufferView = nullptr;
         }
         
-        vkUpdateDescriptorSets(Video::Vulkan::getLogicalDevice(), 1, &writeDescSet, 0, nullptr);
+        VkDescriptorImageInfo descImageData; {
+            descImageData.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            descImageData.imageView = mTestTexture->getImage()->getView();
+            descImageData.sampler = mTestTexture->getSamplerHandle();
+        }
+        
+        VkWriteDescriptorSet writeDescSetImage; {
+            writeDescSetImage.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescSetImage.pNext = nullptr;
+            writeDescSetImage.dstSet = mDescriptorSet;
+            writeDescSetImage.dstBinding = 1;
+            writeDescSetImage.dstArrayElement = 0;
+            writeDescSetImage.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writeDescSetImage.descriptorCount = 1;
+            writeDescSetImage.pBufferInfo = nullptr;
+            writeDescSetImage.pImageInfo = &descImageData;
+            writeDescSetImage.pTexelBufferView = nullptr;
+        }
+        
+        VkWriteDescriptorSet writeDescSets[] = {
+            writeDescSetBuffer,
+            writeDescSetImage
+        };
+        
+        vkUpdateDescriptorSets(Video::Vulkan::getLogicalDevice(), 2, writeDescSets, 0, nullptr);
     }
     
     return true;
@@ -603,6 +632,7 @@ bool ShoRendererVk::populateCommandBuffers() {
 bool ShoRendererVk::cleanup() {
     
     mTestGeom->drop();
+    mTestTexture->drop();
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, nullptr);
     vkDestroyBuffer(Video::Vulkan::getLogicalDevice(), mUniformBuffer, nullptr);
