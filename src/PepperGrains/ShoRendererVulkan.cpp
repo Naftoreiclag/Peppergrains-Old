@@ -268,13 +268,27 @@ bool ShoRendererVk::setupTestGeometry() {
             uniformBufferLayoutBinding.pImmutableSamplers = nullptr;
         }
         
+        VkDescriptorSetLayoutBinding samplerLayoutBinding; {
+            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            
+            samplerLayoutBinding.binding = 1;
+            samplerLayoutBinding.descriptorCount = 1;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            samplerLayoutBinding.pImmutableSamplers = nullptr;
+        }
+        
+        VkDescriptorSetLayoutBinding layoutBindings[] = {
+            uniformBufferLayoutBinding,
+            samplerLayoutBinding
+        };
+        
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCargs; {
             descriptorSetLayoutCargs.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
             descriptorSetLayoutCargs.pNext = nullptr;
             descriptorSetLayoutCargs.flags = 0;
             
-            descriptorSetLayoutCargs.bindingCount = 1;
-            descriptorSetLayoutCargs.pBindings = &uniformBufferLayoutBinding;
+            descriptorSetLayoutCargs.bindingCount = 2;
+            descriptorSetLayoutCargs.pBindings = layoutBindings;
         }
         
         result = vkCreateDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), &descriptorSetLayoutCargs, nullptr, &mDescriptorSetLayout);
@@ -284,17 +298,27 @@ bool ShoRendererVk::setupTestGeometry() {
             return false;
         }
         
-        VkDescriptorPoolSize descPoolSize; {
-            descPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descPoolSize.descriptorCount = 1;
+        VkDescriptorPoolSize uniformBufferPoolSize; {
+            uniformBufferPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uniformBufferPoolSize.descriptorCount = 1;
         }
+        
+        VkDescriptorPoolSize samplerPoolSize; {
+            samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerPoolSize.descriptorCount = 1;
+        }
+        
+        VkDescriptorPoolSize poolSizes[] = {
+            uniformBufferPoolSize,
+            samplerPoolSize
+        };
         
         VkDescriptorPoolCreateInfo descPoolCargs; {
             descPoolCargs.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             descPoolCargs.pNext = nullptr;
             descPoolCargs.flags = 0;
-            descPoolCargs.poolSizeCount = 1;
-            descPoolCargs.pPoolSizes = &descPoolSize;
+            descPoolCargs.poolSizeCount = 2;
+            descPoolCargs.pPoolSizes = poolSizes;
             descPoolCargs.maxSets = 1;
         }
         
