@@ -70,9 +70,11 @@ void FallbackTexture::unload() {
     mImage->drop();
     mLoaded = false;
 }
+#ifdef PGG_OPENGL
 GLuint FallbackTexture::getHandle() const {
     return mHandle;
 }
+#endif
 
 }
 

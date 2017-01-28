@@ -27,7 +27,12 @@ namespace pgg {
 
 class TextureResource : public Texture, public Resource {
 private:
+    #ifdef PGG_OPENGL
     GLuint mHandle;
+    #endif
+    #ifdef PGG_VULKAN
+    VkSampler mSamplerHandle = VK_NULL_HANDLE;
+    #endif
     bool mLoaded;
 
     // (Not actually required to keep the image loaded)
@@ -43,11 +48,9 @@ public:
     void load();
     void unload();
     
+    #ifdef PGG_OPENGL
     GLuint getHandle() const;
-
-    static GLenum toEnum(const std::string& val, GLenum errorVal);
-    static GLenum toEnumPF(const std::string& val, GLenum errorVal);
-
+    #endif
 };
 
 }

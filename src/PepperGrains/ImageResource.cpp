@@ -47,17 +47,14 @@ Image* ImageResource::gallop(Resource* resource) {
     }
 }
 
+#ifdef PGG_VULKAN
 void ImageResource::load() {
     assert(!mLoaded && "Attempted to load image that has already been loaded");
 
     Logger::Out vout = Logger::log(Logger::VERBOSE);
     Logger::Out wout = Logger::log(Logger::WARN);
     
-    VkResult result;
-    bool success;
-    
     uint8_t* rawImgData = nullptr;
-    
     
     // Read image using stbi
     {
@@ -71,6 +68,11 @@ void ImageResource::load() {
         vout << "width: " << width << std::endl;
         vout << "height: " << height << std::endl;
     }
+    
+    #ifdef PGG_VULKAN
+    
+    VkResult result;
+    bool success;
     
     mImgFormat = VK_FORMAT_R8G8B8A8_UNORM;
         
@@ -190,18 +192,22 @@ void ImageResource::load() {
         return;
     }
     
+    #endif // PGG_VULKAN
+    
     mLoaded = true;
 }
-
 void ImageResource::unload() {
     assert(mLoaded && "Attempted to unload image before loading it");
     
+    #ifdef PGG_VULKAN
     vkDestroyImageView(Video::Vulkan::getLogicalDevice(), mImgView, nullptr);
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mImgMemory, nullptr);
     vkDestroyImage(Video::Vulkan::getLogicalDevice(), mImgHandle, nullptr);
+    #endif // PGG_VULKAN
     
     mLoaded = false;
 }
+#endif // PGG_VULKAN
 
 uint32_t ImageResource::getWidth() const {
     return mWidth;

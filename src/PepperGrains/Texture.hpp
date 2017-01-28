@@ -34,7 +34,9 @@ public:
     
     static Texture* getFallback();
     
-    virtual GLuint getHandle() const = 0;
+    #ifdef PGG_OPENGL
+    GLuint getHandle() const = 0;
+    #endif
 };
 
 class FallbackTexture : public Texture {
@@ -50,7 +52,9 @@ public:
     void load();
     void unload();
     
+    #ifdef PGG_OPENGL
     GLuint getHandle() const;
+    #endif
 };
 
 }
