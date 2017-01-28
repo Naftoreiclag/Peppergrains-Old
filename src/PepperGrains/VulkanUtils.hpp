@@ -27,7 +27,14 @@ namespace pgg {
 namespace VulkanUtils { 
 
 bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
-void oneTimeUseCmdBufferFreeAndEndAndSubmit(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+void oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+
+// imm = Immediately (Creates, uses, and destroys a disposable command buffer)
+
+void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
+void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight);
+
+void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex);
 bool bufferCreateAndAllocate(

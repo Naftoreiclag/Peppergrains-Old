@@ -38,6 +38,7 @@ bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer*
     result = vkAllocateCommandBuffers(Video::Vulkan::getLogicalDevice(), &cbaArgs, cmdBuffer);
     if(result != VK_SUCCESS) {
         Logger::log(Logger::WARN) << "Could not allocate one-time-use command buffer" << std::endl;
+        (*cmdBuffer) = VK_NULL_HANDLE;
         return false;
     }
     
@@ -52,7 +53,7 @@ bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer*
     
     return cmdBuffer;
 }
-void oneTimeUseCmdBufferFreeAndEndAndSubmit(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff) {
+void oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff) {
     
     vkEndCommandBuffer(*cmdBuff);
     
@@ -70,8 +71,154 @@ void oneTimeUseCmdBufferFreeAndEndAndSubmit(VkQueue queue, VkCommandPool cmdPool
     
     vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), cmdPool, 1, cmdBuff);
     
+    (*cmdBuff) = VK_NULL_HANDLE;
 }
+
+
+void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
+    VkCommandBuffer cmdBuff;
     
+    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+    VkBufferCopy buffCopy; {
+        buffCopy.size = size;
+        buffCopy.srcOffset = srcOffset;
+        buffCopy.dstOffset = destOffset;
+    }
+    
+    vkCmdCopyBuffer(cmdBuff, src, dest, 1, &buffCopy);
+    
+    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+}
+void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
+    VkCommandBuffer cmdBuff;
+    
+    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+    VkImageSubresourceLayers imgSubresLayers; {
+        imgSubresLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imgSubresLayers.baseArrayLayer = 0;
+        imgSubresLayers.layerCount = 1;
+        imgSubresLayers.mipLevel = 0;
+    }
+    
+    VkImageCopy imgCopy; {
+        imgCopy.srcSubresource = imgSubresLayers;
+        imgCopy.dstSubresource = imgSubresLayers;
+        imgCopy.srcOffset = {0, 0, 0};
+        imgCopy.dstOffset = {0, 0, 0};
+        imgCopy.extent = {imgWidth, imgHeight, 1};
+    }
+    
+    vkCmdCopyImage(cmdBuff, src, srcLayout, dest, destLayout, 1, &imgCopy);
+    
+    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+}
+
+void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    VkCommandBuffer cmdBuff;
+    
+    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+    VkImageMemoryBarrier imgMemoryBarrier; {
+        imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imgMemoryBarrier.pNext = nullptr;
+        
+        imgMemoryBarrier.oldLayout = oldLayout;
+        imgMemoryBarrier.newLayout = newLayout;
+        
+        imgMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imgMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        
+        imgMemoryBarrier.image = img;
+        imgMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imgMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+        imgMemoryBarrier.subresourceRange.baseMipLevel = 0;
+        imgMemoryBarrier.subresourceRange.layerCount = 1;
+        imgMemoryBarrier.subresourceRange.levelCount = 1;
+    }
+        
+    switch(oldLayout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+        case VK_IMAGE_LAYOUT_PREINITIALIZED: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: {
+            imgMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        }
+        default: {
+            Logger::log(Logger::WARN)
+                << "Unsupported initial image layout during layout transition: "
+                << oldLayout << std::endl;
+            imgMemoryBarrier.srcAccessMask = VK_IMAGE_LAYOUT_GENERAL;
+            break;
+        }
+    }
+    
+    switch(newLayout) {
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: {
+            imgMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: {
+            imgMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: {
+            imgMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+        case VK_IMAGE_LAYOUT_PREINITIALIZED: {
+            Logger::log(Logger::WARN)
+                << "Cannot transition image to layout: "
+                << (newLayout == VK_IMAGE_LAYOUT_PREINITIALIZED ? "Preinitialized" : "Undefined") << std::endl;
+            imgMemoryBarrier.dstAccessMask = VK_IMAGE_LAYOUT_GENERAL;
+            break;
+        }
+        default: {
+            Logger::log(Logger::WARN)
+                << "Unsupported final image layout during layout transition: "
+                << newLayout << std::endl;
+            imgMemoryBarrier.dstAccessMask = VK_IMAGE_LAYOUT_GENERAL;
+            break;
+        }
+    }
+    
+    vkCmdPipelineBarrier(
+        cmdBuff, 
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 
+        0, // Dependency flags?
+        // Generic memory barriers
+        0, nullptr, 
+        // Buffer memory barriers
+        0, nullptr, 
+        // Image memory barriers
+        1, &imgMemoryBarrier);
+    
+    
+    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+}
+
 bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex) {
     VkPhysicalDeviceMemoryProperties physMemProps = Video::Vulkan::getPhysicalDeviceMemoryProperties();
     
