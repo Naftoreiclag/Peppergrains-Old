@@ -75,6 +75,13 @@ GLuint FallbackTexture::getHandle() const {
     return mHandle;
 }
 #endif
+#ifdef PGG_VULKAN
+VkSampler FallbackTexture::getSamplerHandle() const { return VK_NULL_HANDLE; }
+#endif // PGG_VULKAN
+
+Image* FallbackTexture::getImage() const {
+    return mImage;
+}
 
 }
 

@@ -34,6 +34,7 @@ private:
     VkDeviceMemory mImgMemory = VK_NULL_HANDLE;
     VkImageView mImgView = VK_NULL_HANDLE;
     VkFormat mImgFormat;
+    VkImageLayout mImgLayout;
     #endif // PGG_VULKAN
     
     
@@ -53,6 +54,14 @@ public:
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     uint32_t getNumComponents() const;
+    
+    #ifdef PGG_VULKAN
+    VkImage getHandle() const;
+    VkDeviceMemory getMemory() const;
+    VkImageView getView() const;
+    VkFormat getFormat() const;
+    VkImageLayout getLayout() const;
+    #endif // PGG_VULKAN
 };
 
 }

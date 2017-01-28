@@ -75,6 +75,7 @@ void ImageResource::load() {
     bool success;
     
     mImgFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    
         
     uint32_t mImageSize = mWidth * mHeight * mComponents * sizeof(uint8_t);
     
@@ -161,9 +162,10 @@ void ImageResource::load() {
         mImgHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         mWidth,
         mHeight);
+    mImgLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VulkanUtils::immChangeImageLayout(
         mImgHandle, 
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mImgLayout);
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), stagingImgMemory, nullptr);
     vkDestroyImage(Video::Vulkan::getLogicalDevice(), stagingImgHandle, nullptr);
@@ -201,22 +203,27 @@ void ImageResource::unload() {
     
     #ifdef PGG_VULKAN
     vkDestroyImageView(Video::Vulkan::getLogicalDevice(), mImgView, nullptr);
+    mImgView = VK_NULL_HANDLE;
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mImgMemory, nullptr);
+    mImgMemory = VK_NULL_HANDLE;
     vkDestroyImage(Video::Vulkan::getLogicalDevice(), mImgHandle, nullptr);
+    mImgHandle = VK_NULL_HANDLE;
     #endif // PGG_VULKAN
     
     mLoaded = false;
 }
 #endif // PGG_VULKAN
 
-uint32_t ImageResource::getWidth() const {
-    return mWidth;
-}
-uint32_t ImageResource::getHeight() const {
-    return mHeight;
-}
-uint32_t ImageResource::getNumComponents() const {
-    return mComponents;
-}
+uint32_t ImageResource::getWidth() const { return mWidth; }
+uint32_t ImageResource::getHeight() const { return mHeight; }
+uint32_t ImageResource::getNumComponents() const { return mComponents; }
+
+#ifdef PGG_VULKAN
+VkImage ImageResource::getHandle() const { return mImgHandle; }
+VkDeviceMemory ImageResource::getMemory() const { return mImgMemory; }
+VkImageView ImageResource::getView() const { return mImgView; }
+VkFormat ImageResource::getFormat() const { return mImgFormat; }
+VkImageLayout ImageResource::getLayout() const { return mImgLayout; }
+#endif // PGG_VULKAN
 
 }

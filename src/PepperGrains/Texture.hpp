@@ -35,8 +35,13 @@ public:
     static Texture* getFallback();
     
     #ifdef PGG_OPENGL
-    GLuint getHandle() const = 0;
+    virtual GLuint getHandle() const = 0;
     #endif
+    #ifdef PGG_VULKAN
+    virtual VkSampler getSamplerHandle() const = 0;
+    #endif // PGG_VULKAN
+    
+    virtual Image* getImage() const = 0;
 };
 
 class FallbackTexture : public Texture {
@@ -55,6 +60,11 @@ public:
     #ifdef PGG_OPENGL
     GLuint getHandle() const;
     #endif
+    #ifdef PGG_VULKAN
+    VkSampler getSamplerHandle() const;
+    #endif // PGG_VULKAN
+    
+    Image* getImage() const;
 };
 
 }

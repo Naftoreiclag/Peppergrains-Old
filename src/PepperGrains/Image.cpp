@@ -74,5 +74,12 @@ uint32_t FallbackImage::getWidth() const { return 8; }
 uint32_t FallbackImage::getHeight() const { return 8; }
 uint32_t FallbackImage::getNumComponents() const { return 3; }
 
+#ifdef PGG_VULKAN
+VkImage FallbackImage::getHandle() const { return VK_NULL_HANDLE; }
+VkDeviceMemory FallbackImage::getMemory() const { return VK_NULL_HANDLE; }
+VkImageView FallbackImage::getView() const { return VK_NULL_HANDLE; }
+VkFormat FallbackImage::getFormat() const { return VK_FORMAT_R8G8B8A8_UNORM; }
+VkImageLayout FallbackImage::getLayout() const { return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
+#endif // PGG_VULKAN
 }
 

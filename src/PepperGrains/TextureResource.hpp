@@ -51,6 +51,11 @@ public:
     #ifdef PGG_OPENGL
     GLuint getHandle() const;
     #endif
+    #ifdef PGG_VULKAN
+    VkSampler getSamplerHandle() const;
+    #endif // PGG_VULKAN
+    
+    Image* getImage() const;
 };
 
 }

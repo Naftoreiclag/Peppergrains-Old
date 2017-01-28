@@ -202,9 +202,13 @@ void TextureResource::unload() {
 
 
 #ifdef PGG_OPENGL
-GLuint TextureResource::getHandle() const {
-    return mHandle;
-}
+GLuint TextureResource::getHandle() const { return mHandle; }
 #endif
+#ifdef PGG_VULKAN
+VkSampler TextureResource::getSamplerHandle() const { return mSamplerHandle; }
+#endif // PGG_VULKAN
+Image* TextureResource::getImage() const {
+    return mImage;
+}
 
 }

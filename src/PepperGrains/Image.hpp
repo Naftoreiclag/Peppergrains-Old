@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include <GraphicsApiLibrary.hpp>
+
 #include "ReferenceCounted.hpp"
 
 namespace pgg {
@@ -34,6 +36,14 @@ public:
     virtual uint32_t getWidth() const = 0;
     virtual uint32_t getHeight() const = 0;
     virtual uint32_t getNumComponents() const = 0;
+    
+    #ifdef PGG_VULKAN
+    virtual VkImage getHandle() const = 0;
+    virtual VkDeviceMemory getMemory() const = 0;
+    virtual VkImageView getView() const = 0;
+    virtual VkFormat getFormat() const = 0;
+    virtual VkImageLayout getLayout() const = 0;
+    #endif // PGG_VULKAN
 };
 
 class FallbackImage : public Image {
@@ -50,6 +60,14 @@ public:
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     uint32_t getNumComponents() const;
+    
+    #ifdef PGG_VULKAN
+    VkImage getHandle() const;
+    VkDeviceMemory getMemory() const;
+    VkImageView getView() const;
+    VkFormat getFormat() const;
+    VkImageLayout getLayout() const;
+    #endif // PGG_VULKAN
 };
 
 }
