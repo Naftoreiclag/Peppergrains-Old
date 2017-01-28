@@ -44,7 +44,7 @@ FallbackImage::~FallbackImage() { }
 void FallbackImage::load() {
     assert(!mLoaded && "Attempted to load image that has already been loaded");
     
-    mImage = new uint8_t[8 * 8 * 3];
+    uint8_t* mImage = new uint8_t[8 * 8 * 3];
     
     float amt = 255.f / 8.f;
     
@@ -59,11 +59,13 @@ void FallbackImage::load() {
         }
     }
     
+    // TODO: upload to gpu memory
+    delete[] mImage;
+    
     mLoaded = true;
 }
 void FallbackImage::unload() {
     assert(mLoaded && "Attempted to unload image before loading it");
-    delete[] mImage;
     
     mLoaded = false;
 }
@@ -71,9 +73,6 @@ void FallbackImage::unload() {
 uint32_t FallbackImage::getWidth() const { return 8; }
 uint32_t FallbackImage::getHeight() const { return 8; }
 uint32_t FallbackImage::getNumComponents() const { return 3; }
-const uint8_t* FallbackImage::getImage() const {
-    return mImage;
-}
 
 }
 

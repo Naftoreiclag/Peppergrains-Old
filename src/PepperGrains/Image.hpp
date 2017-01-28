@@ -31,7 +31,6 @@ public:
     
     static Image* getFallback();
     
-    virtual const uint8_t* getImage() const = 0;
     virtual uint32_t getWidth() const = 0;
     virtual uint32_t getHeight() const = 0;
     virtual uint32_t getNumComponents() const = 0;
@@ -40,7 +39,6 @@ public:
 class FallbackImage : public Image {
 private:
     bool mLoaded;
-    uint8_t* mImage;
     
 public:
     FallbackImage();
@@ -49,7 +47,6 @@ public:
     void load();
     void unload();
     
-    const uint8_t* getImage() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     uint32_t getNumComponents() const;

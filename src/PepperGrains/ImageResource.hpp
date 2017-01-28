@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include <GraphicsApiLibrary.hpp>
+
 #include "Resource.hpp"
 #include "Image.hpp"
 
@@ -26,7 +28,15 @@ namespace pgg {
 
 class ImageResource : public Image, public Resource {
 private:
-    uint8_t* mImage;
+    
+    #ifdef PGG_VULKAN
+    VkImage mImgHandle = VK_NULL_HANDLE;
+    VkDeviceMemory mImgMemory = VK_NULL_HANDLE;
+    VkImageView mImgView = VK_NULL_HANDLE;
+    VkFormat mImgFormat;
+    #endif // PGG_VULKAN
+    
+    
     uint32_t mWidth;
     uint32_t mHeight;
     uint32_t mComponents;
@@ -40,7 +50,6 @@ public:
     void load();
     void unload();
     
-    const uint8_t* getImage() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     uint32_t getNumComponents() const;
