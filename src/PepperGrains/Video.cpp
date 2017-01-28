@@ -737,6 +737,7 @@ namespace Video {
             for(VkImageView view : mSwapchainImageViews) {
                 vkDestroyImageView(mVkLogicalDevice, view, nullptr);
             }
+            mSwapchainImageViews.clear();
             
             // Init surface swap chain
             {
@@ -838,6 +839,7 @@ namespace Video {
                     VkImageViewCreateInfo imageViewCstrArgs; {
                         imageViewCstrArgs.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                         imageViewCstrArgs.pNext = nullptr;
+                        imageViewCstrArgs.flags = 0;
                         imageViewCstrArgs.image = image;
                         imageViewCstrArgs.viewType = VK_IMAGE_VIEW_TYPE_2D;
                         imageViewCstrArgs.format = mVkSwapchainFormat;
