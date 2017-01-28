@@ -18,6 +18,8 @@
 
 #include "ShoRendererVulkan.hpp"
 
+#include "Image.hpp"
+#include "ImageResource.hpp"
 #include "Resources.hpp"
 #include "Video.hpp"
 #include "Logger.hpp"
@@ -233,6 +235,10 @@ bool ShoRendererVk::setupTestGeometry() {
     Logger::Out iout = Logger::log(Logger::INFO);
     Logger::Out vout = Logger::log(Logger::VERBOSE);
     Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    Image* img = ImageResource::gallop(Resources::find("GreenJellyfish.image"));
+    img->grab();
+    img->drop();
     
     mTestGeom = GeometryResource::gallop(Resources::find("Monkey.geometry"));
     mTestGeom->grab();
