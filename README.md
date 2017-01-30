@@ -1,22 +1,52 @@
-PepperGrains
-============
-Proudly licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+# Peppergrains
 
-Description
------------
-PepperGrains is a work-in-progress game/engine.
+Another perpetually incomplete "3D game engine."
 
-Utilized Libraries
-------------------
-|Name|Why|
-|---|---|---|
-|[OpenGL](https://www.opengl.org/)|Rendering|
-|[Vulkan](https://www.khronos.org/vulkan/)|Rendering|
-|[SDL2](https://www.libsdl.org/)|Window/event handling|
-|[GLFW](http://www.glfw.org/)|Window/event handling|
-|[libsoundio](http://libsound.io)|Sound output|
-|[Boost](http://www.boost.org/)|All-around useful|
-|[Bullet Physics](http://bulletphysics.org/)|3D collision resolution/physics|
-|[JsonCpp](https://github.com/open-source-parsers/jsoncpp/)|Serialization, config files|
-|[stb](https://github.com/nothings/stb)|PNG loading|
-*Note: The above library names are reproduced here solely to give the reader a sense of the scale of my PepperGrains project. Each library utilized is the copyright of its respective author(s). Please see individual library homepages for more accurate licensing information. (I have frequently made mistakes in keeping this list up-to-date!)*
+## Description
+
+Peppergrains is a personal project of mine, made specifically so I can develop
+other applications that utilize it. I wanted to create an alternative to the
+many other high-budget, free-to-use game engines that are out there. In my
+opinion, most of those engines put too much emphasis on photorealistic graphics
+and by design restrict the "types" of games that can be made with them. In
+contrast, Peppergrains aims to favor higher performance, lower minimum system 
+requirements, and easier game feature prototyping. The project is currently
+deep in the "work-in-progress" phase, but hopefully someday I will actually
+finish it.
+
+Planned features include:
+- Abstraction of multiplayer and singleplayer
+- Built-in "modding" support through Lua
+- An experimental spherical harmonics-based render system
+- Component-system entity model
+- Support for unconventional 3D models and rendering (tangent vector fields, 
+  implicit surface, etc.)
+
+Proudly licensed under the
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+## Utilized Libraries
+
+Peppergrains is non-copyleft open-source software. As such, it must only also
+use such software.
+
+*Note: The library names are reproduced here solely to give the reader a sense 
+of the scale of Peppergrains. Each library utilized is the copyright of its 
+respective author(s). Please see individual library homepages for more accurate 
+licensing information. (I have frequently made mistakes in keeping this list 
+up-to-date!)*
+
+- [OpenGL](https://www.opengl.org/) or [Vulkan](https://www.khronos.org/vulkan/)
+  for rendering
+- [SDL2](https://www.libsdl.org/) or [GLFW](http://www.glfw.org/)
+  for windowing and event handling
+- [libsoundio](http://libsound.io)
+  for sound
+- [Boost](http://www.boost.org/)
+  for all-around usefulness
+- [Bullet Physics](http://bulletphysics.org/)
+  for 3D collision resolution, 3D physics
+- [JsonCpp](https://github.com/open-source-parsers/jsoncpp/)
+  for serialization, config files
+- [stb](https://github.com/nothings/stb)
+  for image loading
