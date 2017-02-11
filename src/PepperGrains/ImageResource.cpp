@@ -74,7 +74,23 @@ void ImageResource::load() {
     VkResult result;
     bool success;
     
-    mImgFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    
+    if(mComponents == 1) {
+        mImgFormat = VK_FORMAT_R8_UNORM;
+    }
+    else if(mComponents == 2) {
+        mImgFormat = VK_FORMAT_R8G8_UNORM;
+    }
+    else if(mComponents == 3) {
+        mImgFormat = VK_FORMAT_R8G8B8_UNORM;
+    }
+    else if(mComponents == 4) {
+        mImgFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    } else {
+        wout << "Unsupported image component count: " << mComponents << std::endl;
+        mImgFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        // crash?
+    }
     
         
     uint32_t mImageSize = mWidth * mHeight * mComponents * sizeof(uint8_t);
