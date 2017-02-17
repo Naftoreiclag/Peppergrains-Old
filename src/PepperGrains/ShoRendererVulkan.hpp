@@ -92,7 +92,6 @@ private:
     bool initializeSemaphores();
     bool setupTestGeometry();
     bool initializePipeline();
-    bool populateCommandBuffers();
     
     Scenegraph* mScenegraph = nullptr;
 public:
@@ -115,9 +114,10 @@ public:
     void renderFrame();
     
     void modelimapUniformBufferUpdate(ModelInstance* modeli);
+    
     void modelimapDepthPass(ModelInstance* modeli);
     void modelimapLightprobe(ModelInstance* modeli);
-    void modelimapOpaque(ModelInstance* modeli);
+    void modelimapOpaque(ModelInstance* modeli, VkCommandBuffer cmdBuff);
     void modelimapTransparent(ModelInstance* modeli);
     
     void onModeliAdded(ModelInstance* modeli);

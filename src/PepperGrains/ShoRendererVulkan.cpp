@@ -55,8 +55,7 @@ bool ShoRendererVk::initialize() {
         initializeFramebuffers() && 
         initializeSemaphores() && 
         setupTestGeometry() && 
-        initializePipeline() && 
-        populateCommandBuffers();
+        initializePipeline();
 }
 
 bool ShoRendererVk::initializeDepthBuffer() {
@@ -686,63 +685,6 @@ bool ShoRendererVk::initializePipeline() {
     return true;
 }
 
-bool ShoRendererVk::populateCommandBuffers() {
-
-    Logger::Out iout = Logger::log(Logger::INFO);
-    Logger::Out vout = Logger::log(Logger::VERBOSE);
-    Logger::Out sout = Logger::log(Logger::SEVERE);
-    
-    VkResult result;
-    
-    for(FramebufferSquad framebufferSquad : mFramebufferSquads) {
-        VkCommandBuffer cmdBuff = framebufferSquad.mGraphicsCmdBuffer;
-        VkFramebuffer framebuff = framebufferSquad.mFramebuffer;
-        
-        VkCommandBufferBeginInfo cbbArgs; {
-            cbbArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            cbbArgs.pNext = nullptr;
-            cbbArgs.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-            cbbArgs.pInheritanceInfo = nullptr;
-        }
-        
-        result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
-        
-        std::array<VkClearValue, 2> clearVals;
-        clearVals[0].color = {0, 1, 1, 1};
-        clearVals[1].depthStencil = {1.f, 0};
-        
-        VkRenderPassBeginInfo rpbArgs; {
-            rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            rpbArgs.pNext = nullptr;
-            rpbArgs.renderPass = mRenderPass;
-            rpbArgs.framebuffer = framebuff;
-            rpbArgs.renderArea.offset = {0, 0};
-            rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
-            rpbArgs.clearValueCount = clearVals.size();
-            rpbArgs.pClearValues = clearVals.data();
-        }
-        
-        vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
-        
-        vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-        
-        vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
-        
-        mTestGeom->cmdBindBuffers(cmdBuff);
-        mTestGeom->cmdDrawIndexed(cmdBuff);
-        
-        vkCmdEndRenderPass(cmdBuff);
-        
-        result = vkEndCommandBuffer(cmdBuff);
-        if(result != VK_SUCCESS) {
-            sout << "Could not record command buffer" << std::endl;
-            return false;
-        }
-        
-    }
-    return true;
-}
-
 bool ShoRendererVk::cleanup() {
     
     mTestGeom->drop();
@@ -784,9 +726,20 @@ void ShoRendererVk::renderFrame() {
         return;
     }
     
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    VkResult result;
+    
     VkSwapchainKHR swapchain = Video::Vulkan::getSwapchain();
     uint32_t imgIndex;
-    vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), swapchain, std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
+    vkAcquireNextImageKHR(
+        Video::Vulkan::getLogicalDevice(), 
+        swapchain, 
+        std::numeric_limits<uint64_t>::max(), 
+        mSemImageAvailable, 
+        VK_NULL_HANDLE, &imgIndex);
     
     // Note: this block should not be moved into its own method, since it synchronizes with the above call 
     // to vkAquireNextImageKHR
@@ -813,10 +766,64 @@ void ShoRendererVk::renderFrame() {
             submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
         }
         
-        // This can be done asynchronously in respects to the command buffers
-        mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
+        // Wait for this command buffer to finish
+        vkWaitForFences(
+            Video::Vulkan::getLogicalDevice(), 
+            1, &(squad.mFenceRenderFinished), 
+            VK_TRUE, // Wait for all of them to complete (as opposed to any of them)
+            std::numeric_limits<uint64_t>::max() // Be *very* patient
+            );
         
-        // Wait for all command buffers to finish
+        // This work only requires that the current command buffer has completed
+        {
+            VkCommandBuffer cmdBuff = squad.mGraphicsCmdBuffer;
+            VkFramebuffer framebuff = squad.mFramebuffer;
+            
+            // Resetting is not necessary since the buffer is implicitly reset in vkBeginCommandBuffer()
+            // vkResetCommandBuffer(cmdBuff, 0);
+            
+            VkCommandBufferBeginInfo cbbArgs; {
+                cbbArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                cbbArgs.pNext = nullptr;
+                cbbArgs.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+                cbbArgs.pInheritanceInfo = nullptr;
+            }
+            
+            result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
+            
+            std::array<VkClearValue, 2> clearVals;
+            clearVals[0].color = {0, 1, 1, 1};
+            clearVals[1].depthStencil = {1.f, 0};
+            
+            VkRenderPassBeginInfo rpbArgs; {
+                rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                rpbArgs.pNext = nullptr;
+                rpbArgs.renderPass = mRenderPass;
+                rpbArgs.framebuffer = framebuff;
+                rpbArgs.renderArea.offset = {0, 0};
+                rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
+                rpbArgs.clearValueCount = clearVals.size();
+                rpbArgs.pClearValues = clearVals.data();
+            }
+            
+            vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
+            
+            vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+            
+            vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
+            
+            mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1, cmdBuff));
+            
+            vkCmdEndRenderPass(cmdBuff);
+            
+            result = vkEndCommandBuffer(cmdBuff);
+            if(result != VK_SUCCESS) {
+                sout << "Could not record command buffer" << std::endl;
+                return;
+            }
+        }
+        
+        // Wait for the rest of the command buffers to finish
         vkWaitForFences(
             Video::Vulkan::getLogicalDevice(), 
             mAllFenceRenderFinished.size(), mAllFenceRenderFinished.data(), 
@@ -831,7 +838,7 @@ void ShoRendererVk::renderFrame() {
         vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
             
         // Submit the rendering queue
-        VkResult result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, squad.mFenceRenderFinished);
+        result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, squad.mFenceRenderFinished);
         
         if(result != VK_SUCCESS) {
             Logger::log(Logger::SEVERE) << "Failed to submit render queue" << std::endl;
@@ -869,10 +876,17 @@ void ShoRendererVk::modelimapDepthPass(ModelInstance* modeli) {
 void ShoRendererVk::modelimapLightprobe(ModelInstance* modeli) {
 }
 
-void ShoRendererVk::modelimapOpaque(ModelInstance* modeli) {
+void ShoRendererVk::modelimapOpaque(ModelInstance* modeli, VkCommandBuffer cmdBuff) {
+    /*
     Model* model = modeli->getModel();
     Material* material = model->getMaterial();
     Geometry* geometry = model->getGeometry();
+    */
+
+    
+    mTestGeom->cmdBindBuffers(cmdBuff);
+    mTestGeom->cmdDrawIndexed(cmdBuff);
+    
 }
 
 void ShoRendererVk::modelimapTransparent(ModelInstance* modeli) {

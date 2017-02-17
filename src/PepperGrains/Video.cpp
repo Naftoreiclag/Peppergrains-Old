@@ -1226,7 +1226,7 @@ namespace Video {
                 VkCommandPoolCreateInfo cpCargs; {
                     cpCargs.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
                     cpCargs.pNext = nullptr;
-                    cpCargs.flags = 0;
+                    cpCargs.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
                 }
                 
                 cpCargs.queueFamilyIndex = mQFICompute;
