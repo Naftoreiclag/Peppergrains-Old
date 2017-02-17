@@ -47,8 +47,65 @@ void ShoRendererVk::setScenegraph(Scenegraph* scenegraph) {
 }
 
 bool ShoRendererVk::initialize() {
-    return initializeRenderpass() && initializeFramebuffers() && initializeSemaphores() && setupTestGeometry() && initializePipeline() && populateCommandBuffers();
+    return 
+        initializeDepthBuffer() && 
+        initializeRenderpass() && 
+        initializeFramebuffers() && 
+        initializeSemaphores() && 
+        setupTestGeometry() && 
+        initializePipeline() && 
+        populateCommandBuffers();
 }
+
+bool ShoRendererVk::initializeDepthBuffer() {
+
+    Logger::Out iout = Logger::log(Logger::INFO);
+    Logger::Out vout = Logger::log(Logger::VERBOSE);
+    Logger::Out sout = Logger::log(Logger::SEVERE);
+    
+    mDepthFormat = VK_FORMAT_END_RANGE;
+    {
+        VkFormat candidateFormats[] = {
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT
+        };
+        for(VkFormat candidateFormat : candidateFormats) {
+            if(Video::Vulkan::Utils::physDeviceSupportsFormat(candidateFormat, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
+                mDepthFormat = candidateFormat;
+                break;
+            }
+        }
+    }
+    
+    if(mDepthFormat == VK_FORMAT_END_RANGE) {
+        sout << "Could not find suitable depth stencil image format" << std::endl;
+        return false;
+    }
+    
+    Video::Vulkan::Utils::imageCreateAndAllocate(
+        Video::Vulkan::getSwapchainExtent().width,
+        Video::Vulkan::getSwapchainExtent().height,
+        mDepthFormat,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        &mDepthImage,
+        &mDepthImageMemory
+        );
+    Video::Vulkan::Utils::imageViewCreate(
+        mDepthImage, 
+        mDepthFormat, 
+        VK_IMAGE_ASPECT_DEPTH_BIT, 
+        &mDepthImageView);
+    Video::Vulkan::Utils::immChangeImageLayout(
+        mDepthImage, 
+        mDepthFormat, 
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    
+    return true;
+}
+
 bool ShoRendererVk::initializeRenderpass() {
 
     Logger::Out iout = Logger::log(Logger::INFO);
@@ -75,6 +132,23 @@ bool ShoRendererVk::initializeRenderpass() {
         colorAttachRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
     
+    VkAttachmentDescription depthAttachDesc; {
+        depthAttachDesc.flags = 0;
+        depthAttachDesc.format = mDepthFormat;
+        depthAttachDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachDesc.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttachDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+    
+    VkAttachmentReference depthAttachRef; {
+        depthAttachRef.attachment = 1;
+        depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+    
     VkSubpassDescription subpassDesc; {
         subpassDesc.flags = 0;
         subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -85,7 +159,7 @@ bool ShoRendererVk::initializeRenderpass() {
         subpassDesc.colorAttachmentCount = 1;
         subpassDesc.pColorAttachments = &colorAttachRef;
         subpassDesc.pResolveAttachments = nullptr;
-        subpassDesc.pDepthStencilAttachment = nullptr;
+        subpassDesc.pDepthStencilAttachment = &depthAttachRef;
         
         subpassDesc.preserveAttachmentCount = 0;
         subpassDesc.pPreserveAttachments = nullptr;
@@ -101,13 +175,18 @@ bool ShoRendererVk::initializeRenderpass() {
         subpassDep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     }
     
+    std::array<VkAttachmentDescription, 2> attachments = {
+        colorAttachDesc,
+        depthAttachDesc
+    };
+    
     VkRenderPassCreateInfo rpCstrArgs; {
         rpCstrArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         rpCstrArgs.pNext = nullptr;
         rpCstrArgs.flags = 0;
         
-        rpCstrArgs.attachmentCount = 1;
-        rpCstrArgs.pAttachments = &colorAttachDesc;
+        rpCstrArgs.attachmentCount = attachments.size();
+        rpCstrArgs.pAttachments = attachments.data();
         rpCstrArgs.subpassCount = 1;
         rpCstrArgs.pSubpasses = &subpassDesc;
         rpCstrArgs.dependencyCount = 1;
@@ -132,46 +211,6 @@ bool ShoRendererVk::initializeFramebuffers() {
     
     VkResult result;
     
-    VkFormat depthStencilFormat = VK_FORMAT_END_RANGE;
-    {
-        VkFormat candidateFormats[] = {
-            VK_FORMAT_D32_SFLOAT,
-            VK_FORMAT_D32_SFLOAT_S8_UINT,
-            VK_FORMAT_D24_UNORM_S8_UINT
-        };
-        for(VkFormat candidateFormat : candidateFormats) {
-            if(Video::Vulkan::Utils::physDeviceSupportsFormat(candidateFormat, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
-                depthStencilFormat = candidateFormat;
-                break;
-            }
-        }
-    }
-    
-    if(depthStencilFormat == VK_FORMAT_END_RANGE) {
-        sout << "Could not find suitable depth stencil image format" << std::endl;
-        return false;
-    }
-    
-    Video::Vulkan::Utils::imageCreateAndAllocate(
-        Video::Vulkan::getSwapchainExtent().width,
-        Video::Vulkan::getSwapchainExtent().height,
-        depthStencilFormat,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        &mDepthImage,
-        &mDepthImageMemory
-        );
-    Video::Vulkan::Utils::imageViewCreate(
-        mDepthImage, 
-        depthStencilFormat, 
-        VK_IMAGE_ASPECT_DEPTH_BIT, 
-        &mDepthImageView);
-    Video::Vulkan::Utils::immChangeImageLayout(
-        mDepthImage, 
-        depthStencilFormat, 
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-    
     mFramebufferSquads.resize(Video::Vulkan::getSwapchainImageViews().size());
     
     std::vector<VkCommandBuffer> commandBuffers(mFramebufferSquads.size(), VK_NULL_HANDLE);
@@ -192,8 +231,9 @@ bool ShoRendererVk::initializeFramebuffers() {
         // Must be reference because data is being modified
         FramebufferSquad& stuff = mFramebufferSquads[index];
         
-        VkImageView imgViewAttachments[] = {
-            Video::Vulkan::getSwapchainImageViews().at(index)
+        std::array<VkImageView, 2> imgViewAttachments = {
+            Video::Vulkan::getSwapchainImageViews().at(index),
+            mDepthImageView
         };
         
         VkFramebufferCreateInfo fbCargs; {
@@ -203,8 +243,8 @@ bool ShoRendererVk::initializeFramebuffers() {
             
             fbCargs.renderPass = mRenderPass;
             
-            fbCargs.attachmentCount = 1;
-            fbCargs.pAttachments = imgViewAttachments;
+            fbCargs.attachmentCount = imgViewAttachments.size();
+            fbCargs.pAttachments = imgViewAttachments.data();
             fbCargs.width = Video::Vulkan::getSwapchainExtent().width;
             fbCargs.height = Video::Vulkan::getSwapchainExtent().height;
             fbCargs.layers = 1;
@@ -322,7 +362,7 @@ bool ShoRendererVk::setupTestGeometry() {
             samplerLayoutBinding.pImmutableSamplers = nullptr;
         }
         
-        VkDescriptorSetLayoutBinding layoutBindings[] = {
+        std::array<VkDescriptorSetLayoutBinding, 2> layoutBindings = {
             uniformBufferLayoutBinding,
             samplerLayoutBinding
         };
@@ -332,8 +372,8 @@ bool ShoRendererVk::setupTestGeometry() {
             descriptorSetLayoutCargs.pNext = nullptr;
             descriptorSetLayoutCargs.flags = 0;
             
-            descriptorSetLayoutCargs.bindingCount = 2;
-            descriptorSetLayoutCargs.pBindings = layoutBindings;
+            descriptorSetLayoutCargs.bindingCount = layoutBindings.size();
+            descriptorSetLayoutCargs.pBindings = layoutBindings.data();
         }
         
         result = vkCreateDescriptorSetLayout(Video::Vulkan::getLogicalDevice(), &descriptorSetLayoutCargs, nullptr, &mDescriptorSetLayout);
@@ -353,7 +393,7 @@ bool ShoRendererVk::setupTestGeometry() {
             samplerPoolSize.descriptorCount = 1;
         }
         
-        VkDescriptorPoolSize poolSizes[] = {
+        std::array<VkDescriptorPoolSize, 2> poolSizes = {
             uniformBufferPoolSize,
             samplerPoolSize
         };
@@ -362,8 +402,8 @@ bool ShoRendererVk::setupTestGeometry() {
             descPoolCargs.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             descPoolCargs.pNext = nullptr;
             descPoolCargs.flags = 0;
-            descPoolCargs.poolSizeCount = 2;
-            descPoolCargs.pPoolSizes = poolSizes;
+            descPoolCargs.poolSizeCount = poolSizes.size();
+            descPoolCargs.pPoolSizes = poolSizes.data();
             descPoolCargs.maxSets = 1;
         }
         
@@ -429,12 +469,12 @@ bool ShoRendererVk::setupTestGeometry() {
             writeDescSetImage.pTexelBufferView = nullptr;
         }
         
-        VkWriteDescriptorSet writeDescSets[] = {
+        std::array<VkWriteDescriptorSet, 2> writeDescSets = {
             writeDescSetBuffer,
             writeDescSetImage
         };
         
-        vkUpdateDescriptorSets(Video::Vulkan::getLogicalDevice(), 2, writeDescSets, 0, nullptr);
+        vkUpdateDescriptorSets(Video::Vulkan::getLogicalDevice(), writeDescSets.size(), writeDescSets.data(), 0, nullptr);
     }
     
     return true;
@@ -453,7 +493,7 @@ bool ShoRendererVk::initializePipeline() {
     ShaderResource* shaderFragment = ShaderResource::gallop(Resources::find("TestShader2.fragmentShader"));
     shaderFragment->grab();
     
-    VkPipelineShaderStageCreateInfo pssCstrArgss[] = {
+    std::array<VkPipelineShaderStageCreateInfo, 2> pssCstrArgss = {
         shaderVertex->getPipelineShaderStageInfo(),
         shaderFragment->getPipelineShaderStageInfo()
     };
@@ -576,8 +616,8 @@ bool ShoRendererVk::initializePipeline() {
         gpCstrArgs.renderPass = mRenderPass;
         
         // Shaders
-        gpCstrArgs.stageCount = 2;
-        gpCstrArgs.pStages = pssCstrArgss;
+        gpCstrArgs.stageCount = pssCstrArgss.size();
+        gpCstrArgs.pStages = pssCstrArgss.data();
         
         gpCstrArgs.layout = mPipelineLayout;
         

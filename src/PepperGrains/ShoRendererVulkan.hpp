@@ -40,6 +40,7 @@ private:
     
     VkImage mDepthImage = VK_NULL_HANDLE;
     VkDeviceMemory mDepthImageMemory = VK_NULL_HANDLE;
+    VkFormat mDepthFormat = VK_FORMAT_END_RANGE;
     VkImageView mDepthImageView = VK_NULL_HANDLE;
     
     VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
@@ -63,6 +64,7 @@ private:
     VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
     VkDescriptorSet mDescriptorSet;
     
+    bool initializeDepthBuffer();
     bool initializeRenderpass();
     bool initializeFramebuffers();
     bool initializeSemaphores();
