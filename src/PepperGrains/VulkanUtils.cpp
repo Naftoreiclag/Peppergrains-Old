@@ -364,14 +364,6 @@ bool imageCreateAndAllocate(
     return true;
 }
 
-VkIndexType indexTypeFromSize(uint8_t size) {
-    switch(size) {
-        case 2: return VK_INDEX_TYPE_UINT16;
-        case 4: return VK_INDEX_TYPE_UINT32;
-        default: return VK_INDEX_TYPE_END_RANGE;
-    }
-}
-
 bool imageViewCreate(
     VkImage img, 
     VkFormat imgFormat, 
@@ -425,6 +417,14 @@ bool physDeviceSupportsFormat(VkFormat format, VkImageTiling imageTilingType, Vk
         default: {
             return false;
         }
+    }
+}
+
+VkIndexType indexTypeFromSize(uint8_t size) {
+    switch(size) {
+        case 2: return VK_INDEX_TYPE_UINT16;
+        case 4: return VK_INDEX_TYPE_UINT32;
+        default: return VK_INDEX_TYPE_END_RANGE;
     }
 }
 
