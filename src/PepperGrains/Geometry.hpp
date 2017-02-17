@@ -102,6 +102,9 @@ public:
     virtual void cmdBindBuffers(VkCommandBuffer cmdBuff);
     virtual void cmdDrawIndexed(VkCommandBuffer cmdBuff);
     #endif // PGG_VULKAN
+    
+    virtual void load();
+    virtual void unload();
 };
 
 }

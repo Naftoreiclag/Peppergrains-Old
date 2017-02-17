@@ -22,7 +22,8 @@
 namespace pgg {
 
 Geometry* Geometry::getFallback() {
-    return nullptr;
+    static Geometry geometry;
+    return &geometry;
 }
 bool Geometry::hasLightprobes() const { return false; }
 const std::vector<Geometry::Lightprobe>& Geometry::getLightprobes() const {
@@ -52,5 +53,7 @@ void Geometry::cmdBindBuffers(VkCommandBuffer cmdBuff) { }
 void Geometry::cmdDrawIndexed(VkCommandBuffer cmdBuff) { }
 #endif
 
+void Geometry::load() { }
+void Geometry::unload() { }
 }
 
