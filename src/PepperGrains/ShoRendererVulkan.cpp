@@ -36,11 +36,13 @@ ShoRendererVk::~ShoRendererVk() { }
 void ShoRendererVk::setScenegraph(Scenegraph* scenegraph) {
     if(mScenegraph == scenegraph) return;
     if(mScenegraph != nullptr) {
+        mScenegraph->processAll(std::bind(&ShoRendererVk::onModeliRemoved, this, std::placeholders::_1));
         mScenegraph->setRendererAddListener(nullptr);
         mScenegraph->setRendererRemoveListener(nullptr);
     }
     mScenegraph = scenegraph;
     if(mScenegraph != nullptr) {
+        mScenegraph->processAll(std::bind(&ShoRendererVk::onModeliAdded, this, std::placeholders::_1));
         mScenegraph->setRendererAddListener(std::bind(&ShoRendererVk::onModeliAdded, this, std::placeholders::_1));
         mScenegraph->setRendererRemoveListener(std::bind(&ShoRendererVk::onModeliRemoved, this, std::placeholders::_1));
     }
@@ -777,6 +779,11 @@ bool ShoRendererVk::cleanup() {
 }
 
 void ShoRendererVk::renderFrame() {
+    if(!mScenegraph) {
+        Logger::log(Logger::WARN) << "Renderer has no scenegraph" << std::endl;
+        return;
+    }
+    
     VkSwapchainKHR swapchain = Video::Vulkan::getSwapchain();
     uint32_t imgIndex;
     vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), swapchain, std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
@@ -807,7 +814,7 @@ void ShoRendererVk::renderFrame() {
         }
         
         // This can be done asynchronously in respects to the command buffers
-        //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
+        mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
         
         // Wait for all command buffers to finish
         vkWaitForFences(
@@ -818,17 +825,7 @@ void ShoRendererVk::renderFrame() {
             );
 
         // This must be done only while it is guaranteed that no command buffer is running
-        //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
-        {
-            glm::mat4 geomMVP[] = {
-                mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
-            };
-            void* memAddr;
-            vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
-            memcpy(memAddr, geomMVP, sizeof(geomMVP));
-            vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
-            
-        }
+        mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
         
         // Reset the fence so it can be triggered again by the completion of our queue submission
         vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
@@ -858,6 +855,13 @@ void ShoRendererVk::renderFrame() {
     }
 }
 void ShoRendererVk::modelimapUniformBufferUpdate(ModelInstance* modeli) {
+    glm::mat4 geomMVP[] = {
+        mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
+    };
+    void* memAddr;
+    vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
+    memcpy(memAddr, geomMVP, sizeof(geomMVP));
+    vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
 }
 
 void ShoRendererVk::modelimapDepthPass(ModelInstance* modeli) {

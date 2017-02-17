@@ -119,6 +119,7 @@ public:
     void modelimapLightprobe(ModelInstance* modeli);
     void modelimapOpaque(ModelInstance* modeli);
     void modelimapTransparent(ModelInstance* modeli);
+    
     void onModeliAdded(ModelInstance* modeli);
     void onModeliRemoved(ModelInstance* modeli);
     
