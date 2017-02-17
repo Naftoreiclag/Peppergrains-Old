@@ -122,16 +122,6 @@ void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayo
     
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
-    VkImageAspectFlags aspectFlags;
-    if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-        aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-        if(formatHasStencilComponent(imgFormat)) {
-            aspectFlags |= VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
-    } else {
-        aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
-    }
-    
     VkImageMemoryBarrier imgMemoryBarrier; {
         imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         imgMemoryBarrier.pNext = nullptr;
@@ -147,11 +137,20 @@ void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayo
         imgMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         
         imgMemoryBarrier.image = img;
-        imgMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        //imgMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         imgMemoryBarrier.subresourceRange.baseArrayLayer = 0;
         imgMemoryBarrier.subresourceRange.baseMipLevel = 0;
         imgMemoryBarrier.subresourceRange.layerCount = 1;
         imgMemoryBarrier.subresourceRange.levelCount = 1;
+    }
+    
+    if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+        imgMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        if(formatHasStencilComponent(imgFormat)) {
+            imgMemoryBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+    } else {
+        imgMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
         
     switch(oldLayout) {
