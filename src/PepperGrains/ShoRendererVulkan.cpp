@@ -140,7 +140,7 @@ bool ShoRendererVk::initializeFramebuffers() {
             VK_FORMAT_D24_UNORM_S8_UINT
         };
         for(VkFormat candidateFormat : candidateFormats) {
-            if(VulkanUtils::physDeviceSupportsFormat(candidateFormat, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
+            if(Video::Vulkan::Utils::physDeviceSupportsFormat(candidateFormat, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
                 depthStencilFormat = candidateFormat;
                 break;
             }
@@ -152,7 +152,7 @@ bool ShoRendererVk::initializeFramebuffers() {
         return false;
     }
     
-    VulkanUtils::imageCreateAndAllocate(
+    Video::Vulkan::Utils::imageCreateAndAllocate(
         Video::Vulkan::getSwapchainExtent().width,
         Video::Vulkan::getSwapchainExtent().height,
         depthStencilFormat,
@@ -162,12 +162,12 @@ bool ShoRendererVk::initializeFramebuffers() {
         &mDepthImage,
         &mDepthImageMemory
         );
-    VulkanUtils::imageViewCreate(
+    Video::Vulkan::Utils::imageViewCreate(
         mDepthImage, 
         depthStencilFormat, 
         VK_IMAGE_ASPECT_DEPTH_BIT, 
         &mDepthImageView);
-    VulkanUtils::immChangeImageLayout(
+    Video::Vulkan::Utils::immChangeImageLayout(
         mDepthImage, 
         depthStencilFormat, 
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -294,7 +294,7 @@ bool ShoRendererVk::setupTestGeometry() {
     {
         glm::mat4 geomMVP[1];
         
-        VulkanUtils::bufferCreateAndAllocate(sizeof(geomMVP), 
+        Video::Vulkan::Utils::bufferCreateAndAllocate(sizeof(geomMVP), 
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
             &mUniformBuffer, &mUniformBufferMemory);

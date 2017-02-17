@@ -24,7 +24,9 @@
 #include <GraphicsApiLibrary.hpp>
 
 namespace pgg {
-namespace VulkanUtils { 
+namespace Video {
+namespace Vulkan { 
+namespace Utils {
 
 /**
  * Creates and allocates a temporary command buffer and then begins recording commands for it. Pretty much like the
@@ -190,7 +192,9 @@ VkIndexType indexTypeFromSize(uint8_t size);
  */
 bool formatHasStencilComponent(VkFormat format);
 
-} // VulkanUtils
+} // Utils
+} // Vulkan
+} // Video
 } // pgg
 
 #endif // PGG_VULKAN

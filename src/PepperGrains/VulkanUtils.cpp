@@ -22,7 +22,9 @@
 #include "Logger.hpp"
 
 namespace pgg {
-namespace VulkanUtils {
+namespace Video {
+namespace Vulkan { 
+namespace Utils {
 
 bool immediateCmdBufferBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuffer) {
     VkCommandBufferAllocateInfo cbaArgs; {
@@ -86,9 +88,9 @@ void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDevic
 }
 void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
     VkCommandBuffer cmdBuff;
-    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     cmdCopyBuffer(cmdBuff, src, dest, size, srcOffset, destOffset);
-    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
     
@@ -112,15 +114,15 @@ void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout,
 }
 void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
     VkCommandBuffer cmdBuff;
-    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     cmdCopyImage(cmdBuff, src, srcLayout, dest, destLayout, imgWidth, imgHeight);
-    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 
 void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBuffer cmdBuff;
     
-    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
     VkImageMemoryBarrier imgMemoryBarrier; {
         imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -237,7 +239,7 @@ void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayo
         1, &imgMemoryBarrier);
     
     
-    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    Video::Vulkan::Utils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
 }
 
@@ -448,9 +450,9 @@ bool formatHasStencilComponent(VkFormat format) {
         format == VK_FORMAT_D32_SFLOAT_S8_UINT;
 }
 
-
-
-} // VulkanUtils
+} // Utils
+} // Vulkan
+} // Video
 } // pgg
 
 #endif

@@ -97,7 +97,7 @@ void ImageResource::load() {
     
     VkImage stagingImgHandle = VK_NULL_HANDLE;
     VkDeviceMemory stagingImgMemory = VK_NULL_HANDLE;
-    success = VulkanUtils::imageCreateAndAllocate(
+    success = Video::Vulkan::Utils::imageCreateAndAllocate(
         mWidth, mHeight, 
         mImgFormat, 
         VK_IMAGE_TILING_LINEAR, 
@@ -143,7 +143,7 @@ void ImageResource::load() {
     stbi_image_free(rawImgData);
     
     
-    success = VulkanUtils::imageCreateAndAllocate(
+    success = Video::Vulkan::Utils::imageCreateAndAllocate(
         mWidth, mHeight, 
         mImgFormat,
         VK_IMAGE_TILING_OPTIMAL, // Tiling can differ, in this case just use whatever is optimal for the GPU since we won't read from this anyway
@@ -158,30 +158,30 @@ void ImageResource::load() {
     
     /*
     VkCommandBuffer imgUploadCmdBuffer;
-    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getGraphicsCommandPool(), &imgUploadCmdBuffer);
-    //VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &imgUploadCmdBuffer);
-    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getGraphicsQueue(), Video::Vulkan::getGraphicsCommandPool(), &imgUploadCmdBuffer);
-    //VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &imgUploadCmdBuffer);
+    Video::Vulkan::Utils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getGraphicsCommandPool(), &imgUploadCmdBuffer);
+    //Video::Vulkan::Utils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &imgUploadCmdBuffer);
+    Video::Vulkan::Utils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getGraphicsQueue(), Video::Vulkan::getGraphicsCommandPool(), &imgUploadCmdBuffer);
+    //Video::Vulkan::Utils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &imgUploadCmdBuffer);
     */
     
     // TODO: perform in a single immediate command buffer
     
-    VulkanUtils::immChangeImageLayout(
+    Video::Vulkan::Utils::immChangeImageLayout(
         stagingImgHandle, 
         mImgFormat, 
         VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    VulkanUtils::immChangeImageLayout(
+    Video::Vulkan::Utils::immChangeImageLayout(
         mImgHandle, 
         mImgFormat, 
         VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         //VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DEST_OPTIMAL);
-    VulkanUtils::immCopyImage(
+    Video::Vulkan::Utils::immCopyImage(
         stagingImgHandle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         mImgHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         mWidth,
         mHeight);
     mImgLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    VulkanUtils::immChangeImageLayout(
+    Video::Vulkan::Utils::immChangeImageLayout(
         mImgHandle, 
         mImgFormat, 
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mImgLayout);

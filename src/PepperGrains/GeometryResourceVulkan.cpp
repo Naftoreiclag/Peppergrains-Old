@@ -244,7 +244,7 @@ void GeometryResourceVK::load() {
     
     // TODO: upload byte vertex array also
     
-    VulkanUtils::bufferCreateAndAllocate(mSizeOfFloatVertexArray + mSizeOfIndexArray, 
+    Video::Vulkan::Utils::bufferCreateAndAllocate(mSizeOfFloatVertexArray + mSizeOfIndexArray, 
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
         &mVertexIndexBuffer, &mVertexIndexBufferMemory);
@@ -364,7 +364,7 @@ const VkPipelineInputAssemblyStateCreateInfo* GeometryResourceVK::getInputAssemb
 void GeometryResourceVK::cmdBindBuffers(VkCommandBuffer cmdBuff) {
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(cmdBuff, 0, 1, &mVertexIndexBuffer, &offset);
-    vkCmdBindIndexBuffer(cmdBuff, mVertexIndexBuffer, mSizeOfFloatVertexArray, VulkanUtils::indexTypeFromSize(mIndexTypeSize));
+    vkCmdBindIndexBuffer(cmdBuff, mVertexIndexBuffer, mSizeOfFloatVertexArray, Video::Vulkan::Utils::indexTypeFromSize(mIndexTypeSize));
 }
 void GeometryResourceVK::cmdDrawIndexed(VkCommandBuffer cmdBuff) {
     vkCmdDrawIndexed(cmdBuff, mNumTriangles * 3, 1, 0, 0, 0);
