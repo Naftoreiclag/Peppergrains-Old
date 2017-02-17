@@ -26,12 +26,81 @@
 namespace pgg {
 namespace VulkanUtils { 
 
-bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
-void oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+/**
+ * Creates and allocates a temporary command buffer and then begins recording commands for it. Pretty much like the
+ * start of an immediate mode call block in OpenGL. Useful for telling the GPU to do things that should not be done
+ * every frame but instead be done only on special occasions, such as copying stuff in allocated memory.
+ * 
+ * Remember to call immediateCmdBufferEnd() when ready to submit commands and free up command buffer!
+ * 
+ * @param cmdPool The pool which this command buffer should belong to
+ * @param cmdBuff Overwritten with pointer to newly allocated command buffer
+ * @return True iff successful
+ */
+bool immediateCmdBufferBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
 
-// imm = Immediately (Creates, uses, and destroys a disposable command buffer)
+/**
+ * Sister method for immediateCmdBufferBegin(). Flushes (submits) queued commands using provided queue, and then
+ * synchronizes (waits for execution on GPU to complete) and then cleans up (free up allocated memory)
+ * 
+ * @param queue The queue to accept the commands held on cmdBuff
+ * @param cmdPool The pool to which cmdBuff belongs
+ * @param cmdBuff The command buffer to execute and clean up; Overwritten with VK_NULL_HANDLE for safety
+ */
+void immediateCmdBufferEnd(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
 
+/**
+ * Issues a command to the provide command buffer.
+ * Copies the data stored in one buffer into another using the GPU.
+ * 
+ * @param cmdBuff Command buffer to issue command to
+ * @param src The preallocated buffer handle from which the data will be copied
+ * @param dest The preallocated buffer handle to which the data will be copied
+ * @param size How many consecutive bytes will be copied
+ * @param srcOffset Offset in src buffer which will be treated as the zeroth index
+ * @param destOffset Offset in the dest buffer which will be treated as the zeroth index
+ */
+void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
+
+/**
+ * Part of the immediate function family (prefix "imm"). Does the same thing as 
+ * cmdCopyBuffer() 
+ * except it transparently handles immediate command buffer begining and ending, and chooses appropriate VkQueue.
+ * 
+ * @param src The preallocated buffer handle from which the data will be copied
+ * @param dest The preallocated buffer handle to which the data will be copied
+ * @param size How many consecutive bytes will be copied
+ * @param srcOffset Offset in src buffer which will be treated as the zeroth index
+ * @param destOffset Offset in the dest buffer which will be treated as the zeroth index
+ */
 void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
+
+/**
+ * Issues a command to the provide command buffer.
+ * Copies all or part of a 2D image. Lower bounds of copy rectangle are at (0, 0).
+ * 
+ * @param cmdBuff Command buffer to issue command to
+ * @param src The preallocated image handle from which the data will be copied
+ * @param srcLayout The layout of the source image
+ * @param dest The preallocated image handle to which the data will be copied
+ * @param destLayout The layout of the destination image
+ * @param imgWidth Width of the portion of the image to be copied
+ * @param imgHeight Height of the portion of the image to be copied
+ */
+void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight);
+
+/**
+ * Part of the immediate function family (prefix "imm"). Does the same thing as 
+ * cmdCopyImage() 
+ * except it transparently handles immediate command buffer begining and ending, and chooses appropriate VkQueue.
+ * 
+ * @param src The preallocated image handle from which the data will be copied
+ * @param srcLayout The layout of the source image
+ * @param dest The preallocated image handle to which the data will be copied
+ * @param destLayout The layout of the destination image
+ * @param imgWidth Width of the portion of the image to be copied
+ * @param imgHeight Height of the portion of the image to be copied
+ */
 void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight);
 
 void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout);

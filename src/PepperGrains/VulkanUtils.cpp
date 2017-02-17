@@ -24,7 +24,7 @@
 namespace pgg {
 namespace VulkanUtils {
 
-bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuffer) {
+bool immediateCmdBufferBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuffer) {
     VkCommandBufferAllocateInfo cbaArgs; {
         cbaArgs.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         cbaArgs.pNext = nullptr;
@@ -53,7 +53,7 @@ bool oneTimeUseCmdBufferAllocateAndBegin(VkCommandPool cmdPool, VkCommandBuffer*
     
     return cmdBuffer;
 }
-void oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff) {
+void immediateCmdBufferEnd(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff) {
     
     vkEndCommandBuffer(*cmdBuff);
     
@@ -75,11 +75,7 @@ void oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(VkQueue queue
 }
 
 
-void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
-    VkCommandBuffer cmdBuff;
-    
-    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
-    
+void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
     VkBufferCopy buffCopy; {
         buffCopy.size = size;
         buffCopy.srcOffset = srcOffset;
@@ -87,13 +83,17 @@ void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize 
     }
     
     vkCmdCopyBuffer(cmdBuff, src, dest, 1, &buffCopy);
-    
-    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
-void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
+void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
     VkCommandBuffer cmdBuff;
     
-    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+    cmdCopyBuffer(cmdBuff, src, dest, size, srcOffset, destOffset);
+    
+    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+}
+void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
     
     VkImageSubresourceLayers imgSubresLayers; {
         imgSubresLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -112,13 +112,21 @@ void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLay
     
     vkCmdCopyImage(cmdBuff, src, srcLayout, dest, destLayout, 1, &imgCopy);
     
-    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+}
+void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
+    VkCommandBuffer cmdBuff;
+    
+    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    
+    cmdCopyImage(cmdBuff, src, srcLayout, dest, destLayout, imgWidth, imgHeight);
+    
+    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 
 void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBuffer cmdBuff;
     
-    VulkanUtils::oneTimeUseCmdBufferAllocateAndBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
     VkImageMemoryBarrier imgMemoryBarrier; {
         imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -215,7 +223,7 @@ void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout ne
         1, &imgMemoryBarrier);
     
     
-    VulkanUtils::oneTimeUseCmdBufferFreeAndEndAndSubmitAndSynchronizeExecution(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
+    VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
 }
 

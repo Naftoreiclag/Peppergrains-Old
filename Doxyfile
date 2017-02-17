@@ -1,4 +1,5 @@
 DOXYFILE_ENCODING         = UTF-8
+ENABLE_PREPROCESSING      = NO
 EXTRACT_ALL               = YES
 GENERATE_TREEVIEW         = YES
 INPUT                     = src/PepperGrains
