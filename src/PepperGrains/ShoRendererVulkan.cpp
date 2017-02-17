@@ -766,70 +766,83 @@ bool ShoRendererVk::cleanup() {
 }
 
 void ShoRendererVk::renderFrame() {
-    glm::mat4 geomMVP[] = {
-        mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
-    };
-    
-    //Engine::quit();
-
-    // Warning: this is unsafe behavior, since the uniform buffer could still be in use by a running command buffer
-    void* memAddr;
-    vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
-    memcpy(memAddr, geomMVP, sizeof(geomMVP));
-    vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
-    
-    //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
-    
-    VkResult result;
-    
     VkSwapchainKHR swapchain = Video::Vulkan::getSwapchain();
-    
     uint32_t imgIndex;
     vkAcquireNextImageKHR(Video::Vulkan::getLogicalDevice(), swapchain, std::numeric_limits<uint64_t>::max(), mSemImageAvailable, VK_NULL_HANDLE, &imgIndex);
-    FramebufferSquad& squad = mFramebufferSquads.at(imgIndex);
     
-    VkPipelineStageFlags waitFlags[] = {
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-    };
+    // Note: this block should not be moved into its own method, since it synchronizes with the above call 
+    // to vkAquireNextImageKHR
+    {
+        FramebufferSquad& squad = mFramebufferSquads.at(imgIndex);
     
-    VkSubmitInfo submitArgs; {
-        submitArgs.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitArgs.pNext = nullptr;
+        //
+        VkPipelineStageFlags waitFlag = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        VkSubmitInfo submitArgs; {
+            submitArgs.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitArgs.pNext = nullptr;
+            
+            // What semaphores need to be waited on and when:
+            // Basically, tell Vulkan to wait until the image availability semaphore is triggered before it writes the color
+            // information. pWaitDstStageMask specifies this.
+            submitArgs.waitSemaphoreCount = 1;
+            submitArgs.pWaitSemaphores = &mSemImageAvailable;
+            submitArgs.pWaitDstStageMask = &waitFlag;
+            
+            submitArgs.commandBufferCount = 1;
+            submitArgs.pCommandBuffers = &(squad.mGraphicsCmdBuffer);
+            
+            submitArgs.signalSemaphoreCount = 1;
+            submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
+        }
         
-        submitArgs.waitSemaphoreCount = 1;
-        submitArgs.pWaitSemaphores = &mSemImageAvailable;
-        submitArgs.pWaitDstStageMask = waitFlags;
+        // This can be done asynchronously in respects to the command buffers
+        //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
         
-        submitArgs.commandBufferCount = 1;
-        submitArgs.pCommandBuffers = &(squad.mGraphicsCmdBuffer);
+        // Wait for the fence to get triggered
+        vkWaitForFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished), VK_TRUE, std::numeric_limits<uint64_t>::max());
+
+        // This must be done only while it is guaranteed that no command buffer is running
+        //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
+        {
+            glm::mat4 geomMVP[] = {
+                mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
+            };
+            // Warning: this is unsafe behavior, since the uniform buffer could still be in use by a running command buffer
+            void* memAddr;
+            vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
+            memcpy(memAddr, geomMVP, sizeof(geomMVP));
+            vkUnmapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory);
+            
+        }
         
-        submitArgs.signalSemaphoreCount = 1;
-        submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
+        // Reset the fence so it can be triggered again by the completion of our queue submission
+        vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
+            
+        // Submit the rendering queue
+        VkResult result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, squad.mFenceRenderFinished);
+        
+        if(result != VK_SUCCESS) {
+            Logger::log(Logger::SEVERE) << "Failed to submit render queue" << std::endl;
+            return;
+        }
+        
+        VkPresentInfoKHR presentArgs; {
+            presentArgs.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentArgs.pNext = nullptr;
+            
+            presentArgs.waitSemaphoreCount = 1;
+            presentArgs.pWaitSemaphores = &(squad.mSemRenderFinished);
+            
+            presentArgs.swapchainCount = 1;
+            presentArgs.pSwapchains = &swapchain;
+            presentArgs.pImageIndices = &imgIndex;
+            presentArgs.pResults = nullptr;
+        }
+        
+        vkQueuePresentKHR(Video::Vulkan::getDisplayQueue(), &presentArgs);
     }
-    
-    vkWaitForFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished), VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
-    result = vkQueueSubmit(Video::Vulkan::getGraphicsQueue(), 1, &submitArgs, squad.mFenceRenderFinished);
-    
-    if(result != VK_SUCCESS) {
-        Logger::log(Logger::SEVERE) << "AAAA" << std::endl;
-        return;
-    }
-    
-    VkPresentInfoKHR presentArgs; {
-        presentArgs.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentArgs.pNext = nullptr;
-        
-        presentArgs.waitSemaphoreCount = 1;
-        presentArgs.pWaitSemaphores = &(squad.mSemRenderFinished);
-        
-        presentArgs.swapchainCount = 1;
-        presentArgs.pSwapchains = &swapchain;
-        presentArgs.pImageIndices = &imgIndex;
-        presentArgs.pResults = nullptr;
-    }
-    
-    vkQueuePresentKHR(Video::Vulkan::getDisplayQueue(), &presentArgs);
+}
+void ShoRendererVk::modelimapUniformBufferUpdate(ModelInstance* modeli) {
 }
 
 void ShoRendererVk::modelimapDepthPass(ModelInstance* modeli) {

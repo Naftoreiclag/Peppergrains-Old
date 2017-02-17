@@ -83,8 +83,16 @@ public:
     Camera mCamera;
     void setScenegraph(Scenegraph* scenegraph);
 
+    /**
+     * @brief Completely renders a frame and displays it onto the screen.
+     * 
+     * Does the following internally:
+     *  - Acquire the next swapchain image
+     *  - Synchronizes with GPU so uniform buffers and such can be safely written to
+     */
     void renderFrame();
     
+    void modelimapUniformBufferUpdate(ModelInstance* modeli);
     void modelimapDepthPass(ModelInstance* modeli);
     void modelimapLightprobe(ModelInstance* modeli);
     void modelimapOpaque(ModelInstance* modeli);
