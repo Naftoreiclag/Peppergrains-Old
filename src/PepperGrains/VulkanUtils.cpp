@@ -122,9 +122,23 @@ void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayo
     
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
     
+    VkImageAspectFlags aspectFlags;
+    if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+        aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+        if(formatHasStencilComponent(imgFormat)) {
+            aspectFlags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+    } else {
+        aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+    
     VkImageMemoryBarrier imgMemoryBarrier; {
         imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         imgMemoryBarrier.pNext = nullptr;
+        
+        // Handled below:
+        //imgMemoryBarrier.srcAccessMask = 0;
+        //imgMemoryBarrier.dstAccessMask = 0;
         
         imgMemoryBarrier.oldLayout = oldLayout;
         imgMemoryBarrier.newLayout = newLayout;
