@@ -132,6 +132,46 @@ bool ShoRendererVk::initializeFramebuffers() {
     
     VkResult result;
     
+    VkFormat depthStencilFormat = VK_FORMAT_END_RANGE;
+    {
+        VkFormat candidateFormats[] = {
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT
+        };
+        for(VkFormat candidateFormat : candidateFormats) {
+            if(VulkanUtils::physDeviceSupportsFormat(candidateFormat, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
+                depthStencilFormat = candidateFormat;
+                break;
+            }
+        }
+    }
+    
+    if(depthStencilFormat == VK_FORMAT_END_RANGE) {
+        sout << "Could not find suitable depth stencil image format" << std::endl;
+        return false;
+    }
+    
+    VulkanUtils::imageCreateAndAllocate(
+        Video::Vulkan::getSwapchainExtent().width,
+        Video::Vulkan::getSwapchainExtent().height,
+        depthStencilFormat,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        &mDepthImage,
+        &mDepthImageMemory
+        );
+    VulkanUtils::imageViewCreate(
+        mDepthImage, 
+        depthStencilFormat, 
+        VK_IMAGE_ASPECT_DEPTH_BIT, 
+        &mDepthImageView);
+    VulkanUtils::immChangeImageLayout(
+        mDepthImage, 
+        depthStencilFormat, 
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    
     mFramebufferSquads.resize(Video::Vulkan::getSwapchainImageViews().size());
     
     std::vector<VkCommandBuffer> commandBuffers(mFramebufferSquads.size(), VK_NULL_HANDLE);
@@ -242,7 +282,7 @@ bool ShoRendererVk::setupTestGeometry() {
     img->grab();
     img->drop();
     */
-    mTestGeom = GeometryResource::gallop(Resources::find("Cube.geometry"));
+    mTestGeom = GeometryResource::gallop(Resources::find("Monkey.geometry"));
     mTestGeom->grab();
     
     mTestTexture = TextureResource::gallop(Resources::find("GreenJellyfish.texture"));
@@ -654,6 +694,10 @@ bool ShoRendererVk::cleanup() {
     }
     mFramebufferSquads.clear();
     
+    vkDestroyImage(Video::Vulkan::getLogicalDevice(), mDepthImage, nullptr);
+    vkFreeMemory(Video::Vulkan::getLogicalDevice(), mDepthImageMemory, nullptr);
+    vkDestroyImageView(Video::Vulkan::getLogicalDevice(), mDepthImageView, nullptr);
+    
     vkDestroyRenderPass(Video::Vulkan::getLogicalDevice(), mRenderPass, nullptr);
     
     return true;
@@ -745,8 +789,8 @@ void ShoRendererVk::onModeliAdded(ModelInstance* modeli) {
 }
 void ShoRendererVk::onModeliRemoved(ModelInstance* modeli) {
     Logger::log(Logger::VERBOSE) << "Model removed" << std::endl;
-    
 }
+
 void ShoRendererVk::rebuildPipeline() {
     cleanup();
     initialize();
