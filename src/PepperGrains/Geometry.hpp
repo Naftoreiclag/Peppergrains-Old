@@ -26,35 +26,47 @@
 #include "Vec3.hpp"
 
 namespace pgg {
-
-/* A purely mathematical description of the properties of a 3D object related to rendering, including:
- *      Surface data:
- *          Vertex groups:
- *              Per-vertex position, color, uv, normal, tangent, bitangent, bone weights, light receiver weights
- *          Flex data 
- *      Armature: Bone heiarchy, intial transform matrices
- *      Light probe: per-probe position and bone weights
+ 
+/**
+ * A purely mathematical description of the properties of a 3D object related to rendering, including:
+ *  - Surface data:
+ *      - Vertex groups:
+ *          - Per-vertex position, color, uv, normal, tangent, bitangent, bone weights, light receiver weights
+ *      - Flex data
+ *  - Armature: Bone heiarchy, intial transform matrices
+ *  - Lightprobe: per-probe position and bone weights
  */
-
 class Geometry : virtual public ReferenceCounted {
 public:
+    /// Lightprobe
     struct Lightprobe {
-        Vec3 mLocation;
-        uint8_t mBone;
+        Vec3 mLocation; ///< Location in same space as vertices
+        std::vector<uint8_t> mBone; ///< Indices into bone vector returned in getArmature()
     };
+    
+    /// Armature
     struct Armature {
+        /// If true, then the bones use dual quaternions instead of matrices for posing
+        bool mUsesDualQuaternions;
+        
+        /// Bone
         struct Bone {
-            std::string mName;
+            std::string mName; ///< Name of bone, used for linking animations
+            
+            // TODO: make union with dual quaternion types
             glm::mat4 mLocalTransform;
             glm::mat4 mTransform;
             
-            bool mHasParent = false;
-            uint8_t mParent;
-            std::vector<uint8_t> mChildren;
+            bool mHasParent = false; ///< True iff mParent is a valid index
+            uint8_t mParent; ///< Armature bone vector index of parent
+            std::vector<uint8_t> mChildren; ///< Armature bone vector indices of children
         };
+        
+        /// Bones that compose this armature
         std::vector<Bone> mBones;
     };
 public:
+    /// Returns the fallback geometry used whenever loading fails
     static Geometry* getFallback();
     
     virtual bool hasLightprobes() const;
@@ -66,12 +78,15 @@ public:
     virtual void drawElements() const = 0;
     virtual void drawElementsInstanced(uint32_t num) const = 0;
 
-    // Bind vertex and index buffers to the underlying vertex array object
+    /// Bind vertex and index buffers to the underlying vertex array object
     virtual void bindBuffers() = 0;
 
-    // These methods are used during vertex array object intialization
-    // They tell OpenGL how to read attribute data from the buffers
-    // If the geometry lacks a specific attribute, these methods will skip
+    /*
+     * These methods are used during vertex array object intialization
+     * They tell OpenGL how to read attribute data from the buffers
+     * If the geometry lacks a specific attribute, these methods will skip
+     */
+    
     virtual void enablePositionAttrib(GLuint posAttrib);
     virtual void enableColorAttrib(GLuint colorAttrib);
     virtual void enableUVAttrib(GLuint textureAttrib);
