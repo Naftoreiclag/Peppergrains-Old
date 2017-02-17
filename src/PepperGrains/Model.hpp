@@ -27,33 +27,25 @@ namespace pgg {
 
 // Virtual inheritance to avoid diamond conflict with ModelResource
 class Model : virtual public ReferenceCounted {
+protected:
+    Geometry* mGeometry;
+    Material* mMaterial;
+    
 public:
     static Model* getFallback();
-
-    //virtual void render(Renderable::Pass rendPass, const glm::mat4& modelMat) = 0;
     
-    virtual Geometry* getGeometry() const = 0;
-    virtual Material* getMaterial() const = 0;
+    Model();
+    Model(Geometry* geometry, Material* model);
     
-    #ifdef PGG_OPENGL
-    virtual void bindVertexArray() = 0;
-    #endif
-};
-
-class FallbackModel : public Model {
-public:
-    //void render(Renderable::Pass rendPass, const glm::mat4& modelMat);
+    virtual Geometry* getGeometry() const;
+    virtual Material* getMaterial() const;
     
-    void load();
-    void unload();
-    
-    Geometry* getGeometry() const;
-    Material* getMaterial() const;
+    virtual void load();
+    virtual void unload();
     
     #ifdef PGG_OPENGL
-    void bindVertexArray();
+    virtual void bindVertexArray();
     #endif
-    
 };
 
 }

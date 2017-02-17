@@ -19,33 +19,38 @@
 #include "Logger.hpp"
 
 namespace pgg {
+
 Model* Model::getFallback() {
-    static FallbackModel fallbackModel;
+    static Model fallbackModel;
     return &fallbackModel;
 }
 
-/*
-void FallbackModel::render(Renderable::Pass rendPass, const glm::mat4& modelMat) {
-    
-}
-*/
-void FallbackModel::load() {
-    
-}
-void FallbackModel::unload() {
-    
+Model::Model()
+: mGeometry(Geometry::getFallback())
+, mMaterial(Material::getFallback()) {
 }
 
-Geometry* FallbackModel::getGeometry() const {
-    return Geometry::getFallback();
+Model::Model(Geometry* geometry, Material* material)
+: mGeometry(geometry)
+, mMaterial(material) {
 }
 
-Material* FallbackModel::getMaterial() const {
-    return Material::getFallback();
+void Model::load() {
+    mGeometry->grab();
+    mMaterial->grab();
 }
+void Model::unload() {
+    mGeometry->drop();
+    mMaterial->drop();
+    
+    delete this;
+}
+
+Geometry* Model::getGeometry() const { return mGeometry; }
+Material* Model::getMaterial() const { return mMaterial; }
 
 #ifdef PGG_OPENGL
-void FallbackModel::bindVertexArray() { }
+void Model::bindVertexArray() { }
 #endif
 
 }
