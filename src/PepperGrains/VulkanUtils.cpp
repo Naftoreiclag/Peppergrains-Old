@@ -123,7 +123,7 @@ void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLay
     VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 
-void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void immChangeImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBuffer cmdBuff;
     
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);

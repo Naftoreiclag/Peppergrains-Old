@@ -168,9 +168,11 @@ void ImageResource::load() {
     
     VulkanUtils::immChangeImageLayout(
         stagingImgHandle, 
+        mImgFormat, 
         VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     VulkanUtils::immChangeImageLayout(
         mImgHandle, 
+        mImgFormat, 
         VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         //VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DEST_OPTIMAL);
     VulkanUtils::immCopyImage(
@@ -181,6 +183,7 @@ void ImageResource::load() {
     mImgLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VulkanUtils::immChangeImageLayout(
         mImgHandle, 
+        mImgFormat, 
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mImgLayout);
     
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), stagingImgMemory, nullptr);

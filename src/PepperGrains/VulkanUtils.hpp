@@ -37,7 +37,9 @@ namespace VulkanUtils {
  * @param cmdBuff Overwritten with pointer to newly allocated command buffer
  * @return True iff successful
  */
-bool immediateCmdBufferBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+bool immediateCmdBufferBegin(
+    VkCommandPool cmdPool, 
+    VkCommandBuffer* cmdBuff);
 
 /**
  * Sister method for immediateCmdBufferBegin(). Flushes (submits) queued commands using provided queue, and then
@@ -47,7 +49,10 @@ bool immediateCmdBufferBegin(VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
  * @param cmdPool The pool to which cmdBuff belongs
  * @param cmdBuff The command buffer to execute and clean up; Overwritten with VK_NULL_HANDLE for safety
  */
-void immediateCmdBufferEnd(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer* cmdBuff);
+void immediateCmdBufferEnd(
+    VkQueue queue, 
+    VkCommandPool cmdPool, 
+    VkCommandBuffer* cmdBuff);
 
 /**
  * Issues a command to the provide command buffer.
@@ -60,7 +65,11 @@ void immediateCmdBufferEnd(VkQueue queue, VkCommandPool cmdPool, VkCommandBuffer
  * @param srcOffset Offset in src buffer which will be treated as the zeroth index
  * @param destOffset Offset in the dest buffer which will be treated as the zeroth index
  */
-void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
+void cmdCopyBuffer(
+    VkCommandBuffer cmdBuff, 
+    VkBuffer src, VkBuffer dest, 
+    VkDeviceSize size, 
+    VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
 
 /**
  * Part of the immediate function family (prefix "imm"). Does the same thing as 
@@ -73,7 +82,10 @@ void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDevic
  * @param srcOffset Offset in src buffer which will be treated as the zeroth index
  * @param destOffset Offset in the dest buffer which will be treated as the zeroth index
  */
-void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
+void immCopyBuffer(
+    VkBuffer src, VkBuffer dest, 
+    VkDeviceSize size, 
+    VkDeviceSize srcOffset = 0, VkDeviceSize destOffset = 0);
 
 /**
  * Issues a command to the provide command buffer.
@@ -87,7 +99,11 @@ void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize 
  * @param imgWidth Width of the portion of the image to be copied
  * @param imgHeight Height of the portion of the image to be copied
  */
-void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight);
+void cmdCopyImage(
+    VkCommandBuffer cmdBuff, 
+    VkImage src, VkImageLayout srcLayout, 
+    VkImage dest, VkImageLayout destLayout, 
+    uint32_t imgWidth, uint32_t imgHeight);
 
 /**
  * Part of the immediate function family (prefix "imm"). Does the same thing as 
@@ -101,11 +117,30 @@ void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout,
  * @param imgWidth Width of the portion of the image to be copied
  * @param imgHeight Height of the portion of the image to be copied
  */
-void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight);
+void immCopyImage(
+    VkImage src, VkImageLayout srcLayout, 
+    VkImage dest, VkImageLayout destLayout, 
+    uint32_t imgWidth, uint32_t imgHeight);
 
-void immChangeImageLayout(VkImage img, VkImageLayout oldLayout, VkImageLayout newLayout);
+/**
+ * Part of the immediate function family (prefix "imm"). 
+ * Transitions an image's layout.
+ * Transparently handles immediate command buffer begining and ending, and chooses appropriate VkQueue.
+ * There is no "cmd-" counterpart.
+ * 
+ * @param img The image to change the layout of
+ * @param imgFormat Affects choice of aspect flags
+ * @param oldLayout Current layout
+ * @param newLayout Target layout
+ */
+void immChangeImageLayout(
+    VkImage img, VkFormat imgFormat, 
+    VkImageLayout oldLayout, VkImageLayout newLayout);
 
-bool findSuitableMemoryTypeIndex(uint32_t allowedTypes, VkMemoryPropertyFlags requiredProperties, uint32_t* memTypeIndex);
+bool findSuitableMemoryTypeIndex(
+    uint32_t allowedTypes, 
+    VkMemoryPropertyFlags requiredProperties, 
+    uint32_t* memTypeIndex);
 bool bufferCreateAndAllocate(
     VkDeviceSize size, 
     VkBufferUsageFlags usage, 
@@ -118,17 +153,41 @@ bool imageCreateAndAllocate(
     VkImageUsageFlags usage, 
     VkMemoryPropertyFlags requiredProperties, 
     VkImage* imageHandle, VkDeviceMemory* imageMemory);
+bool imageViewCreate(
+    VkImage img, 
+    VkFormat imgFormat, 
+    VkImageAspectFlags aspectFlags, 
+    VkImageView* imgView);
 
-/* case 2: return VK_INDEX_TYPE_UINT16;
- * case 4: return VK_INDEX_TYPE_UINT32;
- * default: return VK_INDEX_TYPE_END_RANGE;
+/**
+ * Returns true if the physical device supports a particular format / image tiling type / format features combination
+ * @param format Requested format
+ * @param requiredTilingType Required image tiling type
+ * @param requiredFormatFeatures Required
+ * @return True if the physical device supports a particular format / image tiling type / format features combination
+ */
+bool physDeviceSupportsFormat(
+    VkFormat format, 
+    VkImageTiling requiredTilingType, VkFormatFeatureFlags requiredFormatFeatures);
+
+/**
+ * Returns the correct Vulkan enum for using an index of a particular size.
+ * 
+ * Currently implemented as:
+ *  - case 2: return VK_INDEX_TYPE_UINT16;
+ *  - case 4: return VK_INDEX_TYPE_UINT32;
+ *  - default: return VK_INDEX_TYPE_END_RANGE;
+ * 
+ * @param size Requested size in bytes
+ * @return Vulkan index type enum
  */
 VkIndexType indexTypeFromSize(uint8_t size);
 
-// Returns true if the physical device supports a particular format / image tiling type / format features combination
-bool physDeviceSupportsFormat(VkFormat format, VkImageTiling imageTilingType, VkFormatFeatureFlags requiredFormatFeatures);
-
-// Returns true if the given format has a stencil component
+/**
+ * Returns true if the given format has a stencil component
+ * @param format Format to check
+ * @return True if the given format has a stencil component
+ */
 bool formatHasStencilComponent(VkFormat format);
 
 } // VulkanUtils
