@@ -1,0 +1,9 @@
+DOXYFILE_ENCODING         = UTF-8
+EXTRACT_ALL               = YES
+GENERATE_TREEVIEW         = YES
+INPUT                     = src/PepperGrains
+INPUT_ENCODING            = UTF-8
+OUTPUT_DIRECTORY          = docs
+PROJECT_BRIEF             = "Yet another perpetually incomplete 3D game engine"
+PROJECT_NAME              = Peppergrains
+PROJECT_NUMBER            = 0.0.1

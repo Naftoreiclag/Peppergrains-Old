@@ -13,6 +13,8 @@ backup/*
 
 built/*
 
+docs/*
+
 run/resources/*
 run/core/*
 run/user/*
