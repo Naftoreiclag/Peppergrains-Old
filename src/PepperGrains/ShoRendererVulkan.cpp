@@ -766,6 +766,7 @@ void ShoRendererVk::renderFrame() {
             submitArgs.pSignalSemaphores = &(squad.mSemRenderFinished);
         }
         
+        /*
         // Wait for this command buffer to finish
         vkWaitForFences(
             Video::Vulkan::getLogicalDevice(), 
@@ -773,9 +774,22 @@ void ShoRendererVk::renderFrame() {
             VK_TRUE, // Wait for all of them to complete (as opposed to any of them)
             std::numeric_limits<uint64_t>::max() // Be *very* patient
             );
+        // [This work only requires that the current command buffer has completed]
+        */
         
-        // This work only requires that the current command buffer has completed
+        // Wait for all the command buffers to finish
+        // TODO: check if this is even necessary. Is it possible for this queue to finish but not earlier ones? 
+        vkWaitForFences(
+            Video::Vulkan::getLogicalDevice(), 
+            mAllFenceRenderFinished.size(), mAllFenceRenderFinished.data(), 
+            VK_TRUE, // Wait for all of them to complete (as opposed to any of them)
+            std::numeric_limits<uint64_t>::max() // Be *very* patient
+            );
+
+        // This must be done only while it is guaranteed that no command buffer is running
         {
+            mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
+            
             VkCommandBuffer cmdBuff = squad.mGraphicsCmdBuffer;
             VkFramebuffer framebuff = squad.mFramebuffer;
             
@@ -822,17 +836,6 @@ void ShoRendererVk::renderFrame() {
                 return;
             }
         }
-        
-        // Wait for the rest of the command buffers to finish
-        vkWaitForFences(
-            Video::Vulkan::getLogicalDevice(), 
-            mAllFenceRenderFinished.size(), mAllFenceRenderFinished.data(), 
-            VK_TRUE, // Wait for all of them to complete (as opposed to any of them)
-            std::numeric_limits<uint64_t>::max() // Be *very* patient
-            );
-
-        // This must be done only while it is guaranteed that no command buffer is running
-        mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
         
         // Reset the fence so it can be triggered again by the completion of our queue submission
         vkResetFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished));
