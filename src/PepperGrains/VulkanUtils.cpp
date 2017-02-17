@@ -86,11 +86,8 @@ void cmdCopyBuffer(VkCommandBuffer cmdBuff, VkBuffer src, VkBuffer dest, VkDevic
 }
 void immCopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize destOffset) {
     VkCommandBuffer cmdBuff;
-    
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
-    
     cmdCopyBuffer(cmdBuff, src, dest, size, srcOffset, destOffset);
-    
     VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
@@ -115,11 +112,8 @@ void cmdCopyImage(VkCommandBuffer cmdBuff, VkImage src, VkImageLayout srcLayout,
 }
 void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLayout destLayout, uint32_t imgWidth, uint32_t imgHeight) {
     VkCommandBuffer cmdBuff;
-    
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
-    
     cmdCopyImage(cmdBuff, src, srcLayout, dest, destLayout, imgWidth, imgHeight);
-    
     VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 
@@ -378,22 +372,60 @@ VkIndexType indexTypeFromSize(uint8_t size) {
     }
 }
 
+bool imageViewCreate(
+    VkImage img, 
+    VkFormat imgFormat, 
+    VkImageAspectFlags aspectFlags, 
+    VkImageView* imgView) {
+        VkResult result;
+        
+        VkImageViewCreateInfo ivCargs; {
+            ivCargs.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            ivCargs.pNext = nullptr;
+            ivCargs.flags = 0;
+            
+            ivCargs.image = img;
+            ivCargs.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            ivCargs.format = imgFormat;
+            ivCargs.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            ivCargs.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            ivCargs.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            ivCargs.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            ivCargs.subresourceRange.aspectMask = aspectFlags;
+            ivCargs.subresourceRange.baseMipLevel = 0;
+            ivCargs.subresourceRange.levelCount = 1;
+            ivCargs.subresourceRange.baseArrayLayer = 0;
+            ivCargs.subresourceRange.layerCount = 1;
+        }
+        
+        result = vkCreateImageView(Video::Vulkan::getLogicalDevice(), &ivCargs, nullptr, imgView);
+        
+        if(result != VK_SUCCESS) {
+            Logger::log(Logger::WARN) << "Could not create image view" << std::endl;
+            return false;
+        }
+        return true;
+    }
+
 bool physDeviceSupportsFormat(VkFormat format, VkImageTiling imageTilingType, VkFormatFeatureFlags requiredFormatFeatures) {
     VkFormatProperties formatProps;
     vkGetPhysicalDeviceFormatProperties(Video::Vulkan::getPhysicalDevice(), format, &formatProps);
     
     switch(imageTilingType) {
         case VK_IMAGE_TILING_LINEAR: {
-            if((formatProps.linearTilingFeatures & requiredFormatFeatures) == requiredFormatFeatures) return true;
+            return (formatProps.linearTilingFeatures & requiredFormatFeatures) == requiredFormatFeatures;
         }
         
         case VK_IMAGE_TILING_OPTIMAL: {
-            if((formatProps.optimalTilingFeatures & requiredFormatFeatures) == requiredFormatFeatures) return true;
+            return (formatProps.optimalTilingFeatures & requiredFormatFeatures) == requiredFormatFeatures;
         }
         
         // Note: future Vulkan specifications may have more tiling types
+        
+        default: {
+            return false;
+        }
     }
-    return false;
 }
 
 bool formatHasStencilComponent(VkFormat format) {
