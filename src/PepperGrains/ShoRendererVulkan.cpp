@@ -233,6 +233,8 @@ bool ShoRendererVk::initializeFramebuffers() {
         
         std::array<VkImageView, 2> imgViewAttachments = {
             Video::Vulkan::getSwapchainImageViews().at(index),
+            
+            // The one depth image can be shared because only one subpass can run at a time
             mDepthImageView
         };
         
@@ -557,6 +559,26 @@ bool ShoRendererVk::initializePipeline() {
         pmsCstrArgs.alphaToOneEnable = VK_FALSE;
     }
     
+    VkPipelineDepthStencilStateCreateInfo dssCargs; {
+        dssCargs.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        dssCargs.pNext = nullptr;
+        dssCargs.flags = 0;
+        
+        dssCargs.depthTestEnable = VK_TRUE;
+        dssCargs.depthWriteEnable = VK_TRUE;
+        dssCargs.depthCompareOp = VK_COMPARE_OP_LESS;
+        
+        // Bound depth values to range?
+        dssCargs.depthBoundsTestEnable = VK_FALSE;
+        dssCargs.minDepthBounds = 0.f;
+        dssCargs.maxDepthBounds = 1.f;
+        
+        // Enable stencil test?
+        dssCargs.stencilTestEnable = VK_FALSE;
+        dssCargs.front = {};
+        dssCargs.back = {};
+    }
+    
     VkPipelineColorBlendAttachmentState pcbas; {
         pcbas.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         pcbas.blendEnable = VK_FALSE;
@@ -626,7 +648,7 @@ bool ShoRendererVk::initializePipeline() {
         gpCstrArgs.pViewportState = &pvsCstrArgs;
         gpCstrArgs.pRasterizationState = &prsCstrArgs;
         gpCstrArgs.pMultisampleState = &pmsCstrArgs;
-        gpCstrArgs.pDepthStencilState = nullptr;
+        gpCstrArgs.pDepthStencilState = &dssCargs;
         gpCstrArgs.pColorBlendState = &pcbsCstrArgs;
         gpCstrArgs.pDynamicState = nullptr;
         gpCstrArgs.pTessellationState = nullptr;
@@ -673,9 +695,9 @@ bool ShoRendererVk::populateCommandBuffers() {
         
         result = vkBeginCommandBuffer(cmdBuff, &cbbArgs);
         
-        VkClearValue clearVal; {
-            clearVal.color = {0, 1, 1, 1};
-        }
+        std::array<VkClearValue, 2> clearVals;
+        clearVals[0].color = {0, 1, 1, 1};
+        clearVals[1].depthStencil = {1.f, 0};
         
         VkRenderPassBeginInfo rpbArgs; {
             rpbArgs.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -684,8 +706,8 @@ bool ShoRendererVk::populateCommandBuffers() {
             rpbArgs.framebuffer = framebuff;
             rpbArgs.renderArea.offset = {0, 0};
             rpbArgs.renderArea.extent = Video::Vulkan::getSwapchainExtent();
-            rpbArgs.clearValueCount = 1;
-            rpbArgs.pClearValues = &clearVal;
+            rpbArgs.clearValueCount = clearVals.size();
+            rpbArgs.pClearValues = clearVals.data();
         }
         
         vkCmdBeginRenderPass(cmdBuff, &rpbArgs, VK_SUBPASS_CONTENTS_INLINE);
