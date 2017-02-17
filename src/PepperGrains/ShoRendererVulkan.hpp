@@ -45,14 +45,36 @@ private:
     
     VkSemaphore mSemImageAvailable = VK_NULL_HANDLE;
     
+    /// Groups together per-swapchain-image objects: a framebuffer, command buffer, and mutexes
     struct FramebufferSquad {
+        /// Associated framebuffer
         VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
+        
+        /// Holds graphics-related commands; i.e. drawing operations
         VkCommandBuffer mGraphicsCmdBuffer = VK_NULL_HANDLE;
+        
+        /**
+         * Triggered when the command buffer completes (a swapchain image has been drawn to)
+         * Used to synchronize the completion of a swapchain image with presentation on the screen
+         */
         VkSemaphore mSemRenderFinished = VK_NULL_HANDLE;
+        
+        /**
+         * Triggered when the command buffer completes (a swapchain image has been drawn to)
+         * Used to synchronize (wait until the command buffer completes) before modifying shared memory
+         */
         VkFence mFenceRenderFinished = VK_NULL_HANDLE;
     };
     
+    /**
+     * Each swapchain image has its own framebuffer, etc.
+     * The indices into this vector correspond to the indices returned by Vulkan when querying the next available
+     * swapchain image.
+     */
     std::vector<FramebufferSquad> mFramebufferSquads;
+    
+    /// Holds copies of all mFenceRenderFinished members in mFramebufferSquads
+    std::vector<VkFence> mAllFenceRenderFinished;
     
     VkBuffer mUniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;

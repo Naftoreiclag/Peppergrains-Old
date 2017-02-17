@@ -273,6 +273,7 @@ bool ShoRendererVk::initializeFramebuffers() {
         fenceCargs.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     }
     
+    
     // Must iterate by reference; modifying values
     for(FramebufferSquad& squad : mFramebufferSquads) {
         result = vkCreateSemaphore(Video::Vulkan::getLogicalDevice(), &semaphoreCargs, nullptr, &(squad.mSemRenderFinished));
@@ -285,6 +286,15 @@ bool ShoRendererVk::initializeFramebuffers() {
             sout << "Could not create render completion fence" << std::endl;
             return false;
         }
+    }
+    
+    mAllFenceRenderFinished.reserve(mFramebufferSquads.size());
+    for(FramebufferSquad squad : mFramebufferSquads) {
+        if(squad.mFenceRenderFinished == VK_NULL_HANDLE) {
+            sout << "Framebuffer group's render finishing fence is null" << std::endl;
+            return false;
+        }
+        mAllFenceRenderFinished.push_back(squad.mFenceRenderFinished);
     }
     
     return true;
@@ -755,6 +765,7 @@ bool ShoRendererVk::cleanup() {
         vkFreeCommandBuffers(Video::Vulkan::getLogicalDevice(), Video::Vulkan::getGraphicsCommandPool(), 1, &(framebufferSquad.mGraphicsCmdBuffer));
     }
     mFramebufferSquads.clear();
+    mAllFenceRenderFinished.clear();
     
     vkDestroyImage(Video::Vulkan::getLogicalDevice(), mDepthImage, nullptr);
     vkFreeMemory(Video::Vulkan::getLogicalDevice(), mDepthImageMemory, nullptr);
@@ -782,8 +793,8 @@ void ShoRendererVk::renderFrame() {
             submitArgs.pNext = nullptr;
             
             // What semaphores need to be waited on and when:
-            // Basically, tell Vulkan to wait until the image availability semaphore is triggered before it writes the color
-            // information. pWaitDstStageMask specifies this.
+            // Basically, tell Vulkan to wait until the image availability semaphore is triggered before it writes 
+            // the color information. pWaitDstStageMask specifies this.
             submitArgs.waitSemaphoreCount = 1;
             submitArgs.pWaitSemaphores = &mSemImageAvailable;
             submitArgs.pWaitDstStageMask = &waitFlag;
@@ -798,8 +809,13 @@ void ShoRendererVk::renderFrame() {
         // This can be done asynchronously in respects to the command buffers
         //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapOpaque, this, std::placeholders::_1));
         
-        // Wait for the fence to get triggered
-        vkWaitForFences(Video::Vulkan::getLogicalDevice(), 1, &(squad.mFenceRenderFinished), VK_TRUE, std::numeric_limits<uint64_t>::max());
+        // Wait for all command buffers to finish
+        vkWaitForFences(
+            Video::Vulkan::getLogicalDevice(), 
+            mAllFenceRenderFinished.size(), mAllFenceRenderFinished.data(), 
+            VK_TRUE, // Wait for all of them to complete (as opposed to any of them)
+            std::numeric_limits<uint64_t>::max() // Be *very* patient
+            );
 
         // This must be done only while it is guaranteed that no command buffer is running
         //mScenegraph->processAll(std::bind(&ShoRendererVk::modelimapUniformBufferUpdate, this, std::placeholders::_1));
@@ -807,7 +823,6 @@ void ShoRendererVk::renderFrame() {
             glm::mat4 geomMVP[] = {
                 mCamera.getProjMatrix() * mCamera.getViewMatrix() * glm::mat4()
             };
-            // Warning: this is unsafe behavior, since the uniform buffer could still be in use by a running command buffer
             void* memAddr;
             vkMapMemory(Video::Vulkan::getLogicalDevice(), mUniformBufferMemory, 0, sizeof(geomMVP), 0, &memAddr);
             memcpy(memAddr, geomMVP, sizeof(geomMVP));
