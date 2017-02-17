@@ -123,7 +123,7 @@ void immCopyImage(VkImage src, VkImageLayout srcLayout, VkImage dest, VkImageLay
     VulkanUtils::immediateCmdBufferEnd(Video::Vulkan::getTransferQueue(), Video::Vulkan::getTransferCommandPool(), &cmdBuff);
 }
 
-void immChangeImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void immChangeImageLayout(VkImage img, VkFormat imgFormat, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBuffer cmdBuff;
     
     VulkanUtils::immediateCmdBufferBegin(Video::Vulkan::getTransferCommandPool(), &cmdBuff);
@@ -147,7 +147,10 @@ void immChangeImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout,
     }
         
     switch(oldLayout) {
-        case VK_IMAGE_LAYOUT_UNDEFINED:
+        case VK_IMAGE_LAYOUT_UNDEFINED: {
+            imgMemoryBarrier.srcAccessMask = 0;
+            break;
+        }
         case VK_IMAGE_LAYOUT_PREINITIALIZED: {
             imgMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
             break;
@@ -192,6 +195,10 @@ void immChangeImageLayout(VkImage img, VkFormat format, VkImageLayout oldLayout,
         }
         case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: {
             imgMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        }
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: {
+            imgMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             break;
         }
         case VK_IMAGE_LAYOUT_UNDEFINED:
