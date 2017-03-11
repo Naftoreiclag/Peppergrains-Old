@@ -29,7 +29,7 @@ list(APPEND CMAKE_MODULE_PATH "${PEPPERGRAINS_SOURCE_DIR}/cmake")
 ### Variables starting with "PGLOCAL_" are not CMake built-ins
 
 # Where the .cpp files reside
-set(PGLOCAL_SOURCE_DIR "${PEPPERGRAINS_SOURCE_DIR}/src")
+set(PGLOCAL_SOURCE_DIR "${PEPPERGRAINS_SOURCE_DIR}/src/PepperGrains")
 
 # Where the header files reside
 set(PGLOCAL_INCLUDE_DIRS ${PGLOCAL_SOURCE_DIR})
