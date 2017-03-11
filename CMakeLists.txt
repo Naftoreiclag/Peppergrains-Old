@@ -23,6 +23,9 @@ cmake_minimum_required(VERSION 3.0.2)
 project(PEPPERGRAINS VERSION 0.1.0)
 message(STATUS "Peppergrains Engine version ${PEPPERGRAINS_VERSION}")
 
+# Where to find modules
+list(APPEND CMAKE_MODULE_PATH "${PEPPERGRAINS_SOURCE_DIR}/cmake")
+
 ### Variables starting with "PGLOCAL_" are not CMake built-ins
 
 # Where the .cpp files reside
@@ -36,23 +39,16 @@ set(PGLOCAL_ENGINE_TARGET "Pegr")
 
 ### User options ###
 
-# ...
-
 ### Build target configuration ###
 
-# Include files from the src directory
-include_directories(${PGLOCAL_INCLUDE_DIRS})
-
-# All of the source files
-# Prefer to not use GLOB, since that causes headaches
-set(PGLOCAL_SOURCES_LIST
-)
+# Load the sources list from a file as PGLOCAL_SOURCES_LIST
+include("EngineSrcList")
 
 # Add a new build target
 add_executable(${PGLOCAL_ENGINE_TARGET} ${PGLOCAL_SOURCES_LIST})
 
 # Add required features
-set_property(TARGET ${PGLOCAL_ENGINE_TARGET}  PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${PGLOCAL_ENGINE_TARGET} PROPERTY CXX_STANDARD 11)
 
 ### Locate packages ###
 
@@ -64,11 +60,13 @@ find_package(LUA)
 message(STATUS "Lua 5.3:")
 if(LUA_FOUND)
     if(LUA_VERSION_MAJOR EQUAL 5 AND NOT LUA_VERSION_MINOR LESS 3)
-        message(STATUS "\tFOUND VERSION: ${LUA_VERSION_STRING}")
-        set(PGLOCAL_INCLUDE_DIRS ${PGLOCAL_INCLUDE_DIRS} ${LUA_INCLUDE_DIR})
+        message(STATUS "\tFOUND VERSION: " ${LUA_VERSION_STRING})
+        message(STATUS "\tIncludes: " ${LUA_INCLUDE_DIR})
+        message(STATUS "\tLibraries: " ${LUA_LIBRARY})
+        list(APPEND PGLOCAL_INCLUDE_DIRS ${LUA_INCLUDE_DIR})
         target_link_libraries(${PGLOCAL_ENGINE_TARGET} ${LUA_LIBRARY})
     else()
-        message("\tINCOMPATIBLE VERSION: ${LUA_VERSION_STRING}")
+        message("\tINCOMPATIBLE VERSION: " ${LUA_VERSION_STRING})
         set(PGLOCAL_ALL_REQUIRED_READY FALSE)
     endif()
 else()
@@ -82,3 +80,6 @@ if(PGLOCAL_ALL_REQUIRED_READY)
 else()
     message("One or more packages are missing, build will fail!")
 endif()
+
+# Setup include directories
+include_directories(${PGLOCAL_INCLUDE_DIRS})
