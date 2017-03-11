@@ -43,8 +43,8 @@ void MissionGameLayer::onBegin() {
     mRenderer->initialize();
     mRenderer->setScenegraph(mScenegraph);
     
-    mScenegraph->setModelInstance(new ModelInstance(Model::getFallback()));
-    //mScenegraph->setModelInstance(new ModelInstance(ModelResource::gallop(Resources::find("Monkey.model"))));
+    //mScenegraph->setModelInstance(new ModelInstance(Model::getFallback()));
+    mScenegraph->setModelInstance(new ModelInstance(ModelResource::gallop(Resources::find("Monkey.model"))));
     //mScenegraph->setModelInstance(nullptr);
     
     mRenderer->mCamera.setProjMatrix(glm::radians(50.f), Video::calcWindowAspectRatio(), 0.2f, 200.f);

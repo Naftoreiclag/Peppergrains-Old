@@ -36,6 +36,7 @@ public:
     
     Model();
     Model(Geometry* geometry, Material* model);
+    virtual ~Model();
     
     virtual Geometry* getGeometry() const;
     virtual Material* getMaterial() const;

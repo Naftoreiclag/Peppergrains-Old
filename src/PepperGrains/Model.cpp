@@ -35,6 +35,8 @@ Model::Model(Geometry* geometry, Material* material)
 , mMaterial(material) {
 }
 
+Model::~Model() { }
+
 void Model::load() {
     mGeometry->grab();
     mMaterial->grab();
