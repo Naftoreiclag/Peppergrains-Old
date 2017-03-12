@@ -32,7 +32,11 @@ list(APPEND CMAKE_MODULE_PATH "${PEPPERGRAINS_SOURCE_DIR}/cmake")
 set(PGLOCAL_SOURCE_DIR "${PEPPERGRAINS_SOURCE_DIR}/src/PepperGrains")
 
 # Where the header files reside
-set(PGLOCAL_INCLUDE_DIRS ${PGLOCAL_SOURCE_DIR})
+set(PGLOCAL_INCLUDE_DIRS
+    ${PGLOCAL_SOURCE_DIR}
+    "${PEPPERGRAINS_SOURCE_DIR}/lib/src/jsoncpp/dist"
+    "${PEPPERGRAINS_SOURCE_DIR}/lib/src/stb"
+)
 
 # Name of target executable
 set(PGLOCAL_ENGINE_TARGET "Pegr")
