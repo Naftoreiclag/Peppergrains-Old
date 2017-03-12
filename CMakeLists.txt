@@ -56,8 +56,8 @@ set(PGLOCAL_ALL_REQUIRED_READY TRUE)
 message(STATUS "Package status: ")
 
 # Lua #
-find_package(Lua)
 message(STATUS "Lua 5.3:")
+find_package(Lua)
 if(LUA_FOUND)
     if(LUA_VERSION_MAJOR EQUAL 5 AND NOT LUA_VERSION_MINOR LESS 3)
         message(STATUS "\tFOUND VERSION: " ${LUA_VERSION_STRING})
@@ -75,8 +75,8 @@ else()
 endif()
 
 # GLFW #
-find_package(GLFW)
 message(STATUS "GLFW 3.2")
+find_package(GLFW)
 if(GLFW_FOUND)
     if(GLFW_VERSION_MAJOR EQUAL 3 AND NOT GLFW_VERSION_MINOR LESS 2)
         message(STATUS "\tFOUND VERSION: " ${GLFW_VERSION_STRING})
@@ -92,6 +92,26 @@ else()
     message("\tNOT FOUND")
     set(PGLOCAL_ALL_REQUIRED_READY FALSE)
 endif()
+
+# BOOST #
+message(STATUS "Boost 1.59")
+find_package(Boost COMPONENTS system filesystem)
+if(Boost_FOUND)
+    if(Boost_MAJOR_VERSION EQUAL 1 AND NOT Boost_MINOR_VERSION LESS 59)
+        message(STATUS "\tFOUND VERSION: " ${Boost_VERSION})
+        message(STATUS "\tInclude Dirs: " ${Boost_INCLUDE_DIRS})
+        message(STATUS "\tLibraries: " ${Boost_LIBRARIES})
+        list(APPEND PGLOCAL_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
+        target_link_libraries(${PGLOCAL_ENGINE_TARGET} ${Boost_LIBRARIES})
+    else()
+        message("\tINCOMPATIBLE VERSION: " ${Boost_VERSION})
+        set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+    endif()
+else()
+    message("\tNOT FOUND")
+    set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+endif()
+
 
 # Helpful information
 if(PGLOCAL_ALL_REQUIRED_READY)
