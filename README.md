@@ -22,7 +22,7 @@ Planned features include:
 - Support for unconventional 3D models and rendering (tangent vector fields, 
   implicit surface, etc.)
 
-## License
+### License
 
 The Peppergrains engine source code, which is located in the `src/` directory,
 is proudly licensed under the 
@@ -34,21 +34,20 @@ Files found outside the `src/` repository, including but not limited to those
 located in the `cmake/` directory, may be subject to different licensing
 terms. Please see individual files for details.
 
-## Utilized Libraries
+## Building & Running
 
-Peppergrains is non-copyleft open-source software. As such, it must only also
-use such software.
+Peppergrains uses [CMake](https://cmake.org/) for build configurations.
 
-*Note: The library names are reproduced here solely to give the reader a sense 
-of the scale of Peppergrains. Each library utilized is the copyright of its 
-respective author(s). Please see individual library homepages for more accurate 
-licensing information. (I have frequently made mistakes in keeping this list 
-up-to-date!)*
+### Dependencies
+
+Peppergrains requires the following libraries to be built correctly.
 
 - [OpenGL](https://www.opengl.org/) or [Vulkan](https://www.khronos.org/vulkan/)
   for rendering
 - [SDL2](https://www.libsdl.org/) or [GLFW](http://www.glfw.org/)
   for windowing and event handling
+- [Lua](http://www.lua.org/)
+  for scripting
 - [libsoundio](http://libsound.io)
   for sound
 - [Boost](http://www.boost.org/)
@@ -59,3 +58,16 @@ up-to-date!)*
   for serialization, config files
 - [stb](https://github.com/nothings/stb)
   for image loading
+
+*Each library listed above is the copyright of its respective author(s). Please
+see individual library homepages for more accurate licensing information.*
+
+### Runtime Environment
+
+By default, Peppergrains expects its runtime environment to be set up such that:
+- `<home>/user/` contains all player-specific data
+- `<home>/user/addons` contains all addons that can be loaded
+- `<home>/resources/` contains all essential engine resources
+
+`<home>` is by default `..`.
+
