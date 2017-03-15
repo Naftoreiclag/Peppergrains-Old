@@ -60,7 +60,7 @@ set(PGLOCAL_ALL_REQUIRED_READY TRUE)
 message(STATUS "Package status: ")
 
 # Lua #
-message(STATUS "Lua 5.3:")
+message(STATUS "Lua 5.3 ==============")
 find_package(Lua)
 if(LUA_FOUND)
     if(LUA_VERSION_MAJOR EQUAL 5 AND NOT LUA_VERSION_MINOR LESS 3)
@@ -79,7 +79,7 @@ else()
 endif()
 
 # GLFW #
-message(STATUS "GLFW 3.2")
+message(STATUS "GLFW 3.2 =============")
 find_package(GLFW)
 if(GLFW_FOUND)
     if(GLFW_VERSION_MAJOR EQUAL 3 AND NOT GLFW_VERSION_MINOR LESS 2)
@@ -98,7 +98,7 @@ else()
 endif()
 
 # BOOST #
-message(STATUS "Boost 1.59")
+message(STATUS "Boost 1.59 ===========")
 find_package(Boost COMPONENTS system filesystem)
 if(Boost_FOUND)
     if(Boost_MAJOR_VERSION EQUAL 1 AND NOT Boost_MINOR_VERSION LESS 59)
@@ -116,6 +116,35 @@ else()
     set(PGLOCAL_ALL_REQUIRED_READY FALSE)
 endif()
 
+# Bullet Physics #
+message(STATUS "Bullet Physics =======")
+find_package(Bullet)
+if(BULLET_FOUND)
+    message(STATUS "\tInclude Dirs: " ${BULLET_INCLUDE_DIRS})
+    message(STATUS "\tLibraries: " ${BULLET_LIBRARIES})
+    list(APPEND PGLOCAL_INCLUDE_DIRS ${BULLET_INCLUDE_DIRS})
+    target_link_libraries(${PGLOCAL_ENGINE_TARGET} ${BULLET_LIBRARIES})
+else()
+    message("\tNOT FOUND")
+    set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+endif()
+
+# GLM #
+message(STATUS "GLM ==================")
+find_package(GLM)
+if(GLM_FOUND)
+    if(GLM_VERSION_MAJOR EQUAL 0 AND NOT GLM_VERSION_MINOR LESS 9)
+        message(STATUS "\tFOUND VERSION: " ${GLM_VERSION_STRING})
+        message(STATUS "\tInclude Dirs: " ${GLM_INCLUDE_DIRS})
+        list(APPEND PGLOCAL_INCLUDE_DIRS ${GLM_INCLUDE_DIRS})
+    else()
+        message("\tINCOMPATIBLE VERSION: " ${GLM_VERSION_STRING})
+        set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+    endif()
+else()
+    message("\tNOT FOUND")
+    set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+endif()
 
 # Helpful information
 if(PGLOCAL_ALL_REQUIRED_READY)
