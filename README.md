@@ -22,8 +22,17 @@ Planned features include:
 - Support for unconventional 3D models and rendering (tangent vector fields, 
   implicit surface, etc.)
 
-Proudly licensed under the
+## License
+
+The Peppergrains engine source code, which is located in the `src/` directory,
+is proudly licensed under the 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+A copy of this license is available in the `LICENSE` file located in the
+root of this repository.
+
+Files found outside the `src/` repository, including but not limited to those
+located in the `cmake/` directory, may be subject to different licensing
+terms. Please see individual files for details.
 
 ## Utilized Libraries
 
