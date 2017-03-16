@@ -17,7 +17,8 @@
 ### Basic CMake project and build information ###
 
 # CMake minimum version
-cmake_minimum_required(VERSION 3.0.2)
+# 3.7.2 is the first version that FindVulkan is supported
+cmake_minimum_required(VERSION 3.7.2)
 
 # Project name/version
 project(PEPPERGRAINS VERSION 0.1.0)
@@ -88,6 +89,7 @@ if(GLFW_FOUND)
         message(STATUS "\tLibraries: " ${GLFW_LIBRARY})
         list(APPEND PGLOCAL_INCLUDE_DIRS ${GLFW_INCLUDE_DIR})
         target_link_libraries(${PGLOCAL_ENGINE_TARGET} ${GLFW_LIBRARY})
+        add_definitions("-DPGG_GLFW")
     else()
         message("\tINCOMPATIBLE VERSION: " ${GLFW_VERSION_STRING})
         set(PGLOCAL_ALL_REQUIRED_READY FALSE)
@@ -164,6 +166,21 @@ else()
     message("\tNOT FOUND")
     set(PGLOCAL_ALL_REQUIRED_READY FALSE)
 endif()
+
+# Vulkan #
+message(STATUS "Vulkan ===============")
+find_package(Vulkan)
+if(Vulkan_FOUND)
+    message(STATUS "\tInclude Dirs: " ${Vulkan_INCLUDE_DIRS})
+    message(STATUS "\tLibraries: " ${Vulkan_LIBRARIES})
+    list(APPEND PGLOCAL_INCLUDE_DIRS ${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(${PGLOCAL_ENGINE_TARGET} ${Vulkan_LIBRARIES})
+    add_definitions("-DPGG_VULKAN")
+else()
+    message("\tNOT FOUND")
+    set(PGLOCAL_ALL_REQUIRED_READY FALSE)
+endif()
+
 
 # Helpful information
 if(PGLOCAL_ALL_REQUIRED_READY)
