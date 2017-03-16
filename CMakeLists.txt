@@ -101,6 +101,7 @@ endif()
 
 # BOOST #
 message(STATUS "Boost 1.59 ===========")
+set(Boost_USE_STATIC_LIBS TRUE)
 find_package(Boost COMPONENTS system filesystem)
 if(Boost_FOUND)
     if(Boost_MAJOR_VERSION EQUAL 1 AND NOT Boost_MINOR_VERSION LESS 59)
